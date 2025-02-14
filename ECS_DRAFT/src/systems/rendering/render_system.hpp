@@ -3,9 +3,9 @@
 #include <array>
 #include <utility>
 
-#include "common.hpp"
-#include "tinyECS/components.hpp"
-#include "tinyECS/tiny_ecs.hpp"
+#include "../../common.hpp"
+#include "../../tinyECS/components.hpp"
+#include "../../tinyECS/component_container.hpp"
 
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
@@ -23,25 +23,22 @@ class RenderSystem {
 	// Make sure these paths remain in sync with the associated enumerators.
 	// Associated id with .obj path
 	const std::vector<std::pair<GEOMETRY_BUFFER_ID, std::string>> mesh_paths = {
-		std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::CHICKEN, mesh_path("chicken.obj"))
+
 		// specify meshes of other assets here
 	};
 
 	// Make sure these paths remain in sync with the associated enumerators (see TEXTURE_ASSET_ID).
 	const std::array<std::string, texture_count> texture_paths = {
-		textures_path("invaders/blue_1.png"),
-		textures_path("towers/tower01.png"),
-		textures_path("projectiles/gold_bubble.png")
+            textures_path("effects/explosion1.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, effect_count> effect_paths = {
 		shader_path("coloured"),
-		shader_path("egg"),
-		shader_path("chicken"),
 		shader_path("textured"),
-		shader_path("vignette")
+        shader_path("line"),
+        shader_path("screen"),
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -66,7 +63,7 @@ public:
 	void initializeGlGeometryBuffers();
 
 	// Initialize the screen texture used as intermediate render target
-	// The draw loop first renders to this texture, then it is used for the vignette shader
+	// The draw loop first renders to this texture, then it is used for the screen shader
 	bool initScreenTexture();
 
 	// Destroy resources associated to one or all entities created by the system
@@ -81,7 +78,6 @@ public:
 
 private:
 	// Internal drawing functions for each entity type
-	void drawGridLine(Entity entity, const mat3& projection);
 	void drawTexturedMesh(Entity entity, const mat3& projection);
 	void drawToScreen();
 

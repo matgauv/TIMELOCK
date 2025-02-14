@@ -2,38 +2,10 @@
 #include "common.hpp"
 #include <vector>
 #include <unordered_map>
-#include "../ext/stb_image/stb_image.h"
+#include "../../ext/stb_image/stb_image.h"
 
 // Player component
 struct Player
-{
-
-};
-
-// Tower
-struct Tower {
-	float range;	// for vision / detection
-	int timer_ms;	// when to shoot - this could also be a separate timer component...
-};
-
-// Invader
-struct Invader {
-	int health;
-};
-
-// Projectile
-struct Projectile {
-	int damage;
-};
-
-// used for Entities that cause damage
-struct Deadly
-{
-
-};
-
-// used for edible entities
-struct Eatable
 {
 
 };
@@ -73,17 +45,6 @@ struct DebugComponent
 	// Note, an empty struct has size 1
 };
 
-// used to hold grid line start and end positions
-struct GridLine {
-	vec2 start_pos = {  0,  0 };
-	vec2 end_pos   = { 10, 10 };	// default to diagonal line
-};
-
-// A timer that will be associated to dying chicken
-struct DeathTimer
-{
-	float counter_ms = 3000;
-};
 
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & chicken.vs.glsl)
 struct ColoredVertex
@@ -133,28 +94,23 @@ struct Mesh
  */
 
 enum class TEXTURE_ASSET_ID {
-	INVADER = 0,
-	TOWER = INVADER + 1,
-	PROJECTILE = TOWER + 1,
-	TEXTURE_COUNT = PROJECTILE + 1
+	EXPLOSION = 0,
+	TEXTURE_COUNT = EXPLOSION + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
-	EGG = COLOURED + 1,
-	CHICKEN = EGG + 1,
-	TEXTURED = CHICKEN + 1,
-	VIGNETTE = TEXTURED + 1,
-	EFFECT_COUNT = VIGNETTE + 1
+	TEXTURED = COLOURED + 1,
+  	LINE = TEXTURED + 1,
+  	SCREEN = LINE + 1,
+	EFFECT_COUNT = SCREEN + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
 enum class GEOMETRY_BUFFER_ID {
-	CHICKEN = 0,
-	SPRITE = CHICKEN + 1,
-	EGG = SPRITE + 1,
-	DEBUG_LINE = EGG + 1,
+	SPRITE = 0,
+	DEBUG_LINE = SPRITE + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
 	GEOMETRY_COUNT = SCREEN_TRIANGLE + 1
 };

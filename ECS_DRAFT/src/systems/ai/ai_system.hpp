@@ -1,8 +1,8 @@
 #pragma once
 
 #include "common.hpp"
-#include "render_system.hpp"
-#include "tinyECS/registry.hpp"
+#include "../rendering/render_system.hpp"
+#include "../../tinyECS/registry.hpp"
 
 class AISystem
 {

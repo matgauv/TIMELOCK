@@ -1,6 +1,6 @@
 // internal
 #include "physics_system.hpp"
-#include "world_init.hpp"
+#include "../world/world_init.hpp"
 #include <iostream>
 
 // Returns the local bounding coordinates scaled by the current size of the entity
@@ -35,14 +35,15 @@ void PhysicsSystem::step(float elapsed_ms)
 	auto& motion_registry = registry.motions;
 	for(uint i = 0; i< motion_registry.size(); i++)
 	{
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// !!! TODO A1: update motion.position based on step_seconds and motion.velocity
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		Motion& motion = motion_registry.components[i];
 		Entity entity = motion_registry.entities[i];
 		float step_seconds = elapsed_ms / 1000.f;
 
-		(void)elapsed_ms; // placeholder to silence unused warning until implemented
+
+        // suppress warnings until we use these
+        (void) step_seconds;
+        (void) motion;
+		(void)elapsed_ms;
 	}
 
 	// check for collisions between all moving entities

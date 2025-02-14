@@ -1,7 +1,7 @@
 #pragma once
 
 // internal
-#include "common.hpp"
+#include "../../common.hpp"
 
 // stlib
 #include <vector>
@@ -11,7 +11,7 @@
 #include <SDL.h>
 #include <SDL_mixer.h>
 
-#include "render_system.hpp"
+#include "../rendering/render_system.hpp"
 
 // Container for all our entities and game logic.
 // Individual rendering / updates are deferred to the update() methods.
@@ -60,14 +60,6 @@ private:
 	// OpenGL window handle
 	GLFWwindow* window;
 
-	int next_invader_spawn;
-	int invader_spawn_rate_ms;	// see default value in common.hpp
-
-	int max_towers;	// see default value in common.hpp
-
-	// Number of invaders stopped by the towers, displayed in the window title
-	unsigned int points;
-
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
@@ -77,8 +69,6 @@ private:
 
 	// music references
 	Mix_Music* background_music;
-	Mix_Chunk* chicken_dead_sound;
-	Mix_Chunk* chicken_eat_sound;
 
 	// C++ random number generator
 	std::default_random_engine rng;

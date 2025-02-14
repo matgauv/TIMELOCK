@@ -1,2 +1,8 @@
 .idea
 .vs
+
+ECS_DRAFT/cmake_install.cmake
+ECS_DRAFT/CMakeCache.txt
+ECS_DRAFT/Makefile
+ECS_DRAFT/CMakeFiles
+ECS_DRAFT/ext/project_path.hpp

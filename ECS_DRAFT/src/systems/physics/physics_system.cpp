@@ -10,6 +10,27 @@ vec2 get_bounding_box(const Motion& motion)
 	return { abs(motion.scale.x), abs(motion.scale.y) };
 }
 
+SIDE get_collision_side(const Motion& a, const Motion& b) {
+	vec2 aHalf = get_bounding_box(a) * 0.5f;
+	vec2 bHalf = get_bounding_box(b) * 0.5f;
+
+	vec2 delta = a.position - b.position;
+
+	float overlapX = (aHalf.x + bHalf.x) - fabs(delta.x);
+	float overlapY = (aHalf.y + bHalf.y) - fabs(delta.y);
+
+	SIDE result = SIDE::NONE;
+	if (overlapX > 0 && overlapY > 0) {
+		if (overlapX < overlapY) {
+			result = (delta.x > 0) ? SIDE::LEFT : SIDE::RIGHT;
+		} else {
+			result = (delta.y > 0) ? SIDE::TOP : SIDE::BOTTOM;
+		}
+	}
+
+	return result;
+}
+
 // This is a SUPER APPROXIMATE check that puts a circle around the bounding boxes and sees
 // if the center point of either object is inside the other's bounding-box-circle. You can
 // surely implement a more accurate detection
@@ -31,8 +52,10 @@ void PhysicsSystem::init(GLFWwindow* window) {
 	this->window = window;
 }
 
-void PhysicsSystem::step(float elapsed_ms)
-{
+void PhysicsSystem::step(float elapsed_ms) {
+	auto& falling_registry = registry.falling;
+	auto& walking_registry = registry.walking;
+
 	// Move each entity that has motion (invaders, projectiles, and even towers [they have 0 for velocity])
 	// based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
@@ -43,11 +66,24 @@ void PhysicsSystem::step(float elapsed_ms)
 		Entity entity = motion_registry.entities[i];
 		float step_seconds = elapsed_ms / 1000.f;
 
+		if (falling_registry.has(entity)) {
+			if (motion.velocity.y < motion.terminal_velocity.y) {
+				motion.velocity.y += GRAVITY * step_seconds; // gravity is (m/s^2) so * by
+			}
+		}
 
-        // suppress warnings until we use these
-        (void) step_seconds;
-        (void) motion;
-		(void)elapsed_ms;
+		if (walking_registry.has(entity)) {
+			Walking& walking = walking_registry.get(entity);
+			if (abs(motion.velocity.x) < walking.max_walking_speed) {
+				if (walking.is_left) {
+					motion.velocity.x -= (walking.acceleration * step_seconds);
+				} else {
+					motion.velocity.x += (walking.acceleration * step_seconds);
+				}
+			}
+		}
+
+		motion.position += motion.velocity * step_seconds;
 	}
 
 	// check for collisions between all moving entities
@@ -61,14 +97,12 @@ void PhysicsSystem::step(float elapsed_ms)
 		for(uint j = i+1; j < motion_container.components.size(); j++)
 		{
 			Motion& motion_j = motion_container.components[j];
-			if (collides(motion_i, motion_j))
+			SIDE side = get_collision_side(motion_i, motion_j);
+
+			if (side != SIDE::NONE)
 			{
 				Entity entity_j = motion_container.entities[j];
-				// Create a collisions event
-				// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
-				// CK: why the duplication, except to allow searching by entity_id
-				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
-				// registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+				registry.collisions.emplace_with_duplicates(entity_i, entity_j, side);
 			}
 		}
 	}

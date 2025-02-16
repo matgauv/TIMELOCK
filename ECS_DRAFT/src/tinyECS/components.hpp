@@ -7,15 +7,39 @@
 // Player component
 struct Player
 {
-
 };
+
+struct Platform
+{
+};
+
 
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2  position = { 0, 0 };
 	float angle    = 0;
 	vec2  velocity = { 0, 0 };
+	vec2  terminal_velocity = {0, 0};
 	vec2  scale    = { 10, 10 };
+};
+
+struct Falling
+{
+};
+
+struct Walking {
+	float max_walking_speed = 500.0f;
+	float acceleration = 200.0f;
+	bool is_left = false;
+};
+
+// counterclockwise
+enum SIDE {
+	LEFT = 0,
+	BOTTOM = 1,
+	RIGHT = 2,
+	TOP = 3,
+	NONE = 4
 };
 
 // Stucture to store collision information
@@ -23,7 +47,11 @@ struct Collision
 {
 	// Note, the first object is stored in the ECS container.entities
 	Entity other; // the second object involved in the collision
-	Collision(Entity& other) { this->other = other; };
+	SIDE side;
+	Collision(Entity& other, SIDE side) {
+		this->other = other;
+		this->side = side;
+	};
 };
 
 // Data structure for toggling debug mode
@@ -94,8 +122,9 @@ struct Mesh
  */
 
 enum class TEXTURE_ASSET_ID {
-	EXPLOSION = 0,
-	TEXTURE_COUNT = EXPLOSION + 1
+	BLACK = 0,
+	GREY_CIRCLE = BLACK + 1,
+	TEXTURE_COUNT = GREY_CIRCLE + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

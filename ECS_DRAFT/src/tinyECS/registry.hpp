@@ -14,11 +14,14 @@ public:
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
 	ComponentContainer<Player> players;
+	ComponentContainer<Platform> platforms;
 	ComponentContainer<Mesh*> meshPtrs;
 	ComponentContainer<RenderRequest> renderRequests;
 	ComponentContainer<ScreenState> screenStates;
 	ComponentContainer<DebugComponent> debugComponents;
 	ComponentContainer<vec3> colors;
+	ComponentContainer<Falling> falling;
+	ComponentContainer<Walking> walking;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -26,11 +29,14 @@ public:
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
 		registry_list.push_back(&players);
+		registry_list.push_back(&platforms);
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);
 		registry_list.push_back(&screenStates);
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&colors);
+		registry_list.push_back(&falling);
+		registry_list.push_back(&walking);
 	}
 
 	void clear_all_components() {

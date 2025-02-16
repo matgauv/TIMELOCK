@@ -132,17 +132,55 @@ void WorldSystem::restart_game() {
 
 	// debugging for memory/component leaks
 	registry.list_all_components();
+
+	load_level("");
+}
+
+void WorldSystem::handle_player_object_collision(Entity player_entity, Collision collision) {
+	Motion& player_motion = registry.motions.get(player_entity);
+	if (collision.side == SIDE::BOTTOM || collision.side == SIDE::TOP) {
+		player_motion.velocity.y = 0.0f;
+	} else if (collision.side == SIDE::LEFT || collision.side == SIDE::RIGHT) {
+		player_motion.velocity.x = 0.0f;
+	}
+	registry.falling.remove(player_entity);
 }
 
 // Compute collisions between entities
 void WorldSystem::handle_collisions() {
 	ComponentContainer<Collision>& collision_container = registry.collisions;
 	for (uint i = 0; i < collision_container.components.size(); i++) {
+		Entity& one = collision_container.entities[i];
+		Collision& collision = collision_container.components[i];
+		Entity& other = collision.other;
 
+		if (registry.players.has(one) && registry.platforms.has(other)) {
+			handle_player_object_collision(one, collision);
 
+			registry.falling.remove(one);
+		} else if (registry.players.has(other) && registry.platforms.has(one)) {
+			handle_player_object_collision(other, collision);
+		}
 	}
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
+}
+
+void WorldSystem::player_walking(bool walking, bool is_left) {
+	Entity& player = registry.players.entities[0];
+	if (walking) {
+		if (registry.walking.has(player)) {
+			Walking& walking_component = registry.walking.get(player);
+			walking_component.is_left = is_left;
+		} else {
+			Walking& walking_component = registry.walking.emplace(player);
+			walking_component.is_left = is_left;
+		}
+	} else {
+		registry.walking.remove(player);
+		Motion& motion = registry.motions.get(player);
+		motion.velocity.x = 0.0f;
+	}
 }
 
 // on key callback
@@ -169,6 +207,22 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			else {
 				debugging.in_debug_mode = true;
 			}
+		}
+	}
+
+	if (key == GLFW_KEY_RIGHT) {
+		if (action == GLFW_PRESS) {
+			player_walking(true, false);
+		} else if (action == GLFW_RELEASE) {
+			player_walking(false, false);
+		}
+	}
+
+	if (key == GLFW_KEY_LEFT) {
+		if (action == GLFW_PRESS) {
+			player_walking(true, true);
+		} else if (action == GLFW_RELEASE) {
+			player_walking(false, true);
 		}
 	}
 }

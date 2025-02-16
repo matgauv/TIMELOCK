@@ -35,6 +35,8 @@ inline std::string mesh_path(const std::string& name) {return data_path() + "/me
 //
 const int WINDOW_WIDTH_PX = 840;
 const int WINDOW_HEIGHT_PX = 600;
+const float M_TO_PIXELS = 50.0f; // 50 px is 1m
+const float GRAVITY = 9.8f * M_TO_PIXELS;
 
 
 #ifndef M_PI

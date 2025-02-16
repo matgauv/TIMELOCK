@@ -2,5 +2,5 @@
 .vs
 
 ECS_DRAFT/ext/project_path.hpp
-ECS_DRAFT/TIMELOCK
 ECS_DRAFT/build
+ECS_DRAFT/cmake-build-debug

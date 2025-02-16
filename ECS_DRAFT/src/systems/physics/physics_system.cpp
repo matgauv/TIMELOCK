@@ -27,6 +27,10 @@ bool collides(const Motion& motion1, const Motion& motion2)
 	return false;
 }
 
+void PhysicsSystem::init(GLFWwindow* window) {
+	this->window = window;
+}
+
 void PhysicsSystem::step(float elapsed_ms)
 {
 	// Move each entity that has motion (invaders, projectiles, and even towers [they have 0 for velocity])
@@ -68,4 +72,10 @@ void PhysicsSystem::step(float elapsed_ms)
 			}
 		}
 	}
+}
+
+
+void PhysicsSystem::late_step(float elapsed_ms) {
+	// nothing yet
+	(void)elapsed_ms;
 }

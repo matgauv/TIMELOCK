@@ -6,10 +6,11 @@
 #include "../../common.hpp"
 #include "../../tinyECS/components.hpp"
 #include "../../tinyECS/component_container.hpp"
+#include "systems/ISystem.hpp"
 
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
-class RenderSystem {
+class RenderSystem : public ISystem {
 	/**
 	 * The following arrays store the assets the game will use. They are loaded
 	 * at initialization and are assumed to not be modified by the render loop.
@@ -47,7 +48,9 @@ class RenderSystem {
 
 public:
 	// Initialize the window
-	bool init(GLFWwindow* window);
+	void init(GLFWwindow* window) override;
+	void step(float elapsed_ms) override;
+	void late_step(float elapsed_ms) override;
 
 	template <class T>
 	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);

@@ -11,7 +11,7 @@
 
 
 // Render initialization
-bool RenderSystem::init(GLFWwindow* window_arg)
+void RenderSystem::init(GLFWwindow* window_arg)
 {
 	this->window = window_arg;
 
@@ -56,8 +56,6 @@ bool RenderSystem::init(GLFWwindow* window_arg)
     initializeGlTextures();
 	initializeGlEffects();
 	initializeGlGeometryBuffers();
-
-	return true;
 }
 
 void RenderSystem::initializeGlTextures()

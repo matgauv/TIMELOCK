@@ -39,6 +39,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	gl_has_errors();
 
+
 	// texture-mapped entities - use data location as in the vertex buffer
 	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED)
 	{
@@ -189,6 +190,14 @@ void RenderSystem::drawToScreen()
 				  // no offset from the bound index buffer
 	gl_has_errors();
 }
+
+void RenderSystem::step(float elapsed_ms) {
+	// anything to do here?
+};
+
+void RenderSystem::late_step(float elapsed_ms) {
+	draw();
+};
 
 // Render our game world
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/

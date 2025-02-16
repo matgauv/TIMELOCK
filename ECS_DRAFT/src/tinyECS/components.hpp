@@ -33,6 +33,11 @@ struct Walking {
 	bool is_left = false;
 };
 
+struct Blocked {
+	bool left = false;
+	bool right = false;
+};
+
 // counterclockwise
 enum SIDE {
 	LEFT = 0,

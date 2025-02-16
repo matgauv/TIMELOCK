@@ -138,37 +138,73 @@ void WorldSystem::restart_game() {
 
 void WorldSystem::handle_player_object_collision(Entity player_entity, Collision collision) {
 	Motion& player_motion = registry.motions.get(player_entity);
+
+	if (!registry.blocked.has(player_entity)) {
+		registry.blocked.emplace(player_entity);
+	}
+	Blocked& blocked = registry.blocked.get(player_entity);
+
+
 	if (collision.side == SIDE::BOTTOM || collision.side == SIDE::TOP) {
 		player_motion.velocity.y = 0.0f;
-	} else if (collision.side == SIDE::LEFT || collision.side == SIDE::RIGHT) {
-		player_motion.velocity.x = 0.0f;
+	} else if (collision.side == SIDE::LEFT) {
+		blocked.left = true;
+		if (player_motion.velocity.x < 0)
+			player_motion.velocity.x = 0.0f;
 	}
-	registry.falling.remove(player_entity);
+	else if (collision.side == SIDE::RIGHT) {
+		blocked.right = true;
+		if (player_motion.velocity.x > 0)
+			player_motion.velocity.x = 0.0f;
+	}
 }
 
 // Compute collisions between entities
 void WorldSystem::handle_collisions() {
 	ComponentContainer<Collision>& collision_container = registry.collisions;
+    bool playerIsGrounded = false;
+
 	for (uint i = 0; i < collision_container.components.size(); i++) {
 		Entity& one = collision_container.entities[i];
 		Collision& collision = collision_container.components[i];
 		Entity& other = collision.other;
 
+		// check player collisions (TODO: abstract this into logic for any falling component?)
 		if (registry.players.has(one) && registry.platforms.has(other)) {
 			handle_player_object_collision(one, collision);
+			if (collision.side == SIDE::BOTTOM) {
+				registry.falling.remove(one);
+				playerIsGrounded = true;
+			}
 
 			registry.falling.remove(one);
 		} else if (registry.players.has(other) && registry.platforms.has(one)) {
 			handle_player_object_collision(other, collision);
+			if (collision.side == SIDE::TOP) {
+				registry.falling.remove(other);
+				playerIsGrounded = true;
+			}
 		}
 	}
+
+	// after checking all collisions, if player is not marked as grounded they should be falling again.
+	if (!playerIsGrounded) {
+		Entity& player = registry.players.entities[0];
+		if (!registry.falling.has(player)) {
+			registry.falling.emplace(player);
+		}
+	}
+
+
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
 }
 
 void WorldSystem::player_walking(bool walking, bool is_left) {
 	Entity& player = registry.players.entities[0];
+
 	if (walking) {
+		// if already walking, just update direction. Otherwise, add component.
 		if (registry.walking.has(player)) {
 			Walking& walking_component = registry.walking.get(player);
 			walking_component.is_left = is_left;
@@ -177,9 +213,21 @@ void WorldSystem::player_walking(bool walking, bool is_left) {
 			walking_component.is_left = is_left;
 		}
 	} else {
-		registry.walking.remove(player);
+		if (registry.walking.has(player)) {
+			Walking& walking_component = registry.walking.get(player);
+			if (walking_component.is_left == is_left) {
+				registry.walking.remove(player);
+			}
+		}
+	}
+}
+
+void WorldSystem::player_jump() {
+	Entity& player = registry.players.entities[0];
+	if (!registry.falling.has(player)) {
 		Motion& motion = registry.motions.get(player);
-		motion.velocity.x = 0.0f;
+		motion.velocity.y = -JUMP_VELOCITY;
+		registry.falling.emplace(player);
 	}
 }
 
@@ -224,6 +272,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		} else if (action == GLFW_RELEASE) {
 			player_walking(false, true);
 		}
+	}
+
+	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
+		player_jump();
 	}
 }
 

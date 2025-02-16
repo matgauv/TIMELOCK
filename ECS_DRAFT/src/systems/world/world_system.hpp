@@ -39,6 +39,7 @@ private:
 	void handle_collisions();
 
 	void player_walking(bool walking, bool is_left);
+	void player_jump();
 
 	void handle_player_object_collision(Entity player_entity, Collision collision);
 

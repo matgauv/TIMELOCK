@@ -8,6 +8,7 @@ void load_level(std::string descriptor_path) {
     (void)descriptor_path;
     create_player({50.0f, 50.0f}, {50.0f, 50.0f});
     create_platform({WINDOW_WIDTH_PX / 2.0f, WINDOW_HEIGHT_PX - 50.0f}, {WINDOW_WIDTH_PX, 100.0f});
+    create_platform({25.0f, WINDOW_HEIGHT_PX - 100.0f}, {WINDOW_WIDTH_PX /4.0f, 100.0f});
 }
 
 Entity create_player(vec2 position, vec2 scale) {

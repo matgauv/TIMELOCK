@@ -22,6 +22,7 @@ public:
 	ComponentContainer<vec3> colors;
 	ComponentContainer<Falling> falling;
 	ComponentContainer<Walking> walking;
+	ComponentContainer<Blocked> blocked;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -37,6 +38,7 @@ public:
 		registry_list.push_back(&colors);
 		registry_list.push_back(&falling);
 		registry_list.push_back(&walking);
+		registry_list.push_back(&blocked);
 	}
 
 	void clear_all_components() {

@@ -74,16 +74,63 @@ void PhysicsSystem::step(float elapsed_ms) {
 
 		if (walking_registry.has(entity)) {
 			Walking& walking = walking_registry.get(entity);
-			if (abs(motion.velocity.x) < walking.max_walking_speed) {
-				if (walking.is_left) {
-					motion.velocity.x -= (walking.acceleration * step_seconds);
-				} else {
-					motion.velocity.x += (walking.acceleration * step_seconds);
+
+			int desired_direction = walking.is_left ? -1 : 1;
+
+			// check if blocked
+			bool blockedDirection = false;
+			if (registry.blocked.has(entity)) {
+				Blocked& blocked = registry.blocked.get(entity);
+				if (desired_direction < 0 && blocked.left) {
+					blockedDirection = true;
+				}
+				else if (desired_direction > 0 && blocked.right) {
+					blockedDirection = true;
 				}
 			}
-		}
+
+			if (!blockedDirection) {
+				// for snappier movement changes (if entity is moving in oposite of desired direction)
+				// "braking" force is 2x walking acceleration
+				if (motion.velocity.x * desired_direction < 0) {
+					motion.velocity.x += desired_direction * walking.acceleration * 2.0f * step_seconds;
+
+					if (motion.velocity.x * desired_direction > 0)
+						motion.velocity.x = 0;
+				}
+
+				motion.velocity.x += desired_direction * walking.acceleration * step_seconds;
+				// clamp to max walking speed
+				if (fabs(motion.velocity.x) > walking.max_walking_speed)
+					motion.velocity.x = desired_direction * walking.max_walking_speed;
+			} else {
+				motion.velocity.x = 0.0f; // if blocked, don't move
+			}
+		} else {
+           // if not walkin, we're stoppin -- slow down to 0
+			// TODO: other sources of motion might break this... (ie. when moving on a platform)
+			if (motion.velocity.x > 0) {
+				motion.velocity.x -= FRICTION * step_seconds;
+				if (motion.velocity.x < 0)
+					motion.velocity.x = 0;
+			}
+			else if (motion.velocity.x < 0) {
+				motion.velocity.x += FRICTION * step_seconds;
+				if (motion.velocity.x > 0)
+					motion.velocity.x = 0;
+			}
+        }
 
 		motion.position += motion.velocity * step_seconds;
+	}
+
+	// clear blocked...
+	for (Entity player : registry.players.entities) {
+		if (registry.blocked.has(player)) {
+			Blocked& blocked = registry.blocked.get(player);
+			blocked.left = false;
+			blocked.right = false;
+		}
 	}
 
 	// check for collisions between all moving entities

@@ -19,7 +19,6 @@ struct Motion {
 	vec2  position = { 0, 0 };
 	float angle    = 0;
 	vec2  velocity = { 0, 0 };
-	vec2  terminal_velocity = {0, 0};
 	vec2  scale    = { 10, 10 };
 };
 
@@ -28,8 +27,6 @@ struct Falling
 };
 
 struct Walking {
-	float max_walking_speed = 500.0f;
-	float acceleration = 200.0f;
 	bool is_left = false;
 };
 

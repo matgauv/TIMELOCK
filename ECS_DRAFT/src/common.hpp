@@ -35,11 +35,18 @@ inline std::string mesh_path(const std::string& name) {return data_path() + "/me
 //
 const int WINDOW_WIDTH_PX = 840;
 const int WINDOW_HEIGHT_PX = 600;
+
 const float M_TO_PIXELS = 50.0f; // 50 px is 1m
 const float GRAVITY = 9.8f * M_TO_PIXELS;
+const float OBJECT_MAX_FALLING_SPEED = 500.0f;
 
 const float FRICTION = 500.0f;
 const float JUMP_VELOCITY = 300.0f;
+
+const float PLAYER_MAX_FALLING_SPEED = 1000.0f;
+const float PLAYER_MAX_WALKING_SPEED = 300.0f;
+
+const float PLAYER_WALK_ACCELERATION = 500.0f;
 
 
 #ifndef M_PI

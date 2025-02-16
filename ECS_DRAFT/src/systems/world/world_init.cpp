@@ -18,8 +18,7 @@ Entity create_player(vec2 position, vec2 scale) {
     Motion& motion = registry.motions.emplace(entity);
     motion.position = position;
     motion.scale = scale;
-    motion.velocity = {0, 1.0f};
-    motion.terminal_velocity = {1000.0f, 1000.0f};
+    motion.velocity = {0, 0.0f};
     motion.angle = 0.0f;
 
     registry.falling.emplace(entity);

@@ -54,11 +54,7 @@ void PhysicsSystem::init(GLFWwindow* window) {
 
 void PhysicsSystem::step(float elapsed_ms) {
 	auto& falling_registry = registry.falling;
-	auto& walking_registry = registry.walking;
 
-	// Move each entity that has motion (invaders, projectiles, and even towers [they have 0 for velocity])
-	// based on how much time has passed, this is to (partially) avoid
-	// having entities move at different speed based on the machine.
 	auto& motion_registry = registry.motions;
 	for(uint i = 0; i< motion_registry.size(); i++)
 	{
@@ -67,59 +63,12 @@ void PhysicsSystem::step(float elapsed_ms) {
 		float step_seconds = elapsed_ms / 1000.f;
 
 		if (falling_registry.has(entity)) {
-			if (motion.velocity.y < motion.terminal_velocity.y) {
-				motion.velocity.y += GRAVITY * step_seconds; // gravity is (m/s^2) so * by
-			}
+			apply_gravity(entity, motion, step_seconds);
 		}
 
-		if (walking_registry.has(entity)) {
-			Walking& walking = walking_registry.get(entity);
-
-			int desired_direction = walking.is_left ? -1 : 1;
-
-			// check if blocked
-			bool blockedDirection = false;
-			if (registry.blocked.has(entity)) {
-				Blocked& blocked = registry.blocked.get(entity);
-				if (desired_direction < 0 && blocked.left) {
-					blockedDirection = true;
-				}
-				else if (desired_direction > 0 && blocked.right) {
-					blockedDirection = true;
-				}
-			}
-
-			if (!blockedDirection) {
-				// for snappier movement changes (if entity is moving in oposite of desired direction)
-				// "braking" force is 2x walking acceleration
-				if (motion.velocity.x * desired_direction < 0) {
-					motion.velocity.x += desired_direction * walking.acceleration * 2.0f * step_seconds;
-
-					if (motion.velocity.x * desired_direction > 0)
-						motion.velocity.x = 0;
-				}
-
-				motion.velocity.x += desired_direction * walking.acceleration * step_seconds;
-				// clamp to max walking speed
-				if (fabs(motion.velocity.x) > walking.max_walking_speed)
-					motion.velocity.x = desired_direction * walking.max_walking_speed;
-			} else {
-				motion.velocity.x = 0.0f; // if blocked, don't move
-			}
-		} else {
-           // if not walkin, we're stoppin -- slow down to 0
-			// TODO: other sources of motion might break this... (ie. when moving on a platform)
-			if (motion.velocity.x > 0) {
-				motion.velocity.x -= FRICTION * step_seconds;
-				if (motion.velocity.x < 0)
-					motion.velocity.x = 0;
-			}
-			else if (motion.velocity.x < 0) {
-				motion.velocity.x += FRICTION * step_seconds;
-				if (motion.velocity.x > 0)
-					motion.velocity.x = 0;
-			}
-        }
+		if (registry.players.has(entity)	) {
+			player_walk(entity, motion, step_seconds);
+		}
 
 		motion.position += motion.velocity * step_seconds;
 	}
@@ -151,6 +100,69 @@ void PhysicsSystem::step(float elapsed_ms) {
 				Entity entity_j = motion_container.entities[j];
 				registry.collisions.emplace_with_duplicates(entity_i, entity_j, side);
 			}
+		}
+	}
+}
+
+void PhysicsSystem::apply_gravity(Entity& entity, Motion& motion, float step_seconds) {
+	float max_fall_speed = OBJECT_MAX_FALLING_SPEED;
+	if (registry.players.has(entity)) {
+		max_fall_speed = PLAYER_MAX_FALLING_SPEED;
+	}
+
+	if (motion.velocity.y < max_fall_speed) {
+		motion.velocity.y += GRAVITY * step_seconds; // gravity is (m/s^2) so * by
+	}
+
+}
+void PhysicsSystem::player_walk(Entity& entity, Motion& motion, float step_seconds) {
+	if (registry.walking.has(entity)) {
+		Walking& walking = registry.walking.get(entity);
+
+		int desired_direction = walking.is_left ? -1 : 1;
+
+		// check if blocked
+		bool blockedDirection = false;
+		if (registry.blocked.has(entity)) {
+			Blocked& blocked = registry.blocked.get(entity);
+			if (desired_direction < 0 && blocked.left) {
+				blockedDirection = true;
+			}
+			else if (desired_direction > 0 && blocked.right) {
+				blockedDirection = true;
+			}
+		}
+
+		if (!blockedDirection) {
+			// for snappier movement changes (if entity is moving in oposite of desired direction)
+			// "braking" force is 2x walking acceleration
+			if (motion.velocity.x * desired_direction < 0) {
+				motion.velocity.x += desired_direction * PLAYER_WALK_ACCELERATION * 2.0f * step_seconds;
+
+				if (motion.velocity.x * desired_direction > 0)
+					motion.velocity.x = 0;
+			}
+
+			motion.velocity.x += desired_direction * PLAYER_WALK_ACCELERATION * step_seconds;
+			// clamp to max walking speed
+			if (fabs(motion.velocity.x) > PLAYER_MAX_WALKING_SPEED)
+				motion.velocity.x = desired_direction * PLAYER_MAX_WALKING_SPEED;
+		} else {
+			motion.velocity.x = 0.0f; // if blocked, don't move
+		}
+
+	} else {
+		// if not walkin, we're stoppin -- slow down to 0
+		// TODO: other sources of motion might break this... (ie. when moving on a platform)
+		if (motion.velocity.x > 0) {
+			motion.velocity.x -= FRICTION * step_seconds;
+			if (motion.velocity.x < 0)
+				motion.velocity.x = 0;
+		}
+		else if (motion.velocity.x < 0) {
+			motion.velocity.x += FRICTION * step_seconds;
+			if (motion.velocity.x > 0)
+				motion.velocity.x = 0;
 		}
 	}
 }

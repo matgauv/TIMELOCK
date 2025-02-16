@@ -33,6 +33,8 @@ struct Walking {
 struct Blocked {
 	bool left = false;
 	bool right = false;
+	bool top = false;
+	bool bottom = false;
 };
 
 // counterclockwise

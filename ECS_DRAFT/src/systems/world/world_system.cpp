@@ -136,7 +136,7 @@ void WorldSystem::restart_game() {
 	load_level("");
 }
 
-void WorldSystem::handle_player_object_collision(Entity player_entity, Collision collision) {
+void WorldSystem::handle_player_object_collision(Entity player_entity, Collision collision, bool* playerIsGrounded) {
 	Motion& player_motion = registry.motions.get(player_entity);
 
 	if (!registry.blocked.has(player_entity)) {
@@ -145,8 +145,12 @@ void WorldSystem::handle_player_object_collision(Entity player_entity, Collision
 	Blocked& blocked = registry.blocked.get(player_entity);
 
 
+
 	if (collision.side == SIDE::BOTTOM || collision.side == SIDE::TOP) {
 		player_motion.velocity.y = 0.0f;
+		registry.falling.remove(player_entity);
+		blocked.bottom = true;
+		*playerIsGrounded = true;
 	} else if (collision.side == SIDE::LEFT) {
 		blocked.left = true;
 		if (player_motion.velocity.x < 0)
@@ -157,6 +161,8 @@ void WorldSystem::handle_player_object_collision(Entity player_entity, Collision
 		if (player_motion.velocity.x > 0)
 			player_motion.velocity.x = 0.0f;
 	}
+
+
 }
 
 // Compute collisions between entities
@@ -171,19 +177,10 @@ void WorldSystem::handle_collisions() {
 
 		// check player collisions (TODO: abstract this into logic for any falling component?)
 		if (registry.players.has(one) && registry.platforms.has(other)) {
-			handle_player_object_collision(one, collision);
-			if (collision.side == SIDE::BOTTOM) {
-				registry.falling.remove(one);
-				playerIsGrounded = true;
-			}
-
-			registry.falling.remove(one);
+			handle_player_object_collision(one, collision, &playerIsGrounded);
 		} else if (registry.players.has(other) && registry.platforms.has(one)) {
-			handle_player_object_collision(other, collision);
-			if (collision.side == SIDE::TOP) {
-				registry.falling.remove(other);
-				playerIsGrounded = true;
-			}
+			// TODO: swap left/right, top/bottom collisions since player is the other...
+			handle_player_object_collision(other, collision, &playerIsGrounded);
 		}
 	}
 
@@ -192,6 +189,7 @@ void WorldSystem::handle_collisions() {
 		Entity& player = registry.players.entities[0];
 		if (!registry.falling.has(player)) {
 			registry.falling.emplace(player);
+			registry.blocked.remove(player);
 		}
 	}
 
@@ -228,6 +226,10 @@ void WorldSystem::player_jump() {
 		Motion& motion = registry.motions.get(player);
 		motion.velocity.y = -JUMP_VELOCITY;
 		registry.falling.emplace(player);
+	}
+
+	if (registry.blocked.has(player)) {
+		registry.blocked.remove(player);
 	}
 }
 

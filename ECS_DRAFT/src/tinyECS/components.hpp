@@ -39,6 +39,16 @@ struct ScreenState
 	float darken_screen_factor = -1;
 };
 
+// M1: Accelerated / Decelerated
+struct GameState {
+	bool is_game_over = 0;
+	bool is_game_pased = 0;
+	bool is_game_running = 1;
+	float accelerate_cooldown_ms = 0.f;
+	float decelerated_cooldown_ms = 0.f;
+	float time_until_alarm_clock_ms = 300000.0f; // 5 minutes
+};
+
 // A struct to refer to debugging graphics in the ECS
 struct DebugComponent
 {

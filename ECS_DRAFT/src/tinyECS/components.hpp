@@ -90,6 +90,36 @@ struct Harmful
 	float damage = 0.f;
 };
 
+// A struct indicating that an entity is a swinging pendulum
+struct Pendulum
+{
+
+};
+
+// A struct indicating that an entity is a clock gear
+struct Gear
+{
+
+};
+
+// A struct indicating that an entity is a projectile
+struct Projectile
+{
+
+};
+
+// A struct indicating that an entity is a rock
+struct Rock
+{
+
+};
+
+// A struct indiciating that an entity is a water drop
+struct WaterDrop
+{
+
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture

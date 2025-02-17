@@ -39,7 +39,7 @@ struct ScreenState
 	float darken_screen_factor = -1;
 };
 
-// M1: Accelerated / Decelerated
+// A struct that includes the necessary properties of the current game state
 struct GameState {
 	bool is_game_over = 0;
 	bool is_game_pased = 0;

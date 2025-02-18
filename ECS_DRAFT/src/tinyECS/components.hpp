@@ -14,12 +14,25 @@ struct Platform
 };
 
 
+// Camera
+struct Camera
+{
+	float left = 0.f;
+	float top = 0.f;
+	float right = (float)WINDOW_WIDTH_PX;
+	float bottom = (float)WINDOW_HEIGHT_PX;
+	float near_side = 2.0 * FOREGROUND_DEPTH;
+	float far_side = 2.0 * BACKGROUND_DEPTH;
+};
+
+
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2  position = { 0, 0 };
 	float angle    = 0;
 	vec2  velocity = { 0, 0 };
 	vec2  scale    = { 10, 10 };
+	float depth = MIDGROUND_DEPTH;
 };
 
 struct Falling

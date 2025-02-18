@@ -97,13 +97,18 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
 
+	/* This part of code restricts the motion of entities;
+	* It makes sense to apply a similar logic, but is currently restricting the action range of cameras;
+	* May need to refine this in the furture (e.g., for certain projectiles, bosses, etc.)
+	*/
+
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
 	// (the containers exchange the last element with the current)
 	for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
 	    Motion& motion = motions_registry.components[i];
 		if (motion.position.x + abs(motion.scale.x) < 0.f) {
-			if(!registry.players.has(motions_registry.entities[i])) // don't remove the player
+			if(!registry.players.has(motions_registry.entities[i]) && !registry.cameras.has(motions_registry.entities[i])) // don't remove the player or camera
 				registry.remove_all_components_of(motions_registry.entities[i]);
 		}
 	}

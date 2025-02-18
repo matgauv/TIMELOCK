@@ -48,6 +48,10 @@ const float PLAYER_MAX_WALKING_SPEED = 300.0f;
 
 const float PLAYER_WALK_ACCELERATION = 500.0f;
 
+// Fore, mid, background Depths
+const float FOREGROUND_DEPTH = -0.5f * WINDOW_HEIGHT_PX;
+const float MIDGROUND_DEPTH = -1.0f * WINDOW_HEIGHT_PX;
+const float BACKGROUND_DEPTH = -1.5f * WINDOW_HEIGHT_PX;
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f

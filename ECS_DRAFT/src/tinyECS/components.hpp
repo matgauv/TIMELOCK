@@ -84,7 +84,8 @@ struct Deceleratable
 	bool can_become_harmless = 0;
 };
 
-// A struct indicating that an entity can deal damage to the player
+// A struct indicating that an entity can deal damage to other objects
+// player is one-shot death
 struct Harmful
 {
 	float damage = 0.f;

@@ -42,9 +42,7 @@ struct ScreenState
 
 // A struct that includes the necessary properties of the current game state
 struct GameState {
-	bool is_game_over = 0;
-	bool is_game_pased = 0;
-	bool is_game_running = 1;
+	GAME_RUNNING_STATE game_running_state = GAME_RUNNING_STATE::RUNNING;
 	float accelerate_cooldown_ms = 0.f;
 	float decelerated_cooldown_ms = 0.f;
 	float time_until_alarm_clock_ms = 300000.0f; // 5 minutes
@@ -129,6 +127,12 @@ struct Rock
 struct WaterDrop
 {
 
+};
+
+enum class GAME_RUNNING_STATE {
+	RUNNING = 0,
+	PAUSED = RUNNING + 1,
+	OVER = PAUSED + 1
 };
 
 /**

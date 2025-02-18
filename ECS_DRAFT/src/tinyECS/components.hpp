@@ -43,6 +43,7 @@ struct ScreenState
 // A struct that includes the necessary properties of the current game state
 struct GameState {
 	GAME_RUNNING_STATE game_running_state = GAME_RUNNING_STATE::RUNNING;
+	TIME_CONTROL_STATE game_time_control_state = TIME_CONTROL_STATE::NORMAL;
 	float accelerate_cooldown_ms = 0.f;
 	float decelerated_cooldown_ms = 0.f;
 	float time_until_alarm_clock_ms = 300000.0f; // 5 minutes
@@ -133,6 +134,12 @@ enum class GAME_RUNNING_STATE {
 	RUNNING = 0,
 	PAUSED = RUNNING + 1,
 	OVER = PAUSED + 1
+};
+
+enum class TIME_CONTROL_STATE {
+	NORMAL = 0,
+	ACCELERATED = NORMAL + 1,
+	DECELERATED = ACCELERATED + 1
 };
 
 /**

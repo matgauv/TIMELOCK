@@ -16,6 +16,7 @@ struct Motion {
 	float angle    = 0;
 	vec2  velocity = { 0, 0 };
 	vec2  scale    = { 10, 10 };
+	float frequency = 0.f;
 };
 
 // Stucture to store collision information
@@ -67,6 +68,57 @@ struct Mesh
 	vec2 original_size = {1,1};
 	std::vector<ColoredVertex> vertices;
 	std::vector<uint16_t> vertex_indices;
+};
+
+// A struct indicating that an entity can be accelerated by the player's ability
+struct Acceleratable
+{
+	float factor = 2.f;
+	bool can_become_harmful = 0;
+};
+
+// A struct indicating that an entity can be decelerated by the player's ability
+struct Deceleratable
+{
+	float factor = 0.f;
+	bool can_become_harmless = 0;
+};
+
+// A struct indicating that an entity can deal damage to other objects
+// player is one-shot death
+struct Harmful
+{
+	float damage = 0.f;
+};
+
+// A struct indicating that an entity is a swinging pendulum
+struct Pendulum
+{
+
+};
+
+// A struct indicating that an entity is a clock gear
+struct Gear
+{
+
+};
+
+// A struct indicating that an entity is a projectile
+struct Projectile
+{
+
+};
+
+// A struct indicating that an entity is a rock
+struct Rock
+{
+
+};
+
+// A struct indiciating that an entity is a water drop
+struct WaterDrop
+{
+
 };
 
 /**

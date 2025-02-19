@@ -27,7 +27,7 @@ void CameraSystem::step(float elapsed_ms) {
 
 	const Motion& player_motion = registry.motions.get(player_entity);
 
-	follow(camera_motion, player_motion.position, elapsed_ms);
+	follow(camera_motion, player_motion.position);
 }
 
 
@@ -35,7 +35,7 @@ void CameraSystem::late_step(float elapsed_ms) {
 	(void)elapsed_ms;
 }
 
-void CameraSystem::follow(Motion& cam_motion, vec2 target, float elapsed_ms) {
+void CameraSystem::follow(Motion& cam_motion, vec2 target) {
 	vec2 displacement = target - cam_motion.position;
 	const float dist = glm::length(displacement);
 

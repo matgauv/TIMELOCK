@@ -76,8 +76,8 @@ Entity create_camera(vec2 position, vec2 scale) {
 Entity create_background(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
     Entity entity = Entity();
     Motion& motion = registry.motions.emplace(entity);
-    motion.position = scene_dimensions * 0.5f;
-    motion.scale = scene_dimensions;
+    motion.position = scene_dimensions * 0.5f * BACKGROUND_DEPTH;
+    motion.scale = scene_dimensions * BACKGROUND_DEPTH;
 
     registry.renderRequests.insert(entity, {
         texture_id,

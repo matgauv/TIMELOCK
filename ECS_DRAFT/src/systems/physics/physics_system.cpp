@@ -10,42 +10,18 @@ vec2 get_bounding_box(const Motion& motion)
 	return { abs(motion.scale.x), abs(motion.scale.y) };
 }
 
-SIDE get_collision_side(const Motion& a, const Motion& b) {
-	vec2 aHalf = get_bounding_box(a) * 0.5f;
-	vec2 bHalf = get_bounding_box(b) * 0.5f;
-
+SIDE get_collision_side(Motion& a, Motion& b) {
+	vec2 overlap = PhysicsSystem::get_collision_overlap(a, b);
 	vec2 delta = a.position - b.position;
-
-	float overlapX = (aHalf.x + bHalf.x) - fabs(delta.x);
-	float overlapY = (aHalf.y + bHalf.y) - fabs(delta.y);
-
 	SIDE result = SIDE::NONE;
-	if (overlapX > 0 && overlapY > 0) {
-		if (overlapX < overlapY) {
+	if (overlap.x >= 0 && overlap.y >= 0) {
+		if (overlap.x < overlap.y) {
 			result = (delta.x > 0) ? SIDE::LEFT : SIDE::RIGHT;
 		} else {
 			result = (delta.y > 0) ? SIDE::TOP : SIDE::BOTTOM;
 		}
 	}
-
 	return result;
-}
-
-// This is a SUPER APPROXIMATE check that puts a circle around the bounding boxes and sees
-// if the center point of either object is inside the other's bounding-box-circle. You can
-// surely implement a more accurate detection
-bool collides(const Motion& motion1, const Motion& motion2)
-{
-	vec2 dp = motion1.position - motion2.position;
-	float dist_squared = dot(dp,dp);
-	const vec2 other_bonding_box = get_bounding_box(motion1) / 2.f;
-	const float other_r_squared = dot(other_bonding_box, other_bonding_box);
-	const vec2 my_bonding_box = get_bounding_box(motion2) / 2.f;
-	const float my_r_squared = dot(my_bonding_box, my_bonding_box);
-	const float r_squared = max(other_r_squared, my_r_squared);
-	if (dist_squared < r_squared)
-		return true;
-	return false;
 }
 
 void PhysicsSystem::init(GLFWwindow* window) {
@@ -79,6 +55,8 @@ void PhysicsSystem::step(float elapsed_ms) {
 			Blocked& blocked = registry.blocked.get(player);
 			blocked.left = false;
 			blocked.right = false;
+			blocked.bottom = false;
+			blocked.top = false;
 		}
 	}
 
@@ -92,12 +70,11 @@ void PhysicsSystem::step(float elapsed_ms) {
 		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
 		for(uint j = i+1; j < motion_container.components.size(); j++)
 		{
+			Entity entity_j = motion_container.entities[j];
 			Motion& motion_j = motion_container.components[j];
 			SIDE side = get_collision_side(motion_i, motion_j);
-
 			if (side != SIDE::NONE)
 			{
-				Entity entity_j = motion_container.entities[j];
 				registry.collisions.emplace_with_duplicates(entity_i, entity_j, side);
 			}
 		}

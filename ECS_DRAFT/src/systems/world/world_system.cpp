@@ -136,32 +136,39 @@ void WorldSystem::restart_game() {
 	load_level("");
 }
 
-void WorldSystem::handle_player_object_collision(Entity player_entity, Collision collision, bool* playerIsGrounded) {
+void WorldSystem::handle_player_object_collision(Entity player_entity, Entity object_entity, Collision collision, bool* playerIsGrounded) {
 	Motion& player_motion = registry.motions.get(player_entity);
+	Motion& object_motion = registry.motions.get(object_entity);
 
 	if (!registry.blocked.has(player_entity)) {
 		registry.blocked.emplace(player_entity);
 	}
 	Blocked& blocked = registry.blocked.get(player_entity);
 
+	vec2 overlap = PhysicsSystem::get_collision_overlap(player_motion, object_motion);
 
-
-	if (collision.side == SIDE::BOTTOM || collision.side == SIDE::TOP) {
+	if (collision.side == SIDE::BOTTOM) {
 		player_motion.velocity.y = 0.0f;
 		registry.falling.remove(player_entity);
 		blocked.bottom = true;
 		*playerIsGrounded = true;
+		player_motion.position.y -= overlap.y;
+
+	} else if (collision.side == SIDE::TOP) {
+		player_motion.velocity.y = 0.0f;
+
 	} else if (collision.side == SIDE::LEFT) {
 		blocked.left = true;
 		if (player_motion.velocity.x < 0)
 			player_motion.velocity.x = 0.0f;
+		player_motion.position.x += overlap.x;
 	}
 	else if (collision.side == SIDE::RIGHT) {
 		blocked.right = true;
 		if (player_motion.velocity.x > 0)
 			player_motion.velocity.x = 0.0f;
+		player_motion.position.x -= overlap.x;
 	}
-
 
 }
 
@@ -177,10 +184,10 @@ void WorldSystem::handle_collisions() {
 
 		// check player collisions (TODO: abstract this into logic for any falling component?)
 		if (registry.players.has(one) && registry.platforms.has(other)) {
-			handle_player_object_collision(one, collision, &playerIsGrounded);
+			handle_player_object_collision(one, other, collision, &playerIsGrounded);
 		} else if (registry.players.has(other) && registry.platforms.has(one)) {
 			// TODO: swap left/right, top/bottom collisions since player is the other...
-			handle_player_object_collision(other, collision, &playerIsGrounded);
+			handle_player_object_collision(other, one, collision, &playerIsGrounded);
 		}
 	}
 
@@ -222,6 +229,7 @@ void WorldSystem::player_walking(bool walking, bool is_left) {
 
 void WorldSystem::player_jump() {
 	Entity& player = registry.players.entities[0];
+
 	if (!registry.falling.has(player)) {
 		Motion& motion = registry.motions.get(player);
 		motion.velocity.y = -JUMP_VELOCITY;
@@ -229,7 +237,8 @@ void WorldSystem::player_jump() {
 	}
 
 	if (registry.blocked.has(player)) {
-		registry.blocked.remove(player);
+		Blocked& blocked = registry.blocked.get(player);
+		blocked.bottom = false;
 	}
 }
 

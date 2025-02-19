@@ -36,6 +36,11 @@ inline std::string mesh_path(const std::string& name) {return data_path() + "/me
 const int WINDOW_WIDTH_PX = 840;
 const int WINDOW_HEIGHT_PX = 600;
 
+const float ACCELERATION_COOLDOWN_MS = 15000.0f;
+const float DECELERATION_COOLDOWN_MS = 10000.0f;
+
+const float ACCELERATION_DURATION_MS = 10000.0f;
+const float DECELERATION_DURATION_MS = 10000.0f;
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f

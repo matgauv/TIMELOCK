@@ -4,6 +4,19 @@
 #include <unordered_map>
 #include "../../ext/stb_image/stb_image.h"
 
+enum class GAME_RUNNING_STATE {
+	RUNNING = 0,
+	PAUSED = RUNNING + 1,
+	OVER = PAUSED + 1
+};
+
+enum class TIME_CONTROL_STATE {
+	NORMAL = 0,
+	ACCELERATED = NORMAL + 1,
+	DECELERATED = ACCELERATED + 1
+};
+
+
 // Player component
 struct Player
 {
@@ -165,17 +178,6 @@ struct WaterDrop
 
 };
 
-enum class GAME_RUNNING_STATE {
-	RUNNING = 0,
-	PAUSED = RUNNING + 1,
-	OVER = PAUSED + 1
-};
-
-enum class TIME_CONTROL_STATE {
-	NORMAL = 0,
-	ACCELERATED = NORMAL + 1,
-	DECELERATED = ACCELERATED + 1
-};
 
 /**
  * The following enumerators represent global identifiers refering to graphic

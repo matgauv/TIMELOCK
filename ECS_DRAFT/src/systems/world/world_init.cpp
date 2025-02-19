@@ -14,7 +14,7 @@ void load_level(std::string descriptor_path) {
 Entity create_player(vec2 position, vec2 scale) {
     Entity entity = Entity();
 
-    Player &player = registry.players.emplace(entity);
+    registry.players.emplace(entity);
     Motion& motion = registry.motions.emplace(entity);
     motion.position = position;
     motion.scale = scale;

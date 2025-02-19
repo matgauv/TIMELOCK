@@ -139,35 +139,35 @@ void WorldSystem::restart_game() {
 void WorldSystem::handle_player_object_collision(Entity player_entity, Entity object_entity, Collision collision, bool* playerIsGrounded) {
 	Motion& player_motion = registry.motions.get(player_entity);
 	Motion& object_motion = registry.motions.get(object_entity);
-
-	if (!registry.blocked.has(player_entity)) {
-		registry.blocked.emplace(player_entity);
-	}
-	Blocked& blocked = registry.blocked.get(player_entity);
-
 	vec2 overlap = PhysicsSystem::get_collision_overlap(player_motion, object_motion);
+
+	if (collision.side == SIDE::LEFT || collision.side == SIDE::RIGHT) {
+		if (!registry.blocked.has(player_entity)) {
+			registry.blocked.emplace(player_entity);
+		}
+		Blocked& blocked = registry.blocked.get(player_entity);
+		if (collision.side == SIDE::LEFT) {
+			blocked.left = true;
+			if (player_motion.velocity.x < 0)
+				player_motion.velocity.x = 0.0f;
+			player_motion.position.x += overlap.x;
+		}
+		else {
+			blocked.right = true;
+			if (player_motion.velocity.x > 0)
+				player_motion.velocity.x = 0.0f;
+			player_motion.position.x -= overlap.x;
+		}
+	}
 
 	if (collision.side == SIDE::BOTTOM) {
 		player_motion.velocity.y = 0.0f;
 		registry.falling.remove(player_entity);
-		blocked.bottom = true;
 		*playerIsGrounded = true;
 		player_motion.position.y -= overlap.y;
 
 	} else if (collision.side == SIDE::TOP) {
 		player_motion.velocity.y = 0.0f;
-
-	} else if (collision.side == SIDE::LEFT) {
-		blocked.left = true;
-		if (player_motion.velocity.x < 0)
-			player_motion.velocity.x = 0.0f;
-		player_motion.position.x += overlap.x;
-	}
-	else if (collision.side == SIDE::RIGHT) {
-		blocked.right = true;
-		if (player_motion.velocity.x > 0)
-			player_motion.velocity.x = 0.0f;
-		player_motion.position.x -= overlap.x;
 	}
 
 }
@@ -236,10 +236,6 @@ void WorldSystem::player_jump() {
 		registry.falling.emplace(player);
 	}
 
-	if (registry.blocked.has(player)) {
-		Blocked& blocked = registry.blocked.get(player);
-		blocked.bottom = false;
-	}
 }
 
 // on key callback

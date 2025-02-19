@@ -55,8 +55,6 @@ void PhysicsSystem::step(float elapsed_ms) {
 			Blocked& blocked = registry.blocked.get(player);
 			blocked.left = false;
 			blocked.right = false;
-			blocked.bottom = false;
-			blocked.top = false;
 		}
 	}
 
@@ -82,21 +80,13 @@ void PhysicsSystem::step(float elapsed_ms) {
 }
 
 void PhysicsSystem::apply_gravity(Entity& entity, Motion& motion, float step_seconds) {
-	bool grounded = false;
-	if (registry.blocked.has(entity)) {
-		Blocked& blocked = registry.blocked.get(entity);
-		grounded = blocked.bottom;
+	float max_fall_speed = OBJECT_MAX_FALLING_SPEED;
+	if (registry.players.has(entity)) {
+		max_fall_speed = PLAYER_MAX_FALLING_SPEED;
 	}
 
-	if (!grounded) {
-		float max_fall_speed = OBJECT_MAX_FALLING_SPEED;
-		if (registry.players.has(entity)) {
-			max_fall_speed = PLAYER_MAX_FALLING_SPEED;
-		}
-
-		if (motion.velocity.y < max_fall_speed) {
-			motion.velocity.y += GRAVITY * step_seconds; // gravity is (m/s^2) so * by
-		}
+	if (motion.velocity.y < max_fall_speed) {
+		motion.velocity.y += GRAVITY * step_seconds; // gravity is (m/s^2) so * by
 	}
 }
 void PhysicsSystem::player_walk(Entity& entity, Motion& motion, float step_seconds) {

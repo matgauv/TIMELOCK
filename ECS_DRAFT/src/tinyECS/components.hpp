@@ -9,6 +9,7 @@ struct Player
 {
 };
 
+// Platform component
 struct Platform
 {
 };
@@ -22,22 +23,24 @@ struct Motion {
 	vec2  scale    = { 10, 10 };
 };
 
+
+// This is added to a player who is free-falling through the air.
 struct Falling
 {
 };
 
+// This is added to a player who is walking.
 struct Walking {
 	bool is_left = false;
 };
 
+// This is added to a player entity when they collide with a wall to block them from walking through the wall.
 struct Blocked {
 	bool left = false;
 	bool right = false;
-	bool top = false;
-	bool bottom = false;
 };
 
-// counterclockwise
+// counterclockwise (sides for collisions)
 enum SIDE {
 	LEFT = 0,
 	BOTTOM = 1,
@@ -46,7 +49,7 @@ enum SIDE {
 	NONE = 4
 };
 
-// Stucture to store collision information
+// Structure to store collision information
 struct Collision
 {
 	// Note, the first object is stored in the ECS container.entities

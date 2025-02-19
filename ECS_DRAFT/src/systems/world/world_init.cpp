@@ -11,6 +11,8 @@ void load_level(std::string descriptor_path) {
     create_platform({WINDOW_WIDTH_PX / 2.0f, WINDOW_HEIGHT_PX - 50.0f}, {WINDOW_WIDTH_PX, 100.0f});
     create_platform({25.0f, WINDOW_HEIGHT_PX - 100.0f}, {WINDOW_WIDTH_PX /4.0f, 100.0f});
     create_camera(initial_pos, { 1.0f, 1.0f }); // TODO: potential open-scene zoom in
+
+    create_background({ WINDOW_WIDTH_PX * 2.0f, WINDOW_HEIGHT_PX * 2.0f }, TEXTURE_ASSET_ID::SAMPLE_BACKGROUND);
 }
 
 Entity create_player(vec2 position, vec2 scale) {
@@ -30,6 +32,8 @@ Entity create_player(vec2 position, vec2 scale) {
         EFFECT_ASSET_ID::TEXTURED,
         GEOMETRY_BUFFER_ID::SPRITE
     });
+
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
 
     return entity;
 }
@@ -52,6 +56,9 @@ Entity create_platform(vec2 position, vec2 scale) {
         GEOMETRY_BUFFER_ID::SPRITE
     });
 
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+
     return entity;
 }
 
@@ -62,6 +69,24 @@ Entity create_camera(vec2 position, vec2 scale) {
 
     motion.position = position;
     motion.scale = scale;
+
+    return entity;
+}
+
+Entity create_background(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
+    Entity entity = Entity();
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = scene_dimensions * 0.5f;
+    motion.scale = scene_dimensions;
+
+    registry.renderRequests.insert(entity, {
+        texture_id,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+
+    registry.layers.insert(entity, { LAYER_ID::BACKGROUND });
+
 
     return entity;
 }

@@ -32,6 +32,7 @@ class RenderSystem : public ISystem {
 	const std::array<std::string, texture_count> texture_paths = {
         textures_path("black.png"),
 		textures_path("greyCircle.png"),
+		textures_path("backgrounds/SampleBackground.png"),
 
 	};
 

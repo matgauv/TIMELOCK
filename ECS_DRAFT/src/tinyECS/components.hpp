@@ -17,12 +17,7 @@ struct Platform
 // Camera
 struct Camera
 {
-	float left = 0.f;
-	float top = 0.f;
-	float right = (float)WINDOW_WIDTH_PX;
-	float bottom = (float)WINDOW_HEIGHT_PX;
-	float near_side = 2.0 * FOREGROUND_DEPTH;
-	float far_side = 2.0 * BACKGROUND_DEPTH;
+
 };
 
 
@@ -32,7 +27,6 @@ struct Motion {
 	float angle    = 0;
 	vec2  velocity = { 0, 0 };
 	vec2  scale    = { 10, 10 };
-	float depth = MIDGROUND_DEPTH;
 };
 
 struct Falling
@@ -141,7 +135,8 @@ struct Mesh
 enum class TEXTURE_ASSET_ID {
 	BLACK = 0,
 	GREY_CIRCLE = BLACK + 1,
-	TEXTURE_COUNT = GREY_CIRCLE + 1
+	SAMPLE_BACKGROUND = GREY_CIRCLE + 1,
+	TEXTURE_COUNT = SAMPLE_BACKGROUND + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -161,6 +156,16 @@ enum class GEOMETRY_BUFFER_ID {
 	GEOMETRY_COUNT = SCREEN_TRIANGLE + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
+
+enum class LAYER_ID {
+	BACKGROUND = 1,
+	MIDGROUND = BACKGROUND + 1,
+	FOREGROUND = MIDGROUND + 1
+};
+
+struct Layer {
+	LAYER_ID layer = LAYER_ID::MIDGROUND;
+};
 
 struct RenderRequest {
 	TEXTURE_ASSET_ID   used_texture  = TEXTURE_ASSET_ID::TEXTURE_COUNT;

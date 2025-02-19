@@ -99,6 +99,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	glUniform3fv(color_uloc, 1, (float *)&color);
 	gl_has_errors();
 
+
 	// Get number of indices from index buffer, which has elements uint16_t
 	GLint size = 0;
 	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
@@ -110,6 +111,15 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	GLint currProgram;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
 	// Setting uniform values to the currently bound program
+	GLint depth_uloc = glGetUniformLocation(currProgram, "depth");
+	LAYER_ID layer = registry.layers.get(entity).layer;
+	float depth = (
+		layer == LAYER_ID::BACKGROUND ? BACKGROUND_DEPTH : (
+		layer == LAYER_ID::MIDGROUND ? MIDGROUND_DEPTH :
+			FOREGROUND_DEPTH));
+	glUniform1fv(depth_uloc, 1, (float*)&depth);
+	gl_has_errors();
+
 	GLuint transform_loc = glGetUniformLocation(currProgram, "transform");
 	glUniformMatrix3fv(transform_loc, 1, GL_FALSE, (float *)&transform.mat);
 	gl_has_errors();
@@ -230,6 +240,50 @@ void RenderSystem::draw()
 	mat3 projection_2D = createProjectionMatrix();
 
 	// draw all entities with a render request to the frame buffer
+	// Assort rendering tasks according to layers
+	
+	std::vector<Entity> backgrounds;
+	std::vector<Entity> midgrounds;
+	std::vector<Entity> foregrounds;
+
+	for (Entity entity : registry.layers.entities)
+	{
+		// Check for rendering necessity
+		if (!registry.renderRequests.has(entity) || !registry.motions.has(entity))
+			continue;
+
+		switch (registry.layers.get(entity).layer)
+		{
+		case LAYER_ID::FOREGROUND:
+			foregrounds.push_back(entity);
+			break;
+		case LAYER_ID::MIDGROUND:
+			midgrounds.push_back(entity);
+			break;
+		case LAYER_ID::BACKGROUND:
+			backgrounds.push_back(entity);
+			break;
+		default:
+			break;
+		}
+	}
+
+	for (Entity entity : backgrounds)
+	{
+		drawTexturedMesh(entity, projection_2D);
+	}
+
+	for (Entity entity : midgrounds)
+	{
+		drawTexturedMesh(entity, projection_2D);
+	}
+
+	for (Entity entity : foregrounds)
+	{
+		drawTexturedMesh(entity, projection_2D);
+	}
+
+	/*
 	for (Entity entity : registry.renderRequests.entities)
 	{
 		// filter to entities that have a motion component
@@ -239,6 +293,7 @@ void RenderSystem::draw()
 			drawTexturedMesh(entity, projection_2D);
 		}
 	}
+	*/
 
 	// draw framebuffer to screen
 	drawToScreen();

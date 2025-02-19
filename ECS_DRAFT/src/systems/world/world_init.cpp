@@ -61,6 +61,8 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements) {
         GEOMETRY_BUFFER_ID::SPRITE
     });
 
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
     return entity;
 }
 

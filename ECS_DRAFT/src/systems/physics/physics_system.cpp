@@ -50,7 +50,7 @@ void PhysicsSystem::step(float elapsed_ms) {
 			move_object(entity, motion, step_seconds);
 		}
 
-		motion.position += (motion.baseVelocity + motion.velocity) * step_seconds;
+		motion.position += (motion.baseVelocity + (motion.velocity * motion.velocityModifier)) * step_seconds;
 	}
 
 	// clear blocked...

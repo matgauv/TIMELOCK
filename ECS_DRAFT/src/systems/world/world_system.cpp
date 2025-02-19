@@ -272,7 +272,7 @@ void WorldSystem::activate_acceleration() {
 		// update speed
 		Motion& motion = registry.motions.get(entity);
 		motion.frequency *= curr.factor;
-		motion.velocity *= curr.factor;
+		motion.velocityModifier *= curr.factor;
 
 		// check if it can become harmful
 		if (curr.can_become_harmful == 1) {
@@ -303,7 +303,7 @@ void WorldSystem::activate_deceleration() {
 		// update speed
 		Motion& motion = registry.motions.get(entity);
 		motion.frequency *= curr.factor;
-		motion.velocity *= curr.factor;
+		motion.velocityModifier *= curr.factor;
 
 		// check if it can become harmful
 		if (curr.can_become_harmless == 1) {
@@ -443,8 +443,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Activate deceleration
-	if (key == GLFW_KEY_R && action == GLFW_RELEASE) {
+	if (key == GLFW_KEY_R && action == GLFW_RELEASE)
+	{
 		activate_deceleration();
+	}
 
 	if (key == GLFW_KEY_RIGHT) {
 		if (action == GLFW_PRESS) {

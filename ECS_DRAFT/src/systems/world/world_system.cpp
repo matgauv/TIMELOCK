@@ -163,6 +163,8 @@ void WorldSystem::restart_game() {
 	gameState.decelerate_cooldown_ms = 0.f;
 	gameState.game_time_control_state = TIME_CONTROL_STATE::NORMAL;
 	gameState.game_running_state = GAME_RUNNING_STATE::RUNNING;
+	gameState.accelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
+	gameState.decelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
 
 	// TODO:
 	// Maybe the game state should also keep track of current level and player spawning position?

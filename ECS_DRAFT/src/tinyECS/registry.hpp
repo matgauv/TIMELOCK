@@ -32,6 +32,8 @@ public:
 	ComponentContainer<Falling> falling;
 	ComponentContainer<Walking> walking;
 	ComponentContainer<Blocked> blocked;
+	ComponentContainer<Camera> cameras;
+	ComponentContainer<Layer> layers;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -57,6 +59,8 @@ public:
 		registry_list.push_back(&falling);
 		registry_list.push_back(&walking);
 		registry_list.push_back(&blocked);
+		registry_list.push_back(&cameras);
+		registry_list.push_back(&layers);
 	}
 
 	void clear_all_components() {

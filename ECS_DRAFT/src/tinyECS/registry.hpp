@@ -20,12 +20,22 @@ public:
 	ComponentContainer<ScreenState> screenStates;
 	ComponentContainer<DebugComponent> debugComponents;
 	ComponentContainer<vec3> colors;
+	ComponentContainer<GameState> gameStates;
+	ComponentContainer<Acceleratable> acceleratables;
+	ComponentContainer<Deceleratable> deceleratables;
+	ComponentContainer<Harmful> harmfuls;
+	ComponentContainer<Pendulum> pendulums;
+	ComponentContainer<Gear> gears;
+	ComponentContainer<Projectile> projectiles;
+	ComponentContainer<Rock> rocks;
+	ComponentContainer<WaterDrop> waterdrops;
 	ComponentContainer<Falling> falling;
 	ComponentContainer<Walking> walking;
 	ComponentContainer<Blocked> blocked;
 	ComponentContainer<Camera> cameras;
 	ComponentContainer<Layer> layers;
 	ComponentContainer<AnimateRequest> animateRequests;
+	ComponentContainer<MovementPath> movementPaths;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -39,12 +49,22 @@ public:
 		registry_list.push_back(&screenStates);
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&colors);
+		registry_list.push_back(&gameStates);
+		registry_list.push_back(&acceleratables);
+		registry_list.push_back(&deceleratables);
+		registry_list.push_back(&harmfuls);
+		registry_list.push_back(&pendulums);
+		registry_list.push_back(&gears);
+		registry_list.push_back(&projectiles);
+		registry_list.push_back(&rocks);
+		registry_list.push_back(&waterdrops);
 		registry_list.push_back(&falling);
 		registry_list.push_back(&walking);
 		registry_list.push_back(&blocked);
 		registry_list.push_back(&cameras);
 		registry_list.push_back(&layers);
 		registry_list.push_back(&animateRequests);
+		registry_list.push_back(&movementPaths);
 	}
 
 	void clear_all_components() {

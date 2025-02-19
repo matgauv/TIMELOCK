@@ -32,6 +32,9 @@ public:
 	// releases all associated resources
 	~WorldSystem();
 
+	// Getter for the GameState entity
+	Entity getGameStateEntity() { return game_state_entity; }
+
 private:
 	// starts and loads music and sound effects
 	bool start_and_load_sounds();
@@ -65,6 +68,9 @@ private:
 
 	// restart level
 	void restart_game();
+
+	// GameState entity
+	Entity game_state_entity;
 
 	// OpenGL window handle
 	GLFWwindow* window;

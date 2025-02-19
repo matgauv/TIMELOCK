@@ -58,6 +58,10 @@ bool WorldSystem::start_and_load_sounds() {
 void WorldSystem::init(GLFWwindow* window) {
 
 	this->window = window;
+
+	// Create a single GameState entity
+	registry.gameStates.emplace(game_state_entity);
+
 	if (!start_and_load_sounds()) {
 		std::cerr << "ERROR: Failed to start or load sounds." << std::endl;
 	}
@@ -113,6 +117,30 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// Update info on acceleration and deceleration duration and trigger deactivate functions if needed
+	assert(registry.gameStates.components.size() <= 1);
+	GameState& gameState = registry.gameStates.components[0];
+	auto now = std::chrono::high_resolution_clock::now();
+
+	if (gameState.accelerate_start_time != std::chrono::time_point<std::chrono::high_resolution_clock>{}) {
+		float duration = (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - gameState.accelerate_start_time)).count() / 1000;
+		
+		if (duration >= ACCELERATION_DURATION_MS) {
+			deactivate_acceleration();
+		}
+	}
+
+	if (gameState.decelerate_start_time != std::chrono::time_point<std::chrono::high_resolution_clock>{}) {
+		float duration = (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - gameState.decelerate_start_time)).count() / 1000;
+
+		if (duration >= DECELERATION_DURATION_MS) {
+			deactivate_deceleration();
+		}
+	}
+
+	// Update acceleration and deceleration cooldown time
+	gameState.accelerate_cooldown_ms = std::max(0.f, gameState.accelerate_cooldown_ms - elapsed_ms_since_last_update);
+	gameState.decelerate_cooldown_ms = std::max(0.f, gameState.decelerate_cooldown_ms - elapsed_ms_since_last_update);
 }
 
 void WorldSystem::late_step(float elapsed_ms) {
@@ -137,6 +165,18 @@ void WorldSystem::restart_game() {
 
 	// debugging for memory/component leaks
 	registry.list_all_components();
+
+	assert(registry.gameStates.components.size() <= 1);
+	GameState& gameState = registry.gameStates.components[0];
+	gameState.accelerate_cooldown_ms = 0.f;
+	gameState.decelerate_cooldown_ms = 0.f;
+	gameState.game_time_control_state = TIME_CONTROL_STATE::NORMAL;
+	gameState.game_running_state = GAME_RUNNING_STATE::RUNNING;
+	gameState.accelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
+	gameState.decelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
+
+	// TODO:
+	// Maybe the game state should also keep track of current level and player spawning position?
 
 	load_level("");
 }
@@ -171,6 +211,11 @@ void WorldSystem::handle_player_object_collision(Entity player_entity, Entity ob
 		*playerIsGrounded = true;
 		player_motion.position.y -= overlap.y;
 
+		if (registry.movementPaths.has(object_entity)) {
+			MovementPath& movementPath = registry.movementPaths.get(object_entity);
+			Path& currPath = movementPath.paths[movementPath.currentPathIndex];
+			player_motion.baseVelocity = currPath.velocity;
+		}
 	} else if (collision.side == SIDE::TOP) {
 		player_motion.velocity.y = 0.0f;
 	}
@@ -203,11 +248,137 @@ void WorldSystem::handle_collisions() {
 			registry.falling.emplace(player);
 			registry.blocked.remove(player);
 		}
+		Motion& player_motion = registry.motions.get(player);
+		player_motion.baseVelocity = {0, 0};
 	}
 
 
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
+}
+
+void WorldSystem::activate_acceleration() {
+    auto& acceleratable_registry = registry.acceleratables;
+
+	// update time control state to accelerated
+	assert(registry.gameStates.components.size() <= 1);
+	GameState& gameState = registry.gameStates.components[0];
+	gameState.game_time_control_state = TIME_CONTROL_STATE::ACCELERATED;
+
+	// update accelerate start time
+	gameState.accelerate_start_time = std::chrono::high_resolution_clock::now();
+
+	// trigger acceleration
+	for (uint i = 0; i < acceleratable_registry.components.size(); i++) {
+		Acceleratable& curr = acceleratable_registry.components[i];
+		Entity& entity = acceleratable_registry.entities[i];
+
+		// update speed
+		Motion& motion = registry.motions.get(entity);
+		motion.frequency *= curr.factor;
+		motion.velocityModifier *= curr.factor;
+
+		// check if it can become harmful
+		if (curr.can_become_harmful == 1) {
+			Harmful& harmful = registry.harmfuls.emplace(entity);
+
+			// Possible TODO:
+			// Update the damage dealt to enemies/objects if needed in the future
+		}
+	}
+}
+
+void WorldSystem::activate_deceleration() {
+    auto& deceleratable_registry = registry.deceleratables;
+
+	// update time control state to decelerated
+	assert(registry.gameStates.components.size() <= 1);
+	GameState& gameState = registry.gameStates.components[0];
+	gameState.game_time_control_state = TIME_CONTROL_STATE::DECELERATED;
+
+	// update decelerate start time
+	gameState.decelerate_start_time = std::chrono::high_resolution_clock::now();
+
+	// trigger deceleration
+	for (uint i = 0; i < deceleratable_registry.components.size(); i++) {
+		Deceleratable& curr = deceleratable_registry.components[i];
+		Entity& entity = deceleratable_registry.entities[i];
+
+		// update speed
+		Motion& motion = registry.motions.get(entity);
+		motion.frequency *= curr.factor;
+		motion.velocityModifier *= curr.factor;
+
+		// check if it can become harmful
+		if (curr.can_become_harmless == 1) {
+			registry.harmfuls.remove(entity);
+		}
+	}
+}
+
+void WorldSystem::deactivate_acceleration() {
+	auto& acceleratable_registry = registry.acceleratables;
+
+	// update time control state to normal
+	assert(registry.gameStates.components.size() <= 1);
+	GameState& gameState = registry.gameStates.components[0];
+	gameState.game_time_control_state = TIME_CONTROL_STATE::NORMAL;
+
+	// update accelerate start time to default
+	gameState.accelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
+
+	// deactivate acceleration
+	for (uint i = 0; i < acceleratable_registry.components.size(); i++) {
+		Acceleratable& curr = acceleratable_registry.components[i];
+		Entity& entity = acceleratable_registry.entities[i];
+
+		// update speed
+		Motion& motion = registry.motions.get(entity);
+		motion.frequency /= curr.factor;
+		motion.velocityModifier /= curr.factor;
+
+		// check if it can become harmful
+		if (curr.can_become_harmful == 1) {
+			registry.harmfuls.remove(entity);
+		}
+	}
+
+	// start accelerate cooldown
+	gameState.accelerate_cooldown_ms = ACCELERATION_COOLDOWN_MS;
+}
+
+void WorldSystem::deactivate_deceleration() {
+	auto& decelerate_registry = registry.deceleratables;
+
+	// update time control state to normal
+	assert(registry.gameStates.components.size() <= 1);
+	GameState& gameState = registry.gameStates.components[0];
+	gameState.game_time_control_state = TIME_CONTROL_STATE::NORMAL;
+
+	// update accelerate start time to default
+	gameState.decelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
+
+	// deactivate deceleration
+	for (uint i = 0; i < decelerate_registry.components.size(); i++) {
+		Deceleratable& curr = decelerate_registry.components[i];
+		Entity& entity = decelerate_registry.entities[i];
+
+		// update speed
+		Motion& motion = registry.motions.get(entity);
+		motion.frequency /= curr.factor;
+		motion.velocityModifier /= curr.factor;
+
+		// check if it can become harmful
+		if (curr.can_become_harmless == 1) {
+			Harmful& harmful = registry.harmfuls.emplace(entity);
+
+			// Possible TODO:
+			// update the harmful entity damage value
+		}
+	}
+
+	// start decelerate cooldown
+	gameState.decelerate_cooldown_ms = DECELERATION_COOLDOWN_MS;
 }
 
 void WorldSystem::player_walking(bool walking, bool is_left) {
@@ -268,6 +439,17 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				debugging.in_debug_mode = true;
 			}
 		}
+	}
+
+	// Activate acceleration
+	if (key == GLFW_KEY_E && action == GLFW_RELEASE) {
+		activate_acceleration();
+	}
+
+	// Activate deceleration
+	if (key == GLFW_KEY_R && action == GLFW_RELEASE)
+	{
+		activate_deceleration();
 	}
 
 	if (key == GLFW_KEY_RIGHT) {

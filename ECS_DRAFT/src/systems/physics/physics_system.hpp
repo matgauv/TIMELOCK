@@ -34,6 +34,7 @@ public:
 private:
 	GLFWwindow* window = nullptr;
 
-	void apply_gravity(Entity& entity, Motion& motion, float elapsed_ms);
-	void player_walk(Entity& entity, Motion& motion, float elapsed_ms);
+	void apply_gravity(Entity& entity, Motion& motion, float step_seconds);
+	void player_walk(Entity& entity, Motion& motion, float step_seconds);
+	void move_object(Entity& entity, Motion& motion, float step_seconds);
 };

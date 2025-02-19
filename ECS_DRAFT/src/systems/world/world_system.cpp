@@ -132,6 +132,16 @@ void WorldSystem::restart_game() {
 
 	// debugging for memory/component leaks
 	registry.list_all_components();
+
+	assert(registry.gameStates.components.size() <= 1);
+	GameState& gameState = registry.gameStates.components[0];
+	gameState.accelerate_cooldown_ms = 0.f;
+	gameState.decelerated_cooldown_ms = 0.f;
+	gameState.game_time_control_state = TIME_CONTROL_STATE::NORMAL;
+	gameState.game_running_state = GAME_RUNNING_STATE::RUNNING;
+
+	// TODO:
+	// Maybe the game state should also keep track of current level and player spawning position?
 }
 
 // Compute collisions between entities

@@ -40,6 +40,18 @@ struct ScreenState
 	float darken_screen_factor = -1;
 };
 
+enum class GAME_RUNNING_STATE {
+	RUNNING = 0,
+	PAUSED = RUNNING + 1,
+	OVER = PAUSED + 1
+};
+
+enum class TIME_CONTROL_STATE {
+	NORMAL = 0,
+	ACCELERATED = NORMAL + 1,
+	DECELERATED = ACCELERATED + 1
+};
+
 // A struct that includes the necessary properties of the current game state
 struct GameState {
 	GAME_RUNNING_STATE game_running_state = GAME_RUNNING_STATE::RUNNING;
@@ -128,18 +140,6 @@ struct Rock
 struct WaterDrop
 {
 
-};
-
-enum class GAME_RUNNING_STATE {
-	RUNNING = 0,
-	PAUSED = RUNNING + 1,
-	OVER = PAUSED + 1
-};
-
-enum class TIME_CONTROL_STATE {
-	NORMAL = 0,
-	ACCELERATED = NORMAL + 1,
-	DECELERATED = ACCELERATED + 1
 };
 
 /**

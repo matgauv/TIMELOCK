@@ -29,16 +29,16 @@ void PhysicsSystem::init(GLFWwindow* window) {
 }
 
 void PhysicsSystem::step(float elapsed_ms) {
-	auto& falling_registry = registry.falling;
 
 	auto& motion_registry = registry.motions;
+	float step_seconds = elapsed_ms / 1000.f;
 	for(uint i = 0; i< motion_registry.size(); i++)
 	{
 		Motion& motion = motion_registry.components[i];
 		Entity entity = motion_registry.entities[i];
-		float step_seconds = elapsed_ms / 1000.f;
 
-		if (falling_registry.has(entity)) {
+
+		if (registry.falling.has(entity)) {
 			apply_gravity(entity, motion, step_seconds);
 		}
 
@@ -46,7 +46,11 @@ void PhysicsSystem::step(float elapsed_ms) {
 			player_walk(entity, motion, step_seconds);
 		}
 
-		motion.position += motion.velocity * step_seconds;
+		if (registry.movementPaths.has(entity)) {
+			move_object(entity, motion, step_seconds);
+		}
+
+		motion.position += (motion.baseVelocity + motion.velocity) * step_seconds;
 	}
 
 	// clear blocked...
@@ -77,6 +81,24 @@ void PhysicsSystem::step(float elapsed_ms) {
 			}
 		}
 	}
+}
+
+void PhysicsSystem::move_object(Entity& entity, Motion& motion, float step_seconds) {
+	MovementPath& movement_path = registry.movementPaths.get(entity);
+
+	Path currentPath = movement_path.paths[movement_path.currentPathIndex];
+
+	if (abs(motion.position.x - currentPath.end.x) <= abs(currentPath.velocity.x * step_seconds) &&
+		abs(motion.position.y - currentPath.end.y) <= abs(currentPath.velocity.y * step_seconds)) { // "oh god this is monstrous" - matias
+		if (movement_path.currentPathIndex == movement_path.paths.size() - 1) {
+			movement_path.currentPathIndex = 0;
+		} else {
+			movement_path.currentPathIndex++;
+		}
+		currentPath = movement_path.paths[movement_path.currentPathIndex];
+		// motion.position = currentPath.start; // TODO: don't need this? safeguard in case path start/ends dont line up
+	}
+	motion.velocity = currentPath.velocity;
 }
 
 void PhysicsSystem::apply_gravity(Entity& entity, Motion& motion, float step_seconds) {

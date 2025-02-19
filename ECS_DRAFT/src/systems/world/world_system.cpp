@@ -168,15 +168,75 @@ void WorldSystem::restart_game() {
 
 	// TODO:
 	// Maybe the game state should also keep track of current level and player spawning position?
+
+	load_level("");
+}
+
+void WorldSystem::handle_player_object_collision(Entity player_entity, Entity object_entity, Collision collision, bool* playerIsGrounded) {
+	Motion& player_motion = registry.motions.get(player_entity);
+	Motion& object_motion = registry.motions.get(object_entity);
+	vec2 overlap = PhysicsSystem::get_collision_overlap(player_motion, object_motion);
+
+	if (collision.side == SIDE::LEFT || collision.side == SIDE::RIGHT) {
+		if (!registry.blocked.has(player_entity)) {
+			registry.blocked.emplace(player_entity);
+		}
+		Blocked& blocked = registry.blocked.get(player_entity);
+		if (collision.side == SIDE::LEFT) {
+			blocked.left = true;
+			if (player_motion.velocity.x < 0)
+				player_motion.velocity.x = 0.0f;
+			player_motion.position.x += overlap.x;
+		}
+		else {
+			blocked.right = true;
+			if (player_motion.velocity.x > 0)
+				player_motion.velocity.x = 0.0f;
+			player_motion.position.x -= overlap.x;
+		}
+	}
+
+	if (collision.side == SIDE::BOTTOM) {
+		player_motion.velocity.y = 0.0f;
+		registry.falling.remove(player_entity);
+		*playerIsGrounded = true;
+		player_motion.position.y -= overlap.y;
+
+	} else if (collision.side == SIDE::TOP) {
+		player_motion.velocity.y = 0.0f;
+	}
+
 }
 
 // Compute collisions between entities
 void WorldSystem::handle_collisions() {
 	ComponentContainer<Collision>& collision_container = registry.collisions;
+    bool playerIsGrounded = false;
+
 	for (uint i = 0; i < collision_container.components.size(); i++) {
+		Entity& one = collision_container.entities[i];
+		Collision& collision = collision_container.components[i];
+		Entity& other = collision.other;
 
-
+		// check player collisions (TODO: abstract this into logic for any falling component?)
+		if (registry.players.has(one) && registry.platforms.has(other)) {
+			handle_player_object_collision(one, other, collision, &playerIsGrounded);
+		} else if (registry.players.has(other) && registry.platforms.has(one)) {
+			// TODO: swap left/right, top/bottom collisions since player is the other...
+			handle_player_object_collision(other, one, collision, &playerIsGrounded);
+		}
 	}
+
+	// after checking all collisions, if player is not marked as grounded they should be falling again.
+	if (!playerIsGrounded) {
+		Entity& player = registry.players.entities[0];
+		if (!registry.falling.has(player)) {
+			registry.falling.emplace(player);
+			registry.blocked.remove(player);
+		}
+	}
+
+
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
 }
@@ -305,6 +365,39 @@ void WorldSystem::deactivate_deceleration() {
 	gameState.decelerate_cooldown_ms = DECELERATION_COOLDOWN_MS;
 }
 
+void WorldSystem::player_walking(bool walking, bool is_left) {
+	Entity& player = registry.players.entities[0];
+
+	if (walking) {
+		// if already walking, just update direction. Otherwise, add component.
+		if (registry.walking.has(player)) {
+			Walking& walking_component = registry.walking.get(player);
+			walking_component.is_left = is_left;
+		} else {
+			Walking& walking_component = registry.walking.emplace(player);
+			walking_component.is_left = is_left;
+		}
+	} else {
+		if (registry.walking.has(player)) {
+			Walking& walking_component = registry.walking.get(player);
+			if (walking_component.is_left == is_left) {
+				registry.walking.remove(player);
+			}
+		}
+	}
+}
+
+void WorldSystem::player_jump() {
+	Entity& player = registry.players.entities[0];
+
+	if (!registry.falling.has(player)) {
+		Motion& motion = registry.motions.get(player);
+		motion.velocity.y = -JUMP_VELOCITY;
+		registry.falling.emplace(player);
+	}
+
+}
+
 // on key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 
@@ -340,6 +433,25 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Activate deceleration
 	if (key == GLFW_KEY_R && action == GLFW_RELEASE) {
 		activate_deceleration();
+
+	if (key == GLFW_KEY_RIGHT) {
+		if (action == GLFW_PRESS) {
+			player_walking(true, false);
+		} else if (action == GLFW_RELEASE) {
+			player_walking(false, false);
+		}
+	}
+
+	if (key == GLFW_KEY_LEFT) {
+		if (action == GLFW_PRESS) {
+			player_walking(true, true);
+		} else if (action == GLFW_RELEASE) {
+			player_walking(false, true);
+		}
+	}
+
+	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
+		player_jump();
 	}
 }
 

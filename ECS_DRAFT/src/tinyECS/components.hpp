@@ -4,11 +4,29 @@
 #include <unordered_map>
 #include "../../ext/stb_image/stb_image.h"
 
+enum class GAME_RUNNING_STATE {
+	RUNNING = 0,
+	PAUSED = RUNNING + 1,
+	OVER = PAUSED + 1
+};
+
+enum class TIME_CONTROL_STATE {
+	NORMAL = 0,
+	ACCELERATED = NORMAL + 1,
+	DECELERATED = ACCELERATED + 1
+};
+
+
 // Player component
 struct Player
 {
-
 };
+
+// Platform component
+struct Platform
+{
+};
+
 
 // All data relevant to the shape and motion of entities
 struct Motion {
@@ -19,12 +37,42 @@ struct Motion {
 	float frequency = 0.f;
 };
 
-// Stucture to store collision information
+
+// This is added to a player who is free-falling through the air.
+struct Falling
+{
+};
+
+// This is added to a player who is walking.
+struct Walking {
+	bool is_left = false;
+};
+
+// This is added to a player entity when they collide with a wall to block them from walking through the wall.
+struct Blocked {
+	bool left = false;
+	bool right = false;
+};
+
+// counterclockwise (sides for collisions)
+enum SIDE {
+	LEFT = 0,
+	BOTTOM = 1,
+	RIGHT = 2,
+	TOP = 3,
+	NONE = 4
+};
+
+// Structure to store collision information
 struct Collision
 {
 	// Note, the first object is stored in the ECS container.entities
 	Entity other; // the second object involved in the collision
-	Collision(Entity& other) { this->other = other; };
+	SIDE side;
+	Collision(Entity& other, SIDE side) {
+		this->other = other;
+		this->side = side;
+	};
 };
 
 // Data structure for toggling debug mode
@@ -144,6 +192,7 @@ struct WaterDrop
 
 };
 
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -169,8 +218,9 @@ struct WaterDrop
  */
 
 enum class TEXTURE_ASSET_ID {
-	EXPLOSION = 0,
-	TEXTURE_COUNT = EXPLOSION + 1
+	BLACK = 0,
+	GREY_CIRCLE = BLACK + 1,
+	TEXTURE_COUNT = GREY_CIRCLE + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

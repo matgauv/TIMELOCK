@@ -50,6 +50,11 @@ private:
 	// deactivate deceleration
 	void deactivate_deceleration();
 
+	void player_walking(bool walking, bool is_left);
+	void player_jump();
+
+	void handle_player_object_collision(Entity player_entity, Entity object_entity, Collision collision, bool* playerIsGrounded);
+
 	float mouse_pos_x = 0.0f;
 	float mouse_pos_y = 0.0f;
 

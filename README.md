@@ -6,6 +6,11 @@
   - Run `cmake ..` (or `cmake -DCMAKE_BUILD_TYPE=Debug ..` for debug symbols)
   - Run `make` to compile changes
   - Run `./TIMELOCK`
+
+- How to build on Windows Visual Studio:
+  - Open folder `ECS_DRAFT`, wait for CMakeList.txt file to be loaded
+  - Build `TIMELOCK.exe`
+  - Run `TIMELOCK.exe`
  
 - How to use co author script:
     - make sure it is executable (`chmod +x ./coAuthorCommit.sh`)

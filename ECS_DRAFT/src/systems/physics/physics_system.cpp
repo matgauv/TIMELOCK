@@ -10,32 +10,27 @@ vec2 get_bounding_box(const Motion& motion)
 	return { abs(motion.scale.x), abs(motion.scale.y) };
 }
 
-// This is a SUPER APPROXIMATE check that puts a circle around the bounding boxes and sees
-// if the center point of either object is inside the other's bounding-box-circle. You can
-// surely implement a more accurate detection
-bool collides(const Motion& motion1, const Motion& motion2)
-{
-	vec2 dp = motion1.position - motion2.position;
-	float dist_squared = dot(dp,dp);
-	const vec2 other_bonding_box = get_bounding_box(motion1) / 2.f;
-	const float other_r_squared = dot(other_bonding_box, other_bonding_box);
-	const vec2 my_bonding_box = get_bounding_box(motion2) / 2.f;
-	const float my_r_squared = dot(my_bonding_box, my_bonding_box);
-	const float r_squared = max(other_r_squared, my_r_squared);
-	if (dist_squared < r_squared)
-		return true;
-	return false;
+SIDE get_collision_side(Motion& a, Motion& b) {
+	vec2 overlap = PhysicsSystem::get_collision_overlap(a, b);
+	vec2 delta = a.position - b.position;
+	SIDE result = SIDE::NONE;
+	if (overlap.x >= 0 && overlap.y >= 0) {
+		if (overlap.x < overlap.y) {
+			result = (delta.x > 0) ? SIDE::LEFT : SIDE::RIGHT;
+		} else {
+			result = (delta.y > 0) ? SIDE::TOP : SIDE::BOTTOM;
+		}
+	}
+	return result;
 }
 
 void PhysicsSystem::init(GLFWwindow* window) {
 	this->window = window;
 }
 
-void PhysicsSystem::step(float elapsed_ms)
-{
-	// Move each entity that has motion (invaders, projectiles, and even towers [they have 0 for velocity])
-	// based on how much time has passed, this is to (partially) avoid
-	// having entities move at different speed based on the machine.
+void PhysicsSystem::step(float elapsed_ms) {
+	auto& falling_registry = registry.falling;
+
 	auto& motion_registry = registry.motions;
 	for(uint i = 0; i< motion_registry.size(); i++)
 	{
@@ -43,11 +38,24 @@ void PhysicsSystem::step(float elapsed_ms)
 		Entity entity = motion_registry.entities[i];
 		float step_seconds = elapsed_ms / 1000.f;
 
+		if (falling_registry.has(entity)) {
+			apply_gravity(entity, motion, step_seconds);
+		}
 
-        // suppress warnings until we use these
-        (void) step_seconds;
-        (void) motion;
-		(void)elapsed_ms;
+		if (registry.players.has(entity)	) {
+			player_walk(entity, motion, step_seconds);
+		}
+
+		motion.position += motion.velocity * step_seconds;
+	}
+
+	// clear blocked...
+	for (Entity player : registry.players.entities) {
+		if (registry.blocked.has(player)) {
+			Blocked& blocked = registry.blocked.get(player);
+			blocked.left = false;
+			blocked.right = false;
+		}
 	}
 
 	// check for collisions between all moving entities
@@ -60,16 +68,75 @@ void PhysicsSystem::step(float elapsed_ms)
 		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
 		for(uint j = i+1; j < motion_container.components.size(); j++)
 		{
+			Entity entity_j = motion_container.entities[j];
 			Motion& motion_j = motion_container.components[j];
-			if (collides(motion_i, motion_j))
+			SIDE side = get_collision_side(motion_i, motion_j);
+			if (side != SIDE::NONE)
 			{
-				Entity entity_j = motion_container.entities[j];
-				// Create a collisions event
-				// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
-				// CK: why the duplication, except to allow searching by entity_id
-				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
-				// registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+				registry.collisions.emplace_with_duplicates(entity_i, entity_j, side);
 			}
+		}
+	}
+}
+
+void PhysicsSystem::apply_gravity(Entity& entity, Motion& motion, float step_seconds) {
+	float max_fall_speed = OBJECT_MAX_FALLING_SPEED;
+	if (registry.players.has(entity)) {
+		max_fall_speed = PLAYER_MAX_FALLING_SPEED;
+	}
+
+	if (motion.velocity.y < max_fall_speed) {
+		motion.velocity.y += GRAVITY * step_seconds; // gravity is (m/s^2) so * by
+	}
+}
+void PhysicsSystem::player_walk(Entity& entity, Motion& motion, float step_seconds) {
+	if (registry.walking.has(entity)) {
+		Walking& walking = registry.walking.get(entity);
+
+		int desired_direction = walking.is_left ? -1 : 1;
+
+		// check if blocked
+		bool blockedDirection = false;
+		if (registry.blocked.has(entity)) {
+			Blocked& blocked = registry.blocked.get(entity);
+			if (desired_direction < 0 && blocked.left) {
+				blockedDirection = true;
+			}
+			else if (desired_direction > 0 && blocked.right) {
+				blockedDirection = true;
+			}
+		}
+
+		if (!blockedDirection) {
+			// for snappier movement changes (if entity is moving in oposite of desired direction)
+			// "braking" force is 2x walking acceleration
+			if (motion.velocity.x * desired_direction < 0) {
+				motion.velocity.x += desired_direction * PLAYER_WALK_ACCELERATION * 2.0f * step_seconds;
+
+				if (motion.velocity.x * desired_direction > 0)
+					motion.velocity.x = 0;
+			}
+
+			motion.velocity.x += desired_direction * PLAYER_WALK_ACCELERATION * step_seconds;
+			// clamp to max walking speed
+			if (fabs(motion.velocity.x) > PLAYER_MAX_WALKING_SPEED)
+				motion.velocity.x = desired_direction * PLAYER_MAX_WALKING_SPEED;
+		} else {
+			motion.velocity.x = 0.0f; // if blocked, don't move
+		}
+
+	} else {
+		// if not walkin, we're stoppin -- slow down to 0
+		// TODO: other sources of motion might break this... (ie. when moving on a platform)
+		if (motion.velocity.x > 0) {
+			motion.velocity.x -= FRICTION * step_seconds;
+			if (motion.velocity.x < 0)
+				motion.velocity.x = 0;
+		}
+		else if (motion.velocity.x < 0) {
+			motion.velocity.x += FRICTION * step_seconds;
+			if (motion.velocity.x > 0)
+				motion.velocity.x = 0;
 		}
 	}
 }

@@ -1,8 +1,6 @@
 #pragma once
 #include "common.hpp"
 #include <vector>
-#include <unordered_map>
-#include "../../ext/stb_image/stb_image.h"
 
 enum class GAME_RUNNING_STATE {
 	RUNNING = 0,
@@ -27,6 +25,24 @@ struct Platform
 {
 };
 
+struct Path {
+	vec2 start;
+	vec2 end;
+	float duration;
+	vec2 velocity;
+
+
+	Path(const vec2& start, const vec2& end, float duration)
+		: start(start), end(end), duration(duration),
+		  velocity((end - start) / duration)
+	{}
+};
+
+struct MovementPath
+{
+	std::vector<Path> paths;
+	int currentPathIndex = 0;
+};
 
 // All data relevant to the shape and motion of entities
 struct Motion {
@@ -35,6 +51,7 @@ struct Motion {
 	vec2  velocity = { 0, 0 };
 	vec2  scale    = { 10, 10 };
 	float frequency = 0.f;
+	vec2 baseVelocity = {0.0f, 0.0f};
 };
 
 

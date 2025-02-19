@@ -166,6 +166,11 @@ void WorldSystem::handle_player_object_collision(Entity player_entity, Entity ob
 		*playerIsGrounded = true;
 		player_motion.position.y -= overlap.y;
 
+		if (registry.movementPaths.has(object_entity)) {
+			MovementPath& movementPath = registry.movementPaths.get(object_entity);
+			Path& currPath = movementPath.paths[movementPath.currentPathIndex];
+			player_motion.baseVelocity = currPath.velocity;
+		}
 	} else if (collision.side == SIDE::TOP) {
 		player_motion.velocity.y = 0.0f;
 	}
@@ -198,6 +203,8 @@ void WorldSystem::handle_collisions() {
 			registry.falling.emplace(player);
 			registry.blocked.remove(player);
 		}
+		Motion& player_motion = registry.motions.get(player);
+		player_motion.baseVelocity = {0, 0};
 	}
 
 

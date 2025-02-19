@@ -205,6 +205,18 @@ struct WaterDrop
 
 };
 
+enum class BOSS_ID {
+	FIRST = 0,
+	SECOND = FIRST + 1,
+	FINAL = SECOND + 1
+};
+
+// A struct indicating that an entity is an enemy boss
+struct Boss
+{
+	BOSS_ID boss_id;
+	float health;
+};
 
 /**
  * The following enumerators represent global identifiers refering to graphic

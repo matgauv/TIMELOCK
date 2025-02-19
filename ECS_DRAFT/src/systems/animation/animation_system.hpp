@@ -39,7 +39,8 @@ private:
 	* Value:	Spritesheet texture id, type (cycle vs freeze on last), frame count, one cycle duration
 	*/ 
 	const std::unordered_map<ANIMATION_ID, AnimationConfig> animation_collections = {
-		{ANIMATION_ID::PLAYER_WALKING, AnimationConfig(TEXTURE_ASSET_ID::SAMPLE_PLAYER_WALKING, ANIMATION_TYPE_ID::CYCLE , 4, 300.0)}
+		{ANIMATION_ID::PLAYER_WALKING, AnimationConfig(TEXTURE_ASSET_ID::SAMPLE_PLAYER_WALKING, ANIMATION_TYPE_ID::CYCLE , 4, 300.0)},
+		{ANIMATION_ID::PLAYER_STANDING, AnimationConfig(TEXTURE_ASSET_ID::SAMPLE_PLAYER_STANDING, ANIMATION_TYPE_ID::CYCLE , 2, 450.0)}
 	};
 
 	void updateTimer(AnimateRequest &animateRequest, const AnimationConfig& animationConfig, float elapsed_ms);

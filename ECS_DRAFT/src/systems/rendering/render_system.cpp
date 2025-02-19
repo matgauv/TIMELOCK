@@ -123,6 +123,14 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	GLuint tex_u_range_loc = glGetUniformLocation(currProgram, "tex_u_range");
 	vec2 tex_u_range = (registry.animateRequests.has(entity) ? 
 		registry.animateRequests.get(entity).tex_u_range : vec2{0.0f, 1.0f});
+
+	// Flip uv if sprite is horizontally flipped
+	if (render_request.flipped) {
+		float temp = tex_u_range[0];
+		tex_u_range[0] = tex_u_range[1];
+		tex_u_range[1] = temp;
+	}
+
 	glUniform2fv(tex_u_range_loc, 1, (float*)&tex_u_range);
 	gl_has_errors();
 

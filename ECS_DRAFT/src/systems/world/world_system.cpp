@@ -222,12 +222,27 @@ void WorldSystem::player_walking(bool walking, bool is_left) {
 			Walking& walking_component = registry.walking.emplace(player);
 			walking_component.is_left = is_left;
 		}
+
+
+		// TODO: this might not be the best approach to flip Player sprite;
+		// Could potentially isolate all Player-related properties into Player component, and update Player system accordingly
+		if (registry.renderRequests.has(player)) {
+			registry.renderRequests.get(player).flipped = is_left;
+		}
+
+		if (registry.animateRequests.has(player)) {
+			registry.animateRequests.get(player).used_animation = ANIMATION_ID::PLAYER_WALKING;
+		}
 	} else {
 		if (registry.walking.has(player)) {
 			Walking& walking_component = registry.walking.get(player);
 			if (walking_component.is_left == is_left) {
 				registry.walking.remove(player);
 			}
+		}
+
+		if (registry.animateRequests.has(player)) {
+			registry.animateRequests.get(player).used_animation = ANIMATION_ID::PLAYER_STANDING;
 		}
 	}
 }

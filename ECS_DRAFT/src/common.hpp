@@ -48,6 +48,15 @@ const float PLAYER_MAX_WALKING_SPEED = 300.0f;
 
 const float PLAYER_WALK_ACCELERATION = 500.0f;
 
+// Fore, mid, background Depths; used for scaling only
+const float FOREGROUND_DEPTH = 0.5f;
+const float MIDGROUND_DEPTH = 1.0f;
+const float BACKGROUND_DEPTH = 2.0f;
+
+// Camera motion properties
+const float CAMERA_MAX_SPEED = PLAYER_MAX_FALLING_SPEED * 1.2f;
+const float CAMERA_TRACE_RANGE = WINDOW_WIDTH_PX * 0.25f; // out of this range, camera will trace at max speed
+const float CAMERA_VEL_LERP_FACTOR = 0.2f;
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f

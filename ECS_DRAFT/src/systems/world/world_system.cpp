@@ -335,7 +335,7 @@ void WorldSystem::deactivate_acceleration() {
 		// update speed
 		Motion& motion = registry.motions.get(entity);
 		motion.frequency /= curr.factor;
-		motion.velocity /= curr.factor;
+		motion.velocityModifier /= curr.factor;
 
 		// check if it can become harmful
 		if (curr.can_become_harmful == 1) {
@@ -366,7 +366,7 @@ void WorldSystem::deactivate_deceleration() {
 		// update speed
 		Motion& motion = registry.motions.get(entity);
 		motion.frequency /= curr.factor;
-		motion.velocity /= curr.factor;
+		motion.velocityModifier /= curr.factor;
 
 		// check if it can become harmful
 		if (curr.can_become_harmless == 1) {

@@ -44,6 +44,13 @@ struct MovementPath
 	int currentPathIndex = 0;
 };
 
+// Camera
+struct Camera
+{
+
+};
+
+
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2  position = { 0, 0 };
@@ -223,7 +230,8 @@ struct WaterDrop
 enum class TEXTURE_ASSET_ID {
 	BLACK = 0,
 	GREY_CIRCLE = BLACK + 1,
-	TEXTURE_COUNT = GREY_CIRCLE + 1
+	SAMPLE_BACKGROUND = GREY_CIRCLE + 1,
+	TEXTURE_COUNT = SAMPLE_BACKGROUND + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -243,6 +251,16 @@ enum class GEOMETRY_BUFFER_ID {
 	GEOMETRY_COUNT = SCREEN_TRIANGLE + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
+
+enum class LAYER_ID {
+	BACKGROUND = 1,
+	MIDGROUND = BACKGROUND + 1,
+	FOREGROUND = MIDGROUND + 1
+};
+
+struct Layer {
+	LAYER_ID layer = LAYER_ID::MIDGROUND;
+};
 
 struct RenderRequest {
 	TEXTURE_ASSET_ID   used_texture  = TEXTURE_ASSET_ID::TEXTURE_COUNT;

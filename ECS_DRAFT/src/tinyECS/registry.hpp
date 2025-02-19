@@ -23,6 +23,8 @@ public:
 	ComponentContainer<Falling> falling;
 	ComponentContainer<Walking> walking;
 	ComponentContainer<Blocked> blocked;
+	ComponentContainer<Camera> cameras;
+	ComponentContainer<Layer> layers;
 	ComponentContainer<MovementPath> movementPaths;
 
 	// constructor that adds all containers for looping over them
@@ -40,6 +42,8 @@ public:
 		registry_list.push_back(&falling);
 		registry_list.push_back(&walking);
 		registry_list.push_back(&blocked);
+		registry_list.push_back(&cameras);
+		registry_list.push_back(&layers);
 		registry_list.push_back(&movementPaths);
 	}
 

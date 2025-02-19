@@ -25,6 +25,7 @@ public:
 	ComponentContainer<Blocked> blocked;
 	ComponentContainer<Camera> cameras;
 	ComponentContainer<Layer> layers;
+	ComponentContainer<AnimateRequest> animateRequests;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -43,6 +44,7 @@ public:
 		registry_list.push_back(&blocked);
 		registry_list.push_back(&cameras);
 		registry_list.push_back(&layers);
+		registry_list.push_back(&animateRequests);
 	}
 
 	void clear_all_components() {

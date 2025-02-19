@@ -214,7 +214,8 @@ enum class TEXTURE_ASSET_ID {
 	BLACK = 0,
 	GREY_CIRCLE = BLACK + 1,
 	SAMPLE_BACKGROUND = GREY_CIRCLE + 1,
-	TEXTURE_COUNT = SAMPLE_BACKGROUND + 1
+	SAMPLE_PLAYER_WALKING = SAMPLE_BACKGROUND + 1,
+	TEXTURE_COUNT = SAMPLE_PLAYER_WALKING + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -235,6 +236,18 @@ enum class GEOMETRY_BUFFER_ID {
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
+enum class ANIMATION_ID {
+	PLAYER_WALKING = 0,
+	ANIMATION_COUNT = PLAYER_WALKING + 1
+};
+const int animation_count = (int)ANIMATION_ID::ANIMATION_COUNT;
+
+enum class ANIMATION_TYPE_ID {
+	CYCLE = 0,
+	FREEZE_ON_LAST = CYCLE + 1,
+	ANIMATION_TYPE_COUNT = FREEZE_ON_LAST + 1
+};
+
 enum class LAYER_ID {
 	BACKGROUND = 1,
 	MIDGROUND = BACKGROUND + 1,
@@ -251,3 +264,8 @@ struct RenderRequest {
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 };
 
+struct AnimateRequest {
+	ANIMATION_ID used_animation;
+	float timer = 0.0;
+	vec2 tex_u_range = { 0.0, 1.0 };
+};

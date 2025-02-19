@@ -35,6 +35,9 @@ Entity create_player(vec2 position, vec2 scale) {
 
     registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
 
+    AnimateRequest& animation = registry.animateRequests.emplace(entity);
+    animation.used_animation = ANIMATION_ID::PLAYER_WALKING;
+
     return entity;
 }
 

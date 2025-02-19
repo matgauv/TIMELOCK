@@ -120,6 +120,12 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	glUniform1fv(depth_uloc, 1, (float*)&depth);
 	gl_has_errors();
 
+	GLuint tex_u_range_loc = glGetUniformLocation(currProgram, "tex_u_range");
+	vec2 tex_u_range = (registry.animateRequests.has(entity) ? 
+		registry.animateRequests.get(entity).tex_u_range : vec2{0.0f, 1.0f});
+	glUniform2fv(tex_u_range_loc, 1, (float*)&tex_u_range);
+	gl_has_errors();
+
 	GLuint transform_loc = glGetUniformLocation(currProgram, "transform");
 	glUniformMatrix3fv(transform_loc, 1, GL_FALSE, (float *)&transform.mat);
 	gl_has_errors();

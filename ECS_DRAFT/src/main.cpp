@@ -6,6 +6,7 @@
 #include "systems/ai/ai_system.hpp"
 #include "systems/physics/physics_system.hpp"
 #include "systems/camera/camera_system.hpp"
+#include "systems/animation/animation_system.hpp"
 #include "systems/rendering/render_system.hpp"
 #include "systems/world/world_system.hpp"
 
@@ -23,12 +24,14 @@ int main()
 	RenderSystem  renderer_system;
 	PhysicsSystem physics_system;
 	CameraSystem camera_system;
+	AnimationSystem animation_system;
 
 	// register order is the order steps (and then late steps) will be called
 	system_manager.register_system(&world_system);
 	system_manager.register_system(&ai_system);
 	system_manager.register_system(&physics_system);
 	system_manager.register_system(&camera_system);
+	system_manager.register_system(&animation_system);
 	system_manager.register_system(&renderer_system); // render system should prob stay last (?)
 
 	system_manager.run_game_loop();

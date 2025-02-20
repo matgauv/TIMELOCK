@@ -96,6 +96,7 @@ void PhysicsSystem::move_object(Entity& entity, Motion& motion, float step_secon
 			movement_path.currentPathIndex++;
 		}
 		currentPath = movement_path.paths[movement_path.currentPathIndex];
+		motion.position = currentPath.start;
 		// motion.position = currentPath.start; // TODO: don't need this? safeguard in case path start/ends dont line up
 	}
 	motion.velocity = currentPath.velocity;

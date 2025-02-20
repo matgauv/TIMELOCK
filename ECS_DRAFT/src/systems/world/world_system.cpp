@@ -457,12 +457,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Activate acceleration
-	if (key == GLFW_KEY_E && action == GLFW_RELEASE) {
+	if (key == GLFW_KEY_Q && action == GLFW_RELEASE) {
 		activate_acceleration();
 	}
 
 	// Activate deceleration
-	if (key == GLFW_KEY_R && action == GLFW_RELEASE)
+	if (key == GLFW_KEY_W && action == GLFW_RELEASE)
 	{
 		activate_deceleration();
 	}

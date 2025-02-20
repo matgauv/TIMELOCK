@@ -20,7 +20,7 @@ struct AnimationConfig {
 	{}
 };
 
-// Camera System which follows specified Motion target
+// Animation System that updates uv of texture to render
 class AnimationSystem : public ISystem
 {
 public:

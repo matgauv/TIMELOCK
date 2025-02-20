@@ -165,7 +165,7 @@ struct Acceleratable
 // A struct indicating that an entity can be decelerated by the player's ability
 struct Deceleratable
 {
-	float factor = 0.f;
+	float factor = 0.2f;
 	bool can_become_harmless = 0;
 };
 

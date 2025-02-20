@@ -10,6 +10,10 @@ void AnimationSystem::init(GLFWwindow* window) {
 void AnimationSystem::step(float elapsed_ms) {
 	auto& animateRequest_registry = registry.animateRequests;
 	auto& renderRequest_registry = registry.renderRequests;
+	auto& deceleratable_registry = registry.deceleratables;
+	auto& acceleratable_registry = registry.acceleratables;
+
+	TIME_CONTROL_STATE current_time_state = registry.gameStates.components[0].game_time_control_state;
 
 	for (int i = 0; i < animateRequest_registry.size(); i++) {
 		Entity entity = animateRequest_registry.entities[i];
@@ -18,8 +22,19 @@ void AnimationSystem::step(float elapsed_ms) {
 		// TODO: ensure animaiton collection contains animation id
 		const AnimationConfig& animationConfig = this->animation_collections.at(animateRequest.used_animation);
 
-		updateTimer(animateRequest, animationConfig, elapsed_ms);
+		// Calculate time factor upon acceleration/deceleration
+		float timeFactor = 1.0f;
 
+		if (current_time_state == TIME_CONTROL_STATE::DECELERATED && deceleratable_registry.has(entity)) {
+			timeFactor = deceleratable_registry.get(entity).factor;
+		} 
+		else if (current_time_state == TIME_CONTROL_STATE::ACCELERATED && acceleratable_registry.has(entity)) {
+			timeFactor = acceleratable_registry.get(entity).factor;
+		}
+
+		updateTimer(animateRequest, animationConfig, timeFactor * elapsed_ms);
+
+		// Update Render Request
 		if (renderRequest_registry.has(entity)) {
 			RenderRequest& renderRequest = renderRequest_registry.get(entity);
 			renderRequest.used_texture = animationConfig.sprite_texture;
@@ -34,6 +49,7 @@ void AnimationSystem::step(float elapsed_ms) {
 
 void AnimationSystem::updateTimer(AnimateRequest& animateRequest, const AnimationConfig& animationConfig, float elapsed_ms) {
 	// TODO: INCORPORATE ACCELERATION & DECELERATION LOGIC
+
 	if (animationConfig.animation_type == ANIMATION_TYPE_ID::CYCLE) {
 		animateRequest.timer += elapsed_ms;
 		if (animateRequest.timer >= animationConfig.duration_ms) {

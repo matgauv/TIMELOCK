@@ -25,8 +25,7 @@ void BossSystem::step(float elapsed_ms) {
             boss.attack_cooldown_ms -= elapsed_ms;
 
             Motion& motion = registry.motions.get(boss);
-            motion.position
-    
+            
             if (boss.attack_cooldown_ms <= 0.f) {
                 attack(motion.position);
                 boss.attack_cooldown_ms = BOSS_ATTACK_COOLDOWN_MS;

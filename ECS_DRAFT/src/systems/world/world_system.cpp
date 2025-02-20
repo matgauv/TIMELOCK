@@ -264,15 +264,16 @@ void WorldSystem::handle_collisions() {
 		}
 
 		if (registry.players.has(one) && registry.projectiles.has(other)) {
-			handle_player_projectile_collision(one, other, collision);
+			// TODO: should handle_player_projectile_collision() be handle_player_attack_collision() ?
+			handle_player_attack_collision(one, other, collision);
 		} else if (registry.players.has(other) && registry.projectiles.has(one)) {
-			handle_player_projectile_collision(other, one, collision);
+			handle_player_attack_collision(other, one, collision);
 		}
 
 		if (registry.players.has(one) && registry.bosses.has(other)) {
 			handle_player_boss_collision(one, other, collision);
 		} else if (registry.players.has(other) && registry.bosses.has(one)) {
-			handle_player_boss_collision(other, one, collision)
+			handle_player_boss_collision(other, one, collision);
 		}
 	}
 

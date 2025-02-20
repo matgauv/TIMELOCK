@@ -5,6 +5,7 @@
 #include "../../tinyECS/components.hpp"
 #include "../../tinyECS/registry.hpp"
 #include "systems/ISystem.hpp"
+#include <random>
 
 class BossSystem : public ISystem
 {
@@ -17,6 +18,7 @@ class BossSystem : public ISystem
         void late_step(float elapsed_ms) override;
 
     private:
+        GLFWwindow* window = nullptr;
         void attack(vec2 boss_position);
 
         std::default_random_engine rng;

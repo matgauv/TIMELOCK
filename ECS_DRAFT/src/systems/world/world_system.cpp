@@ -177,7 +177,9 @@ void WorldSystem::handle_player_object_collision(Entity player_entity, Entity ob
 			player_motion.baseVelocity = currPath.velocity;
 		}
 	} else if (collision.side == SIDE::TOP) {
-		player_motion.velocity.y = 0.0f;
+		// stops the player from "sticking" to the bottom of a platform when they jump up into it
+		// if player's y velocity is positive (i.e. player is falling), don't set velocity to 0 to avoid hanging.
+		player_motion.velocity.y = max(player_motion.velocity.y, 0.0f);
 	}
 
 }

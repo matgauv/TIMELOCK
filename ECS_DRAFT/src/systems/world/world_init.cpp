@@ -19,10 +19,15 @@ void load_level(std::string descriptor_path) {
     std::vector<Path> movements = {forward, up, down, backwards};
     create_moving_platform({100.0f, 20.0f}, movements);
 
-    Path top_forward = Path({450.0f, 100.0f}, {600.0f, 100.0f}, 0.05);
-    Path top_backward = Path({600.0f, 100.0f}, {450.0f, 100.0f}, 0.05);
+    Path top_forward = Path({450.0f, 100.0f}, {600.0f, 100.0f}, 0.5);
+    Path top_backward = Path({600.0f, 100.0f}, {450.0f, 100.0f}, 0.5);
     std::vector<Path> movements_top_platform = {top_forward, top_backward};
     create_moving_platform({100.0f, 20.0f}, movements_top_platform);
+
+    Path top2_forward = Path({700.0f, 100.0f}, {1000.0f, 0.0f}, 2.0);
+    Path top2_backward = Path({1000.0f, 0.0f}, {700.0f, 100.0f}, 2.0);
+    std::vector<Path> movements_top2_platform = {top2_forward, top2_backward};
+    create_moving_platform({100.0f, 20.0f}, movements_top2_platform);
 }
 
 Entity create_player(vec2 position, vec2 scale) {

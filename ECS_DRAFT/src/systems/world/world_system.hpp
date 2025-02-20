@@ -57,6 +57,9 @@ private:
 	void player_jump();
 
 	void handle_player_object_collision(Entity player_entity, Entity object_entity, Collision collision, bool* playerIsGrounded);
+	
+	void handle_player_attack_collision(Entity player_entity, Entity attack_entity, Collision collision);
+	void handle_player_boss_collision(Entity player_entity, Entity boss_entity, Collision collision);
 
 	float mouse_pos_x = 0.0f;
 	float mouse_pos_y = 0.0f;

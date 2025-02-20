@@ -14,6 +14,11 @@ enum class TIME_CONTROL_STATE {
 	DECELERATED = ACCELERATED + 1
 };
 
+enum class BOSS_ID {
+	FIRST = 0,
+	SECOND = FIRST + 1,
+	FINAL = SECOND + 1
+};
 
 // Player component
 struct Player
@@ -122,6 +127,7 @@ struct GameState {
 	float time_until_alarm_clock_ms = 300000.0f; // 5 minutes
 	std::chrono::time_point<std::chrono::high_resolution_clock> accelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
 	std::chrono::time_point<std::chrono::high_resolution_clock> decelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
+	bool is_in_boss_fight = 0;
 };
 
 // A struct to refer to debugging graphics in the ECS
@@ -205,17 +211,12 @@ struct WaterDrop
 
 };
 
-enum class BOSS_ID {
-	FIRST = 0,
-	SECOND = FIRST + 1,
-	FINAL = SECOND + 1
-};
-
 // A struct indicating that an entity is an enemy boss
 struct Boss
 {
 	BOSS_ID boss_id;
 	float health;
+	float attack_cooldown_ms = 500.0f;
 };
 
 /**
@@ -246,7 +247,8 @@ enum class TEXTURE_ASSET_ID {
 	BLACK = 0,
 	GREY_CIRCLE = BLACK + 1,
 	SAMPLE_BACKGROUND = GREY_CIRCLE + 1,
-	TEXTURE_COUNT = SAMPLE_BACKGROUND + 1
+	SAMPLE_PROJECTILE = SAMPLE_BACKGROUND + 1,
+	TEXTURE_COUNT = SAMPLE_PROJECTILE + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

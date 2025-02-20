@@ -236,6 +236,13 @@ void WorldSystem::handle_player_boss_collision(Entity player_entity, Entity boss
 	Boss& boss = registry.bosses.get(boss_entity);
 
 	boss.health -= PLAYER_ATTACK_DAMAGE;
+
+	if (boss.health <= 0.f) {
+		assert(registry.gameStates.components.size() <= 1);
+		GameState& gameState = registry.gameStates.components[0];
+		gameState.is_in_boss_fight = 0;
+		registry.bosses.remove(boss_entity);
+	}
 }
 
 // Compute collisions between entities

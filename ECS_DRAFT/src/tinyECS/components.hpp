@@ -1,6 +1,7 @@
 #pragma once
 #include "common.hpp"
 #include <vector>
+#include <chrono>
 
 enum class GAME_RUNNING_STATE {
 	RUNNING = 0,

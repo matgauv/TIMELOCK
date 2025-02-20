@@ -19,13 +19,13 @@ void load_level(std::string descriptor_path) {
     std::vector<Path> movements = {forward, up, down, backwards};
     create_moving_platform({100.0f, 20.0f}, movements);
 
-    Path top_forward = Path({450.0f, 100.0f}, {600.0f, 100.0f}, 0.5);
-    Path top_backward = Path({600.0f, 100.0f}, {450.0f, 100.0f}, 0.5);
+    Path top_forward = Path({450.0f, 100.0f}, {600.0f, 100.0f}, 0.1);
+    Path top_backward = Path({600.0f, 100.0f}, {450.0f, 100.0f}, 0.1);
     std::vector<Path> movements_top_platform = {top_forward, top_backward};
     create_moving_platform({100.0f, 20.0f}, movements_top_platform);
 
-    Path top2_forward = Path({700.0f, 100.0f}, {1000.0f, 0.0f}, 2.0);
-    Path top2_backward = Path({1000.0f, 0.0f}, {700.0f, 100.0f}, 2.0);
+    Path top2_forward = Path({700.0f, 100.0f}, {1000.0f, 0.0f}, 3.0);
+    Path top2_backward = Path({1000.0f, 0.0f}, {700.0f, 100.0f}, 3.0);
     std::vector<Path> movements_top2_platform = {top2_forward, top2_backward};
     create_moving_platform({100.0f, 20.0f}, movements_top2_platform);
 }
@@ -62,7 +62,8 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements) {
     motion.velocity = {0, 0}; // physics system will calculate this...
     motion.angle = 0.0f;
 
-    registry.platforms.emplace(entity);
+    Platform& platform = registry.platforms.emplace(entity);
+    platform.friction = STATIC_FRICTION;
 
     MovementPath& movementPath = registry.movementPaths.emplace(entity);
     movementPath.paths = movements;
@@ -80,11 +81,11 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements) {
 
 Entity create_static_platform(vec2 position, vec2 scale) {
     Entity entity = Entity();
+
     Platform& platform = registry.platforms.emplace(entity);
+    platform.friction = STATIC_FRICTION;
+
     Motion& motion = registry.motions.emplace(entity);
-
-    (void)platform; // TODO: use this if we need to
-
     motion.position = position;
     motion.scale = scale;
     motion.velocity = {0, 0};

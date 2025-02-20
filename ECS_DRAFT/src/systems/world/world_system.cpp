@@ -112,11 +112,10 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.remove_all_components_of(motions_registry.entities[i]);
 		}
 	}
-
 }
 
 void WorldSystem::late_step(float elapsed_ms) {
-	handle_collisions();
+	handle_collisions(elapsed_ms);
 }
 
 // Reset the world state to its initial state
@@ -140,8 +139,17 @@ void WorldSystem::restart_game() {
 
 	load_level("");
 }
+float clampToTarget(float value, float change, float target) {
+	change = abs(change);
+	if (value > target) {
+		return std::max(value - change, target);
+	} else if (value < target) {
+		return std::min(value + change, target);
+	}
+	return target;
+}
 
-void WorldSystem::handle_player_object_collision(Entity player_entity, Entity object_entity, Collision collision, bool* playerIsGrounded) {
+void WorldSystem::handle_player_object_collision(Entity player_entity, Entity object_entity, Collision collision, float step_seconds, bool* playerIsGrounded, bool* playerIsOnMovingPlatform) {
 	Motion& player_motion = registry.motions.get(player_entity);
 	Motion& object_motion = registry.motions.get(object_entity);
 	vec2 overlap = PhysicsSystem::get_collision_overlap(player_motion, object_motion);
@@ -174,7 +182,15 @@ void WorldSystem::handle_player_object_collision(Entity player_entity, Entity ob
 		if (registry.movementPaths.has(object_entity)) {
 			MovementPath& movementPath = registry.movementPaths.get(object_entity);
 			Path& currPath = movementPath.paths[movementPath.currentPathIndex];
-			player_motion.baseVelocity = currPath.velocity;
+			Platform& platform = registry.platforms.get(object_entity);
+			float friction = platform.friction;
+
+			// tiny bit of friction
+			float diff = friction * step_seconds * 50.0f;
+			player_motion.baseVelocity.x = clampToTarget(player_motion.baseVelocity.x, diff, currPath.velocity.x);
+			player_motion.baseVelocity.y = clampToTarget(player_motion.baseVelocity.y, diff, currPath.velocity.y);
+
+			*playerIsOnMovingPlatform = true;
 		}
 	} else if (collision.side == SIDE::TOP) {
 		// stops the player from "sticking" to the bottom of a platform when they jump up into it
@@ -184,10 +200,15 @@ void WorldSystem::handle_player_object_collision(Entity player_entity, Entity ob
 
 }
 
+
+
 // Compute collisions between entities
-void WorldSystem::handle_collisions() {
+void WorldSystem::handle_collisions(float elapsed_ms) {
 	ComponentContainer<Collision>& collision_container = registry.collisions;
     bool playerIsGrounded = false;
+	bool playerIsOnMovingPlatform = false;
+
+	float step_seconds = elapsed_ms / 1000.0f;
 
 	for (uint i = 0; i < collision_container.components.size(); i++) {
 		Entity& one = collision_container.entities[i];
@@ -196,10 +217,10 @@ void WorldSystem::handle_collisions() {
 
 		// check player collisions (TODO: abstract this into logic for any falling component?)
 		if (registry.players.has(one) && registry.platforms.has(other)) {
-			handle_player_object_collision(one, other, collision, &playerIsGrounded);
+			handle_player_object_collision(one, other, collision, step_seconds, &playerIsGrounded, &playerIsOnMovingPlatform);
 		} else if (registry.players.has(other) && registry.platforms.has(one)) {
 			// TODO: swap left/right, top/bottom collisions since player is the other...
-			handle_player_object_collision(other, one, collision, &playerIsGrounded);
+			handle_player_object_collision(other, one, collision, step_seconds, &playerIsGrounded, &playerIsOnMovingPlatform);
 		}
 	}
 
@@ -210,14 +231,20 @@ void WorldSystem::handle_collisions() {
 			registry.falling.emplace(player);
 			registry.blocked.remove(player);
 		}
-		Motion& player_motion = registry.motions.get(player);
-		player_motion.baseVelocity = {0, 0};
 	}
 
+	if (!playerIsOnMovingPlatform) {
+		Entity& player = registry.players.entities[0];
+		Motion& player_motion = registry.motions.get(player);
+		float diff = AIR_RESISTANCE * step_seconds;
+		player_motion.baseVelocity.x = clampToTarget(player_motion.baseVelocity.x, diff, 0);
+		player_motion.baseVelocity.y = clampToTarget(player_motion.baseVelocity.y, diff, 0);
+	}
 
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
 }
+
 
 void WorldSystem::player_walking(bool walking, bool is_left) {
 	Entity& player = registry.players.entities[0];

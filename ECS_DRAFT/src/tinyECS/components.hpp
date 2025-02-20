@@ -23,6 +23,7 @@ struct Player
 // Platform component
 struct Platform
 {
+	float friction;
 };
 
 struct Path {

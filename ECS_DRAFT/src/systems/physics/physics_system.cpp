@@ -89,7 +89,7 @@ void PhysicsSystem::move_object(Entity& entity, Motion& motion, float step_secon
 	Path currentPath = movement_path.paths[movement_path.currentPathIndex];
 
 	if (abs(motion.position.x - currentPath.end.x) <= abs(currentPath.velocity.x * step_seconds) &&
-		abs(motion.position.y - currentPath.end.y) <= abs(currentPath.velocity.y * step_seconds)) { // "oh god this is monstrous" - matias
+		abs(motion.position.y - currentPath.end.y) <= abs(currentPath.velocity.y * step_seconds)) {
 		if (movement_path.currentPathIndex == movement_path.paths.size() - 1) {
 			movement_path.currentPathIndex = 0;
 		} else {
@@ -152,12 +152,12 @@ void PhysicsSystem::player_walk(Entity& entity, Motion& motion, float step_secon
 		// if not walkin, we're stoppin -- slow down to 0
 		// TODO: other sources of motion might break this... (ie. when moving on a platform)
 		if (motion.velocity.x > 0) {
-			motion.velocity.x -= FRICTION * step_seconds;
+			motion.velocity.x -= STATIC_FRICTION * step_seconds;
 			if (motion.velocity.x < 0)
 				motion.velocity.x = 0;
 		}
 		else if (motion.velocity.x < 0) {
-			motion.velocity.x += FRICTION * step_seconds;
+			motion.velocity.x += STATIC_FRICTION * step_seconds;
 			if (motion.velocity.x > 0)
 				motion.velocity.x = 0;
 		}

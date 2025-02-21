@@ -171,7 +171,7 @@ struct Acceleratable
 // A struct indicating that an entity can be decelerated by the player's ability
 struct Deceleratable
 {
-	float factor = 0.f;
+	float factor = 0.2f;
 	bool can_become_harmless = 0;
 };
 
@@ -248,7 +248,9 @@ enum class TEXTURE_ASSET_ID {
 	BLACK = 0,
 	GREY_CIRCLE = BLACK + 1,
 	SAMPLE_BACKGROUND = GREY_CIRCLE + 1,
-	SAMPLE_PROJECTILE = SAMPLE_BACKGROUND + 1,
+	SAMPLE_PLAYER_WALKING = SAMPLE_BACKGROUND + 1,
+	SAMPLE_PLAYER_STANDING = SAMPLE_PLAYER_WALKING + 1,
+	SAMPLE_PROJECTILE = SAMPLE_PLAYER_STANDING + 1,
 	TEXTURE_COUNT = SAMPLE_PROJECTILE + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
@@ -270,6 +272,19 @@ enum class GEOMETRY_BUFFER_ID {
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
+enum class ANIMATION_ID {
+	PLAYER_WALKING = 0,
+	PLAYER_STANDING = PLAYER_WALKING + 1,
+	ANIMATION_COUNT = PLAYER_STANDING + 1
+};
+const int animation_count = (int)ANIMATION_ID::ANIMATION_COUNT;
+
+enum class ANIMATION_TYPE_ID {
+	CYCLE = 0,
+	FREEZE_ON_LAST = CYCLE + 1,
+	ANIMATION_TYPE_COUNT = FREEZE_ON_LAST + 1
+};
+
 enum class LAYER_ID {
 	BACKGROUND = 1,
 	MIDGROUND = BACKGROUND + 1,
@@ -284,5 +299,11 @@ struct RenderRequest {
 	TEXTURE_ASSET_ID   used_texture  = TEXTURE_ASSET_ID::TEXTURE_COUNT;
 	EFFECT_ASSET_ID    used_effect   = EFFECT_ASSET_ID::EFFECT_COUNT;
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
+	bool flipped = false; // TODO: it might be better to isolate this property into a new component
 };
 
+struct AnimateRequest {
+	ANIMATION_ID used_animation;
+	float timer = 0.0;
+	vec2 tex_u_range = { 0.0, 1.0 };
+};

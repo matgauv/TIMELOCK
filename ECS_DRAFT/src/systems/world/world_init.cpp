@@ -11,6 +11,7 @@ void load_level(std::string descriptor_path) {
     create_background({ WINDOW_WIDTH_PX * 2.0f, WINDOW_HEIGHT_PX * 2.0f }, TEXTURE_ASSET_ID::SAMPLE_BACKGROUND);
     create_static_platform({WINDOW_WIDTH_PX / 2.0f, WINDOW_HEIGHT_PX - 50.0f}, {WINDOW_WIDTH_PX, 100.0f});
     create_static_platform({25.0f, WINDOW_HEIGHT_PX - 100.0f}, {WINDOW_WIDTH_PX /4.0f, 100.0f});
+    create_static_platform({700.0f, WINDOW_HEIGHT_PX - 100.0f}, {WINDOW_WIDTH_PX /4.0f, 100.0f});
 
     Path forward = Path({200.0f, 380.0f}, {350.0f, 380.0f}, 1.5);
     Path up = Path({350.0f, 380.0f}, {350.0f, 100.0f}, 1.5);
@@ -28,16 +29,22 @@ void load_level(std::string descriptor_path) {
     Path top2_backward = Path({1000.0f, 0.0f}, {700.0f, 100.0f}, 3.0);
     std::vector<Path> movements_top2_platform = {top2_forward, top2_backward};
     create_moving_platform({100.0f, 20.0f}, movements_top2_platform);
+    //create_physics_object({300.0f, -150.0f}, {50.0f, 50.0f}, 5.0f);
+    create_physics_object({150.0f, -200.0f}, {50.0f, 50.0f}, 5.0f);
 }
 
 Entity create_player(vec2 position, vec2 scale) {
     Entity entity = Entity();
 
     registry.players.emplace(entity);
+
+    PhysicsObject& object = registry.physicsObjects.emplace(entity);
+    object.weight = 500.0f;
+
     Motion& motion = registry.motions.emplace(entity);
     motion.position = position;
     motion.scale = scale;
-    motion.velocity = {0, 0.0f};
+    motion.selfVelocity = {0, 0.0f};
     motion.angle = 0.0f;
 
     registry.falling.emplace(entity);
@@ -53,17 +60,41 @@ Entity create_player(vec2 position, vec2 scale) {
     return entity;
 }
 
+Entity create_physics_object(vec2 position, vec2 scale, float weight) {
+    Entity entity = Entity();
+
+    PhysicsObject& object = registry.physicsObjects.emplace(entity);
+    object.weight = weight;
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.selfVelocity = {0.0f, 0.0f};
+    motion.angle = 0.0f;
+
+    registry.falling.emplace(entity);
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::OBJECT,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    return entity;
+}
+
 Entity create_moving_platform(vec2 scale, std::vector<Path> movements) {
     Entity entity = Entity();
 
     Motion& motion = registry.motions.emplace(entity);
     motion.position = movements[0].start;
     motion.scale = scale;
-    motion.velocity = {0, 0}; // physics system will calculate this...
+    motion.selfVelocity = {0, 0}; // physics system will calculate this...
     motion.angle = 0.0f;
 
-    Platform& platform = registry.platforms.emplace(entity);
-    platform.friction = STATIC_FRICTION;
+    registry.platforms.emplace(entity);
 
     MovementPath& movementPath = registry.movementPaths.emplace(entity);
     movementPath.paths = movements;
@@ -82,13 +113,12 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements) {
 Entity create_static_platform(vec2 position, vec2 scale) {
     Entity entity = Entity();
 
-    Platform& platform = registry.platforms.emplace(entity);
-    platform.friction = STATIC_FRICTION;
+    registry.platforms.emplace(entity);
 
     Motion& motion = registry.motions.emplace(entity);
     motion.position = position;
     motion.scale = scale;
-    motion.velocity = {0, 0};
+    motion.selfVelocity = {0, 0};
     motion.angle = 0.0f;
 
     registry.renderRequests.insert(entity, {
@@ -105,7 +135,7 @@ Entity create_static_platform(vec2 position, vec2 scale) {
 
 Entity create_camera(vec2 position, vec2 scale) {
     Entity entity = Entity();
-    Camera& camera = registry.cameras.emplace(entity);
+    registry.cameras.emplace(entity);
     Motion& motion = registry.motions.emplace(entity);
 
     motion.position = position;

@@ -29,32 +29,6 @@ WorldSystem::~WorldSystem() {
 	glfwDestroyWindow(window);
 }
 
-// World initialization
-bool WorldSystem::start_and_load_sounds() {
-	
-	//////////////////////////////////////
-	// Loading music and sounds with SDL
-	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-		fprintf(stderr, "Failed to initialize SDL Audio");
-		return false;
-	}
-
-	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
-		fprintf(stderr, "Failed to open audio device");
-		return false;
-	}
-
-	background_music = Mix_LoadMUS(audio_path("time_ambient.wav").c_str());
-
-	if (background_music == nullptr) {
-		fprintf(stderr, "Failed to load sounds\n %s\n make sure the data directory is present",
-			audio_path("time_ambient.wav").c_str());
-		return false;
-	}
-
-    return true;
-}
-
 void WorldSystem::init(GLFWwindow* window) {
 
 	this->window = window;
@@ -95,7 +69,7 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 	    registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 	// Removing out of screen entities
-	auto& motions_registry = registry.motions;
+	// auto& motions_registry = registry.motions;
 
 	/* This part of code restricts the motion of entities;
 	* It makes sense to apply a similar logic, but is currently restricting the action range of cameras;
@@ -105,17 +79,17 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
 	// (the containers exchange the last element with the current)
-	for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
-	    Motion& motion = motions_registry.components[i];
-		if (motion.position.x + abs(motion.scale.x) < 0.f) {
-			if(!registry.players.has(motions_registry.entities[i]) && !registry.cameras.has(motions_registry.entities[i])) // don't remove the player or camera
-				registry.remove_all_components_of(motions_registry.entities[i]);
-		}
-	}
+	// for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
+	//     Motion& motion = motions_registry.components[i];
+	// 	if (motion.position.x + abs(motion.scale.x) < 0.f) {
+	// 		if(!registry.players.has(motions_registry.entities[i]) && !registry.cameras.has(motions_registry.entities[i])) // don't remove the player or camera
+	// 			registry.remove_all_components_of(motions_registry.entities[i]);
+	// 	}
+	// }
 }
 
 void WorldSystem::late_step(float elapsed_ms) {
-	handle_collisions(elapsed_ms);
+	(void) elapsed_ms;
 }
 
 // Reset the world state to its initial state
@@ -139,112 +113,32 @@ void WorldSystem::restart_game() {
 
 	load_level("");
 }
-float clampToTarget(float value, float change, float target) {
-	change = abs(change);
-	if (value > target) {
-		return std::max(value - change, target);
-	} else if (value < target) {
-		return std::min(value + change, target);
+
+// World initialization
+bool WorldSystem::start_and_load_sounds() {
+
+	//////////////////////////////////////
+	// Loading music and sounds with SDL
+	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+		fprintf(stderr, "Failed to initialize SDL Audio");
+		return false;
 	}
-	return target;
+
+	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
+		fprintf(stderr, "Failed to open audio device");
+		return false;
+	}
+
+	background_music = Mix_LoadMUS(audio_path("time_ambient.wav").c_str());
+
+	if (background_music == nullptr) {
+		fprintf(stderr, "Failed to load sounds\n %s\n make sure the data directory is present",
+			audio_path("time_ambient.wav").c_str());
+		return false;
+	}
+
+	return true;
 }
-
-void WorldSystem::handle_player_object_collision(Entity player_entity, Entity object_entity, Collision collision, float step_seconds, bool* playerIsGrounded, bool* playerIsOnMovingPlatform) {
-	Motion& player_motion = registry.motions.get(player_entity);
-	Motion& object_motion = registry.motions.get(object_entity);
-	vec2 overlap = PhysicsSystem::get_collision_overlap(player_motion, object_motion);
-
-	if (collision.side == SIDE::LEFT || collision.side == SIDE::RIGHT) {
-		if (!registry.blocked.has(player_entity)) {
-			registry.blocked.emplace(player_entity);
-		}
-		Blocked& blocked = registry.blocked.get(player_entity);
-		if (collision.side == SIDE::LEFT) {
-			blocked.left = true;
-			if (player_motion.velocity.x < 0)
-				player_motion.velocity.x = 0.0f;
-			player_motion.position.x += overlap.x;
-		}
-		else {
-			blocked.right = true;
-			if (player_motion.velocity.x > 0)
-				player_motion.velocity.x = 0.0f;
-			player_motion.position.x -= overlap.x;
-		}
-	}
-
-	if (collision.side == SIDE::BOTTOM) {
-		player_motion.velocity.y = 0.0f;
-		registry.falling.remove(player_entity);
-		*playerIsGrounded = true;
-		player_motion.position.y -= overlap.y;
-
-		if (registry.movementPaths.has(object_entity)) {
-			MovementPath& movementPath = registry.movementPaths.get(object_entity);
-			Path& currPath = movementPath.paths[movementPath.currentPathIndex];
-			Platform& platform = registry.platforms.get(object_entity);
-			float friction = platform.friction;
-
-			// tiny bit of friction
-			float diff = friction * step_seconds * 50.0f;
-			player_motion.baseVelocity.x = clampToTarget(player_motion.baseVelocity.x, diff, currPath.velocity.x);
-			player_motion.baseVelocity.y = clampToTarget(player_motion.baseVelocity.y, diff, currPath.velocity.y);
-
-			*playerIsOnMovingPlatform = true;
-		}
-	} else if (collision.side == SIDE::TOP) {
-		// stops the player from "sticking" to the bottom of a platform when they jump up into it
-		// if player's y velocity is positive (i.e. player is falling), don't set velocity to 0 to avoid hanging.
-		player_motion.velocity.y = max(player_motion.velocity.y, 0.0f);
-	}
-
-}
-
-
-
-// Compute collisions between entities
-void WorldSystem::handle_collisions(float elapsed_ms) {
-	ComponentContainer<Collision>& collision_container = registry.collisions;
-    bool playerIsGrounded = false;
-	bool playerIsOnMovingPlatform = false;
-
-	float step_seconds = elapsed_ms / 1000.0f;
-
-	for (uint i = 0; i < collision_container.components.size(); i++) {
-		Entity& one = collision_container.entities[i];
-		Collision& collision = collision_container.components[i];
-		Entity& other = collision.other;
-
-		// check player collisions (TODO: abstract this into logic for any falling component?)
-		if (registry.players.has(one) && registry.platforms.has(other)) {
-			handle_player_object_collision(one, other, collision, step_seconds, &playerIsGrounded, &playerIsOnMovingPlatform);
-		} else if (registry.players.has(other) && registry.platforms.has(one)) {
-			// TODO: swap left/right, top/bottom collisions since player is the other...
-			handle_player_object_collision(other, one, collision, step_seconds, &playerIsGrounded, &playerIsOnMovingPlatform);
-		}
-	}
-
-	// after checking all collisions, if player is not marked as grounded they should be falling again.
-	if (!playerIsGrounded) {
-		Entity& player = registry.players.entities[0];
-		if (!registry.falling.has(player)) {
-			registry.falling.emplace(player);
-			registry.blocked.remove(player);
-		}
-	}
-
-	if (!playerIsOnMovingPlatform) {
-		Entity& player = registry.players.entities[0];
-		Motion& player_motion = registry.motions.get(player);
-		float diff = AIR_RESISTANCE * step_seconds;
-		player_motion.baseVelocity.x = clampToTarget(player_motion.baseVelocity.x, diff, 0);
-		player_motion.baseVelocity.y = clampToTarget(player_motion.baseVelocity.y, diff, 0);
-	}
-
-	// Remove all collisions from this simulation step
-	registry.collisions.clear();
-}
-
 
 void WorldSystem::player_walking(bool walking, bool is_left) {
 	Entity& player = registry.players.entities[0];
@@ -273,7 +167,7 @@ void WorldSystem::player_jump() {
 
 	if (!registry.falling.has(player)) {
 		Motion& motion = registry.motions.get(player);
-		motion.velocity.y = -JUMP_VELOCITY;
+		motion.selfVelocity.y = -JUMP_VELOCITY;
 		registry.falling.emplace(player);
 	}
 

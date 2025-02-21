@@ -33,7 +33,7 @@ class RenderSystem : public ISystem {
         textures_path("black.png"),
 		textures_path("greyCircle.png"),
 		textures_path("backgrounds/SampleBackground.png"),
-
+		textures_path("minion.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

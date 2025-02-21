@@ -23,7 +23,6 @@ struct Player
 // Platform component
 struct Platform
 {
-	float friction;
 };
 
 struct Path {
@@ -51,15 +50,22 @@ struct Camera
 
 };
 
+// PhysicsObject means that the component will obey physics
+// use for physics based objects
+struct PhysicsObject
+{
+	float weight;
+};
+
 
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2  position = { 0, 0 };
 	float angle    = 0;
-	vec2  velocity = { 0, 0 };
 	vec2  scale    = { 10, 10 };
 	float frequency = 0.f;
-	vec2 baseVelocity = {0.0f, 0.0f};
+	vec2  selfVelocity = { 0, 0 };
+	vec2  appliedVelocity = {0.0f, 0.0f};
 };
 
 
@@ -77,6 +83,8 @@ struct Walking {
 struct Blocked {
 	bool left = false;
 	bool right = false;
+	bool top = false;
+	bool bottom = false;
 };
 
 // counterclockwise (sides for collisions)
@@ -232,7 +240,8 @@ enum class TEXTURE_ASSET_ID {
 	BLACK = 0,
 	GREY_CIRCLE = BLACK + 1,
 	SAMPLE_BACKGROUND = GREY_CIRCLE + 1,
-	TEXTURE_COUNT = SAMPLE_BACKGROUND + 1
+	OBJECT = SAMPLE_BACKGROUND + 1,
+	TEXTURE_COUNT = OBJECT + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

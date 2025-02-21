@@ -1,6 +1,7 @@
 #pragma once
 #include "common.hpp"
 #include <vector>
+#include <chrono>
 
 enum class GAME_RUNNING_STATE {
 	RUNNING = 0,
@@ -14,6 +15,11 @@ enum class TIME_CONTROL_STATE {
 	DECELERATED = ACCELERATED + 1
 };
 
+enum class BOSS_ID {
+	FIRST = 0,
+	SECOND = FIRST + 1,
+	FINAL = SECOND + 1
+};
 
 // Player component
 struct Player
@@ -64,6 +70,7 @@ struct Motion {
 	float angle    = 0;
 	vec2  scale    = { 10, 10 };
 	float frequency = 0.f;
+	vec2 velocityModifier = { 1.0f, 1.0f };
 	vec2  selfVelocity = { 0, 0 };
 	vec2  appliedVelocity = {0.0f, 0.0f};
 };
@@ -126,8 +133,11 @@ struct GameState {
 	GAME_RUNNING_STATE game_running_state = GAME_RUNNING_STATE::RUNNING;
 	TIME_CONTROL_STATE game_time_control_state = TIME_CONTROL_STATE::NORMAL;
 	float accelerate_cooldown_ms = 0.f;
-	float decelerated_cooldown_ms = 0.f;
+	float decelerate_cooldown_ms = 0.f;
 	float time_until_alarm_clock_ms = 300000.0f; // 5 minutes
+	std::chrono::time_point<std::chrono::high_resolution_clock> accelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
+	std::chrono::time_point<std::chrono::high_resolution_clock> decelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
+	bool is_in_boss_fight = 0;
 };
 
 // A struct to refer to debugging graphics in the ECS
@@ -170,7 +180,7 @@ struct Acceleratable
 // A struct indicating that an entity can be decelerated by the player's ability
 struct Deceleratable
 {
-	float factor = 0.f;
+	float factor = 0.2f;
 	bool can_become_harmless = 0;
 };
 
@@ -211,6 +221,13 @@ struct WaterDrop
 
 };
 
+// A struct indicating that an entity is an enemy boss
+struct Boss
+{
+	BOSS_ID boss_id;
+	float health;
+	float attack_cooldown_ms = 500.0f;
+};
 
 /**
  * The following enumerators represent global identifiers refering to graphic
@@ -240,7 +257,10 @@ enum class TEXTURE_ASSET_ID {
 	BLACK = 0,
 	GREY_CIRCLE = BLACK + 1,
 	SAMPLE_BACKGROUND = GREY_CIRCLE + 1,
-	OBJECT = SAMPLE_BACKGROUND + 1,
+	SAMPLE_PLAYER_WALKING = SAMPLE_BACKGROUND + 1,
+	SAMPLE_PLAYER_STANDING = SAMPLE_PLAYER_WALKING + 1,
+	SAMPLE_PROJECTILE = SAMPLE_PLAYER_STANDING + 1,
+	OBJECT = SAMPLE_PROJECTILE + 1,
 	TEXTURE_COUNT = OBJECT + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
@@ -262,6 +282,19 @@ enum class GEOMETRY_BUFFER_ID {
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
+enum class ANIMATION_ID {
+	PLAYER_WALKING = 0,
+	PLAYER_STANDING = PLAYER_WALKING + 1,
+	ANIMATION_COUNT = PLAYER_STANDING + 1
+};
+const int animation_count = (int)ANIMATION_ID::ANIMATION_COUNT;
+
+enum class ANIMATION_TYPE_ID {
+	CYCLE = 0,
+	FREEZE_ON_LAST = CYCLE + 1,
+	ANIMATION_TYPE_COUNT = FREEZE_ON_LAST + 1
+};
+
 enum class LAYER_ID {
 	BACKGROUND = 1,
 	MIDGROUND = BACKGROUND + 1,
@@ -276,5 +309,11 @@ struct RenderRequest {
 	TEXTURE_ASSET_ID   used_texture  = TEXTURE_ASSET_ID::TEXTURE_COUNT;
 	EFFECT_ASSET_ID    used_effect   = EFFECT_ASSET_ID::EFFECT_COUNT;
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
+	bool flipped = false; // TODO: it might be better to isolate this property into a new component
 };
 
+struct AnimateRequest {
+	ANIMATION_ID used_animation;
+	float timer = 0.0;
+	vec2 tex_u_range = { 0.0, 1.0 };
+};

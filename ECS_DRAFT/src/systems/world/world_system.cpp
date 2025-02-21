@@ -32,6 +32,10 @@ WorldSystem::~WorldSystem() {
 void WorldSystem::init(GLFWwindow* window) {
 
 	this->window = window;
+
+	// Create a single GameState entity
+	registry.gameStates.emplace(game_state_entity);
+
 	if (!start_and_load_sounds()) {
 		std::cerr << "ERROR: Failed to start or load sounds." << std::endl;
 	}
@@ -68,24 +72,35 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 	while (registry.debugComponents.entities.size() > 0)
 	    registry.remove_all_components_of(registry.debugComponents.entities.back());
 
-	// Removing out of screen entities
-	// auto& motions_registry = registry.motions;
-
 	/* This part of code restricts the motion of entities;
 	* It makes sense to apply a similar logic, but is currently restricting the action range of cameras;
 	* May need to refine this in the furture (e.g., for certain projectiles, bosses, etc.)
 	*/
 
-	// Remove entities that leave the screen on the left side
-	// Iterate backwards to be able to remove without unterfering with the next object to visit
-	// (the containers exchange the last element with the current)
-	// for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
-	//     Motion& motion = motions_registry.components[i];
-	// 	if (motion.position.x + abs(motion.scale.x) < 0.f) {
-	// 		if(!registry.players.has(motions_registry.entities[i]) && !registry.cameras.has(motions_registry.entities[i])) // don't remove the player or camera
-	// 			registry.remove_all_components_of(motions_registry.entities[i]);
-	// 	}
-	// }
+	// Update info on acceleration and deceleration duration and trigger deactivate functions if needed
+	assert(registry.gameStates.components.size() <= 1);
+	GameState& gameState = registry.gameStates.components[0];
+	auto now = std::chrono::high_resolution_clock::now();
+
+	if (gameState.accelerate_start_time != std::chrono::time_point<std::chrono::high_resolution_clock>{}) {
+		float duration = (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - gameState.accelerate_start_time)).count() / 1000;
+
+		if (duration >= ACCELERATION_DURATION_MS) {
+			deactivate_acceleration();
+		}
+	}
+
+	if (gameState.decelerate_start_time != std::chrono::time_point<std::chrono::high_resolution_clock>{}) {
+		float duration = (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - gameState.decelerate_start_time)).count() / 1000;
+
+		if (duration >= DECELERATION_DURATION_MS) {
+			deactivate_deceleration();
+		}
+	}
+
+	// Update acceleration and deceleration cooldown time
+	gameState.accelerate_cooldown_ms = std::max(0.f, gameState.accelerate_cooldown_ms - elapsed_ms_since_last_update);
+	gameState.decelerate_cooldown_ms = std::max(0.f, gameState.decelerate_cooldown_ms - elapsed_ms_since_last_update);
 }
 
 void WorldSystem::late_step(float elapsed_ms) {
@@ -110,6 +125,19 @@ void WorldSystem::restart_game() {
 
 	// debugging for memory/component leaks
 	registry.list_all_components();
+
+	assert(registry.gameStates.components.size() <= 1);
+	GameState& gameState = registry.gameStates.components[0];
+	gameState.accelerate_cooldown_ms = 0.f;
+	gameState.decelerate_cooldown_ms = 0.f;
+	gameState.game_time_control_state = TIME_CONTROL_STATE::NORMAL;
+	gameState.game_running_state = GAME_RUNNING_STATE::RUNNING;
+	gameState.accelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
+	gameState.decelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
+	gameState.is_in_boss_fight = 0;
+
+	// TODO:
+	// Maybe the game state should also keep track of current level and player spawning position?
 
 	load_level("");
 }
@@ -140,6 +168,196 @@ bool WorldSystem::start_and_load_sounds() {
 	return true;
 }
 
+void WorldSystem::handle_player_attack_collision(Entity player_entity, Entity attack_entity, Collision collision) {
+	if (registry.harmfuls.has(attack_entity)) {
+		assert(registry.gameStates.components.size() <= 1);
+		GameState& gameState = registry.gameStates.components[0];
+		gameState.game_running_state = GAME_RUNNING_STATE::OVER;
+	}
+}
+
+void WorldSystem::handle_player_boss_collision(Entity player_entity, Entity boss_entity, Collision collision) {
+	bool playerIsGrounded = false;
+	handle_player_object_collision(player_entity, boss_entity, collision, &playerIsGrounded);
+	Boss& boss = registry.bosses.get(boss_entity);
+
+	boss.health -= PLAYER_ATTACK_DAMAGE;
+
+	if (boss.health <= 0.f) {
+		assert(registry.gameStates.components.size() <= 1);
+		GameState& gameState = registry.gameStates.components[0];
+		gameState.is_in_boss_fight = 0;
+		registry.bosses.remove(boss_entity);
+	}
+}
+// Compute collisions between entities
+void WorldSystem::handle_collisions() {
+	ComponentContainer<Collision>& collision_container = registry.collisions;
+	bool playerIsGrounded = false;
+
+	for (uint i = 0; i < collision_container.components.size(); i++) {
+		Entity& one = collision_container.entities[i];
+		Collision& collision = collision_container.components[i];
+		Entity& other = collision.other;
+
+		// check player collisions (TODO: abstract this into logic for any falling component?)
+		if (registry.players.has(one) && registry.platforms.has(other)) {
+			handle_player_object_collision(one, other, collision, &playerIsGrounded);
+		} else if (registry.players.has(other) && registry.platforms.has(one)) {
+			// TODO: swap left/right, top/bottom collisions since player is the other...
+			handle_player_object_collision(other, one, collision, &playerIsGrounded);
+		}
+
+		if (registry.players.has(one) && registry.projectiles.has(other)) {
+			// TODO: should handle_player_projectile_collision() be handle_player_attack_collision() ?
+			handle_player_attack_collision(one, other, collision);
+		} else if (registry.players.has(other) && registry.projectiles.has(one)) {
+			handle_player_attack_collision(other, one, collision);
+		}
+
+		if (registry.players.has(one) && registry.bosses.has(other)) {
+			handle_player_boss_collision(one, other, collision);
+		} else if (registry.players.has(other) && registry.bosses.has(one)) {
+			handle_player_boss_collision(other, one, collision);
+		}
+	}
+
+	// after checking all collisions, if player is not marked as grounded they should be falling again.
+	if (!playerIsGrounded) {
+		Entity& player = registry.players.entities[0];
+		if (!registry.falling.has(player)) {
+			registry.falling.emplace(player);
+			registry.blocked.remove(player);
+		}
+		Motion& player_motion = registry.motions.get(player);
+		player_motion.baseVelocity = {0, 0};
+	}
+}
+
+void WorldSystem::activate_acceleration() {
+    auto& acceleratable_registry = registry.acceleratables;
+
+	// update time control state to accelerated
+	assert(registry.gameStates.components.size() <= 1);
+	GameState& gameState = registry.gameStates.components[0];
+	gameState.game_time_control_state = TIME_CONTROL_STATE::ACCELERATED;
+
+	// update accelerate start time
+	gameState.accelerate_start_time = std::chrono::high_resolution_clock::now();
+
+	// trigger acceleration
+	for (uint i = 0; i < acceleratable_registry.components.size(); i++) {
+		Acceleratable& curr = acceleratable_registry.components[i];
+		Entity& entity = acceleratable_registry.entities[i];
+
+		// update speed
+		Motion& motion = registry.motions.get(entity);
+		motion.frequency *= curr.factor;
+		motion.velocityModifier *= curr.factor;
+
+		// check if it can become harmful
+		if (curr.can_become_harmful == 1) {
+			Harmful& harmful = registry.harmfuls.emplace(entity);
+
+			// Possible TODO:
+			// Update the damage dealt to enemies/objects if needed in the future
+		}
+	}
+}
+
+void WorldSystem::activate_deceleration() {
+    auto& deceleratable_registry = registry.deceleratables;
+
+	// update time control state to decelerated
+	assert(registry.gameStates.components.size() <= 1);
+	GameState& gameState = registry.gameStates.components[0];
+	gameState.game_time_control_state = TIME_CONTROL_STATE::DECELERATED;
+
+	// update decelerate start time
+	gameState.decelerate_start_time = std::chrono::high_resolution_clock::now();
+
+	// trigger deceleration
+	for (uint i = 0; i < deceleratable_registry.components.size(); i++) {
+		Deceleratable& curr = deceleratable_registry.components[i];
+		Entity& entity = deceleratable_registry.entities[i];
+
+		// update speed
+		Motion& motion = registry.motions.get(entity);
+		motion.frequency *= curr.factor;
+		motion.velocityModifier *= curr.factor;
+
+		// check if it can become harmful
+		if (curr.can_become_harmless == 1) {
+			registry.harmfuls.remove(entity);
+		}
+	}
+}
+
+void WorldSystem::deactivate_acceleration() {
+	auto& acceleratable_registry = registry.acceleratables;
+
+	// update time control state to normal
+	assert(registry.gameStates.components.size() <= 1);
+	GameState& gameState = registry.gameStates.components[0];
+	gameState.game_time_control_state = TIME_CONTROL_STATE::NORMAL;
+
+	// update accelerate start time to default
+	gameState.accelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
+
+	// deactivate acceleration
+	for (uint i = 0; i < acceleratable_registry.components.size(); i++) {
+		Acceleratable& curr = acceleratable_registry.components[i];
+		Entity& entity = acceleratable_registry.entities[i];
+
+		// update speed
+		Motion& motion = registry.motions.get(entity);
+		motion.frequency /= curr.factor;
+		motion.velocityModifier /= curr.factor;
+
+		// check if it can become harmful
+		if (curr.can_become_harmful == 1) {
+			registry.harmfuls.remove(entity);
+		}
+	}
+
+	// start accelerate cooldown
+	gameState.accelerate_cooldown_ms = ACCELERATION_COOLDOWN_MS;
+}
+
+void WorldSystem::deactivate_deceleration() {
+	auto& decelerate_registry = registry.deceleratables;
+
+	// update time control state to normal
+	assert(registry.gameStates.components.size() <= 1);
+	GameState& gameState = registry.gameStates.components[0];
+	gameState.game_time_control_state = TIME_CONTROL_STATE::NORMAL;
+
+	// update accelerate start time to default
+	gameState.decelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
+
+	// deactivate deceleration
+	for (uint i = 0; i < decelerate_registry.components.size(); i++) {
+		Deceleratable& curr = decelerate_registry.components[i];
+		Entity& entity = decelerate_registry.entities[i];
+
+		// update speed
+		Motion& motion = registry.motions.get(entity);
+		motion.frequency /= curr.factor;
+		motion.velocityModifier /= curr.factor;
+
+		// check if it can become harmful
+		if (curr.can_become_harmless == 1) {
+			Harmful& harmful = registry.harmfuls.emplace(entity);
+
+			// Possible TODO:
+			// update the harmful entity damage value
+		}
+	}
+
+	// start decelerate cooldown
+	gameState.decelerate_cooldown_ms = DECELERATION_COOLDOWN_MS;
+}
+
 void WorldSystem::player_walking(bool walking, bool is_left) {
 	Entity& player = registry.players.entities[0];
 
@@ -152,12 +370,27 @@ void WorldSystem::player_walking(bool walking, bool is_left) {
 			Walking& walking_component = registry.walking.emplace(player);
 			walking_component.is_left = is_left;
 		}
+
+
+		// TODO: this might not be the best approach to flip Player sprite;
+		// Could potentially isolate all Player-related properties into Player component, and update Player system accordingly
+		if (registry.renderRequests.has(player)) {
+			registry.renderRequests.get(player).flipped = is_left;
+		}
+
+		if (registry.animateRequests.has(player)) {
+			registry.animateRequests.get(player).used_animation = ANIMATION_ID::PLAYER_WALKING;
+		}
 	} else {
 		if (registry.walking.has(player)) {
 			Walking& walking_component = registry.walking.get(player);
 			if (walking_component.is_left == is_left) {
 				registry.walking.remove(player);
 			}
+		}
+
+		if (registry.animateRequests.has(player)) {
+			registry.animateRequests.get(player).used_animation = ANIMATION_ID::PLAYER_STANDING;
 		}
 	}
 }
@@ -198,6 +431,17 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				debugging.in_debug_mode = true;
 			}
 		}
+	}
+
+	// Activate acceleration
+	if (key == GLFW_KEY_Q && action == GLFW_RELEASE) {
+		activate_acceleration();
+	}
+
+	// Activate deceleration
+	if (key == GLFW_KEY_W && action == GLFW_RELEASE)
+	{
+		activate_deceleration();
 	}
 
 	if (key == GLFW_KEY_RIGHT) {

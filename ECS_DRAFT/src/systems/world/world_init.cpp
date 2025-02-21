@@ -57,6 +57,18 @@ Entity create_player(vec2 position, vec2 scale) {
 
     registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
 
+    AnimateRequest& animation = registry.animateRequests.emplace(entity);
+    animation.used_animation = ANIMATION_ID::PLAYER_STANDING;
+
+    // DEBUGGING ONLY
+    /*
+    Deceleratable& deceleration_config = registry.deceleratables.emplace(entity);
+    deceleration_config.can_become_harmless = false;
+
+    Acceleratable& acceleration_config = registry.acceleratables.emplace(entity);
+    acceleration_config.can_become_harmful = false;
+    */
+
     return entity;
 }
 
@@ -106,6 +118,12 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements) {
     });
 
     registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+    Deceleratable& deceleration_config = registry.deceleratables.emplace(entity);
+    deceleration_config.can_become_harmless = false;
+
+    Acceleratable& acceleration_config = registry.acceleratables.emplace(entity);
+    acceleration_config.can_become_harmful = false;
 
     return entity;
 }
@@ -158,6 +176,56 @@ Entity create_background(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
 
     registry.layers.insert(entity, { LAYER_ID::BACKGROUND });
 
+
+    return entity;
+}
+
+Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
+{
+	auto entity = Entity();
+
+	Projectile& projectile = registry.projectiles.emplace(entity);
+	
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = velocity;
+	motion.position = pos;
+	motion.scale = size;
+    
+    Deceleratable& deceleratable = registry.deceleratables.emplace(entity);
+    deceleratable.can_become_harmless = 1;
+
+	registry.renderRequests.insert(
+		entity,
+		{
+			TEXTURE_ASSET_ID::SAMPLE_PROJECTILE,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE
+		}
+	);
+
+	return entity;
+}
+
+Entity create_first_boss() {
+    auto entity = Entity();
+
+    Boss& boss = registry.bosses.emplace(entity);
+    boss.boss_id = BOSS_ID::FIRST;
+    boss.health = 1000.0f;
+    boss.attack_cooldown_ms = 500.0f;
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = vec2(WINDOW_WIDTH_PX / 4 * 3, WINDOW_HEIGHT_PX / 4 * 3);
+
+    registry.renderRequests.insert(
+        entity,
+        {
+            TEXTURE_ASSET_ID::TEXTURE_COUNT,
+            EFFECT_ASSET_ID::TEXTURED,
+            GEOMETRY_BUFFER_ID::SPRITE
+        }
+    );
 
     return entity;
 }

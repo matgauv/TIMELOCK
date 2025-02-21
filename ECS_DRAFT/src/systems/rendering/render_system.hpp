@@ -33,6 +33,9 @@ class RenderSystem : public ISystem {
         textures_path("black.png"),
 		textures_path("greyCircle.png"),
 		textures_path("backgrounds/SampleBackground.png"),
+		textures_path("player/SamplePlayerWalking.png"),
+		textures_path("player/SamplePlayerStanding.png"),
+		textures_path("white_bubble.png"),
 		textures_path("minion.png")
 	};
 

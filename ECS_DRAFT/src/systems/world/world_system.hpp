@@ -32,11 +32,30 @@ public:
 	// releases all associated resources
 	~WorldSystem();
 
+	// Getter for the GameState entity
+	Entity getGameStateEntity() { return game_state_entity; }
+
 private:
 	// starts and loads music and sound effects
 	bool start_and_load_sounds();
+
+	// activates accleration
+	void activate_acceleration();
+
+	// deactivate acceleration
+	void deactivate_acceleration();
+
+	// activates deceleration
+	void activate_deceleration();
+
+	// deactivate deceleration
+	void deactivate_deceleration();
+
 	void player_walking(bool walking, bool is_left);
 	void player_jump();
+
+	void handle_player_attack_collision(Entity player_entity, Entity attack_entity, Collision collision);
+	void handle_player_boss_collision(Entity player_entity, Entity boss_entity, Collision collision);
 
 	float mouse_pos_x = 0.0f;
 	float mouse_pos_y = 0.0f;
@@ -48,6 +67,9 @@ private:
 
 	// restart level
 	void restart_game();
+
+	// GameState entity
+	Entity game_state_entity;
 
 	// OpenGL window handle
 	GLFWwindow* window;

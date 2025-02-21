@@ -188,7 +188,7 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
 	
 	Motion& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = velocity;
+	motion.selfVelocity = velocity;
 	motion.position = pos;
 	motion.scale = size;
     

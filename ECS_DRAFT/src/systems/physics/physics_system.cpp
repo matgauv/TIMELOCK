@@ -175,7 +175,7 @@ void PhysicsSystem::player_walk(Entity& entity, Motion& motion, float step_secon
 		}
 
 		if (!blockedDirection) {
-			// for snappier movement changes (if entity is moving in oposite of desired direction)
+			// for snappier movement changes (if entity is moving in opposite of desired direction)
 			// "braking" force is 2x walking acceleration
 			if (motion.selfVelocity.x * desired_direction < 0) {
 				motion.selfVelocity.x += desired_direction * PLAYER_WALK_ACCELERATION * 2.0f * step_seconds;
@@ -208,8 +208,6 @@ void PhysicsSystem::player_walk(Entity& entity, Motion& motion, float step_secon
 	}
 }
 
-
-
 /*
  * Handles collisions between entities, specifically:
  *		- PhysicsObject <-> Platform
@@ -228,14 +226,26 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 		Collision& collision = collision_container.components[i];
 		Entity& other = collision.other;
 
+		// order here is important so handle both cases sep
 		if (registry.physicsObjects.has(one) && registry.platforms.has(other)) {
 			handle_object_platform_collision(one, other, collision, step_seconds, groundedEntities, onMovingPlatform);
 		} else if (registry.physicsObjects.has(other) && registry.platforms.has(one)) {
-			collision.side = (SIDE)((collision.side + 2) % 4);
+			collision.side = (SIDE)((collision.side + 2) % 4); //swap sides since coll is from perspective of one (left<->right) (top <-> bottom)
 			handle_object_platform_collision(other, one, collision, step_seconds, groundedEntities, onMovingPlatform);
 		}
 
+		if (registry.players.has(one) && registry.projectiles.has(other)) {
+			// TODO: should handle_player_projectile_collision() be handle_player_attack_collision() ?
+			handle_player_attack_collision(one, other, collision);
+		} else if (registry.players.has(other) && registry.projectiles.has(one)) {
+			handle_player_attack_collision(other, one, collision);
+		}
 
+		if (registry.players.has(one) && registry.bosses.has(other)) {
+			handle_player_boss_collision(one, other, collision);
+		} else if (registry.players.has(other) && registry.bosses.has(one)) {
+			handle_player_boss_collision(other, one, collision);
+		}
 	}
 
 	for (uint i = 0; i < collision_container.components.size(); i++) {
@@ -326,6 +336,27 @@ void PhysicsSystem::handle_object_platform_collision(Entity object_entity, Entit
 		object_motion.position += overlap.y;
 	}
 
+}
+
+void PhysicsSystem::handle_player_attack_collision(Entity player_entity, Entity attack_entity, Collision collision) {
+	if (registry.harmfuls.has(attack_entity)) {
+		assert(registry.gameStates.components.size() <= 1);
+		GameState& gameState = registry.gameStates.components[0];
+		gameState.game_running_state = GAME_RUNNING_STATE::OVER;
+	}
+}
+
+void PhysicsSystem::handle_player_boss_collision(Entity player_entity, Entity boss_entity, Collision collision) {
+	Boss& boss = registry.bosses.get(boss_entity);
+
+	boss.health -= PLAYER_ATTACK_DAMAGE;
+
+	if (boss.health <= 0.f) {
+		assert(registry.gameStates.components.size() <= 1);
+		GameState& gameState = registry.gameStates.components[0];
+		gameState.is_in_boss_fight = 0;
+		registry.bosses.remove(boss_entity);
+	}
 }
 
 // Handles collision between two PhysicsObject entities.

@@ -35,6 +35,8 @@ public:
 	// Getter for the GameState entity
 	Entity getGameStateEntity() { return game_state_entity; }
 
+	void setSound(bool play_sound) { this->play_sound = play_sound; }
+
 private:
 	// starts and loads music and sound effects
 	bool start_and_load_sounds();
@@ -77,6 +79,8 @@ private:
 
 	// music references
 	Mix_Music* background_music;
+
+	bool play_sound = true;
 
 	// C++ random number generator
 	std::default_random_engine rng;

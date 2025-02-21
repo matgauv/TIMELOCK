@@ -36,7 +36,7 @@ void WorldSystem::init(GLFWwindow* window) {
 	// Create a single GameState entity
 	registry.gameStates.emplace(game_state_entity);
 
-	if (!start_and_load_sounds()) {
+	if (this->play_sound && !start_and_load_sounds()) {
 		std::cerr << "ERROR: Failed to start or load sounds." << std::endl;
 	}
 

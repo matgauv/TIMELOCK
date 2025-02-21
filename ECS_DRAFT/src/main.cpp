@@ -9,6 +9,7 @@
 #include "systems/animation/animation_system.hpp"
 #include "systems/rendering/render_system.hpp"
 #include "systems/world/world_system.hpp"
+#include "systems/boss/boss_system.hpp"
 
 // Entry point
 int main()
@@ -25,10 +26,12 @@ int main()
 	PhysicsSystem physics_system;
 	CameraSystem camera_system;
 	AnimationSystem animation_system;
+	BossSystem boss_system;
 
 	// register order is the order steps (and then late steps) will be called
 	system_manager.register_system(&world_system);
 	system_manager.register_system(&ai_system);
+	system_manager.register_system(&boss_system);
 	system_manager.register_system(&physics_system);
 	system_manager.register_system(&camera_system);
 	system_manager.register_system(&animation_system);

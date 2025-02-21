@@ -174,6 +174,7 @@ void WorldSystem::restart_game() {
 	gameState.game_running_state = GAME_RUNNING_STATE::RUNNING;
 	gameState.accelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
 	gameState.decelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
+	gameState.is_in_boss_fight = 0;
 
 	// TODO:
 	// Maybe the game state should also keep track of current level and player spawning position?
@@ -219,7 +220,29 @@ void WorldSystem::handle_player_object_collision(Entity player_entity, Entity ob
 	} else if (collision.side == SIDE::TOP) {
 		player_motion.velocity.y = 0.0f;
 	}
+}
 
+void WorldSystem::handle_player_attack_collision(Entity player_entity, Entity attack_entity, Collision collision) {
+	if (registry.harmfuls.has(attack_entity)) {
+		assert(registry.gameStates.components.size() <= 1);
+		GameState& gameState = registry.gameStates.components[0];
+		gameState.game_running_state = GAME_RUNNING_STATE::OVER;
+	}
+}
+
+void WorldSystem::handle_player_boss_collision(Entity player_entity, Entity boss_entity, Collision collision) {
+	bool playerIsGrounded = false;
+	handle_player_object_collision(player_entity, boss_entity, collision, &playerIsGrounded);
+	Boss& boss = registry.bosses.get(boss_entity);
+
+	boss.health -= PLAYER_ATTACK_DAMAGE;
+
+	if (boss.health <= 0.f) {
+		assert(registry.gameStates.components.size() <= 1);
+		GameState& gameState = registry.gameStates.components[0];
+		gameState.is_in_boss_fight = 0;
+		registry.bosses.remove(boss_entity);
+	}
 }
 
 // Compute collisions between entities
@@ -238,6 +261,19 @@ void WorldSystem::handle_collisions() {
 		} else if (registry.players.has(other) && registry.platforms.has(one)) {
 			// TODO: swap left/right, top/bottom collisions since player is the other...
 			handle_player_object_collision(other, one, collision, &playerIsGrounded);
+		}
+
+		if (registry.players.has(one) && registry.projectiles.has(other)) {
+			// TODO: should handle_player_projectile_collision() be handle_player_attack_collision() ?
+			handle_player_attack_collision(one, other, collision);
+		} else if (registry.players.has(other) && registry.projectiles.has(one)) {
+			handle_player_attack_collision(other, one, collision);
+		}
+
+		if (registry.players.has(one) && registry.bosses.has(other)) {
+			handle_player_boss_collision(one, other, collision);
+		} else if (registry.players.has(other) && registry.bosses.has(one)) {
+			handle_player_boss_collision(other, one, collision);
 		}
 	}
 

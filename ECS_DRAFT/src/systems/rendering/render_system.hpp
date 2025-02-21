@@ -35,7 +35,7 @@ class RenderSystem : public ISystem {
 		textures_path("backgrounds/SampleBackground.png"),
 		textures_path("player/SamplePlayerWalking.png"),
 		textures_path("player/SamplePlayerStanding.png"),
-
+		textures_path("white_bubble.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

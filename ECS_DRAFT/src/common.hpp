@@ -65,6 +65,14 @@ const float CAMERA_MAX_SPEED = PLAYER_MAX_FALLING_SPEED * 1.2f;
 const float CAMERA_TRACE_RANGE = WINDOW_WIDTH_PX * 0.25f; // out of this range, camera will trace at max speed
 const float CAMERA_VEL_LERP_FACTOR = 0.2f;
 
+const float PROJECTILE_WIDTH_PX = 40.0f;
+const float PROJECTILE_HEIGHT_PX = 40.0f;
+
+const float FIRST_BOSS_PROJECTILE_SPEED = -200.0f;
+const float BOSS_ATTACK_COOLDOWN_MS = 500.0f;
+
+const float PLAYER_ATTACK_DAMAGE = 20.0f;
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f
 #endif

@@ -36,6 +36,7 @@ public:
 	ComponentContainer<Layer> layers;
 	ComponentContainer<AnimateRequest> animateRequests;
 	ComponentContainer<MovementPath> movementPaths;
+	ComponentContainer<Boss> bosses;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -65,6 +66,7 @@ public:
 		registry_list.push_back(&layers);
 		registry_list.push_back(&animateRequests);
 		registry_list.push_back(&movementPaths);
+		registry_list.push_back(&bosses);
 	}
 
 	void clear_all_components() {

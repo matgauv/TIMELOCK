@@ -5,32 +5,51 @@
 // For now, hard coded to just put a platform on the screen...
 void load_level(std::string descriptor_path) {
     (void)descriptor_path;
-    vec2 initial_pos = { 50.0f, 50.0f };
+    float sceneWidth = WINDOW_WIDTH_PX * 2.0f;
+    float sceneHeight = WINDOW_HEIGHT_PX * 2.0f;
+    float xStart = sceneWidth / 2.0f;
+    vec2 initial_pos = { 100.0f, 100.0f };
     create_player(initial_pos, {50.0f, 50.0f});
     create_camera(initial_pos, { 1.0f, 1.0f }); // TODO: potential open-scene zoom in
+
+    float boundaryWidth = WINDOW_WIDTH_PX * 10.0f;
+    float boundaryHeight = WINDOW_HEIGHT_PX * 5.0f;
     create_background({ WINDOW_WIDTH_PX * 2.0f, WINDOW_HEIGHT_PX * 2.0f }, TEXTURE_ASSET_ID::SAMPLE_BACKGROUND);
-    create_static_platform({WINDOW_WIDTH_PX / 2.0f, WINDOW_HEIGHT_PX - 50.0f}, {WINDOW_WIDTH_PX, 100.0f});
-    create_static_platform({25.0f, WINDOW_HEIGHT_PX - 100.0f}, {WINDOW_WIDTH_PX /4.0f, 100.0f});
-    create_static_platform({700.0f, WINDOW_HEIGHT_PX - 100.0f}, {WINDOW_WIDTH_PX /4.0f, 100.0f});
 
-    Path forward = Path({200.0f, 380.0f}, {350.0f, 380.0f}, 1.5);
-    Path up = Path({350.0f, 380.0f}, {350.0f, 100.0f}, 1.5);
-    Path down = Path({350.0f, 100.0f}, {350.0f, 380.0f}, 1.5);
-    Path backwards = Path({350.0f, 380.0f}, {200.0f, 380.0f}, 1.5);
-    std::vector<Path> movements = {forward, up, down, backwards};
-    create_moving_platform({100.0f, 20.0f}, movements);
 
-    Path top_forward = Path({450.0f, 100.0f}, {600.0f, 100.0f}, 0.1);
-    Path top_backward = Path({600.0f, 100.0f}, {450.0f, 100.0f}, 0.1);
+    create_static_platform({boundaryWidth/2.0f, 0.0f}, {boundaryWidth, 1.0f});
+    create_static_platform({boundaryWidth/2.0f, boundaryHeight}, {boundaryWidth, 1.0f});
+    create_static_platform({0.0f,boundaryHeight/2.0f}, {1.0f, boundaryHeight});
+    create_static_platform({boundaryWidth, boundaryHeight/2.0f}, {1.0f, boundaryHeight});
+
+    // floor
+    create_static_platform({ xStart, sceneHeight}, {sceneWidth, 100.0f});
+
+    // some platforms to jump on
+    create_static_platform({xStart + 300.0f, sceneHeight - 50.0f}, {sceneWidth, 50.0f});
+    create_static_platform({xStart + 600.0f, sceneHeight - 100.0f}, {sceneWidth, 50.0f});
+    create_static_platform({xStart + 900.0f, sceneHeight - 150.0f}, {sceneWidth, 50.0f});
+    create_static_platform({xStart + 1200.0f, sceneHeight - 200.0f}, {sceneWidth, 50.0f});
+
+    //Path forward = Path({xStart + 300.0f, sceneHeight - 250.0f}, {xStart + 600.0f, sceneHeight - 250.0f}, 1.5);
+    Path up = Path({xStart + 600.0f, sceneHeight - 250.0f}, {xStart + 600.0f, sceneHeight - 600.0f}, 0.8);
+    // Path backwards = Path({xStart + 600.0f, sceneHeight - 800.0f}, {xStart + 300.0f, sceneHeight - 800.0f}, 1.5);
+    Path down = Path({xStart + 600.0f, sceneHeight - 600.0f}, {xStart + 600.0f, sceneHeight - 250.0f}, 0.8);
+    std::vector<Path> movements = { up, down};
+    create_moving_platform({150.0f, 20.0f}, movements);
+
+    Path top_forward = Path({xStart + 750.0f, sceneHeight - 800.0f}, {xStart + 950.0f, sceneHeight - 800.0f}, 0.1);
+    Path top_backward = Path({xStart + 950.0f, sceneHeight - 800.0f}, {xStart + 750.0f, sceneHeight - 800.0f}, 0.1);
     std::vector<Path> movements_top_platform = {top_forward, top_backward};
     create_moving_platform({100.0f, 20.0f}, movements_top_platform);
 
-    Path top2_forward = Path({700.0f, 100.0f}, {1000.0f, 0.0f}, 3.0);
-    Path top2_backward = Path({1000.0f, 0.0f}, {700.0f, 100.0f}, 3.0);
+    Path top2_forward = Path({xStart + 1100.0f, sceneHeight - 600.0f}, {xStart + 1400.0f, sceneHeight - 600.0f}, 0.2);
+    Path top2_backward = Path({xStart + 1400.0f, sceneHeight - 600.0f}, {xStart + 1100.0f, sceneHeight - 600.0f}, 0.2);
     std::vector<Path> movements_top2_platform = {top2_forward, top2_backward};
     create_moving_platform({100.0f, 20.0f}, movements_top2_platform);
     //create_physics_object({300.0f, -150.0f}, {50.0f, 50.0f}, 5.0f);
-    create_physics_object({150.0f, -200.0f}, {50.0f, 50.0f}, 5.0f);
+
+    create_physics_object({150.0f, 50.0f}, {50.0f, 50.0f}, 5.0f);
 }
 
 Entity create_player(vec2 position, vec2 scale) {

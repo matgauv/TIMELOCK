@@ -169,12 +169,16 @@ bool WorldSystem::start_and_load_sounds() {
 }
 
 
+// TODO can we make all four activate and deactivate for accelerate and decellerate one function?
+
+
 void WorldSystem::activate_acceleration() {
     auto& acceleratable_registry = registry.acceleratables;
 
 	// update time control state to accelerated
 	assert(registry.gameStates.components.size() <= 1);
 	GameState& gameState = registry.gameStates.components[0];
+
 	gameState.game_time_control_state = TIME_CONTROL_STATE::ACCELERATED;
 
 	// update accelerate start time
@@ -206,6 +210,7 @@ void WorldSystem::activate_deceleration() {
 	// update time control state to decelerated
 	assert(registry.gameStates.components.size() <= 1);
 	GameState& gameState = registry.gameStates.components[0];
+
 	gameState.game_time_control_state = TIME_CONTROL_STATE::DECELERATED;
 
 	// update decelerate start time
@@ -368,15 +373,40 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
+	GameState& gameState = registry.gameStates.components[0];
+
 	// Activate acceleration
 	if (key == GLFW_KEY_Q && action == GLFW_RELEASE) {
-		activate_acceleration();
+
+		// todo can we just make these all one function that knows how to handle switching between states when the button is pressed?
+		if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED)
+		{
+			deactivate_acceleration();
+		} else if (gameState.game_time_control_state == TIME_CONTROL_STATE::NORMAL)
+		{
+			activate_acceleration();
+		} else if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED)
+		{
+			deactivate_deceleration();
+			activate_acceleration();
+		}
 	}
 
 	// Activate deceleration
 	if (key == GLFW_KEY_W && action == GLFW_RELEASE)
 	{
-		activate_deceleration();
+		// todo see above
+		if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED)
+		{
+			deactivate_deceleration();
+		} else if (gameState.game_time_control_state == TIME_CONTROL_STATE::NORMAL)
+		{
+			activate_deceleration();
+		} else if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED)
+		{
+			deactivate_acceleration();
+			activate_deceleration();
+		}
 	}
 
 	if (key == GLFW_KEY_RIGHT) {

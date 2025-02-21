@@ -128,8 +128,8 @@ void PhysicsSystem::move_object_along_path(Entity& entity, Motion& motion, float
 
 	Path currentPath = movement_path.paths[movement_path.currentPathIndex];
 
-	if (abs(motion.position.x - currentPath.end.x) <= abs(currentPath.velocity.x * step_seconds) &&
-		abs(motion.position.y - currentPath.end.y) <= abs(currentPath.velocity.y * step_seconds)) {
+	if (abs(motion.position.x - currentPath.end.x) <= abs(currentPath.velocity.x * motion.velocityModifier.x * step_seconds) &&
+		abs(motion.position.y - currentPath.end.y) <= abs(currentPath.velocity.y * motion.velocityModifier.y * step_seconds)) {
 		if (movement_path.currentPathIndex == movement_path.paths.size() - 1) {
 			movement_path.currentPathIndex = 0;
 		} else {
@@ -320,8 +320,8 @@ void PhysicsSystem::handle_object_platform_collision(Entity object_entity, Entit
 
 			// tiny bit of friction (simulated by interpolating to target velocity)
 			float diff = DYNAMIC_FRICTION * step_seconds;
-			object_motion.appliedVelocity.x = clampToTarget(object_motion.appliedVelocity.x, diff, currPath.velocity.x);
-			object_motion.appliedVelocity.y = clampToTarget(object_motion.appliedVelocity.y, diff, currPath.velocity.y);
+			object_motion.appliedVelocity.x = clampToTarget(object_motion.appliedVelocity.x, diff, currPath.velocity.x * platform_motion.velocityModifier.x);
+			object_motion.appliedVelocity.y = clampToTarget(object_motion.appliedVelocity.y, diff, currPath.velocity.y * platform_motion.velocityModifier.y);
 
 			onMovingPlatform.push_back(object_entity.id());
 		} else {
@@ -408,11 +408,11 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 				}
 
 				// update vertical velocity so the top object looses it's acceleration
-				motionB.selfVelocity.y = motionA.selfVelocity.y;
+				motionB.selfVelocity.y = motionA.selfVelocity.y * motionA.velocityModifier.y;
 
 				// update horizontal velocity so you can carry stuff
 				float diff = STATIC_FRICTION * step_seconds;
-				motionB.appliedVelocity.x = clampToTarget(motionB.appliedVelocity.x, diff, motionA.selfVelocity.x + motionA.appliedVelocity.x);
+				motionB.appliedVelocity.x = clampToTarget(motionB.appliedVelocity.x, diff, (motionA.selfVelocity.x + motionA.appliedVelocity.x) * motionA.velocityModifier.x);
 
 			}
 			break;
@@ -427,11 +427,11 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 				motionA.position.y -= overlap.y;
 
 				// update vertical velocity so the top object looses it's acceleration
-				motionA.selfVelocity.y = motionB.selfVelocity.y;
+				motionA.selfVelocity.y = motionB.selfVelocity.y * motionB.velocityModifier.y;
 
 				// update horizontal velocity so you can carry stuff
 				float diff = STATIC_FRICTION * step_seconds;
-				motionA.appliedVelocity.x = clampToTarget(motionA.appliedVelocity.x, diff, motionB.selfVelocity.x + motionB.appliedVelocity.x);
+				motionA.appliedVelocity.x = clampToTarget(motionA.appliedVelocity.x, diff, (motionB.selfVelocity.x + motionB.appliedVelocity.x) * motionB.velocityModifier.x);
 			} else {
 				if (blockedA.top) blockedB.top = true;
 				motionB.position.y += overlap.y;

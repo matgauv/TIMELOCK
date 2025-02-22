@@ -5,8 +5,10 @@
 #include "tinyECS/components.hpp"
 
 void load_level(std::string descriptor_path);
+void demo_level();
 
 Entity create_player(vec2 position, vec2 scale);
+Entity create_physics_object(vec2 position, vec2 scale, float weight);
 Entity create_camera(vec2 position, vec2 scale);
 Entity create_background(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id);
 Entity create_static_platform(vec2 position, vec2 scale);

@@ -14,27 +14,26 @@ public:
 	void step(float elapsed_ms) override;
 	void late_step(float elapsed_ms) override;
 
-	static vec2 get_collision_overlap(Motion& a, Motion& b) {
-		vec2 playerBB = {abs(a.scale.x), abs(a.scale.y)};
-		vec2 objBB = {abs(b.scale.x), abs(b.scale.y)};
-
-		vec2 playerHalf = playerBB * 0.5f;
-		vec2 objHalf = objBB * 0.5f;
-
-		vec2 delta = a.position - b.position;
-
-		float overlapX = (playerHalf.x + objHalf.x) - fabs(delta.x);
-		float overlapY = (playerHalf.y + objHalf.y) - fabs(delta.y);
-		return {overlapX, overlapY};
-	}
-
 	PhysicsSystem()
 	{
 	}
 private:
 	GLFWwindow* window = nullptr;
 
+	void detect_collisions();
+	void handle_collisions(float elapsed_ms);
+	void handle_object_platform_collision(Entity object_entity, Entity platform_entity, Collision collision, float step_seconds,  std::vector<unsigned int>& groundedEntities, std::vector<unsigned int>& onMovingPlatform);
+	void handle_player_attack_collision(Entity player_entity, Entity attack_entity, Collision collision);
+	void handle_player_boss_collision(Entity player_entity, Entity boss_entity, Collision collision);
+	void handle_physics_collision(float step_seconds, Entity entityA, Entity entityB, Collision collision,  std::vector<unsigned int>& groundedEntities);
 	void apply_gravity(Entity& entity, Motion& motion, float step_seconds);
 	void player_walk(Entity& entity, Motion& motion, float step_seconds);
-	void move_object(Entity& entity, Motion& motion, float step_seconds);
+	void move_object_along_path(Entity& entity, Motion& motion, float step_seconds);
+	float clampToTarget(float value, float change, float target);
+	bool in(std::vector<unsigned int> vec, unsigned int in);
+	vec2 get_bounding_box(const Motion& motion);
+
+	SIDE get_collision_side(Motion& a, Motion& b);
+	vec2 get_collision_overlap(Motion& a, Motion& b);
+
 };

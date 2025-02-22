@@ -29,32 +29,6 @@ WorldSystem::~WorldSystem() {
 	glfwDestroyWindow(window);
 }
 
-// World initialization
-bool WorldSystem::start_and_load_sounds() {
-	
-	//////////////////////////////////////
-	// Loading music and sounds with SDL
-	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-		fprintf(stderr, "Failed to initialize SDL Audio");
-		return false;
-	}
-
-	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
-		fprintf(stderr, "Failed to open audio device");
-		return false;
-	}
-
-	background_music = Mix_LoadMUS(audio_path("time_ambient.wav").c_str());
-
-	if (background_music == nullptr) {
-		fprintf(stderr, "Failed to load sounds\n %s\n make sure the data directory is present",
-			audio_path("time_ambient.wav").c_str());
-		return false;
-	}
-
-    return true;
-}
-
 void WorldSystem::init(GLFWwindow* window) {
 
 	this->window = window;
@@ -62,7 +36,7 @@ void WorldSystem::init(GLFWwindow* window) {
 	// Create a single GameState entity
 	registry.gameStates.emplace(game_state_entity);
 
-	if (!start_and_load_sounds()) {
+	if (this->play_sound && !start_and_load_sounds()) {
 		std::cerr << "ERROR: Failed to start or load sounds." << std::endl;
 	}
 
@@ -98,24 +72,10 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 	while (registry.debugComponents.entities.size() > 0)
 	    registry.remove_all_components_of(registry.debugComponents.entities.back());
 
-	// Removing out of screen entities
-	auto& motions_registry = registry.motions;
-
 	/* This part of code restricts the motion of entities;
 	* It makes sense to apply a similar logic, but is currently restricting the action range of cameras;
 	* May need to refine this in the furture (e.g., for certain projectiles, bosses, etc.)
 	*/
-
-	// Remove entities that leave the screen on the left side
-	// Iterate backwards to be able to remove without unterfering with the next object to visit
-	// (the containers exchange the last element with the current)
-	for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
-	    Motion& motion = motions_registry.components[i];
-		if (motion.position.x + abs(motion.scale.x) < 0.f) {
-			if(!registry.players.has(motions_registry.entities[i]) && !registry.cameras.has(motions_registry.entities[i])) // don't remove the player or camera
-				registry.remove_all_components_of(motions_registry.entities[i]);
-		}
-	}
 
 	// Update info on acceleration and deceleration duration and trigger deactivate functions if needed
 	assert(registry.gameStates.components.size() <= 1);
@@ -124,7 +84,7 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	if (gameState.accelerate_start_time != std::chrono::time_point<std::chrono::high_resolution_clock>{}) {
 		float duration = (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - gameState.accelerate_start_time)).count() / 1000;
-		
+
 		if (duration >= ACCELERATION_DURATION_MS) {
 			deactivate_acceleration();
 		}
@@ -144,7 +104,7 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 }
 
 void WorldSystem::late_step(float elapsed_ms) {
-	handle_collisions();
+	(void) elapsed_ms;
 }
 
 // Reset the world state to its initial state
@@ -182,116 +142,35 @@ void WorldSystem::restart_game() {
 	load_level("");
 }
 
-void WorldSystem::handle_player_object_collision(Entity player_entity, Entity object_entity, Collision collision, bool* playerIsGrounded) {
-	Motion& player_motion = registry.motions.get(player_entity);
-	Motion& object_motion = registry.motions.get(object_entity);
-	vec2 overlap = PhysicsSystem::get_collision_overlap(player_motion, object_motion);
+// World initialization
+bool WorldSystem::start_and_load_sounds() {
 
-	if (collision.side == SIDE::LEFT || collision.side == SIDE::RIGHT) {
-		if (!registry.blocked.has(player_entity)) {
-			registry.blocked.emplace(player_entity);
-		}
-		Blocked& blocked = registry.blocked.get(player_entity);
-		if (collision.side == SIDE::LEFT) {
-			blocked.left = true;
-			if (player_motion.velocity.x < 0)
-				player_motion.velocity.x = 0.0f;
-			player_motion.position.x += overlap.x;
-		}
-		else {
-			blocked.right = true;
-			if (player_motion.velocity.x > 0)
-				player_motion.velocity.x = 0.0f;
-			player_motion.position.x -= overlap.x;
-		}
+	//////////////////////////////////////
+	// Loading music and sounds with SDL
+	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+		fprintf(stderr, "Failed to initialize SDL Audio");
+		return false;
 	}
 
-	if (collision.side == SIDE::BOTTOM) {
-		player_motion.velocity.y = 0.0f;
-		registry.falling.remove(player_entity);
-		*playerIsGrounded = true;
-		player_motion.position.y -= overlap.y;
-
-		if (registry.movementPaths.has(object_entity)) {
-			MovementPath& movementPath = registry.movementPaths.get(object_entity);
-			Path& currPath = movementPath.paths[movementPath.currentPathIndex];
-			player_motion.baseVelocity = currPath.velocity;
-		}
-	} else if (collision.side == SIDE::TOP) {
-		player_motion.velocity.y = 0.0f;
+	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
+		fprintf(stderr, "Failed to open audio device");
+		return false;
 	}
+
+	background_music = Mix_LoadMUS(audio_path("time_ambient.wav").c_str());
+
+	if (background_music == nullptr) {
+		fprintf(stderr, "Failed to load sounds\n %s\n make sure the data directory is present",
+			audio_path("time_ambient.wav").c_str());
+		return false;
+	}
+
+	return true;
 }
 
-void WorldSystem::handle_player_attack_collision(Entity player_entity, Entity attack_entity, Collision collision) {
-	if (registry.harmfuls.has(attack_entity)) {
-		assert(registry.gameStates.components.size() <= 1);
-		GameState& gameState = registry.gameStates.components[0];
-		gameState.game_running_state = GAME_RUNNING_STATE::OVER;
-	}
-}
 
-void WorldSystem::handle_player_boss_collision(Entity player_entity, Entity boss_entity, Collision collision) {
-	bool playerIsGrounded = false;
-	handle_player_object_collision(player_entity, boss_entity, collision, &playerIsGrounded);
-	Boss& boss = registry.bosses.get(boss_entity);
+// TODO can we make all four activate and deactivate for accelerate and decellerate one function?
 
-	boss.health -= PLAYER_ATTACK_DAMAGE;
-
-	if (boss.health <= 0.f) {
-		assert(registry.gameStates.components.size() <= 1);
-		GameState& gameState = registry.gameStates.components[0];
-		gameState.is_in_boss_fight = 0;
-		registry.bosses.remove(boss_entity);
-	}
-}
-
-// Compute collisions between entities
-void WorldSystem::handle_collisions() {
-	ComponentContainer<Collision>& collision_container = registry.collisions;
-    bool playerIsGrounded = false;
-
-	for (uint i = 0; i < collision_container.components.size(); i++) {
-		Entity& one = collision_container.entities[i];
-		Collision& collision = collision_container.components[i];
-		Entity& other = collision.other;
-
-		// check player collisions (TODO: abstract this into logic for any falling component?)
-		if (registry.players.has(one) && registry.platforms.has(other)) {
-			handle_player_object_collision(one, other, collision, &playerIsGrounded);
-		} else if (registry.players.has(other) && registry.platforms.has(one)) {
-			// TODO: swap left/right, top/bottom collisions since player is the other...
-			handle_player_object_collision(other, one, collision, &playerIsGrounded);
-		}
-
-		if (registry.players.has(one) && registry.projectiles.has(other)) {
-			// TODO: should handle_player_projectile_collision() be handle_player_attack_collision() ?
-			handle_player_attack_collision(one, other, collision);
-		} else if (registry.players.has(other) && registry.projectiles.has(one)) {
-			handle_player_attack_collision(other, one, collision);
-		}
-
-		if (registry.players.has(one) && registry.bosses.has(other)) {
-			handle_player_boss_collision(one, other, collision);
-		} else if (registry.players.has(other) && registry.bosses.has(one)) {
-			handle_player_boss_collision(other, one, collision);
-		}
-	}
-
-	// after checking all collisions, if player is not marked as grounded they should be falling again.
-	if (!playerIsGrounded) {
-		Entity& player = registry.players.entities[0];
-		if (!registry.falling.has(player)) {
-			registry.falling.emplace(player);
-			registry.blocked.remove(player);
-		}
-		Motion& player_motion = registry.motions.get(player);
-		player_motion.baseVelocity = {0, 0};
-	}
-
-
-	// Remove all collisions from this simulation step
-	registry.collisions.clear();
-}
 
 void WorldSystem::activate_acceleration() {
     auto& acceleratable_registry = registry.acceleratables;
@@ -299,6 +178,7 @@ void WorldSystem::activate_acceleration() {
 	// update time control state to accelerated
 	assert(registry.gameStates.components.size() <= 1);
 	GameState& gameState = registry.gameStates.components[0];
+
 	gameState.game_time_control_state = TIME_CONTROL_STATE::ACCELERATED;
 
 	// update accelerate start time
@@ -330,6 +210,7 @@ void WorldSystem::activate_deceleration() {
 	// update time control state to decelerated
 	assert(registry.gameStates.components.size() <= 1);
 	GameState& gameState = registry.gameStates.components[0];
+
 	gameState.game_time_control_state = TIME_CONTROL_STATE::DECELERATED;
 
 	// update decelerate start time
@@ -459,7 +340,7 @@ void WorldSystem::player_jump() {
 
 	if (!registry.falling.has(player)) {
 		Motion& motion = registry.motions.get(player);
-		motion.velocity.y = -JUMP_VELOCITY;
+		motion.selfVelocity.y = -JUMP_VELOCITY;
 		registry.falling.emplace(player);
 	}
 
@@ -492,15 +373,40 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
+	GameState& gameState = registry.gameStates.components[0];
+
 	// Activate acceleration
 	if (key == GLFW_KEY_Q && action == GLFW_RELEASE) {
-		activate_acceleration();
+
+		// todo can we just make these all one function that knows how to handle switching between states when the button is pressed?
+		if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED)
+		{
+			deactivate_acceleration();
+		} else if (gameState.game_time_control_state == TIME_CONTROL_STATE::NORMAL)
+		{
+			activate_acceleration();
+		} else if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED)
+		{
+			deactivate_deceleration();
+			activate_acceleration();
+		}
 	}
 
 	// Activate deceleration
 	if (key == GLFW_KEY_W && action == GLFW_RELEASE)
 	{
-		activate_deceleration();
+		// todo see above
+		if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED)
+		{
+			deactivate_deceleration();
+		} else if (gameState.game_time_control_state == TIME_CONTROL_STATE::NORMAL)
+		{
+			activate_deceleration();
+		} else if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED)
+		{
+			deactivate_acceleration();
+			activate_deceleration();
+		}
 	}
 
 	if (key == GLFW_KEY_RIGHT) {

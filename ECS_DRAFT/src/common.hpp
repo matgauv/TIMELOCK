@@ -45,9 +45,11 @@ const float DECELERATION_DURATION_MS = 10000.0f;
 
 const float M_TO_PIXELS = 50.0f; // 50 px is 1m
 const float GRAVITY = 9.8f * M_TO_PIXELS;
-const float OBJECT_MAX_FALLING_SPEED = 500.0f;
+const float OBJECT_MAX_FALLING_SPEED = 1000.0f;
 
-const float FRICTION = 500.0f;
+const float STATIC_FRICTION = 500.0f;
+const float DYNAMIC_FRICTION = STATIC_FRICTION * 50.0f;
+const float AIR_RESISTANCE = 250.0f;
 const float JUMP_VELOCITY = 300.0f;
 
 const float PLAYER_MAX_FALLING_SPEED = 1000.0f;

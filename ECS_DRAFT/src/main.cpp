@@ -12,8 +12,15 @@
 #include "systems/boss/boss_system.hpp"
 
 // Entry point
-int main()
+int main(int argc, char *argv[])
 {
+
+	bool play_sound = true;
+	if (argc == 2 && strcmp(argv[1], "--nosound") == 0)
+	{
+		play_sound = false;
+	}
+
 	SystemsManager system_manager;
 	if (system_manager.get_window() == nullptr) {
 		return EXIT_FAILURE;
@@ -27,6 +34,8 @@ int main()
 	CameraSystem camera_system;
 	AnimationSystem animation_system;
 	BossSystem boss_system;
+
+	world_system.setSound(play_sound);
 
 	// register order is the order steps (and then late steps) will be called
 	system_manager.register_system(&world_system);

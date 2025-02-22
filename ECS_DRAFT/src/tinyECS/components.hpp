@@ -125,7 +125,8 @@ extern Debug debugging;
 // Sets the brightness of the screen
 struct ScreenState
 {
-	float darken_screen_factor = -1;
+	float acceleration_factor = -1.0;
+	float deceleration_factor = -1.0;
 };
 
 // A struct that includes the necessary properties of the current game state

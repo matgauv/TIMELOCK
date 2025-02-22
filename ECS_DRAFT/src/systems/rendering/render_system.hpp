@@ -92,6 +92,10 @@ private:
 	void drawTexturedMesh(Entity entity, const mat3& projection);
 	void drawToScreen();
 
+	// Update Screen shader factors
+	void updateDecelerationFactor(GameState& gameState, ScreenState& screen, float elapsed_ms);
+	void updateAccelerationFactor(GameState& gameState, ScreenState& screen, float elapsed_ms);
+
 	// Window handle
 	GLFWwindow* window;
 

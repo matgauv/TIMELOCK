@@ -43,6 +43,10 @@ const float DECELERATION_COOLDOWN_MS = 10000.0f;
 const float ACCELERATION_DURATION_MS = 10000.0f;
 const float DECELERATION_DURATION_MS = 10000.0f;
 
+// Screen shader effect
+const float ACCELERATION_EMERGE_MS = 150.0f;
+const float DECELERATION_EMERGE_MS = 150.0f;
+
 const float M_TO_PIXELS = 50.0f; // 50 px is 1m
 const float GRAVITY = 9.8f * M_TO_PIXELS;
 const float OBJECT_MAX_FALLING_SPEED = 1000.0f;

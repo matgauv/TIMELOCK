@@ -5,6 +5,7 @@
 #include "tinyECS/components.hpp"
 
 void load_level(std::string descriptor_path);
+void demo_level();
 
 Entity create_player(vec2 position, vec2 scale);
 Entity create_physics_object(vec2 position, vec2 scale, float weight);

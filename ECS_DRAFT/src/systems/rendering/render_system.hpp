@@ -35,6 +35,8 @@ class RenderSystem : public ISystem {
 		textures_path("backgrounds/SampleBackground.png"),
 		textures_path("player/SamplePlayerWalking.png"),
 		textures_path("player/SamplePlayerStanding.png"),
+		textures_path("player/PlayerWalking_v1.png"),
+		textures_path("player/PlayerStanding_v1.png"),
 		textures_path("white_bubble.png"),
 		textures_path("minion.png")
 	};
@@ -89,6 +91,10 @@ private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection);
 	void drawToScreen();
+
+	// Update Screen shader factors
+	void updateDecelerationFactor(GameState& gameState, ScreenState& screen, float elapsed_ms);
+	void updateAccelerationFactor(GameState& gameState, ScreenState& screen, float elapsed_ms);
 
 	// Window handle
 	GLFWwindow* window;

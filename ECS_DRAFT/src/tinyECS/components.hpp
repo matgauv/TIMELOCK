@@ -125,7 +125,8 @@ extern Debug debugging;
 // Sets the brightness of the screen
 struct ScreenState
 {
-	float darken_screen_factor = -1;
+	float acceleration_factor = -1.0;
+	float deceleration_factor = -1.0;
 };
 
 // A struct that includes the necessary properties of the current game state
@@ -259,7 +260,9 @@ enum class TEXTURE_ASSET_ID {
 	SAMPLE_BACKGROUND = GREY_CIRCLE + 1,
 	SAMPLE_PLAYER_WALKING = SAMPLE_BACKGROUND + 1,
 	SAMPLE_PLAYER_STANDING = SAMPLE_PLAYER_WALKING + 1,
-	SAMPLE_PROJECTILE = SAMPLE_PLAYER_STANDING + 1,
+	PLAYER_WALKING_V1 = SAMPLE_PLAYER_STANDING + 1,
+	PLAYER_STANDING_V1 = PLAYER_WALKING_V1 + 1,
+	SAMPLE_PROJECTILE = PLAYER_STANDING_V1 + 1,
 	OBJECT = SAMPLE_PROJECTILE + 1,
 	TEXTURE_COUNT = OBJECT + 1
 };

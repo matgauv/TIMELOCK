@@ -19,7 +19,7 @@ void demo_level() {
 
     float boundaryWidth = WINDOW_WIDTH_PX * 10.0f;
     float boundaryHeight = WINDOW_HEIGHT_PX * 5.0f;
-    create_background({ WINDOW_WIDTH_PX * 2.0f, WINDOW_HEIGHT_PX * 2.0f }, TEXTURE_ASSET_ID::SAMPLE_BACKGROUND);
+    create_background({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::SAMPLE_BACKGROUND);
 
 
     // level boundaries
@@ -200,7 +200,7 @@ Entity create_camera(vec2 position, vec2 scale) {
 Entity create_background(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
     Entity entity = Entity();
     Motion& motion = registry.motions.emplace(entity);
-    motion.position = scene_dimensions * 0.5f * BACKGROUND_DEPTH;
+    motion.position = scene_dimensions * 0.5f /** BACKGROUND_DEPTH*/;
     motion.scale = scene_dimensions * BACKGROUND_DEPTH;
 
     registry.renderRequests.insert(entity, {

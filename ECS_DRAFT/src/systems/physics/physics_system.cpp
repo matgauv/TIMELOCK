@@ -273,8 +273,8 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 		if (!in(onMovingPlatform, entity.id())) {
 			Motion& obj_motion = registry.motions.get(entity);
             float diff = AIR_RESISTANCE * step_seconds;
-            obj_motion.appliedVelocity.x = clampToTarget(obj_motion.appliedVelocity.x, diff, 0);
-            obj_motion.appliedVelocity.y = clampToTarget(obj_motion.appliedVelocity.y, diff, 0);
+            obj_motion.appliedVelocity.x = applyLerp(obj_motion.appliedVelocity.x, diff, 0);
+            obj_motion.appliedVelocity.y = applyLerp(obj_motion.appliedVelocity.y, diff, 0);
 		}
 	}
 
@@ -320,8 +320,8 @@ void PhysicsSystem::handle_object_platform_collision(Entity object_entity, Entit
 
 			// tiny bit of friction (simulated by interpolating to target velocity)
 			float diff = DYNAMIC_FRICTION * step_seconds;
-			object_motion.appliedVelocity.x = clampToTarget(object_motion.appliedVelocity.x, diff, currPath.velocity.x * platform_motion.velocityModifier.x);
-			object_motion.appliedVelocity.y = clampToTarget(object_motion.appliedVelocity.y, diff, currPath.velocity.y * platform_motion.velocityModifier.y);
+			object_motion.appliedVelocity.x = applyLerp(object_motion.appliedVelocity.x, diff, currPath.velocity.x * platform_motion.velocityModifier.x);
+			object_motion.appliedVelocity.y = applyLerp(object_motion.appliedVelocity.y, diff, currPath.velocity.y * platform_motion.velocityModifier.y);
 
 			onMovingPlatform.push_back(object_entity.id());
 		} else {
@@ -412,7 +412,7 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 
 				// update horizontal velocity so you can carry stuff
 				float diff = STATIC_FRICTION * step_seconds;
-				motionB.appliedVelocity.x = clampToTarget(motionB.appliedVelocity.x, diff, (motionA.selfVelocity.x + motionA.appliedVelocity.x) * motionA.velocityModifier.x);
+				motionB.appliedVelocity.x = applyLerp(motionB.appliedVelocity.x, diff, (motionA.selfVelocity.x + motionA.appliedVelocity.x) * motionA.velocityModifier.x);
 
 			}
 			break;
@@ -431,7 +431,7 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 
 				// update horizontal velocity so you can carry stuff
 				float diff = STATIC_FRICTION * step_seconds;
-				motionA.appliedVelocity.x = clampToTarget(motionA.appliedVelocity.x, diff, (motionB.selfVelocity.x + motionB.appliedVelocity.x) * motionB.velocityModifier.x);
+				motionA.appliedVelocity.x = applyLerp(motionA.appliedVelocity.x, diff, (motionB.selfVelocity.x + motionB.appliedVelocity.x) * motionB.velocityModifier.x);
 			} else {
 				if (blockedA.top) blockedB.top = true;
 				motionB.position.y += overlap.y;
@@ -454,6 +454,18 @@ float PhysicsSystem::clampToTarget(float value, float change, float target) {
 	return target;
 }
 
+// computes the current t based on the step size we want to take
+float PhysicsSystem::applyLerp(float current, float diff, float target) {
+	float dist = abs(current - target);
+	float time = (dist > 0.0) ? diff / dist : 1.0;
+	return lerpToTarget(current, target, time);
+}
+
+// Linearly interpolates between current and target
+// time must be in the [0, 1] range.
+float PhysicsSystem::lerpToTarget(float current, float target, float time) {
+	return current * (1 - time) + target * time;
+}
 // Helper function to check if an entity id is within a vector.
 bool PhysicsSystem::in(std::vector<unsigned int> vec, unsigned int id) {
 	return std::find(vec.begin(), vec.end(), id) != vec.end();

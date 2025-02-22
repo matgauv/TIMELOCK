@@ -30,6 +30,8 @@ private:
 	void player_walk(Entity& entity, Motion& motion, float step_seconds);
 	void move_object_along_path(Entity& entity, Motion& motion, float step_seconds);
 	float clampToTarget(float value, float change, float target);
+	float applyLerp(float current, float diff, float target);
+	float lerpToTarget(float current, float target, float time);
 	bool in(std::vector<unsigned int> vec, unsigned int in);
 	vec2 get_bounding_box(const Motion& motion);
 

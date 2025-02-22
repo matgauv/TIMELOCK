@@ -79,6 +79,8 @@ private:
 
 	// music references
 	Mix_Music* background_music;
+	Mix_Chunk* slow_down_effect;
+	Mix_Chunk* speed_up_effect;
 
 	bool play_sound = true;
 

@@ -17,10 +17,20 @@ WorldSystem::WorldSystem()
 }
 
 WorldSystem::~WorldSystem() {
-	// Destroy music components
-	if (background_music != nullptr)
-		Mix_FreeMusic(background_music);
-	Mix_CloseAudio();
+
+	if (this->play_sound) {
+		// Destroy music components
+		if (background_music != nullptr)
+			Mix_FreeMusic(background_music);
+
+		if (slow_down_effect != nullptr)
+			Mix_FreeChunk(slow_down_effect);
+
+		if (speed_up_effect != nullptr)
+			Mix_FreeChunk(speed_up_effect);
+
+		Mix_CloseAudio();
+	}
 
 	// Destroy all created components
 	registry.clear_all_components();
@@ -52,9 +62,11 @@ void WorldSystem::init(GLFWwindow* window) {
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
 	glfwSetMouseButtonCallback(window, mouse_button_pressed_redirect);
 
-	// start playing background music indefinitely
-	std::cout << "Starting music..." << std::endl;
-	Mix_PlayMusic(background_music, -1);
+	if (this->play_sound) {
+		// start playing background music indefinitely
+		std::cout << "Starting music..." << std::endl;
+		Mix_PlayMusic(background_music, -1);
+	}
 
 	// Set all states to default
     restart_game();
@@ -158,8 +170,10 @@ bool WorldSystem::start_and_load_sounds() {
 	}
 
 	background_music = Mix_LoadMUS(audio_path("time_ambient.wav").c_str());
+	slow_down_effect = Mix_LoadWAV(audio_path("slow.wav").c_str());
+	speed_up_effect = Mix_LoadWAV(audio_path("speedup.wav").c_str());
 
-	if (background_music == nullptr) {
+	if  (background_music == nullptr || slow_down_effect == nullptr || speed_up_effect == nullptr) {
 		fprintf(stderr, "Failed to load sounds\n %s\n make sure the data directory is present",
 			audio_path("time_ambient.wav").c_str());
 		return false;
@@ -231,6 +245,10 @@ void WorldSystem::activate_deceleration() {
 			registry.harmfuls.remove(entity);
 		}
 	}
+
+	if (this->play_sound) {
+		Mix_PlayChannel(-1, slow_down_effect, 0);
+	}
 }
 
 void WorldSystem::deactivate_acceleration() {
@@ -296,6 +314,9 @@ void WorldSystem::deactivate_deceleration() {
 
 	// start decelerate cooldown
 	gameState.decelerate_cooldown_ms = DECELERATION_COOLDOWN_MS;
+	if (this->play_sound) {
+		Mix_PlayChannel(-1, speed_up_effect, 0);
+	}
 }
 
 void WorldSystem::player_walking(bool walking, bool is_left) {

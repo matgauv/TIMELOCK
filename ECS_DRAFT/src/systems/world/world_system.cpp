@@ -246,7 +246,9 @@ void WorldSystem::activate_deceleration() {
 		}
 	}
 
-	Mix_PlayChannel(-1, slow_down_effect, 0);
+	if (this->play_sound) {
+		Mix_PlayChannel(-1, slow_down_effect, 0);
+	}
 }
 
 void WorldSystem::deactivate_acceleration() {
@@ -312,7 +314,9 @@ void WorldSystem::deactivate_deceleration() {
 
 	// start decelerate cooldown
 	gameState.decelerate_cooldown_ms = DECELERATION_COOLDOWN_MS;
-	Mix_PlayChannel(-1, speed_up_effect, 0);
+	if (this->play_sound) {
+		Mix_PlayChannel(-1, speed_up_effect, 0);
+	}
 }
 
 void WorldSystem::player_walking(bool walking, bool is_left) {

@@ -9,3 +9,5 @@ ECS_DRAFT/cmake-build-debug
 /ECS_DRAFT/out
 /ECS_DRAFT/cmake-build-debug
 /ECS_DRAFT/ext/project_path.hpp
+.vscode/settings.json
+/build

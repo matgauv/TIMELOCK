@@ -21,6 +21,11 @@ void Transform::translate(vec2 offset)
 	mat = mat * T;
 }
 
+// M1 Interpolation implementation (lerp formula)
+float lerpToTarget(float current, float target, float time) {
+	return current * (1.0f - time) + target * time;
+}
+
 bool gl_has_errors()
 {
 	GLenum error = glGetError();

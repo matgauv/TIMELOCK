@@ -23,11 +23,10 @@ WorldSystem::~WorldSystem() {
 		if (background_music != nullptr)
 			Mix_FreeMusic(background_music);
 
-		if (slow_down_effect != nullptr)
-			Mix_FreeChunk(slow_down_effect);
-
-		if (speed_up_effect != nullptr)
-			Mix_FreeChunk(speed_up_effect);
+		for (Mix_Chunk* effect : sound_effects) {
+			if (effect != nullptr)
+				Mix_FreeChunk(effect);
+		}
 
 		Mix_CloseAudio();
 	}
@@ -75,45 +74,75 @@ void WorldSystem::init(GLFWwindow* window) {
 // Update our game world
 void WorldSystem::step(float elapsed_ms_since_last_update) {
 
-	// Updating window title with points
-	std::stringstream title_ss;
-//	title_ss << "Points: " << points;
-//	glfwSetWindowTitle(window, title_ss.str().c_str());
-
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
 	    registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 	/* This part of code restricts the motion of entities;
 	* It makes sense to apply a similar logic, but is currently restricting the action range of cameras;
-	* May need to refine this in the furture (e.g., for certain projectiles, bosses, etc.)
+	* May need to refine this in the future (e.g., for certain projectiles, bosses, etc.)
 	*/
 
-	// Update info on acceleration and deceleration duration and trigger deactivate functions if needed
+	// Update info on acceleration and deceleration duration and deactivate if needed
 	assert(registry.gameStates.components.size() <= 1);
 	GameState& gameState = registry.gameStates.components[0];
 	auto now = std::chrono::high_resolution_clock::now();
 
-	if (gameState.accelerate_start_time != std::chrono::time_point<std::chrono::high_resolution_clock>{}) {
-		float duration = (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - gameState.accelerate_start_time)).count() / 1000;
+	if (gameState.time_control_start_time != std::chrono::time_point<std::chrono::high_resolution_clock>{}) {
+		float duration = (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - gameState.time_control_start_time)).count() / 1000;
 
-		if (duration >= ACCELERATION_DURATION_MS) {
-			deactivate_acceleration();
+		if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED && duration >= ACCELERATION_DURATION_MS) {
+			control_time(true, false);
 		}
-	}
 
-	if (gameState.decelerate_start_time != std::chrono::time_point<std::chrono::high_resolution_clock>{}) {
-		float duration = (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - gameState.decelerate_start_time)).count() / 1000;
-
-		if (duration >= DECELERATION_DURATION_MS) {
-			deactivate_deceleration();
+		if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED && duration >= DECELERATION_DURATION_MS) {
+			control_time(false, false);
 		}
 	}
 
 	// Update acceleration and deceleration cooldown time
 	gameState.accelerate_cooldown_ms = std::max(0.f, gameState.accelerate_cooldown_ms - elapsed_ms_since_last_update);
 	gameState.decelerate_cooldown_ms = std::max(0.f, gameState.decelerate_cooldown_ms - elapsed_ms_since_last_update);
+
+
+	// TODO: prob don't need to loop any frame, only when transitions are taking place...
+	for (Entity entity : registry.timeControllables.entities) {
+		TimeControllable& tc = registry.timeControllables.get(entity);
+		Motion& motion = registry.motions.get(entity);
+		float start = NORMAL_FACTOR;
+
+		// this is a bit ugly but covers the 4 cases where we go from accelerated/decelerated to normal/decelerated/accelerated
+		if (motion.velocityModifier < NORMAL_FACTOR && tc.target_time_control_factor != DECELERATE_FACTOR) {
+			start = DECELERATE_FACTOR;
+		} else if (motion.velocityModifier > NORMAL_FACTOR && tc.target_time_control_factor != ACCELERATE_FACTOR) {
+			start = ACCELERATE_FACTOR;
+		}
+
+		lerpTimeState(start, tc.target_time_control_factor, motion, gameState.time_control_start_time);
+	}
+
+	if (gameState.game_running_state == GAME_RUNNING_STATE::SHOULD_RESET) {
+		restart_game();
+	}
 }
+
+// M1 interpolation implementation
+void WorldSystem::lerpTimeState(float start, float target, Motion& motion, std::chrono::time_point<std::chrono::high_resolution_clock> effectStartTime) {
+
+	float currentTime = std::chrono::duration<float, std::milli>(
+			std::chrono::high_resolution_clock::now().time_since_epoch()
+		).count();
+	float startTime = std::chrono::duration<float, std::milli>(
+			effectStartTime.time_since_epoch()
+		).count();
+
+	float time = (currentTime - startTime) / ACCELERATION_EMERGE_MS;
+
+	if (time > 1.0) time = 1.0;
+
+	motion.velocityModifier = lerpToTarget(start, target, time); // actual lerp function is in common.cpp
+}
+
 
 void WorldSystem::late_step(float elapsed_ms) {
 	(void) elapsed_ms;
@@ -144,8 +173,7 @@ void WorldSystem::restart_game() {
 	gameState.decelerate_cooldown_ms = 0.f;
 	gameState.game_time_control_state = TIME_CONTROL_STATE::NORMAL;
 	gameState.game_running_state = GAME_RUNNING_STATE::RUNNING;
-	gameState.accelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
-	gameState.decelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
+	gameState.time_control_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
 	gameState.is_in_boss_fight = 0;
 
 	// TODO:
@@ -173,151 +201,72 @@ bool WorldSystem::start_and_load_sounds() {
 	slow_down_effect = Mix_LoadWAV(audio_path("slow.wav").c_str());
 	speed_up_effect = Mix_LoadWAV(audio_path("speedup.wav").c_str());
 
+	sound_effects.push_back(slow_down_effect);
+	sound_effects.push_back(speed_up_effect);
+
 	if  (background_music == nullptr || slow_down_effect == nullptr || speed_up_effect == nullptr) {
-		fprintf(stderr, "Failed to load sounds\n %s\n make sure the data directory is present",
-			audio_path("time_ambient.wav").c_str());
+		fprintf(stderr, "Failed to load sounds -- make sure the data directory is present");
 		return false;
 	}
 
 	return true;
 }
 
-
-// TODO can we make all four activate and deactivate for accelerate and decellerate one function?
-
-
-void WorldSystem::activate_acceleration() {
-    auto& acceleratable_registry = registry.acceleratables;
-
-	// update time control state to accelerated
-	assert(registry.gameStates.components.size() <= 1);
+void WorldSystem::control_time(bool accelerate, bool activate) {
 	GameState& gameState = registry.gameStates.components[0];
 
-	gameState.game_time_control_state = TIME_CONTROL_STATE::ACCELERATED;
+	if (activate) {
+		// don't activate if cooldown hasn't expired!
+		if ((accelerate && gameState.accelerate_cooldown_ms > 0.0) ||
+			(!accelerate && gameState.decelerate_cooldown_ms > 0.0)) {
+			return;
+		}
 
-	// update accelerate start time
-	gameState.accelerate_start_time = std::chrono::high_resolution_clock::now();
+		if (accelerate) {
+			gameState.game_time_control_state = TIME_CONTROL_STATE::ACCELERATED;
+			gameState.accelerate_cooldown_ms = ACCELERATION_COOLDOWN_MS;
+			playSoundIfEnabled(speed_up_effect);
+		} else {
+			gameState.game_time_control_state = TIME_CONTROL_STATE::DECELERATED;
+			gameState.decelerate_cooldown_ms = DECELERATION_COOLDOWN_MS;
+			playSoundIfEnabled(slow_down_effect);
+		}
 
-	// trigger acceleration
-	for (uint i = 0; i < acceleratable_registry.components.size(); i++) {
-		Acceleratable& curr = acceleratable_registry.components[i];
-		Entity& entity = acceleratable_registry.entities[i];
-
-		// update speed
-		Motion& motion = registry.motions.get(entity);
-		motion.frequency *= curr.factor;
-		motion.velocityModifier *= curr.factor;
-
-		// check if it can become harmful
-		if (curr.can_become_harmful == 1) {
-			Harmful& harmful = registry.harmfuls.emplace(entity);
-
-			// Possible TODO:
-			// Update the damage dealt to enemies/objects if needed in the future
+		gameState.time_control_start_time = std::chrono::high_resolution_clock::now();
+	} else {
+		gameState.game_time_control_state = TIME_CONTROL_STATE::NORMAL;
+		if (accelerate) {
+			playSoundIfEnabled(slow_down_effect);
+		} else {
+			playSoundIfEnabled(speed_up_effect);
 		}
 	}
-}
 
-void WorldSystem::activate_deceleration() {
-    auto& deceleratable_registry = registry.deceleratables;
+	for (uint i = 0; i < registry.timeControllables.components.size(); i++) {
+		TimeControllable& tc = registry.timeControllables.components[i];
+		Entity& entity = registry.timeControllables.entities[i];
 
-	// update time control state to decelerated
-	assert(registry.gameStates.components.size() <= 1);
-	GameState& gameState = registry.gameStates.components[0];
+		// set the target time control factor, `step` will lerp towards whatever we set here
+		if (activate) {
+			tc.target_time_control_factor = accelerate ? ACCELERATE_FACTOR : DECELERATE_FACTOR;
+		} else {
+			tc.target_time_control_factor = NORMAL_FACTOR;
+		}
 
-	gameState.game_time_control_state = TIME_CONTROL_STATE::DECELERATED;
+		// become harmful when activating acceleration and can become harmful or when deactivating deceleration (and became harmless when decellerating)
+		if ((activate && accelerate && tc.can_become_harmful) ||
+			(!activate && !accelerate && tc.can_become_harmless)) {
+			registry.harmfuls.emplace(entity);
+		}
 
-	// update decelerate start time
-	gameState.decelerate_start_time = std::chrono::high_resolution_clock::now();
-
-	// trigger deceleration
-	for (uint i = 0; i < deceleratable_registry.components.size(); i++) {
-		Deceleratable& curr = deceleratable_registry.components[i];
-		Entity& entity = deceleratable_registry.entities[i];
-
-		// update speed
-		Motion& motion = registry.motions.get(entity);
-		motion.frequency *= curr.factor;
-		motion.velocityModifier *= curr.factor;
-
-		// check if it can become harmful
-		if (curr.can_become_harmless == 1) {
+		// become harmless when activating deceleration and can become harmless or when deactivating acceleration (and became harmful during acceleration)
+		if ((activate && !accelerate && tc.can_become_harmless) ||
+			(!activate && accelerate && tc.can_become_harmful)) {
 			registry.harmfuls.remove(entity);
 		}
 	}
-
-	if (this->play_sound) {
-		Mix_PlayChannel(-1, slow_down_effect, 0);
-	}
 }
 
-void WorldSystem::deactivate_acceleration() {
-	auto& acceleratable_registry = registry.acceleratables;
-
-	// update time control state to normal
-	assert(registry.gameStates.components.size() <= 1);
-	GameState& gameState = registry.gameStates.components[0];
-	gameState.game_time_control_state = TIME_CONTROL_STATE::NORMAL;
-
-	// update accelerate start time to default
-	gameState.accelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
-
-	// deactivate acceleration
-	for (uint i = 0; i < acceleratable_registry.components.size(); i++) {
-		Acceleratable& curr = acceleratable_registry.components[i];
-		Entity& entity = acceleratable_registry.entities[i];
-
-		// update speed
-		Motion& motion = registry.motions.get(entity);
-		motion.frequency /= curr.factor;
-		motion.velocityModifier /= curr.factor;
-
-		// check if it can become harmful
-		if (curr.can_become_harmful == 1) {
-			registry.harmfuls.remove(entity);
-		}
-	}
-
-	// start accelerate cooldown
-	gameState.accelerate_cooldown_ms = ACCELERATION_COOLDOWN_MS;
-}
-
-void WorldSystem::deactivate_deceleration() {
-	auto& decelerate_registry = registry.deceleratables;
-
-	// update time control state to normal
-	assert(registry.gameStates.components.size() <= 1);
-	GameState& gameState = registry.gameStates.components[0];
-	gameState.game_time_control_state = TIME_CONTROL_STATE::NORMAL;
-
-	// update accelerate start time to default
-	gameState.decelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
-
-	// deactivate deceleration
-	for (uint i = 0; i < decelerate_registry.components.size(); i++) {
-		Deceleratable& curr = decelerate_registry.components[i];
-		Entity& entity = decelerate_registry.entities[i];
-
-		// update speed
-		Motion& motion = registry.motions.get(entity);
-		motion.frequency /= curr.factor;
-		motion.velocityModifier /= curr.factor;
-
-		// check if it can become harmful
-		if (curr.can_become_harmless == 1) {
-			Harmful& harmful = registry.harmfuls.emplace(entity);
-
-			// Possible TODO:
-			// update the harmful entity damage value
-		}
-	}
-
-	// start decelerate cooldown
-	gameState.decelerate_cooldown_ms = DECELERATION_COOLDOWN_MS;
-	if (this->play_sound) {
-		Mix_PlayChannel(-1, speed_up_effect, 0);
-	}
-}
 
 void WorldSystem::player_walking(bool walking, bool is_left) {
 	Entity& player = registry.players.entities[0];
@@ -345,13 +294,13 @@ void WorldSystem::player_walking(bool walking, bool is_left) {
 	} else {
 		if (registry.walking.has(player)) {
 			Walking& walking_component = registry.walking.get(player);
+			// if current walking component is in the direction of this player walk stop call, remove it and stop walking
 			if (walking_component.is_left == is_left) {
 				registry.walking.remove(player);
+				if (registry.animateRequests.has(player)) {
+					registry.animateRequests.get(player).used_animation = ANIMATION_ID::PLAYER_STANDING;
+				}
 			}
-		}
-
-		if (registry.animateRequests.has(player)) {
-			registry.animateRequests.get(player).used_animation = ANIMATION_ID::PLAYER_STANDING;
 		}
 	}
 }
@@ -398,35 +347,20 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Activate acceleration
 	if (key == GLFW_KEY_Q && action == GLFW_RELEASE) {
-
-		// todo can we just make these all one function that knows how to handle switching between states when the button is pressed?
-		if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED)
-		{
-			deactivate_acceleration();
-		} else if (gameState.game_time_control_state == TIME_CONTROL_STATE::NORMAL)
-		{
-			activate_acceleration();
-		} else if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED)
-		{
-			deactivate_deceleration();
-			activate_acceleration();
+		if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED) {
+			control_time(true, false);
+		} else {
+			control_time(true, true);
 		}
 	}
 
 	// Activate deceleration
 	if (key == GLFW_KEY_W && action == GLFW_RELEASE)
 	{
-		// todo see above
-		if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED)
-		{
-			deactivate_deceleration();
-		} else if (gameState.game_time_control_state == TIME_CONTROL_STATE::NORMAL)
-		{
-			activate_deceleration();
-		} else if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED)
-		{
-			deactivate_acceleration();
-			activate_deceleration();
+		if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED) {
+			control_time(false, false);
+		} else {
+			control_time(false, true);
 		}
 	}
 
@@ -462,5 +396,11 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 	// on button press
 	if (action == GLFW_PRESS) {
 		std::cout << "mouse position: " << mouse_pos_x << ", " << mouse_pos_y << std::endl;
+	}
+}
+
+void WorldSystem::playSoundIfEnabled(Mix_Chunk* sound) {
+	if (this->play_sound) {
+		Mix_PlayChannel(-1, sound, 0);
 	}
 }

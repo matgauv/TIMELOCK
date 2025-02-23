@@ -41,17 +41,10 @@ private:
 	// starts and loads music and sound effects
 	bool start_and_load_sounds();
 
-	// activates accleration
-	void activate_acceleration();
+	// control acceleration/deceleration
+	void control_time(bool accelerate, bool activate);
 
-	// deactivate acceleration
-	void deactivate_acceleration();
-
-	// activates deceleration
-	void activate_deceleration();
-
-	// deactivate deceleration
-	void deactivate_deceleration();
+	void lerpTimeState(float start, float factor, Motion& motion, std::chrono::time_point<std::chrono::high_resolution_clock> effectStartTime);
 
 	void player_walking(bool walking, bool is_left);
 	void player_jump();
@@ -64,6 +57,8 @@ private:
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
 	void on_mouse_button_pressed(int button, int action, int mods);
+
+	void playSoundIfEnabled(Mix_Chunk* sound);
 
 	// restart level
 	void restart_game();
@@ -81,6 +76,7 @@ private:
 	Mix_Music* background_music;
 	Mix_Chunk* slow_down_effect;
 	Mix_Chunk* speed_up_effect;
+	std::vector<Mix_Chunk*> sound_effects;
 
 	bool play_sound = true;
 

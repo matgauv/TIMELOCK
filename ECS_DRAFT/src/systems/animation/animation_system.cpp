@@ -10,8 +10,7 @@ void AnimationSystem::init(GLFWwindow* window) {
 void AnimationSystem::step(float elapsed_ms) {
 	auto& animateRequest_registry = registry.animateRequests;
 	auto& renderRequest_registry = registry.renderRequests;
-	auto& deceleratable_registry = registry.deceleratables;
-	auto& acceleratable_registry = registry.acceleratables;
+    auto& time_control_registry = registry.timeControllables;
 
 	TIME_CONTROL_STATE current_time_state = registry.gameStates.components[0].game_time_control_state;
 
@@ -25,12 +24,9 @@ void AnimationSystem::step(float elapsed_ms) {
 		// Calculate time factor upon acceleration/deceleration
 		float timeFactor = 1.0f;
 
-		if (current_time_state == TIME_CONTROL_STATE::DECELERATED && deceleratable_registry.has(entity)) {
-			timeFactor = deceleratable_registry.get(entity).factor;
-		} 
-		else if (current_time_state == TIME_CONTROL_STATE::ACCELERATED && acceleratable_registry.has(entity)) {
-			timeFactor = acceleratable_registry.get(entity).factor;
-		}
+        if (time_control_registry.has(entity)) {
+          	timeFactor = time_control_registry.get(entity).target_time_control_factor;
+        }
 
 		updateTimer(animateRequest, animationConfig, timeFactor * elapsed_ms);
 

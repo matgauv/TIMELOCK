@@ -39,7 +39,10 @@ class RenderSystem : public ISystem {
 		textures_path("player/PlayerStanding_v1.png"),
 		textures_path("white_bubble.png"),
 		textures_path("greenbox.png"),
-		textures_path("transparent1px.png")
+		textures_path("transparent1px.png"),
+		textures_path("backgrounds/gears.png"),
+		textures_path("backgrounds/metal.png"),
+		textures_path("backgrounds/chains.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

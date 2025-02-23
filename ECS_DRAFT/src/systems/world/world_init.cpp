@@ -14,13 +14,17 @@ void demo_level() {
     float sceneHeight = WINDOW_HEIGHT_PX * 2.0f;
     float xStart = 250.0f;
     vec2 initial_pos = {xStart, sceneHeight/2.0f + 300.0f};
+    
+
+    float boundaryWidth = WINDOW_WIDTH_PX * 3.0f;
+    float boundaryHeight = WINDOW_HEIGHT_PX * 3.0f;
+    create_parallaxbackground({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::GEARS_BACKGROUND);
+    create_background({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::METAL_BACKGROUND);
+    create_foreground({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
+
+    // initial_pos = {0,0};
     create_player(initial_pos, {50.0f, 50.0f});
     create_camera(initial_pos, { 1.0f, 1.0f }); // TODO: potential open-scene zoom in
-
-    float boundaryWidth = WINDOW_WIDTH_PX * 10.0f;
-    float boundaryHeight = WINDOW_HEIGHT_PX * 5.0f;
-    create_background({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::SAMPLE_BACKGROUND);
-
 
     // level boundaries
     create_static_platform({boundaryWidth/2.0f, 0.0f}, {boundaryWidth, 1.0f}, true);
@@ -196,11 +200,28 @@ Entity create_camera(vec2 position, vec2 scale) {
     return entity;
 }
 
+Entity create_parallaxbackground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
+    Entity entity = Entity();
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = scene_dimensions * 0.5f; // PARALLAXBACKGROUND_DEPTH;
+    motion.scale = scene_dimensions *1.5f; // PARALLAXBACKGROUND_DEPTH;
+    
+    registry.renderRequests.insert(entity, {
+        texture_id,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+
+    registry.layers.insert(entity, { LAYER_ID::PARALLAXBACKGROUND });
+
+    return entity;
+}
+
 Entity create_background(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
     Entity entity = Entity();
     Motion& motion = registry.motions.emplace(entity);
-    motion.position = scene_dimensions * 0.5f /** BACKGROUND_DEPTH*/;
-    motion.scale = scene_dimensions * BACKGROUND_DEPTH;
+    motion.position = scene_dimensions * 0.5f ;// BACKGROUND_DEPTH;
+    motion.scale = scene_dimensions *1.5f;// BACKGROUND_DEPTH;
 
     registry.renderRequests.insert(entity, {
         texture_id,
@@ -210,6 +231,22 @@ Entity create_background(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
 
     registry.layers.insert(entity, { LAYER_ID::BACKGROUND });
 
+    return entity;
+}
+
+Entity create_foreground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
+    Entity entity = Entity();
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = scene_dimensions * 0.5f ; // / FOREGROUND_DEPTH;
+    motion.scale = scene_dimensions / FOREGROUND_DEPTH *0.75f;
+
+    registry.renderRequests.insert(entity, {
+        texture_id,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+
+    registry.layers.insert(entity, { LAYER_ID::FOREGROUND });
 
     return entity;
 }

@@ -69,8 +69,9 @@ const float PLAYER_WALK_ACCELERATION = 500.0f;
 
 // Fore, mid, background Depths; used for scaling only
 const float FOREGROUND_DEPTH = 0.5f;
-const float MIDGROUND_DEPTH = 1.0f;
-const float BACKGROUND_DEPTH = 2.0f;
+const float MIDGROUND_DEPTH = 0.75f;
+const float BACKGROUND_DEPTH = 0.9f;
+const float PARALLAXBACKGROUND_DEPTH = 1.5f;
 
 // Camera motion properties
 const float CAMERA_MAX_SPEED = PLAYER_MAX_FALLING_SPEED * 1.2f;

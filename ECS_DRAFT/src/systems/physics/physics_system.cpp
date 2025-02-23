@@ -149,9 +149,7 @@ void PhysicsSystem::apply_gravity(Entity& entity, Motion& motion, float step_sec
 		max_fall_speed = PLAYER_MAX_FALLING_SPEED;
 	}
 
-	if (motion.selfVelocity.y < max_fall_speed) {
-		motion.selfVelocity.y += GRAVITY * step_seconds;
-	}
+	motion.selfVelocity.y = clampToTarget(motion.selfVelocity.y, GRAVITY * step_seconds, max_fall_speed);
 }
 
 // Moves the player left or right depending on the direction specified in the walking component
@@ -175,13 +173,12 @@ void PhysicsSystem::player_walk(Entity& entity, Motion& motion, float step_secon
 		}
 
 		if (!blockedDirection) {
+			// TODO use clampToTarget here?
 			// for snappier movement changes (if entity is moving in opposite of desired direction)
-			// "braking" force is 2x walking acceleration
 			if (motion.selfVelocity.x * desired_direction < 0) {
 				motion.selfVelocity.x += desired_direction * DYNAMIC_FRICTION * step_seconds;
 
-				if (motion.selfVelocity.x * desired_direction > 0)
-					motion.selfVelocity.x = 0;
+				if (motion.selfVelocity.x * desired_direction > 0) motion.selfVelocity.x = 0.0f;
 			}
 
 			motion.selfVelocity.x += desired_direction * PLAYER_WALK_ACCELERATION * step_seconds;
@@ -196,22 +193,9 @@ void PhysicsSystem::player_walk(Entity& entity, Motion& motion, float step_secon
 		// if not walking, we're stopping -- slow down to 0.
 		// Any other source of "selfVelocity" in the x direction will prob break this with this.
 		float diff = STATIC_FRICTION * step_seconds;
-		applyFriction(motion.selfVelocity.x, diff);
-		applyFriction(motion.appliedVelocity.x, diff);
+		motion.selfVelocity.x = clampToTarget(motion.selfVelocity.x, diff, 0.0f);
 	}
 
-}
-
-void PhysicsSystem::applyFriction(float &velocity, float diff) {
-	if (velocity > 0) {
-		velocity -= diff;
-		if (velocity < 0)
-			velocity = 0;
-	} else if (velocity < 0) {
-		velocity += diff;
-		if (velocity > 0)
-			velocity = 0;
-	}
 }
 
 
@@ -294,7 +278,13 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 		// If object is not on moving platform, modify base velocity.
 		if (!in(onMovingPlatform, entity.id())) {
 			Motion& obj_motion = registry.motions.get(entity);
-            float diff = AIR_RESISTANCE * step_seconds;
+
+			float resistance = AIR_RESISTANCE;
+			if (in(groundedEntities, entity.id())) {
+				resistance = STATIC_FRICTION;
+			}
+
+            float diff = resistance * step_seconds;
             obj_motion.appliedVelocity.x = clampToTarget(obj_motion.appliedVelocity.x, diff, 0);
             obj_motion.appliedVelocity.y = clampToTarget(obj_motion.appliedVelocity.y, diff, 0);
 		}

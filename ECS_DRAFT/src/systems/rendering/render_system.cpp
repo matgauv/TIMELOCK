@@ -181,22 +181,32 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 
     // add the "vignette" effect
-	const GLuint vignette_program = effects[(GLuint)EFFECT_ASSET_ID::SCREEN];
+	const GLuint screen_shader_program = effects[(GLuint)EFFECT_ASSET_ID::SCREEN];
 
-	// set clock
-	GLuint time_uloc       = glGetUniformLocation(vignette_program, "time");
-	GLuint dead_timer_uloc = glGetUniformLocation(vignette_program, "darken_screen_factor");
+	// set acceleration/deceleration factors
+	GLuint acc_act_fac_uloc = glGetUniformLocation(screen_shader_program, "acc_act_factor");
+	GLuint dec_act_fac_uloc = glGetUniformLocation(screen_shader_program, "dec_act_factor");
 
-	glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
+	GLuint acc_emerge_fac_uloc = glGetUniformLocation(screen_shader_program, "acc_emerge_factor");
+	GLuint dec_emerge_fac_uloc = glGetUniformLocation(screen_shader_program, "dec_emerge_factor");
+
+	GLuint time_uloc = glGetUniformLocation(screen_shader_program, "time");
+
+	glUniform1f(time_uloc, (float)(glfwGetTime() * 1000.0f));
 
 	ScreenState &screen = registry.screenStates.get(screen_state_entity);
-	// std::cout << "screen.darken_screen_factor: " << screen.darken_screen_factor << " entity id: " << screen_state_entity << std::endl;
-	glUniform1f(dead_timer_uloc, screen.darken_screen_factor);
+
+	glUniform1f(dec_act_fac_uloc, screen.deceleration_factor);
+	glUniform1f(acc_act_fac_uloc, screen.acceleration_factor);
+	gl_has_errors();
+
+	glUniform1f(acc_emerge_fac_uloc, ACCELERATION_EMERGE_MS/ACCELERATION_DURATION_MS);
+	glUniform1f(dec_emerge_fac_uloc, DECELERATION_EMERGE_MS/DECELERATION_DURATION_MS);
 	gl_has_errors();
 
 	// Set the vertex position and vertex texture coordinates (both stored in the
 	// same VBO)
-	GLint in_position_loc = glGetAttribLocation(vignette_program, "in_position");
+	GLint in_position_loc = glGetAttribLocation(screen_shader_program, "in_position");
 	glEnableVertexAttribArray(in_position_loc);
 	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void *)0);
 	gl_has_errors();
@@ -217,7 +227,49 @@ void RenderSystem::drawToScreen()
 
 void RenderSystem::step(float elapsed_ms) {
 	// anything to do here?
-};
+
+	// Update Screen factors
+	// assert(registry.gameStates.components.size() <= 1);
+	GameState& gameState = registry.gameStates.components[0];
+	ScreenState& screen = registry.screenStates.get(screen_state_entity);
+
+	updateDecelerationFactor(gameState, screen, elapsed_ms);
+	updateAccelerationFactor(gameState, screen, elapsed_ms);
+}
+
+void RenderSystem::updateDecelerationFactor(GameState& gameState, ScreenState& screen, float elapsed_ms)
+{
+	if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED) {
+		screen.deceleration_factor = max(0.0f,
+			screen.deceleration_factor + elapsed_ms / DECELERATION_DURATION_MS);
+	}
+	else if (screen.deceleration_factor >= 0) {
+		screen.deceleration_factor = min(
+			screen.deceleration_factor - elapsed_ms / DECELERATION_DURATION_MS,
+			DECELERATION_EMERGE_MS / DECELERATION_DURATION_MS);
+
+		if (screen.deceleration_factor < 0) {
+			screen.deceleration_factor = -1.0;
+		}
+	}
+}
+
+void RenderSystem::updateAccelerationFactor(GameState& gameState, ScreenState& screen, float elapsed_ms)
+{
+	if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED) {
+		screen.acceleration_factor = max(0.0f,
+			screen.acceleration_factor + elapsed_ms / ACCELERATION_DURATION_MS);
+	}
+	else if (screen.acceleration_factor >= 0) {
+		screen.acceleration_factor = min(
+			screen.acceleration_factor - elapsed_ms / ACCELERATION_DURATION_MS,
+			ACCELERATION_EMERGE_MS / ACCELERATION_DURATION_MS);
+
+		if (screen.acceleration_factor < 0) {
+			screen.acceleration_factor = -1.0;
+		}
+	}
+}
 
 void RenderSystem::late_step(float elapsed_ms) {
 	draw();

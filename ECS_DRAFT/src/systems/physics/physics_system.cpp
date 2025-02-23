@@ -122,14 +122,14 @@ void PhysicsSystem::detect_collisions() {
 	}
 }
 
-// will move an object along it's movement path, rotating between the different paths specified in the component
+// will move an object along its movement path, rotating between the different paths specified in the component
 void PhysicsSystem::move_object_along_path(Entity& entity, Motion& motion, float step_seconds) {
 	MovementPath& movement_path = registry.movementPaths.get(entity);
 
 	Path currentPath = movement_path.paths[movement_path.currentPathIndex];
 
-	if (abs(motion.position.x - currentPath.end.x) <= abs(currentPath.velocity.x * motion.velocityModifier.x * step_seconds) &&
-		abs(motion.position.y - currentPath.end.y) <= abs(currentPath.velocity.y * motion.velocityModifier.y * step_seconds)) {
+	if (abs(motion.position.x - currentPath.end.x) <= abs(currentPath.velocity.x * motion.velocityModifier * step_seconds) &&
+		abs(motion.position.y - currentPath.end.y) <= abs(currentPath.velocity.y * motion.velocityModifier * step_seconds)) {
 		if (movement_path.currentPathIndex == movement_path.paths.size() - 1) {
 			movement_path.currentPathIndex = 0;
 		} else {
@@ -149,9 +149,7 @@ void PhysicsSystem::apply_gravity(Entity& entity, Motion& motion, float step_sec
 		max_fall_speed = PLAYER_MAX_FALLING_SPEED;
 	}
 
-	if (motion.selfVelocity.y < max_fall_speed) {
-		motion.selfVelocity.y += GRAVITY * step_seconds;
-	}
+	motion.selfVelocity.y = clampToTarget(motion.selfVelocity.y, GRAVITY * step_seconds, max_fall_speed);
 }
 
 // Moves the player left or right depending on the direction specified in the walking component
@@ -175,13 +173,12 @@ void PhysicsSystem::player_walk(Entity& entity, Motion& motion, float step_secon
 		}
 
 		if (!blockedDirection) {
+			// TODO use clampToTarget here?
 			// for snappier movement changes (if entity is moving in opposite of desired direction)
-			// "braking" force is 2x walking acceleration
 			if (motion.selfVelocity.x * desired_direction < 0) {
-				motion.selfVelocity.x += desired_direction * PLAYER_WALK_ACCELERATION * 2.0f * step_seconds;
+				motion.selfVelocity.x += desired_direction * DYNAMIC_FRICTION * step_seconds;
 
-				if (motion.selfVelocity.x * desired_direction > 0)
-					motion.selfVelocity.x = 0;
+				if (motion.selfVelocity.x * desired_direction > 0) motion.selfVelocity.x = 0.0f;
 			}
 
 			motion.selfVelocity.x += desired_direction * PLAYER_WALK_ACCELERATION * step_seconds;
@@ -195,18 +192,12 @@ void PhysicsSystem::player_walk(Entity& entity, Motion& motion, float step_secon
 	} else {
 		// if not walking, we're stopping -- slow down to 0.
 		// Any other source of "selfVelocity" in the x direction will prob break this with this.
-		if (motion.selfVelocity.x > 0) {
-			motion.selfVelocity.x -= STATIC_FRICTION * step_seconds;
-			if (motion.selfVelocity.x < 0)
-				motion.selfVelocity.x = 0;
-		}
-		else if (motion.selfVelocity.x < 0) {
-			motion.selfVelocity.x += STATIC_FRICTION * step_seconds;
-			if (motion.selfVelocity.x > 0)
-				motion.selfVelocity.x = 0;
-		}
+		float diff = STATIC_FRICTION * step_seconds;
+		motion.selfVelocity.x = clampToTarget(motion.selfVelocity.x, diff, 0.0f);
 	}
+
 }
+
 
 /*
  * Handles collisions between entities, specifically:
@@ -246,6 +237,21 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 		} else if (registry.players.has(other) && registry.bosses.has(one)) {
 			handle_player_boss_collision(other, one, collision);
 		}
+
+		// if player touches boundary, reset the game
+		GameState& gameState = registry.gameStates.components[0];
+		if (registry.players.has(one) && registry.boundaries.has(other)) {
+			gameState.game_running_state = GAME_RUNNING_STATE::SHOULD_RESET;
+		} else if (registry.players.has(other) && registry.boundaries.has(one)) {
+			gameState.game_running_state = GAME_RUNNING_STATE::SHOULD_RESET;
+		}
+
+		// if objects touch the boundary, remove them
+		if (registry.physicsObjects.has(one) && registry.boundaries.has(other)) {
+			registry.remove_all_components_of(one);
+		} else if (registry.physicsObjects.has(other) && registry.boundaries.has(one)) {
+			registry.remove_all_components_of(other);
+		}
 	}
 
 	for (uint i = 0; i < collision_container.components.size(); i++) {
@@ -272,7 +278,13 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 		// If object is not on moving platform, modify base velocity.
 		if (!in(onMovingPlatform, entity.id())) {
 			Motion& obj_motion = registry.motions.get(entity);
-            float diff = AIR_RESISTANCE * step_seconds;
+
+			float resistance = AIR_RESISTANCE;
+			if (in(groundedEntities, entity.id())) {
+				resistance = STATIC_FRICTION;
+			}
+
+            float diff = resistance * step_seconds;
             obj_motion.appliedVelocity.x = clampToTarget(obj_motion.appliedVelocity.x, diff, 0);
             obj_motion.appliedVelocity.y = clampToTarget(obj_motion.appliedVelocity.y, diff, 0);
 		}
@@ -295,14 +307,25 @@ void PhysicsSystem::handle_object_platform_collision(Entity object_entity, Entit
 
 	if (collision.side == SIDE::LEFT) {
 		blocked.left = true;
-		if (object_motion.selfVelocity.x < 0)
+		if (object_motion.selfVelocity.x < 0.0f) {
 			object_motion.selfVelocity.x = 0.0f;
+		}
+
+		if (object_motion.appliedVelocity.x < 0.0f) {
+			object_motion.appliedVelocity.x = 0.0f;
+		}
 		object_motion.position.x += overlap.x;
 	}
 	else if (collision.side == SIDE::RIGHT) {
 		blocked.right = true;
-		if (object_motion.selfVelocity.x > 0)
+		if (object_motion.selfVelocity.x > 0.0f) {
 			object_motion.selfVelocity.x = 0.0f;
+		}
+
+		if (object_motion.appliedVelocity.x > 0.0f) {
+			object_motion.appliedVelocity.x = 0.0f;
+		}
+
 		object_motion.position.x -= overlap.x;
 	} else if (collision.side == SIDE::BOTTOM) {
 		object_motion.selfVelocity.y = 0.0f;
@@ -320,8 +343,8 @@ void PhysicsSystem::handle_object_platform_collision(Entity object_entity, Entit
 
 			// tiny bit of friction (simulated by interpolating to target velocity)
 			float diff = DYNAMIC_FRICTION * step_seconds;
-			object_motion.appliedVelocity.x = clampToTarget(object_motion.appliedVelocity.x, diff, currPath.velocity.x * platform_motion.velocityModifier.x);
-			object_motion.appliedVelocity.y = clampToTarget(object_motion.appliedVelocity.y, diff, currPath.velocity.y * platform_motion.velocityModifier.y);
+			object_motion.appliedVelocity.x = clampToTarget(object_motion.appliedVelocity.x, diff, currPath.velocity.x * platform_motion.velocityModifier);
+			object_motion.appliedVelocity.y = clampToTarget(object_motion.appliedVelocity.y, diff, currPath.velocity.y * platform_motion.velocityModifier);
 
 			onMovingPlatform.push_back(object_entity.id());
 		} else {
@@ -408,11 +431,11 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 				}
 
 				// update vertical velocity so the top object looses it's acceleration
-				motionB.selfVelocity.y = motionA.selfVelocity.y * motionA.velocityModifier.y;
+				motionB.selfVelocity.y = motionA.selfVelocity.y * motionA.velocityModifier;
 
 				// update horizontal velocity so you can carry stuff
 				float diff = STATIC_FRICTION * step_seconds;
-				motionB.appliedVelocity.x = clampToTarget(motionB.appliedVelocity.x, diff, (motionA.selfVelocity.x + motionA.appliedVelocity.x) * motionA.velocityModifier.x);
+				motionB.appliedVelocity.x = clampToTarget(motionB.appliedVelocity.x, diff, (motionA.selfVelocity.x + motionA.appliedVelocity.x) * motionA.velocityModifier);
 
 			}
 			break;
@@ -427,11 +450,11 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 				motionA.position.y -= overlap.y;
 
 				// update vertical velocity so the top object looses it's acceleration
-				motionA.selfVelocity.y = motionB.selfVelocity.y * motionB.velocityModifier.y;
+				motionA.selfVelocity.y = motionB.selfVelocity.y * motionB.velocityModifier;
 
 				// update horizontal velocity so you can carry stuff
 				float diff = STATIC_FRICTION * step_seconds;
-				motionA.appliedVelocity.x = clampToTarget(motionA.appliedVelocity.x, diff, (motionB.selfVelocity.x + motionB.appliedVelocity.x) * motionB.velocityModifier.x);
+				motionA.appliedVelocity.x = clampToTarget(motionA.appliedVelocity.x, diff, (motionB.selfVelocity.x + motionB.appliedVelocity.x) * motionB.velocityModifier);
 			} else {
 				if (blockedA.top) blockedB.top = true;
 				motionB.position.y += overlap.y;
@@ -442,7 +465,6 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 	}
 }
 
-// TODO change this to proper lerp
 // function for interpolating object velocity, specifically when an object is on a moving platforms.
 float PhysicsSystem::clampToTarget(float value, float change, float target) {
 	change = abs(change);

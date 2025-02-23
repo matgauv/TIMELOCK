@@ -6,7 +6,8 @@
 enum class GAME_RUNNING_STATE {
 	RUNNING = 0,
 	PAUSED = RUNNING + 1,
-	OVER = PAUSED + 1
+	OVER = PAUSED + 1,
+	SHOULD_RESET = OVER + 1,
 };
 
 enum class TIME_CONTROL_STATE {
@@ -31,6 +32,12 @@ struct Platform
 {
 };
 
+// Boundary component
+struct Boundary
+{
+};
+
+// Path for moving sprite
 struct Path {
 	vec2 start;
 	vec2 end;
@@ -44,6 +51,7 @@ struct Path {
 	{}
 };
 
+// A collection of paths for a moving sprite
 struct MovementPath
 {
 	std::vector<Path> paths;
@@ -70,7 +78,7 @@ struct Motion {
 	float angle    = 0;
 	vec2  scale    = { 10, 10 };
 	float frequency = 0.f;
-	vec2 velocityModifier = { 1.0f, 1.0f };
+	float velocityModifier = 1.0f;
 	vec2  selfVelocity = { 0, 0 };
 	vec2  appliedVelocity = {0.0f, 0.0f};
 };
@@ -125,7 +133,8 @@ extern Debug debugging;
 // Sets the brightness of the screen
 struct ScreenState
 {
-	float darken_screen_factor = -1;
+	float acceleration_factor = -1.0;
+	float deceleration_factor = -1.0;
 };
 
 // A struct that includes the necessary properties of the current game state
@@ -135,8 +144,7 @@ struct GameState {
 	float accelerate_cooldown_ms = 0.f;
 	float decelerate_cooldown_ms = 0.f;
 	float time_until_alarm_clock_ms = 300000.0f; // 5 minutes
-	std::chrono::time_point<std::chrono::high_resolution_clock> accelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
-	std::chrono::time_point<std::chrono::high_resolution_clock> decelerate_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
+	std::chrono::time_point<std::chrono::high_resolution_clock> time_control_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
 	bool is_in_boss_fight = 0;
 };
 
@@ -170,17 +178,14 @@ struct Mesh
 	std::vector<uint16_t> vertex_indices;
 };
 
-// A struct indicating that an entity can be accelerated by the player's ability
-struct Acceleratable
+// Marks an entity as responsive to time control
+// will accelerate/decelerate when time control is used
+struct TimeControllable
 {
-	float factor = 2.f;
+	float target_time_control_factor = NORMAL_FACTOR;
+	bool can_be_accelerated = true;
+	bool can_be_decelerated = true;
 	bool can_become_harmful = 0;
-};
-
-// A struct indicating that an entity can be decelerated by the player's ability
-struct Deceleratable
-{
-	float factor = 0.2f;
 	bool can_become_harmless = 0;
 };
 
@@ -259,9 +264,12 @@ enum class TEXTURE_ASSET_ID {
 	SAMPLE_BACKGROUND = GREY_CIRCLE + 1,
 	SAMPLE_PLAYER_WALKING = SAMPLE_BACKGROUND + 1,
 	SAMPLE_PLAYER_STANDING = SAMPLE_PLAYER_WALKING + 1,
-	SAMPLE_PROJECTILE = SAMPLE_PLAYER_STANDING + 1,
+	PLAYER_WALKING_V1 = SAMPLE_PLAYER_STANDING + 1,
+	PLAYER_STANDING_V1 = PLAYER_WALKING_V1 + 1,
+	SAMPLE_PROJECTILE = PLAYER_STANDING_V1 + 1,
 	OBJECT = SAMPLE_PROJECTILE + 1,
-	TEXTURE_COUNT = OBJECT + 1
+	BOUNDARY = OBJECT + 1,
+	TEXTURE_COUNT = BOUNDARY + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

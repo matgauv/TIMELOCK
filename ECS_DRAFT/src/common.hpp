@@ -33,16 +33,26 @@ inline std::string mesh_path(const std::string& name) {return data_path() + "/me
 //
 // game constants
 //
-const int WINDOW_WIDTH_PX = 840;
-const int WINDOW_HEIGHT_PX = 600;
+const int WINDOW_WIDTH_PX = 1280;
+const int WINDOW_HEIGHT_PX = 720;
 
+// TIME CONTROL
+const float ACCELERATE_FACTOR = 2.0f;
+const float DECELERATE_FACTOR = 0.2f;
+const float NORMAL_FACTOR = 1.0f;
 
-const float ACCELERATION_COOLDOWN_MS = 15000.0f;
-const float DECELERATION_COOLDOWN_MS = 10000.0f;
+// TODO: increase these for game...
+const float ACCELERATION_COOLDOWN_MS = 1500.0f;
+const float DECELERATION_COOLDOWN_MS = 1000.0f;
 
 const float ACCELERATION_DURATION_MS = 10000.0f;
 const float DECELERATION_DURATION_MS = 10000.0f;
 
+// Screen shader effect
+const float ACCELERATION_EMERGE_MS = 150.0f;
+const float DECELERATION_EMERGE_MS = 150.0f;
+
+// Physics
 const float M_TO_PIXELS = 50.0f; // 50 px is 1m
 const float GRAVITY = 9.8f * M_TO_PIXELS;
 const float OBJECT_MAX_FALLING_SPEED = 1000.0f;
@@ -89,4 +99,5 @@ struct Transform {
 	void translate(vec2 offset);
 };
 
+float lerpToTarget(float current, float target, float time);
 bool gl_has_errors();

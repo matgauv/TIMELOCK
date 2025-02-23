@@ -19,51 +19,51 @@ void demo_level() {
 
     float boundaryWidth = WINDOW_WIDTH_PX * 10.0f;
     float boundaryHeight = WINDOW_HEIGHT_PX * 5.0f;
-    create_background({ WINDOW_WIDTH_PX * 2.0f, WINDOW_HEIGHT_PX * 2.0f }, TEXTURE_ASSET_ID::SAMPLE_BACKGROUND);
+    create_background({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::SAMPLE_BACKGROUND);
 
 
     // level boundaries
-    create_static_platform({boundaryWidth/2.0f, 0.0f}, {boundaryWidth, 1.0f});
-    create_static_platform({boundaryWidth/2.0f, boundaryHeight}, {boundaryWidth, 1.0f});
-    create_static_platform({0.0f,boundaryHeight/2.0f}, {1.0f, boundaryHeight});
-    create_static_platform({boundaryWidth, boundaryHeight/2.0f}, {1.0f, boundaryHeight});
+    create_static_platform({boundaryWidth/2.0f, 0.0f}, {boundaryWidth, 1.0f}, true);
+    create_static_platform({boundaryWidth/2.0f, boundaryHeight}, {boundaryWidth, 1.0f}, true);
+    create_static_platform({0.0f,boundaryHeight/2.0f}, {1.0f, boundaryHeight}, true);
+    create_static_platform({boundaryWidth, boundaryHeight/2.0f}, {1.0f, boundaryHeight}, true);
 
     // starting platform
-    create_static_platform({ xStart, sceneHeight}, {500.0f, 100.0f});
+    create_static_platform({ xStart, sceneHeight}, {500.0f, 100.0f}, false);
 
     vec2 moving_plat_size = {200.0f, 20.0f};
 
-    Path moving_plat_1_forwards = Path({xStart +  400.0f, sceneHeight}, {xStart + 600.0f, sceneHeight}, 0.2);
-    Path moving_plat_1_backwards = Path({xStart +  600.0f, sceneHeight}, {xStart + 400.0f, sceneHeight}, 0.2);
+    Path moving_plat_1_forwards = Path({xStart +  400.0f, sceneHeight}, {xStart + 600.0f, sceneHeight}, 0.2f);
+    Path moving_plat_1_backwards = Path({xStart +  600.0f, sceneHeight}, {xStart + 400.0f, sceneHeight}, 0.2f);
     std::vector<Path> moving_plat_1_movements = {moving_plat_1_forwards, moving_plat_1_backwards};
     create_moving_platform(moving_plat_size, moving_plat_1_movements);
 
-    Path moving_plat_2_forwards = Path({xStart +  850.0f, sceneHeight}, {xStart + 1050.0f, sceneHeight}, 0.2);
-    Path moving_plat_2_backwards = Path({xStart +  1050.0f, sceneHeight}, {xStart + 850.0f, sceneHeight}, 0.2);
+    Path moving_plat_2_forwards = Path({xStart +  850.0f, sceneHeight}, {xStart + 1050.0f, sceneHeight}, 0.2f);
+    Path moving_plat_2_backwards = Path({xStart +  1050.0f, sceneHeight}, {xStart + 850.0f, sceneHeight}, 0.2f);
     std::vector<Path> moving_plat_2_movements = {moving_plat_2_backwards, moving_plat_2_forwards};
     create_moving_platform(moving_plat_size, moving_plat_2_movements);
 
-    create_static_platform({ xStart + 1500.0f, sceneHeight}, {500.0f, 100.0f});
+    create_static_platform({ xStart + 1500.0f, sceneHeight}, {500.0f, 100.0f}, false);
 
-    Path moving_plat_3_up = Path({xStart +  1900.0f, sceneHeight}, {xStart + 1900.0f, sceneHeight - 500.0f}, 1.5);
-    Path moving_plat_3_down = Path({xStart +  1900.0f, sceneHeight - 500.0f}, {xStart + 1900.0f, sceneHeight}, 1.5);
+    Path moving_plat_3_up = Path({xStart +  1900.0f, sceneHeight}, {xStart + 1900.0f, sceneHeight - 500.0f}, 1.5f);
+    Path moving_plat_3_down = Path({xStart +  1900.0f, sceneHeight - 500.0f}, {xStart + 1900.0f, sceneHeight}, 1.5f);
     std::vector<Path> moving_plat_3_movements = {moving_plat_3_up, moving_plat_3_down};
     create_moving_platform(moving_plat_size, moving_plat_3_movements);
 
-    create_static_platform({ xStart + 2500.0f, sceneHeight - 900.0f}, {500.0f, 100.0f});
+    create_static_platform({ xStart + 2500.0f, sceneHeight - 900.0f}, {500.0f, 100.0f}, false);
 
-    Path moving_plat_4_forwards = Path({xStart + 2750.0f, sceneHeight - 800.0f}, {xStart + 2850.0f, sceneHeight - 800.0f}, 0.1);
-    Path moving_plat_4_backwards = Path({xStart + 2850.0f, sceneHeight - 800.0f}, {xStart + 2750.0f, sceneHeight - 800.0f}, 0.1);
+    Path moving_plat_4_forwards = Path({xStart + 2750.0f, sceneHeight - 800.0f}, {xStart + 2850.0f, sceneHeight - 800.0f}, 0.1f);
+    Path moving_plat_4_backwards = Path({xStart + 2850.0f, sceneHeight - 800.0f}, {xStart + 2750.0f, sceneHeight - 800.0f}, 0.1f);
     std::vector<Path> moving_plat_4_movements = {moving_plat_4_forwards, moving_plat_4_backwards};
     create_moving_platform(moving_plat_size, moving_plat_4_movements);
 
-    Path moving_plat_5_forwards = Path({xStart + 3050.0f, sceneHeight - 800.0f}, {xStart + 3150.0f, sceneHeight - 800.0f}, 0.1);
-    Path moving_plat_5_backwards = Path({xStart +  3150.0f, sceneHeight - 800.0f}, {xStart + 3050.0f, sceneHeight - 800.0f}, 0.1);
+    Path moving_plat_5_forwards = Path({xStart + 3050.0f, sceneHeight - 800.0f}, {xStart + 3150.0f, sceneHeight - 800.0f}, 0.1f);
+    Path moving_plat_5_backwards = Path({xStart +  3150.0f, sceneHeight - 800.0f}, {xStart + 3050.0f, sceneHeight - 800.0f}, 0.1f);
     std::vector<Path> moving_plat_5_movements = {moving_plat_5_backwards, moving_plat_5_forwards};
     create_moving_platform(moving_plat_size, moving_plat_5_movements);
 
-    create_static_platform({ xStart + 2950.0f, sceneHeight - 600.0f}, {500.0f, 100.0f});
-    create_static_platform({ xStart + 2950.0f + 250.0f + 125.0f, sceneHeight - 600.0f - 50.0f + 5.0f}, {250.0f, 10.0f});
+    create_static_platform({ xStart + 2950.0f, sceneHeight - 600.0f}, {500.0f, 100.0f}, false);
+    create_static_platform({ xStart + 2950.0f - 250.0f - 125.0f, sceneHeight - 600.0f - 50.0f + 5.0f}, {250.0f, 10.0f}, false);
 
     create_physics_object({xStart + 3000.0f, sceneHeight - 650.0f},{50.0f, 50.0f}, 5.0f);
 }
@@ -153,20 +153,19 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements) {
     });
 
     registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
-
-    Deceleratable& deceleration_config = registry.deceleratables.emplace(entity);
-    deceleration_config.can_become_harmless = false;
-
-    Acceleratable& acceleration_config = registry.acceleratables.emplace(entity);
-    acceleration_config.can_become_harmful = false;
+    registry.timeControllables.emplace(entity);
 
     return entity;
 }
 
-Entity create_static_platform(vec2 position, vec2 scale) {
+Entity create_static_platform(vec2 position, vec2 scale, bool isBoundary) {
     Entity entity = Entity();
 
     registry.platforms.emplace(entity);
+
+    if (isBoundary) {
+        registry.boundaries.emplace(entity);
+    }
 
     Motion& motion = registry.motions.emplace(entity);
     motion.position = position;
@@ -175,7 +174,7 @@ Entity create_static_platform(vec2 position, vec2 scale) {
     motion.angle = 0.0f;
 
     registry.renderRequests.insert(entity, {
-        TEXTURE_ASSET_ID::BLACK,
+        isBoundary ? TEXTURE_ASSET_ID::BOUNDARY : TEXTURE_ASSET_ID::BLACK,
         EFFECT_ASSET_ID::TEXTURED,
         GEOMETRY_BUFFER_ID::SPRITE
     });
@@ -200,7 +199,7 @@ Entity create_camera(vec2 position, vec2 scale) {
 Entity create_background(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
     Entity entity = Entity();
     Motion& motion = registry.motions.emplace(entity);
-    motion.position = scene_dimensions * 0.5f * BACKGROUND_DEPTH;
+    motion.position = scene_dimensions * 0.5f /** BACKGROUND_DEPTH*/;
     motion.scale = scene_dimensions * BACKGROUND_DEPTH;
 
     registry.renderRequests.insert(entity, {
@@ -220,17 +219,18 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
 	auto entity = Entity();
 
 	Projectile& projectile = registry.projectiles.emplace(entity);
-	
+
 	Motion& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.selfVelocity = velocity;
 	motion.position = pos;
 	motion.scale = size;
-    
-    Deceleratable& deceleratable = registry.deceleratables.emplace(entity);
-    deceleratable.can_become_harmless = 1;
 
-	registry.renderRequests.insert(
+    TimeControllable& tc = registry.timeControllables.emplace(entity);
+    tc.can_become_harmless = true;
+    tc.can_be_accelerated = false;
+
+    registry.renderRequests.insert(
 		entity,
 		{
 			TEXTURE_ASSET_ID::SAMPLE_PROJECTILE,

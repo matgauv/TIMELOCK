@@ -114,9 +114,10 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	GLint depth_uloc = glGetUniformLocation(currProgram, "depth");
 	LAYER_ID layer = registry.layers.get(entity).layer;
 	float depth = (
+		layer == LAYER_ID::PARALLAXBACKGROUND ? PARALLAXBACKGROUND_DEPTH : (
 		layer == LAYER_ID::BACKGROUND ? BACKGROUND_DEPTH : (
 		layer == LAYER_ID::MIDGROUND ? MIDGROUND_DEPTH :
-			FOREGROUND_DEPTH));
+			FOREGROUND_DEPTH)));
 	glUniform1fv(depth_uloc, 1, (float*)&depth);
 	gl_has_errors();
 
@@ -308,6 +309,7 @@ void RenderSystem::draw()
 	// draw all entities with a render request to the frame buffer
 	// Assort rendering tasks according to layers
 	
+	std::vector<Entity> parallaxbackgrounds;
 	std::vector<Entity> backgrounds;
 	std::vector<Entity> midgrounds;
 	std::vector<Entity> foregrounds;
@@ -320,18 +322,26 @@ void RenderSystem::draw()
 
 		switch (registry.layers.get(entity).layer)
 		{
-		case LAYER_ID::FOREGROUND:
-			foregrounds.push_back(entity);
-			break;
-		case LAYER_ID::MIDGROUND:
-			midgrounds.push_back(entity);
-			break;
-		case LAYER_ID::BACKGROUND:
-			backgrounds.push_back(entity);
-			break;
-		default:
-			break;
+			case LAYER_ID::FOREGROUND:
+				foregrounds.push_back(entity);
+				break;
+			case LAYER_ID::MIDGROUND:
+				midgrounds.push_back(entity);
+				break;
+			case LAYER_ID::PARALLAXBACKGROUND:
+				parallaxbackgrounds.push_back(entity);
+				break;
+			case LAYER_ID::BACKGROUND:
+				backgrounds.push_back(entity);
+				break;
+			default:
+				break;
 		}
+	}
+
+	for (Entity entity : parallaxbackgrounds)
+	{
+		drawTexturedMesh(entity, projection_2D);
 	}
 
 	for (Entity entity : backgrounds)

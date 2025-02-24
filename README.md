@@ -140,7 +140,7 @@ The player can activate time accelerate with <strong>Q</strong>, and time decele
    </td>
    </td>
    <td>
-      <td><code>https://youtu.be/_by5cHB4HoE</code>
+      <td><code>https://youtu.be/fAzMrG63NGU</code>
    </td>
   </tr>
 </table>

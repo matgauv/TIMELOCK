@@ -120,7 +120,7 @@ The player can activate time accelerate with <strong>Q</strong>, and time decele
 
    </td>
    <td>
-   <td><code>https://docs.google.com/document/d/13LJrqoD_sT1gskjJNIik9PtfUHwcw2Ep8w6D4uNXUX4/edit?usp=sharing</code>
+   <td><code>doc/test-plan.docx</code>, or <code>https://docs.google.com/document/d/13LJrqoD_sT1gskjJNIik9PtfUHwcw2Ep8w6D4uNXUX4/edit?usp=sharing</code>
    </td>
   </tr>
   <tr>
@@ -130,7 +130,7 @@ The player can activate time accelerate with <strong>Q</strong>, and time decele
    </td>
    </td>
    <td>
-    <td><code>https://docs.google.com/spreadsheets/d/14reigVHCiUrnIVMnTQdUnz6nX_JFBuTTT_pZXGZ06WA/edit?usp=sharing</code>
+    <td><code>doc/bug-report.xlsx</code>, or <code>https://docs.google.com/spreadsheets/d/14reigVHCiUrnIVMnTQdUnz6nX_JFBuTTT_pZXGZ06WA/edit?usp=sharing</code>
    </td>
   </tr>
   <tr>

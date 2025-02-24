@@ -234,6 +234,7 @@ Basic phenomena are approximated, such as gravity, friction, and inertia.
 
 ## Other Notes:
 - Background music source: https://www.youtube.com/watch?v=gfnQIaFBKIE
+- Slowdown & speedup sound effect source: https://www.youtube.com/watch?v=z_epWpdsHJc
 - How to run on linux/mac (and compile with debug symbols):
   - Navigate to `ECS_DRAFT/build`.
   - Run `cmake ..` (or `cmake -DCMAKE_BUILD_TYPE=Debug ..` for debug symbols)

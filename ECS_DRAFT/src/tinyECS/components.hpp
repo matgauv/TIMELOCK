@@ -116,10 +116,10 @@ struct Collision
 {
 	// Note, the first object is stored in the ECS container.entities
 	Entity other; // the second object involved in the collision
-	SIDE side;
-	Collision(Entity& other, SIDE side) {
+	vec2 overlap;
+	Collision(Entity& other, vec2 overlap) {
 		this->other = other;
-		this->side = side;
+		this->overlap = overlap;
 	};
 };
 

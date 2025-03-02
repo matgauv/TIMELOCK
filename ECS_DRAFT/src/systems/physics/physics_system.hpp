@@ -34,7 +34,7 @@ private:
 	bool in(std::vector<unsigned int> vec, unsigned int in);
 	vec2 get_bounding_box(const Motion& motion);
 
-	SIDE get_collision_side(Motion& a, Motion& b);
+	SIDE get_collision_side(Motion& a, Motion& b, vec2 overlap);
 	vec2 get_collision_overlap(Motion& a, Motion& b);
 
 };

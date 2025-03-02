@@ -60,6 +60,11 @@ void PhysicsSystem::late_step(float elapsed_ms) {
 }
 
 
+float sign(float num) {
+	return (num > 0.0f) - (num < 0.0f);
+}
+
+
 // Returns the overlap in the x and y direction of motions a and b
 vec2 PhysicsSystem::get_collision_overlap(Motion& a, Motion& b) {
 	vec2 playerBB = {abs(a.scale.x), abs(a.scale.y)};
@@ -72,6 +77,11 @@ vec2 PhysicsSystem::get_collision_overlap(Motion& a, Motion& b) {
 
 	float overlapX = (playerHalf.x + objHalf.x) - fabs(delta.x);
 	float overlapY = (playerHalf.y + objHalf.y) - fabs(delta.y);
+
+	// correct direction to move a to resolve the collision
+	overlapX *= sign(delta.x);
+	overlapY *= sign(delta.y);
+
 	return {overlapX, overlapY};
 }
 
@@ -83,12 +93,11 @@ vec2 PhysicsSystem::get_bounding_box(const Motion& motion)
 }
 
 // returns NONE if no collision, otherwise returns the side from the perspective of motion a
-SIDE PhysicsSystem::get_collision_side(Motion& a, Motion& b) {
-	vec2 overlap = PhysicsSystem::get_collision_overlap(a, b);
+SIDE PhysicsSystem::get_collision_side(Motion& a, Motion& b, vec2 overlap) {
 	vec2 delta = a.position - b.position;
 	SIDE result = SIDE::NONE;
-	if (overlap.x >= 0 && overlap.y >= 0) {
-		if (overlap.x < overlap.y) {
+	if (fabs(overlap.x) >= 0 && fabs(overlap.y) >= 0) {
+		if (fabs(overlap.x) < fabs(overlap.y)) {
 			result = (delta.x > 0) ? SIDE::LEFT : SIDE::RIGHT;
 		} else {
 			result = (delta.y > 0) ? SIDE::TOP : SIDE::BOTTOM;
@@ -113,10 +122,10 @@ void PhysicsSystem::detect_collisions() {
 		{
 			Entity entity_j = motion_container.entities[j];
 			Motion& motion_j = motion_container.components[j];
-			SIDE side = get_collision_side(motion_i, motion_j);
-			if (side != SIDE::NONE)
+			vec2 overlap = get_collision_overlap(motion_i, motion_j);
+			if (overlap.x >= 0 and overlap.y >= 0)
 			{
-				registry.collisions.emplace_with_duplicates(entity_i, entity_j, side);
+				registry.collisions.emplace_with_duplicates(entity_i, entity_j, overlap);
 			}
 		}
 	}
@@ -221,7 +230,7 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 		if (registry.physicsObjects.has(one) && registry.platforms.has(other)) {
 			handle_object_platform_collision(one, other, collision, step_seconds, groundedEntities, onMovingPlatform);
 		} else if (registry.physicsObjects.has(other) && registry.platforms.has(one)) {
-			collision.side = (SIDE)((collision.side + 2) % 4); //swap sides since coll is from perspective of one (left<->right) (top <-> bottom)
+			collision.overlap *= -1; //swap sides since coll is from perspective of one (left<->right) (top <-> bottom)
 			handle_object_platform_collision(other, one, collision, step_seconds, groundedEntities, onMovingPlatform);
 		}
 
@@ -298,12 +307,17 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 void PhysicsSystem::handle_object_platform_collision(Entity object_entity, Entity platform_entity, Collision collision, float step_seconds, std::vector<unsigned int>& groundedEntities, std::vector<unsigned int>& onMovingPlatform) {
 	Motion& object_motion = registry.motions.get(object_entity);
 	Motion& platform_motion = registry.motions.get(platform_entity);
-	vec2 overlap = get_collision_overlap(object_motion, platform_motion);
 
 	if (!registry.blocked.has(object_entity)) {
 			registry.blocked.emplace(object_entity);
 	}
 	Blocked& blocked = registry.blocked.get(object_entity);
+
+	// left / right
+	SIDE side = get_collision_side(object_motion, platform_motion, collision.overlap);
+
+
+	// top / bottom
 
 	if (collision.side == SIDE::LEFT) {
 		blocked.left = true;

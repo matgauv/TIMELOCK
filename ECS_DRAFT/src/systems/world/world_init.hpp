@@ -16,4 +16,5 @@ Entity create_foreground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id);
 Entity create_static_platform(vec2 position, vec2 scale, bool isBoundary);
 Entity create_moving_platform(vec2 scale, std::vector<Path> movements);
 Entity create_projectile(vec2 pos, vec2 size, vec2 velocity);
+Entity create_bolt(vec2 pos, vec2 size, vec2 velocity);
 Entity create_first_boss();

@@ -120,10 +120,16 @@ void RenderSystem::initializeGlMeshes()
 		// Initialize meshes
 		GEOMETRY_BUFFER_ID geom_index = mesh_paths[i].first;
 		std::string name = mesh_paths[i].second;
-		Mesh::loadFromOBJFile(name, 
+		Mesh::loadFromOBJFile(name,
 			meshes[(int)geom_index].vertices,
 			meshes[(int)geom_index].vertex_indices,
 			meshes[(int)geom_index].original_size);
+
+		//std::cout << "Loaded " << name << " with " << meshes[(int)geom_index].vertices.size() << " vertices." << std::endl;
+		//for (ColoredVertex& vertex : meshes[(int)geom_index].vertices)
+		//{
+		//	std::cout << "Vertex position: x:" << vertex.position.x << ", y:" << vertex.position.y << ", z:" << vertex.position.z << ", r: " << vertex.color.r << ", g: " << vertex.color.g << ", b: " << vertex.color.b << std::endl;
+		//}
 
 		bindVBOandIBO(geom_index,
 			meshes[(int)geom_index].vertices, 

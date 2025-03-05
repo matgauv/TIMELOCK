@@ -70,8 +70,43 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
 	}
-	// .obj entities
-        // TODO for any .obj add here
+	else if (render_request.used_effect == EFFECT_ASSET_ID::HEX)
+	{
+		GLint in_position_loc = glGetAttribLocation(program, "in_position");
+		GLint in_color_loc = glGetAttribLocation(program, "in_color");
+		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+
+		gl_has_errors();
+
+		GLint check;
+		glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &check);
+
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+			sizeof(ColoredVertex), (void*)offsetof(ColoredVertex, position));
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_color_loc);
+		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
+			sizeof(ColoredVertex), (void*)offsetof(ColoredVertex, color));
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_texcoord_loc);
+		glVertexAttribPointer(in_texcoord_loc, 2, GL_FLOAT, GL_FALSE,
+			sizeof(ColoredVertex), (void*)offsetof(ColoredVertex, uv));
+		gl_has_errors();
+
+
+		// Enabling and binding texture to slot 0
+		glActiveTexture(GL_TEXTURE0);
+		gl_has_errors();
+
+		assert(registry.renderRequests.has(entity));
+		GLuint texture_id = texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
+
+		glBindTexture(GL_TEXTURE_2D, texture_id);
+		gl_has_errors();
+	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::LINE)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
@@ -121,19 +156,23 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	glUniform1fv(depth_uloc, 1, (float*)&depth);
 	gl_has_errors();
 
-	GLuint tex_u_range_loc = glGetUniformLocation(currProgram, "tex_u_range");
-	vec2 tex_u_range = (registry.animateRequests.has(entity) ? 
-		registry.animateRequests.get(entity).tex_u_range : vec2{0.0f, 1.0f});
+	if (render_request.used_effect != EFFECT_ASSET_ID::HEX)
+	{
+		GLuint tex_u_range_loc = glGetUniformLocation(currProgram, "tex_u_range");
+		vec2 tex_u_range = (registry.animateRequests.has(entity) ?
+			registry.animateRequests.get(entity).tex_u_range : vec2{ 0.0f, 1.0f });
 
-	// Flip uv if sprite is horizontally flipped
-	if (render_request.flipped) {
-		float temp = tex_u_range[0];
-		tex_u_range[0] = tex_u_range[1];
-		tex_u_range[1] = temp;
+		// Flip uv if sprite is horizontally flipped
+		if (render_request.flipped) {
+			float temp = tex_u_range[0];
+			tex_u_range[0] = tex_u_range[1];
+			tex_u_range[1] = temp;
+		}
+
+		glUniform2fv(tex_u_range_loc, 1, (float*)&tex_u_range);
+		gl_has_errors();
 	}
 
-	glUniform2fv(tex_u_range_loc, 1, (float*)&tex_u_range);
-	gl_has_errors();
 
 	GLuint transform_loc = glGetUniformLocation(currProgram, "transform");
 	glUniformMatrix3fv(transform_loc, 1, GL_FALSE, (float *)&transform.mat);

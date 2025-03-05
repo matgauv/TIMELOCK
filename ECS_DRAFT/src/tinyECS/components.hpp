@@ -160,6 +160,7 @@ struct ColoredVertex
 {
 	vec3 position;
 	vec3 color;
+	vec2 uv;
 };
 
 // Single Vertex Buffer element for textured sprites (textured.vs.glsl)
@@ -194,6 +195,11 @@ struct TimeControllable
 struct Harmful
 {
 	float damage = 0.f;
+};
+
+// A struct indicating that an entity is a Bolt (for mesh collision)
+struct Bolt
+{
 };
 
 // A struct indicating that an entity is a swinging pendulum
@@ -272,7 +278,8 @@ enum class TEXTURE_ASSET_ID {
 	GEARS_BACKGROUND = BOUNDARY + 1,
 	METAL_BACKGROUND = GEARS_BACKGROUND + 1,
 	CHAIN_BACKGROUND = METAL_BACKGROUND + 1,
-	TEXTURE_COUNT = CHAIN_BACKGROUND + 1
+	HEX = CHAIN_BACKGROUND + 1,
+	TEXTURE_COUNT = HEX + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -281,7 +288,8 @@ enum class EFFECT_ASSET_ID {
 	TEXTURED = COLOURED + 1,
   	LINE = TEXTURED + 1,
   	SCREEN = LINE + 1,
-	EFFECT_COUNT = SCREEN + 1
+	HEX = SCREEN + 1,
+	EFFECT_COUNT = HEX + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -289,7 +297,8 @@ enum class GEOMETRY_BUFFER_ID {
 	SPRITE = 0,
 	DEBUG_LINE = SPRITE + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
-	GEOMETRY_COUNT = SCREEN_TRIANGLE + 1
+	HEX = SCREEN_TRIANGLE + 1,
+	GEOMETRY_COUNT = HEX + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 

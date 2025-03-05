@@ -24,7 +24,7 @@ class RenderSystem : public ISystem {
 	// Make sure these paths remain in sync with the associated enumerators.
 	// Associated id with .obj path
 	const std::vector<std::pair<GEOMETRY_BUFFER_ID, std::string>> mesh_paths = {
-
+		std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::HEX, mesh_path("hex.obj")),
 		// specify meshes of other assets here
 	};
 
@@ -43,6 +43,7 @@ class RenderSystem : public ISystem {
 		textures_path("backgrounds/gears.png"),
 		textures_path("backgrounds/metal.png"),
 		textures_path("backgrounds/chains.png"),
+		textures_path("hex.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -52,6 +53,7 @@ class RenderSystem : public ISystem {
 		shader_path("textured"),
         shader_path("line"),
         shader_path("screen"),
+		shader_path("hex"),
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;

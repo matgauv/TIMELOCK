@@ -23,6 +23,7 @@ public:
 	ComponentContainer<GameState> gameStates;
 	ComponentContainer<TimeControllable> timeControllables;
 	ComponentContainer<Harmful> harmfuls;
+	ComponentContainer<Bolt> bolts;
 	ComponentContainer<Pendulum> pendulums;
 	ComponentContainer<Gear> gears;
 	ComponentContainer<Projectile> projectiles;
@@ -54,6 +55,7 @@ public:
 		registry_list.push_back(&gameStates);
 		registry_list.push_back(&timeControllables);
 		registry_list.push_back(&harmfuls);
+		registry_list.push_back(&bolts);
 		registry_list.push_back(&pendulums);
 		registry_list.push_back(&gears);
 		registry_list.push_back(&projectiles);

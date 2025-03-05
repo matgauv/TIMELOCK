@@ -37,6 +37,10 @@ void PhysicsSystem::step(float elapsed_ms) {
 			move_object_along_path(entity, motion, step_seconds);
 		}
 
+		if (registry.bolts.has(entity)) {
+			rotate_projectile(entity, motion, step_seconds); // temporary for visual test
+		}
+
 		motion.position += ((motion.appliedVelocity + motion.selfVelocity) * motion.velocityModifier) * step_seconds;
 	}
 
@@ -139,6 +143,12 @@ void PhysicsSystem::move_object_along_path(Entity& entity, Motion& motion, float
 			motion.position = currentPath.start;
 		}
 	motion.selfVelocity = currentPath.velocity;
+}
+
+// rotates the projectile based on its velocity
+void PhysicsSystem::rotate_projectile(Entity& entity, Motion& motion, float step_seconds) {
+	float angularSpeed = 40.0f;
+	motion.angle -= angularSpeed * step_seconds;
 }
 
 // accelerates the entity by GRAVITY until it reaches the max_speed. currently only one max speed.

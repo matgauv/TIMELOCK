@@ -39,7 +39,7 @@ bool Mesh::loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex>& out
 		int res = fscanf(file, "%s", lineHeader);
 		if (res == EOF)
 			break; // EOF = End Of File. Quit the loop.
-
+		
 		if (strcmp(lineHeader, "v") == 0) {
 			ColoredVertex vertex;
 			int matches = fscanf(file, "%f %f %f %f %f %f\n", &vertex.position.x, &vertex.position.y, &vertex.position.z,
@@ -80,13 +80,22 @@ bool Mesh::loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex>& out
 				}
 			}
 
+			for (int i = 0; i < 3; i++) {
+				int vIdx = vertexIndex[i] - 1;
+				int uvIdx = uvIndex[i] - 1;
+
+				if (vIdx >= 0 && uvIdx >= 0) {
+					out_vertices[vIdx].uv = out_uvs[uvIdx]; // Assign UV to the correct vertex
+				}
+			}
+
 			// -1 since .obj starts counting at 1 and OpenGL starts at 0
 			out_vertex_indices.push_back((uint16_t)vertexIndex[0] - 1);
 			out_vertex_indices.push_back((uint16_t)vertexIndex[1] - 1);
 			out_vertex_indices.push_back((uint16_t)vertexIndex[2] - 1);
-			//out_uv_indices.push_back(uvIndex[0] - 1);
-			//out_uv_indices.push_back(uvIndex[1] - 1);
-			//out_uv_indices.push_back(uvIndex[2] - 1);
+			out_uv_indices.push_back(uvIndex[0] - 1);
+			out_uv_indices.push_back(uvIndex[1] - 1);
+			out_uv_indices.push_back(uvIndex[2] - 1);
 			out_normal_indices.push_back((uint16_t)normalIndex[0] - 1);
 			out_normal_indices.push_back((uint16_t)normalIndex[1] - 1);
 			out_normal_indices.push_back((uint16_t)normalIndex[2] - 1);
@@ -96,19 +105,33 @@ bool Mesh::loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex>& out
 			char stupidBuffer[1000];
 			fgets(stupidBuffer, 1000, file);
 		}
+
 	}
 	fclose(file);
+
+	if (out_vertices[0].position.y == 0)
+	{
+		//std::cout << "Mesh is 2D in Y" << std::endl;
+		// swap Y and Z coords
+		for (ColoredVertex& pos : out_vertices)
+		{
+			std::swap(pos.position.y, pos.position.z);
+		}
+	}
 
 	// Compute bounds of the mesh
 	vec3 max_position = { -99999,-99999,-99999 };
 	vec3 min_position = { 99999,99999,99999 };
+
 	for (ColoredVertex& pos : out_vertices)
 	{
 		max_position = glm::max(max_position, pos.position);
 		min_position = glm::min(min_position, pos.position);
 	}
-	if(abs(max_position.z - min_position.z)<0.001)
-		max_position.z = min_position.z+1; // don't scale z direction when everythin is on one plane
+
+	if (abs(max_position.z - min_position.z) < 0.001) {
+		max_position.z = min_position.z + 1; // don't scale z direction when everythin is on one plane
+	}
 
 	vec3 size3d = max_position - min_position;
 	out_size = size3d;

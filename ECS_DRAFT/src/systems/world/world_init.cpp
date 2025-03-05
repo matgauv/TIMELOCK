@@ -22,6 +22,9 @@ void demo_level() {
     create_background({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::METAL_BACKGROUND);
     create_foreground({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
 
+    float boltsize = 300.f;
+    create_bolt({ 300.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+
     // initial_pos = {0,0};
     create_player(initial_pos, {50.0f, 50.0f});
     create_camera(initial_pos, { 1.0f, 1.0f }); // TODO: potential open-scene zoom in
@@ -275,6 +278,38 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
 			GEOMETRY_BUFFER_ID::SPRITE
 		}
 	);
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+	return entity;
+}
+
+Entity create_bolt(vec2 pos, vec2 size, vec2 velocity)
+{
+	auto entity = Entity();
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.selfVelocity = velocity;
+	motion.position = pos;
+	motion.scale = size;
+
+    registry.bolts.emplace(entity);
+
+    registry.colors.insert(
+        entity, 
+        { 1.0f, 1.0f, 1.0f }
+    );
+
+    registry.renderRequests.insert(
+        entity,
+        {
+            TEXTURE_ASSET_ID::HEX,
+			EFFECT_ASSET_ID::HEX,
+			GEOMETRY_BUFFER_ID::HEX
+		}
+	);
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
 
 	return entity;
 }

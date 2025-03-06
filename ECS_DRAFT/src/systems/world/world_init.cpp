@@ -23,7 +23,7 @@ void demo_level() {
     create_foreground({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
 
     float boltsize = 300.f;
-    create_bolt({ 300.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+ //   create_bolt({ 300.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
 
     // initial_pos = {0,0};
     create_player(initial_pos, {50.0f, 50.0f});
@@ -38,10 +38,13 @@ void demo_level() {
     // starting platform
     create_static_platform({ xStart, sceneHeight}, {500.0f, 100.0f}, false);
 
+    // lil roof to test vertical collisions
+    create_static_platform({xStart - 100.0f, sceneHeight - 125.0f}, {200.0f, 20.0f}, false);
+
     vec2 moving_plat_size = {200.0f, 20.0f};
 
-    Path moving_plat_1_forwards = Path({xStart +  400.0f, sceneHeight}, {xStart + 600.0f, sceneHeight}, 0.2f);
-    Path moving_plat_1_backwards = Path({xStart +  600.0f, sceneHeight}, {xStart + 400.0f, sceneHeight}, 0.2f);
+    Path moving_plat_1_forwards = Path({xStart +  400.0f, sceneHeight}, {xStart + 600.0f, sceneHeight}, 2.0f);
+    Path moving_plat_1_backwards = Path({xStart +  600.0f, sceneHeight}, {xStart + 400.0f, sceneHeight}, 2.0f);
     std::vector<Path> moving_plat_1_movements = {moving_plat_1_forwards, moving_plat_1_backwards};
     create_moving_platform(moving_plat_size, moving_plat_1_movements);
 
@@ -86,7 +89,7 @@ Entity create_player(vec2 position, vec2 scale) {
     Motion& motion = registry.motions.emplace(entity);
     motion.position = position;
     motion.scale = scale;
-    motion.selfVelocity = {0, 0.0f};
+    motion.velocity = {0, 0.0f};
     motion.angle = 0.0f;
 
     Blocked& blocked = registry.blocked.emplace(entity);
@@ -126,7 +129,7 @@ Entity create_physics_object(vec2 position, vec2 scale, float weight) {
     Motion& motion = registry.motions.emplace(entity);
     motion.position = position;
     motion.scale = scale;
-    motion.selfVelocity = {0.0f, 0.0f};
+    motion.velocity = {0.0f, 0.0f};
     motion.angle = 0.0f;
 
     Blocked& blocked = registry.blocked.emplace(entity);
@@ -151,7 +154,7 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements) {
     Motion& motion = registry.motions.emplace(entity);
     motion.position = movements[0].start;
     motion.scale = scale;
-    motion.selfVelocity = {0, 0}; // physics system will calculate this...
+    motion.velocity = {0, 0}; // physics system will calculate this...
     motion.angle = 0.0f;
 
     Blocked& blocked = registry.blocked.emplace(entity);
@@ -161,8 +164,6 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements) {
 
     MovementPath& movementPath = registry.movementPaths.emplace(entity);
     movementPath.paths = movements;
-
-
 
     registry.renderRequests.insert(entity, {
         TEXTURE_ASSET_ID::BLACK,
@@ -188,7 +189,7 @@ Entity create_static_platform(vec2 position, vec2 scale, bool isBoundary) {
     Motion& motion = registry.motions.emplace(entity);
     motion.position = position;
     motion.scale = scale;
-    motion.selfVelocity = {0, 0};
+    motion.velocity = {0, 0};
     motion.angle = 0.0f;
 
     Blocked& blocked = registry.blocked.emplace(entity);
@@ -277,7 +278,7 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
 
 	Motion& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.selfVelocity = velocity;
+	motion.velocity = velocity;
 	motion.position = pos;
 	motion.scale = size;
 
@@ -308,7 +309,7 @@ Entity create_bolt(vec2 pos, vec2 size, vec2 velocity)
 	auto entity = Entity();
 	Motion& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.selfVelocity = velocity;
+	motion.velocity = velocity;
 	motion.position = pos;
 	motion.scale = size;
 

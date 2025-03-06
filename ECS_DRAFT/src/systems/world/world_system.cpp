@@ -311,8 +311,9 @@ void WorldSystem::player_jump() {
 	if (!registry.falling.has(player)) {
 		if (registry.motions.has(player))
 		{
+			std::cout << "jumping" << std::endl;
 			Motion& motion = registry.motions.get(player);
-			motion.selfVelocity.y = -JUMP_VELOCITY;
+			motion.velocity.y = -JUMP_VELOCITY;
 			registry.falling.emplace(player);
 		}
 

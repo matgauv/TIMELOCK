@@ -79,8 +79,7 @@ struct Motion {
 	vec2  scale    = { 10, 10 };
 	float frequency = 0.f;
 	float velocityModifier = 1.0f;
-	vec2  selfVelocity = { 0, 0 };
-	vec2  appliedVelocity = {0.0f, 0.0f};
+	vec2  velocity = {0.0f, 0.0f};
 };
 
 

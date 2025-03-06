@@ -89,6 +89,9 @@ Entity create_player(vec2 position, vec2 scale) {
     motion.selfVelocity = {0, 0.0f};
     motion.angle = 0.0f;
 
+    Blocked& blocked = registry.blocked.emplace(entity);
+    blocked.normal = vec2(0, 0);
+
     registry.falling.emplace(entity);
 
     registry.renderRequests.insert(entity, {
@@ -126,6 +129,9 @@ Entity create_physics_object(vec2 position, vec2 scale, float weight) {
     motion.selfVelocity = {0.0f, 0.0f};
     motion.angle = 0.0f;
 
+    Blocked& blocked = registry.blocked.emplace(entity);
+    blocked.normal = vec2(0, 0);
+
     registry.falling.emplace(entity);
 
     registry.renderRequests.insert(entity, {
@@ -148,10 +154,15 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements) {
     motion.selfVelocity = {0, 0}; // physics system will calculate this...
     motion.angle = 0.0f;
 
+    Blocked& blocked = registry.blocked.emplace(entity);
+    blocked.normal = vec2(0, 0);
+
     registry.platforms.emplace(entity);
 
     MovementPath& movementPath = registry.movementPaths.emplace(entity);
     movementPath.paths = movements;
+
+
 
     registry.renderRequests.insert(entity, {
         TEXTURE_ASSET_ID::BLACK,
@@ -179,6 +190,9 @@ Entity create_static_platform(vec2 position, vec2 scale, bool isBoundary) {
     motion.scale = scale;
     motion.selfVelocity = {0, 0};
     motion.angle = 0.0f;
+
+    Blocked& blocked = registry.blocked.emplace(entity);
+    blocked.normal = vec2(0, 0);
 
     registry.renderRequests.insert(entity, {
         isBoundary ? TEXTURE_ASSET_ID::BOUNDARY : TEXTURE_ASSET_ID::BLACK,
@@ -243,6 +257,7 @@ Entity create_foreground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
     motion.position = scene_dimensions * 0.5f ; // / FOREGROUND_DEPTH;
     motion.scale = scene_dimensions / FOREGROUND_DEPTH *0.75f;
 
+
     registry.renderRequests.insert(entity, {
         texture_id,
         EFFECT_ASSET_ID::TEXTURED,
@@ -265,6 +280,10 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
 	motion.selfVelocity = velocity;
 	motion.position = pos;
 	motion.scale = size;
+
+    Blocked& blocked = registry.blocked.emplace(entity);
+    blocked.normal = vec2(0, 0);
+
 
     TimeControllable& tc = registry.timeControllables.emplace(entity);
     tc.can_become_harmless = true;
@@ -292,6 +311,12 @@ Entity create_bolt(vec2 pos, vec2 size, vec2 velocity)
 	motion.selfVelocity = velocity;
 	motion.position = pos;
 	motion.scale = size;
+
+    Blocked& blocked = registry.blocked.emplace(entity);
+    blocked.normal = vec2(0, 0);
+
+    PhysicsObject& object = registry.physicsObjects.emplace(entity);
+    object.weight = 1000.0f;
 
     registry.bolts.emplace(entity);
 

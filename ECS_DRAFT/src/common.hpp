@@ -62,6 +62,11 @@ const float DYNAMIC_FRICTION = STATIC_FRICTION * 50.0f;
 const float AIR_RESISTANCE = 250.0f;
 const float JUMP_VELOCITY = 300.0f;
 
+const float PHYSICS_OBJECT_BOUNCE = 0.2f;
+
+const float PLATFORM_SLIP_ANGLE = 45.0f;
+const float PLAYER_MAX_WALK_ANGLE = 45.0f;
+
 const float PLAYER_MAX_FALLING_SPEED = 1000.0f;
 const float PLAYER_MAX_WALKING_SPEED = 300.0f;
 

@@ -30,12 +30,12 @@ private:
 	void player_walk(Entity& entity, Motion& motion, float step_seconds);
 	void move_object_along_path(Entity& entity, Motion& motion, float step_seconds);
 	void rotate_projectile(Entity& entity, Motion& motion, float step_seconds);
-	void applyFriction(float &velocity, float diff);
 	float clampToTarget(float value, float change, float target);
 	bool in(std::vector<unsigned int> vec, unsigned int in);
 	vec2 get_bounding_box(const Motion& motion);
 
 	SIDE get_collision_side(Motion& a, Motion& b, vec2 overlap);
 	vec2 get_collision_overlap(Motion& a, Motion& b);
+	vec2 get_friction_impulse(vec2 relative_velocity, float total_inv_mass, float impulse_scalar, vec2 normal);
 
 };

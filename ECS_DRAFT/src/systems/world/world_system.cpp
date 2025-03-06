@@ -309,9 +309,13 @@ void WorldSystem::player_jump() {
 	Entity& player = registry.players.entities[0];
 
 	if (!registry.falling.has(player)) {
-		Motion& motion = registry.motions.get(player);
-		motion.selfVelocity.y = -JUMP_VELOCITY;
-		registry.falling.emplace(player);
+		if (registry.motions.has(player))
+		{
+			Motion& motion = registry.motions.get(player);
+			motion.selfVelocity.y = -JUMP_VELOCITY;
+			registry.falling.emplace(player);
+		}
+
 	}
 
 }

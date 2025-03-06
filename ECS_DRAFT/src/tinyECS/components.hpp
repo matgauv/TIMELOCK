@@ -96,10 +96,7 @@ struct Walking {
 
 // This is added to a player entity when they collide with a wall to block them from walking through the wall.
 struct Blocked {
-	bool left = false;
-	bool right = false;
-	bool top = false;
-	bool bottom = false;
+	vec2 normal = { 0, 0 };
 };
 
 // counterclockwise (sides for collisions)
@@ -117,9 +114,11 @@ struct Collision
 	// Note, the first object is stored in the ECS container.entities
 	Entity other; // the second object involved in the collision
 	vec2 overlap;
-	Collision(Entity& other, vec2 overlap) {
+	vec2 normal;
+	Collision(Entity& other, vec2 overlap, vec2 normal) {
 		this->other = other;
 		this->overlap = overlap;
+		this->normal = normal;
 	};
 };
 

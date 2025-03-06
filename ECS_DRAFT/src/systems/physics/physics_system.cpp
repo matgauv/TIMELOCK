@@ -1,5 +1,8 @@
 // internal
 #include "physics_system.hpp"
+
+#include <cfloat>
+
 #include "../world/world_init.hpp"
 #include <iostream>
 
@@ -48,10 +51,7 @@ void PhysicsSystem::step(float elapsed_ms) {
 	for (Entity entity : registry.physicsObjects.entities) {
 		if (registry.blocked.has(entity)) {
 			Blocked& blocked = registry.blocked.get(entity);
-			blocked.left = false;
-			blocked.right = false;
-			blocked.top = false;
-			blocked.bottom = false;
+			blocked.normal = vec2{0, 0};
 		}
 	}
 
@@ -82,11 +82,14 @@ vec2 PhysicsSystem::get_collision_overlap(Motion& a, Motion& b) {
 	float overlapX = (playerHalf.x + objHalf.x) - fabs(delta.x);
 	float overlapY = (playerHalf.y + objHalf.y) - fabs(delta.y);
 
-	// correct direction to move a to resolve the collision
-	overlapX *= sign(delta.x);
-	overlapY *= sign(delta.y);
+	vec2 overlap;
+	if (abs(overlapX) < abs(overlapY)) {
+		overlap = {overlapX * sign(delta.x), 0.0f};
+	} else {
+		overlap = {0.0f, overlapY * sign(delta.y)};
+	}
 
-	return {overlapX, overlapY};
+	return overlap;
 }
 
 // Returns the local bounding coordinates scaled by the current size of the entity
@@ -111,6 +114,150 @@ SIDE PhysicsSystem::get_collision_side(Motion& a, Motion& b, vec2 overlap) {
 }
 
 
+// returns the mesh verticies if a mesh exists, otherwise, returns verticies of a square defined by the scale of the object (BB)
+std::vector<vec2> get_vertices(Entity& e)
+{
+	if (registry.meshPtrs.has(e))
+	{
+		Mesh* mesh = registry.meshPtrs.get(e);
+		std::vector<vec2> vertices;
+		vertices.reserve(mesh->vertices.size());
+		for (auto & vertex : mesh->vertices)
+			vertices.push_back({vertex.position.x, vertex.position.y});
+
+		return vertices;
+	} else
+	{
+		// No mesh, we assume square BB
+		std::vector<vec2> vertices(4);
+		Motion& motion = registry.motions.get(e);
+		vec2 half_size = motion.scale * 0.5f;
+
+		vertices[0] = { -half_size.x, -half_size.y };
+		vertices[1] = {  half_size.x, -half_size.y };
+		vertices[2] = {  half_size.x,  half_size.y };
+		vertices[3] = { -half_size.x,  half_size.y };
+
+		// if there's a rotation, we need to apply
+		float angle_cos = cos(motion.angle);
+		float angle_sin = sin(motion.angle);
+
+		for (vec2& vertex : vertices)
+		{
+			// rotate around z axis using this matrix:
+			//[ cos -sin ]
+			//[ sin  cos ]
+			vec2 rotated = {
+				vertex.x * angle_cos - vertex.y * angle_sin,
+				vertex.x * angle_sin + vertex.y * angle_cos
+			};
+			vertex = rotated;
+		}
+
+
+		// make sure to translate to world position
+		// TODO: does this happen before or after? (are we using TRS?)
+		for (vec2& vertex : vertices) {
+			vertex += motion.position;
+		}
+		return vertices;
+	}
+}
+
+std::vector<vec2> get_axis(std::vector<vec2>& vertices)
+{
+	std::vector<vec2> local_axes;
+	for (int i = 0; i < vertices.size(); i++)
+	{
+		vec2 edge = vertices[(i+1)%vertices.size()] - vertices[i]; // modulo so we properly wrap around
+		vec2 normal = normalize(vec2{-edge.y, edge.x});
+		local_axes.push_back(normal);
+	}
+	return local_axes;
+}
+
+// projects the verticies onto the axis
+// only return the min and max since the object is convex and the axis is 1 dimensional
+std::pair<float, float> project(const std::vector<vec2> verts, const vec2& axis)
+{
+	float min = dot(axis, verts[0]);
+	float max = min; // init to min
+
+	for (const auto& vertex : verts)
+	{
+		float proj = dot(axis, vertex);
+		min = std::min(min, proj);
+		max = std::max(max, proj);
+	}
+
+	return std::make_pair(min, max);
+}
+
+
+// TODO: where to define this? can we just use the collison component? storing here now bc im lazzzyyy
+struct CollisionResult
+{
+	bool collided = false;
+	vec2 normal;
+	float depth;
+};
+
+// see here for details https://dyn4j.org/2010/01/sat/
+// computes collision between any two convex shapes (MUST be convex)
+CollisionResult compute_sat_collision(Entity& a, Entity& b)
+{
+	std::vector<vec2> a_verts = get_vertices(a);
+	std::vector<vec2> b_verts = get_vertices(b);
+
+	// now we need to get all of the axis (edge normals) from both shapes
+	std::vector<vec2> axes = get_axis(a_verts);
+	std::vector<vec2> b_axes = get_axis(b_verts);
+	axes.insert(axes.end(), b_axes.begin(), b_axes.end());
+
+	float min_overlap = FLT_MAX;
+	vec2 smallest_axis;
+
+	// SAT time!! (perform the main SAT check)
+	// For every axis:
+	//	1. project each shape onto the axis
+	//  2. check overlap on the axis
+	for (const auto& axis : axes) // const bc I watched a TikTok about a vulnerability if you don't use it
+	{
+		auto [a_min, a_max] = project(a_verts, axis);
+		auto [b_min, b_max] = project(b_verts, axis);
+
+		// by the theorem:
+		// if there is any axis where the projections do not overlap, there cannot be a collision. :O
+		if (a_max < b_min || b_max < a_min)
+		{
+			return CollisionResult{false, vec2{0,0}, 0};
+		}
+
+		float overlap = std::min(a_max - b_min, b_max - a_min);
+		if (overlap < min_overlap)
+		{
+			min_overlap = overlap;
+			smallest_axis = axis;
+		}
+	}
+
+	// make sure that the normal points from A -> B
+	Motion& motionA = registry.motions.get(a);
+	Motion& motionB = registry.motions.get(b);
+	vec2 center_a = motionA.position;
+	vec2 center_b = motionB.position;
+	vec2 direction = center_a - center_b;
+	if (dot(direction, smallest_axis) < 0)
+	{
+		smallest_axis *= -1;
+	}
+
+	// the smallest axis is where the shapes overlap the least ->
+	// the minimal amount we need to move one shape to resolve the collision
+	// (the axis are represented by the normals)
+	return {true, smallest_axis, min_overlap};
+}
+
 
 // detect collisions between all moving entities.
 void PhysicsSystem::detect_collisions() {
@@ -118,18 +265,21 @@ void PhysicsSystem::detect_collisions() {
     ComponentContainer<Motion> &motion_container = registry.motions;
 	for(uint i = 0; i < motion_container.components.size(); i++)
 	{
-		Motion& motion_i = motion_container.components[i];
 		Entity entity_i = motion_container.entities[i];
+
 
 		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
 		for(uint j = i+1; j < motion_container.components.size(); j++)
 		{
 			Entity entity_j = motion_container.entities[j];
-			Motion& motion_j = motion_container.components[j];
-			vec2 overlap = get_collision_overlap(motion_i, motion_j);
-			if (overlap.x >= 0 and overlap.y >= 0)
+			CollisionResult result = compute_sat_collision(entity_i, entity_j);
+
+			if (result.collided)
 			{
-				registry.collisions.emplace_with_duplicates(entity_i, entity_j, overlap);
+				Collision& collision = registry.collisions.emplace_with_duplicates(entity_i, entity_j, result.normal * result.depth, result.normal);
+				collision.other = entity_j;
+				collision.overlap = result.normal * result.depth;
+				collision.normal = result.normal;
 			}
 		}
 	}
@@ -173,50 +323,40 @@ void PhysicsSystem::apply_gravity(Entity& entity, Motion& motion, float step_sec
 
 // Moves the player left or right depending on the direction specified in the walking component
 // will not move if blocked
-void PhysicsSystem::player_walk(Entity& entity, Motion& motion, float step_seconds) {
-	if (registry.walking.has(entity)) {
+void PhysicsSystem::player_walk(Entity& entity, Motion& motion, float step_seconds)
+{
+	if (registry.walking.has(entity))
+	{
 		Walking& walking = registry.walking.get(entity);
+		vec2 desired_direction = {walking.is_left ? -1.0f : 1.0f, 0.0f};
 
-		int desired_direction = walking.is_left ? -1 : 1;
+		if (registry.blocked.has(entity))
+		{
+			vec2 normal = registry.blocked.get(entity).normal;
 
-		// check if blocked
-		bool blockedDirection = false;
-		if (registry.blocked.has(entity)) {
-			Blocked& blocked = registry.blocked.get(entity);
-			if (desired_direction < 0 && blocked.left) {
-				blockedDirection = true;
-			}
-			else if (desired_direction > 0 && blocked.right) {
-				blockedDirection = true;
+			if (normal != vec2(0.0f, 0.0f)) // collision actually exists
+			{
+				vec2 tangent = normalize(vec2{-normal.y, normal.x});
+
+				// calculate the allowed movement direction by projectin
+				desired_direction = tangent * dot(desired_direction, tangent);
+
+				// prevent climbing a slope steeper than slip angle
+				if (acosf(dot(normal, {0, 1})) > (PLAYER_MAX_WALK_ANGLE * (M_PI / 180.0f)))
+				{
+					desired_direction.y = 0; // can't move up
+				}
 			}
 		}
 
-		if (!blockedDirection) {
-			// TODO use clampToTarget here?
-			// for snappier movement changes (if entity is moving in opposite of desired direction)
-			if (motion.selfVelocity.x * desired_direction < 0) {
-				motion.selfVelocity.x += desired_direction * DYNAMIC_FRICTION * step_seconds;
+		vec2 accel = desired_direction * PLAYER_WALK_ACCELERATION;
+		vec2 friction_force = -motion.selfVelocity * (STATIC_FRICTION/100.0f);
 
-				if (motion.selfVelocity.x * desired_direction > 0) motion.selfVelocity.x = 0.0f;
-			}
+		motion.selfVelocity += (accel + friction_force) * step_seconds;
 
-			motion.selfVelocity.x += desired_direction * PLAYER_WALK_ACCELERATION * step_seconds;
-			// clamp to max walking speed
-			if (fabs(motion.selfVelocity.x) > PLAYER_MAX_WALKING_SPEED)
-				motion.selfVelocity.x = desired_direction * PLAYER_MAX_WALKING_SPEED;
-		} else {
-			motion.selfVelocity.x = 0.0f; // if blocked, don't move
-		}
-
-	} else {
-		// if not walking, we're stopping -- slow down to 0.
-		// Any other source of "selfVelocity" in the x direction will prob break this with this.
-		float diff = STATIC_FRICTION * step_seconds;
-		motion.selfVelocity.x = clampToTarget(motion.selfVelocity.x, diff, 0.0f);
+		motion.selfVelocity.x = clamp(motion.selfVelocity.x, -PLAYER_MAX_FALLING_SPEED, PLAYER_MAX_FALLING_SPEED);
 	}
-
 }
-
 
 /*
  * Handles collisions between entities, specifically:
@@ -236,11 +376,20 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 		Collision& collision = collision_container.components[i];
 		Entity& other = collision.other;
 
+
+		// if (!registry.blocked.has(one))
+		// {
+		// 	Blocked& blocked = registry.blocked.emplace(one);
+		// 	blocked.normal = collision.normal;
+		// }
+
 		// order here is important so handle both cases sep
 		if (registry.physicsObjects.has(one) && registry.platforms.has(other)) {
+			// std::cout << "  colliding with platform: " << registry.platforms.has(other) << std::endl;
 			handle_object_platform_collision(one, other, collision, step_seconds, groundedEntities, onMovingPlatform);
 		} else if (registry.physicsObjects.has(other) && registry.platforms.has(one)) {
-			collision.overlap *= -1; //swap sides since coll is from perspective of one (left<->right) (top <-> bottom)
+			// std::cout << "  colliding with platform: " << registry.platforms.has(one) << std::endl;
+		//	collision.overlap *= -1; //swap sides since coll is from perspective of one (left<->right) (top <-> bottom)
 			handle_object_platform_collision(other, one, collision, step_seconds, groundedEntities, onMovingPlatform);
 		}
 
@@ -257,20 +406,21 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			handle_player_boss_collision(other, one, collision);
 		}
 
-		// if player touches boundary, reset the game
-		GameState& gameState = registry.gameStates.components[0];
-		if (registry.players.has(one) && registry.boundaries.has(other)) {
-			gameState.game_running_state = GAME_RUNNING_STATE::SHOULD_RESET;
-		} else if (registry.players.has(other) && registry.boundaries.has(one)) {
-			gameState.game_running_state = GAME_RUNNING_STATE::SHOULD_RESET;
-		}
+		// // if player touches boundary, reset the game
+		// GameState& gameState = registry.gameStates.components[0];
+		// if (registry.players.has(one) && registry.boundaries.has(other)) {
+		// 	gameState.game_running_state = GAME_RUNNING_STATE::SHOULD_RESET;
+		// } else if (registry.players.has(other) && registry.boundaries.has(one)) {
+		// 	gameState.game_running_state = GAME_RUNNING_STATE::SHOULD_RESET;
+		// }
 
 		// if objects touch the boundary, remove them
-		if (registry.physicsObjects.has(one) && registry.boundaries.has(other)) {
-			registry.remove_all_components_of(one);
-		} else if (registry.physicsObjects.has(other) && registry.boundaries.has(one)) {
-			registry.remove_all_components_of(other);
-		}
+		// if (registry.physicsObjects.has(one) && registry.boundaries.has(other)) {
+		// 	registry.remove_all_components_of(one);
+		// } else if (registry.physicsObjects.has(other) && registry.boundaries.has(one)) {
+		// 	registry.remove_all_components_of(other);
+		// }
+
 	}
 
 	for (uint i = 0; i < collision_container.components.size(); i++) {
@@ -279,7 +429,7 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 		Entity& other = collision.other;
 
 		if (registry.physicsObjects.has(one) && registry.physicsObjects.has(other)) {
-        	handle_physics_collision(step_seconds, one, other, collision, groundedEntities);
+			handle_physics_collision(step_seconds, one, other, collision, groundedEntities);
         }
 	}
 
@@ -298,9 +448,9 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 		if (!in(onMovingPlatform, entity.id())) {
 			Motion& obj_motion = registry.motions.get(entity);
 
-			float resistance = AIR_RESISTANCE;
+			float resistance = AIR_RESISTANCE / 100.0f;
 			if (in(groundedEntities, entity.id())) {
-				resistance = STATIC_FRICTION;
+				resistance = STATIC_FRICTION / 100.0f;
 			}
 
             float diff = resistance * step_seconds;
@@ -313,77 +463,58 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 	registry.collisions.clear();
 }
 
+
 // Handles collision between a PhysicsObject entity and a Platform entity.
-void PhysicsSystem::handle_object_platform_collision(Entity object_entity, Entity platform_entity, Collision collision, float step_seconds, std::vector<unsigned int>& groundedEntities, std::vector<unsigned int>& onMovingPlatform) {
-	Motion& object_motion = registry.motions.get(object_entity);
-	Motion& platform_motion = registry.motions.get(platform_entity);
+void PhysicsSystem::handle_object_platform_collision(Entity object_entity, Entity platform_entity, Collision collision, float step_seconds, std::vector<unsigned int>& groundedEntities, std::vector<unsigned int>& onMovingPlatform)
+{
+	vec2 normal = collision.normal;
+	float collision_depth = length(collision.overlap);
 
-	if (!registry.blocked.has(object_entity)) {
-			registry.blocked.emplace(object_entity);
+	// resolve collision
+	Motion& obj_motion = registry.motions.get(object_entity);
+	obj_motion.position += normal * collision_depth;
+
+
+	if (!registry.blocked.has(object_entity))
+	{
+		std::cout<< "MIssing blocked ??" <<std::endl;
+	} else
+	{
+		Blocked& blocked = registry.blocked.get(object_entity);
+		blocked.normal = normal;
 	}
-	Blocked& blocked = registry.blocked.get(object_entity);
-
-	// left / right
-	SIDE side = get_collision_side(object_motion, platform_motion, collision.overlap);
 
 
-	// top / bottom
 
-	if (collision.side == SIDE::LEFT) {
-		blocked.left = true;
-		if (object_motion.selfVelocity.x < 0.0f) {
-			object_motion.selfVelocity.x = 0.0f;
-		}
+	float self_vel_along_normal = dot(obj_motion.selfVelocity, normal);
+	float applied_vel_along_normal = dot(obj_motion.appliedVelocity, normal);
 
-		if (object_motion.appliedVelocity.x < 0.0f) {
-			object_motion.appliedVelocity.x = 0.0f;
-		}
-		object_motion.position.x += overlap.x;
+	if (self_vel_along_normal < 0)
+	{
+		obj_motion.selfVelocity -= (self_vel_along_normal * normal);
 	}
-	else if (collision.side == SIDE::RIGHT) {
-		blocked.right = true;
-		if (object_motion.selfVelocity.x > 0.0f) {
-			object_motion.selfVelocity.x = 0.0f;
-		}
 
-		if (object_motion.appliedVelocity.x > 0.0f) {
-			object_motion.appliedVelocity.x = 0.0f;
-		}
+	if (applied_vel_along_normal < 0)
+	{
+		obj_motion.appliedVelocity -= (applied_vel_along_normal * normal);
+	}
 
-		object_motion.position.x -= overlap.x;
-	} else if (collision.side == SIDE::BOTTOM) {
-		object_motion.selfVelocity.y = 0.0f;
+	// friction using coulomb's law
+	// TODO ...
 
-		registry.falling.remove(object_entity);
-		object_motion.position.y -= overlap.y;
-		blocked.bottom = true;
 
+	if (normal.y > (PLATFORM_SLIP_ANGLE * (M_PI / 180)))
+	{
 		groundedEntities.push_back(object_entity.id());
+	}
 
-		// special case for colliding with moving platforms
-		if (registry.movementPaths.has(platform_entity)) {
-			MovementPath& movementPath = registry.movementPaths.get(platform_entity);
-			Path& currPath = movementPath.paths[movementPath.currentPathIndex];
-
-			// tiny bit of friction (simulated by interpolating to target velocity)
-			float diff = DYNAMIC_FRICTION * step_seconds;
-			object_motion.appliedVelocity.x = clampToTarget(object_motion.appliedVelocity.x, diff, currPath.velocity.x * platform_motion.velocityModifier);
-			object_motion.appliedVelocity.y = clampToTarget(object_motion.appliedVelocity.y, diff, currPath.velocity.y * platform_motion.velocityModifier);
-
-			onMovingPlatform.push_back(object_entity.id());
-		} else {
-			object_motion.appliedVelocity.y = 0.0f;
-		}
-	} else if (collision.side == SIDE::TOP) {
-		blocked.top = true;
-		// stops the player from "sticking" to the bottom of a platform when they jump up into it
-		// if player's y velocity is positive (i.e. player is falling), don't set velocity to 0 to avoid hanging.
-		object_motion.selfVelocity.y = max(object_motion.selfVelocity.y, 0.0f);
-		object_motion.appliedVelocity.y = max(object_motion.appliedVelocity.y, 0.0f);
-		object_motion.position += overlap.y;
+	if (registry.movementPaths.has(object_entity))
+	{
+		onMovingPlatform.push_back(object_entity.id());
 	}
 
 }
+
 
 void PhysicsSystem::handle_player_attack_collision(Entity player_entity, Entity attack_entity, Collision collision) {
 	if (registry.harmfuls.has(attack_entity)) {
@@ -407,87 +538,81 @@ void PhysicsSystem::handle_player_boss_collision(Entity player_entity, Entity bo
 }
 
 // Handles collision between two PhysicsObject entities.
-// TODO can probably replace this with more rigorous physics interpretation?
-void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA, Entity entityB, Collision collision, std::vector<unsigned int>& grounded) {
+// DISCLAIMER: I barely understand physics, but after questioning chatGPT and reading some basic articles, I put together this code which is a bit more rigerous than the previous iteration (and a lot cleaner)
+void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA, Entity entityB, Collision collision, std::vector<unsigned int>& grounded)
+{
 	Motion& motionA = registry.motions.get(entityA);
 	Motion& motionB = registry.motions.get(entityB);
-	vec2 overlap = get_collision_overlap(motionA, motionB);
 
-	PhysicsObject& physicsA = registry.physicsObjects.get(entityA);
-	PhysicsObject& physicsB = registry.physicsObjects.get(entityB);
+	PhysicsObject& physA = registry.physicsObjects.get(entityA);
+	PhysicsObject& physB = registry.physicsObjects.get(entityB);
 
+	const vec2 normal = collision.normal;
+	const float collision_depth = length(collision.overlap);
 
-	Blocked& blockedA = registry.blocked.has(entityA) ? registry.blocked.get(entityA) : registry.blocked.emplace(entityA);
-	Blocked& blockedB = registry.blocked.has(entityB) ? registry.blocked.get(entityB) : registry.blocked.emplace(entityB);
+	// resolve collision based on mass (way to avoid the ugly switch statement from previous iteration)
+	// this also improves from previous code to properly handle the case where both objects are moving!!!
+	float a_inv_weight = 1.0f / physA.weight;
+	float b_inv_weight = 1.0f / physB.weight;
+	const float total_inv_mass = a_inv_weight * b_inv_weight;
+	motionA.position += normal * collision_depth * (a_inv_weight * total_inv_mass);
+	motionB.position -= normal * collision_depth * (b_inv_weight * total_inv_mass); // - because normal is from A -> B
 
+	// now get the relative velocities
+	vec2 self_vel_relative = motionB.selfVelocity - motionA.selfVelocity;
+	float self_vel_along_normal = dot(self_vel_relative, normal);
 
-	// TODO can we abstract this??? pretty ugly rn
-	switch (collision.side) {
-		case SIDE::LEFT:
-			if ((physicsA.weight < physicsB.weight && !blockedA.right) || blockedB.left) {
-				if (blockedB.left) blockedA.left = true;
-				motionA.position.x += overlap.x;
-			} else  {
-				if (blockedA.right) blockedB.right = true;
-				motionB.position.x -= overlap.x;
-			}
-		break;
-		case SIDE::RIGHT:
-			if ((physicsA.weight < physicsB.weight && !blockedA.left) || blockedB.right) {
-				motionA.position.x -= overlap.x;
-				if (blockedB.right) blockedA.right = true;
-			} else {
-				motionB.position.x += overlap.x;
-				if (blockedA.left) blockedB.left = true;
-			}
+	vec2 applied_vel_relative = motionB.appliedVelocity - motionA.appliedVelocity;
+	float applied_vel_along_normal = dot(applied_vel_relative, normal);
 
-			break;
-		case SIDE::TOP:
-			if ((physicsA.weight < physicsB.weight && !blockedA.bottom) || blockedB.top) {
-				motionA.position.y += overlap.y;
-				if (blockedB.top) blockedA.top = true;
-			} else {
-				motionB.position.y -= overlap.y;
-				if (blockedA.bottom) blockedB.bottom = true;
-				if (!registry.falling.has(entityA)) {
-					registry.falling.remove(entityB);
-					grounded.push_back(entityB.id());
-				}
-
-				// update vertical velocity so the top object looses it's acceleration
-				motionB.selfVelocity.y = motionA.selfVelocity.y * motionA.velocityModifier;
-
-				// update horizontal velocity so you can carry stuff
-				float diff = STATIC_FRICTION * step_seconds;
-				motionB.appliedVelocity.x = clampToTarget(motionB.appliedVelocity.x, diff, (motionA.selfVelocity.x + motionA.appliedVelocity.x) * motionA.velocityModifier);
-
-			}
-			break;
-		case SIDE::BOTTOM:
-			if ((physicsA.weight < physicsB.weight && !blockedA.top) || blockedB.bottom) {
-				if (blockedB.bottom) blockedA.bottom = true;
-				if (!registry.falling.has(entityB)) {
-					registry.falling.remove(entityA);
-					grounded.push_back(entityA.id());
-				}
-
-				motionA.position.y -= overlap.y;
-
-				// update vertical velocity so the top object looses it's acceleration
-				motionA.selfVelocity.y = motionB.selfVelocity.y * motionB.velocityModifier;
-
-				// update horizontal velocity so you can carry stuff
-				float diff = STATIC_FRICTION * step_seconds;
-				motionA.appliedVelocity.x = clampToTarget(motionA.appliedVelocity.x, diff, (motionB.selfVelocity.x + motionB.appliedVelocity.x) * motionB.velocityModifier);
-			} else {
-				if (blockedA.top) blockedB.top = true;
-				motionB.position.y += overlap.y;
-			}
-			break;
-		default:
-			break;
+	// we only care if they are moving towards each other
+	if (self_vel_along_normal + applied_vel_along_normal > 0.0f)
+	{
+		return;
 	}
+
+	// compute the impulse
+	float impulse_scalar = -(1 + PHYSICS_OBJECT_BOUNCE) * (self_vel_along_normal + applied_vel_along_normal);
+	impulse_scalar /= total_inv_mass;
+
+	vec2 impulse = impulse_scalar * normal;
+	motionA.appliedVelocity -= impulse * a_inv_weight; // because normal points A->B but A is moving towards B
+	motionB.appliedVelocity += impulse * b_inv_weight;
+
+	vec2 friction_impulse = get_friction_impulse((self_vel_relative + applied_vel_relative), total_inv_mass, impulse_scalar, normal);
+	motionA.appliedVelocity -= friction_impulse;
+	motionB.appliedVelocity += friction_impulse;
+
+	// finally, detect if they are on the ground! (or an angled platform)
+	if (dot (normal, {0,1}) > (PLATFORM_SLIP_ANGLE * (M_PI / 180)))
+	{
+		if(a_inv_weight > b_inv_weight) grounded.push_back(entityA.id());
+		if(b_inv_weight >= a_inv_weight) grounded.push_back(entityB.id());
+	}
+
 }
+
+// proper friction using coulomb's law
+// https://www.tribonet.org/wiki/laws-of-friction/
+vec2 PhysicsSystem::get_friction_impulse(vec2 relative_velocity, float total_inv_mass, float impulse_scalar, vec2 normal)
+{
+	vec2 friction_impulse = {0,0};
+	vec2 tangent = (relative_velocity) - (normal * (relative_velocity));
+
+	if (pow(length(tangent), 2) > 0.0001f)
+	{
+		tangent = normalize(tangent);
+
+		float tangent_impulse_mag = -dot(relative_velocity, tangent);
+		tangent_impulse_mag /= total_inv_mass;
+
+		float mu = STATIC_FRICTION;
+		friction_impulse = tangent * clamp(tangent_impulse_mag, -impulse_scalar * mu, impulse_scalar * mu);
+	}
+	return friction_impulse;
+}
+
+
 
 // function for interpolating object velocity, specifically when an object is on a moving platforms.
 float PhysicsSystem::clampToTarget(float value, float change, float target) {

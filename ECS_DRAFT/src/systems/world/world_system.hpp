@@ -60,6 +60,10 @@ private:
 
 	void playSoundIfEnabled(Mix_Chunk* sound);
 
+	// fps update; update per second to avoid flickering number
+	float fps_timer = 0.0f;
+	void update_window_caption(float elapsed_ms);
+
 	// restart level
 	void restart_game();
 

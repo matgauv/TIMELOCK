@@ -42,6 +42,9 @@ void WorldSystem::init(GLFWwindow* window) {
 
 	this->window = window;
 
+	// Set title
+	glfwSetWindowTitle(window, "TIME LOCK | NaN fps");
+
 	// Create a single GameState entity
 	registry.gameStates.emplace(game_state_entity);
 
@@ -71,12 +74,31 @@ void WorldSystem::init(GLFWwindow* window) {
     restart_game();
 }
 
+// From A2
+void WorldSystem::update_window_caption(float elapsed_ms) {
+	// Potentially expand functionalities regarding levels
+
+	int fps = (int)(1 / elapsed_ms);
+
+	std::stringstream title_ss;
+	title_ss << "TIME LOCK | " << (elapsed_ms <= 1.0E-3 ? "NaN" : std::to_string((int)(1.0 / (0.001 * elapsed_ms)))) << " fps";
+
+	glfwSetWindowTitle(window, title_ss.str().c_str());
+}
+
+
 // Update our game world
 void WorldSystem::step(float elapsed_ms_since_last_update) {
-
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
 	    registry.remove_all_components_of(registry.debugComponents.entities.back());
+
+	// Update fps info
+	fps_timer += elapsed_ms_since_last_update;
+	if (fps_timer > FPS_COUNTER_UPDATE_PERIOD_MS) {
+		fps_timer = 0.0;
+		update_window_caption(elapsed_ms_since_last_update);
+	}
 
 	/* This part of code restricts the motion of entities;
 	* It makes sense to apply a similar logic, but is currently restricting the action range of cameras;
@@ -155,6 +177,9 @@ void WorldSystem::restart_game() {
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
+
+	// Reset fps timer
+	fps_timer = 0.0;
 
 	// Reset the game speed
 	current_speed = 1.f;

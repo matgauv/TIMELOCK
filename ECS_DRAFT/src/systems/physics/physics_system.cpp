@@ -123,11 +123,15 @@ std::vector<vec2> get_vertices(Entity& e)
 		std::vector<vec2> vertices;
 		vertices.reserve(mesh->vertices.size());
 		for (auto & vertex : mesh->vertices)
+		{
 			vertices.push_back({vertex.position.x, vertex.position.y});
+			std::cout << "MESH:" << vertex.position.x << ", " << vertex.position.y << std::endl;
+		}
 
 		return vertices;
 	} else
 	{
+		// TODO: store this ? no need to compute EVERY FRAME
 		// No mesh, we assume square BB
 		std::vector<vec2> vertices(4);
 		Motion& motion = registry.motions.get(e);
@@ -420,9 +424,14 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			if (!registry.falling.has(entity)) {
 				registry.falling.emplace(entity);
 			}
+			Motion& motion = registry.motions.get(entity);
+			float diff = AIR_RESISTANCE * step_seconds;
+			motion.velocity.x = clampToTarget(motion.velocity.x, diff, 0);
+			motion.velocity.y = clampToTarget(motion.velocity.y, diff, 0);
 		} else {
+		//	std::cout << "Removing falling" << std::endl;
 			registry.falling.remove(entity);
-			// TODO air resistance?
+
 		}
 	}
 
@@ -442,15 +451,8 @@ void PhysicsSystem::handle_object_platform_collision(Entity object_entity, Entit
 	obj_motion.position += normal * collision_depth;
 
 
-	if (!registry.blocked.has(object_entity))
-	{
-		std::cout<< "MIssing blocked ??" <<std::endl;
-	} else
-	{
-		Blocked& blocked = registry.blocked.get(object_entity);
-		blocked.normal = normal;
-	}
-
+	Blocked& blocked = registry.blocked.get(object_entity);
+	blocked.normal = normal;
 
 
 	float vel_along_normal = dot(obj_motion.velocity, normal);
@@ -467,7 +469,7 @@ void PhysicsSystem::handle_object_platform_collision(Entity object_entity, Entit
 	}
 
 	vec2 platform_velocity = registry.motions.has(platform_entity)
-		  ? vec2(registry.motions.get(platform_entity).velocity.x, 0.0f)
+		  ? vec2(registry.motions.get(platform_entity).velocity.x * registry.motions.get(platform_entity).velocityModifier, 0.0f)
 		  : vec2(0.0f);
 
 	if (-normal.y > (PLATFORM_SLIP_ANGLE * (M_PI / 180)))
@@ -489,13 +491,12 @@ void PhysicsSystem::handle_object_platform_collision(Entity object_entity, Entit
 
 		// Calculate fling velocity based on horizontal platform movement
 		float platform_speed = abs(platform_velocity.x);
-		if (platform_speed > 200.0f) {
-			// Calculate surface tangent direction
+		if (platform_speed > 250.0f) {
 			vec2 tangent = normalize(vec2(normal.y, -normal.x));
 
 			// Fling in platform's movement direction scaled by surface alignment
 			float surface_alignment = abs(dot(normalize(platform_velocity), tangent));
-			obj_motion.velocity.x += platform_velocity.x * 0.4f * surface_alignment;
+			obj_motion.velocity.x += platform_velocity.x * 0.1f * surface_alignment;
 		}
 	}
 
@@ -545,9 +546,13 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 	// this also improves from previous code to properly handle the case where both objects are moving!!!
 	float a_inv_weight = 1.0f / physA.weight;
 	float b_inv_weight = 1.0f / physB.weight;
-	const float total_inv_mass = a_inv_weight * b_inv_weight;
-	motionA.position += normal * collision_depth * (a_inv_weight * total_inv_mass);
-	motionB.position -= normal * collision_depth * (b_inv_weight * total_inv_mass); // - because normal is from A -> B
+	const float total_inv_mass = a_inv_weight + b_inv_weight;
+
+	float a_ratio = a_inv_weight / total_inv_mass;
+	float b_ratio = b_inv_weight / total_inv_mass;
+
+	motionA.position += normal * collision_depth * a_ratio;
+	motionB.position -= normal * collision_depth * b_ratio;
 
 	// now get the relative velocities
 	vec2 vel_relative = motionB.velocity - motionA.velocity;
@@ -586,8 +591,7 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 vec2 PhysicsSystem::get_friction_impulse(vec2 relative_velocity, float total_inv_mass, float impulse_scalar, vec2 normal)
 {
 	vec2 friction_impulse = {0,0};
-	vec2 tangent = (relative_velocity) - (normal * (relative_velocity));
-
+	vec2 tangent = relative_velocity - normal * dot(relative_velocity, normal);
 	if (pow(length(tangent), 2) > 0.0001f)
 	{
 		tangent = normalize(tangent);

@@ -23,7 +23,7 @@ void demo_level() {
     create_foreground({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
 
     float boltsize = 300.f;
- //   create_bolt({ 300.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+    create_bolt({ 300.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
 
     // initial_pos = {0,0};
     create_player(initial_pos, {50.0f, 50.0f});
@@ -84,7 +84,7 @@ Entity create_player(vec2 position, vec2 scale) {
     registry.players.emplace(entity);
 
     PhysicsObject& object = registry.physicsObjects.emplace(entity);
-    object.weight = 500.0f;
+    object.weight = 10.0f;
 
     Motion& motion = registry.motions.emplace(entity);
     motion.position = position;
@@ -317,7 +317,9 @@ Entity create_bolt(vec2 pos, vec2 size, vec2 velocity)
     blocked.normal = vec2(0, 0);
 
     PhysicsObject& object = registry.physicsObjects.emplace(entity);
-    object.weight = 1000.0f;
+    object.weight = 10.0f;
+
+    registry.falling.emplace(entity);
 
     registry.bolts.emplace(entity);
 

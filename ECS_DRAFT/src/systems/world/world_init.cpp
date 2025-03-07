@@ -1,5 +1,6 @@
 #include "world_init.hpp"
 #include "../../tinyECS/registry.hpp"
+#include "systems/rendering/render_system.hpp"
 
 // TODO parse file descriptor to create level with render requests
 // For now, hard coded to just put a platform on the screen...
@@ -22,8 +23,8 @@ void demo_level() {
     create_background({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::METAL_BACKGROUND);
     create_foreground({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
 
-    float boltsize = 300.f;
-    create_bolt({ 300.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+    float boltsize = 75.f;
+    create_bolt({ 325.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
 
     // initial_pos = {0,0};
     create_player(initial_pos, {50.0f, 50.0f});
@@ -84,7 +85,7 @@ Entity create_player(vec2 position, vec2 scale) {
     registry.players.emplace(entity);
 
     PhysicsObject& object = registry.physicsObjects.emplace(entity);
-    object.weight = 10.0f;
+    object.weight = 20.0f;
 
     Motion& motion = registry.motions.emplace(entity);
     motion.position = position;
@@ -177,7 +178,7 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements) {
     return entity;
 }
 
-Entity create_static_platform(vec2 position, vec2 scale, bool isBoundary) {
+Entity create_static_platform(vec2 position, vec2 scale, bool isBoundary, float angle) {
     Entity entity = Entity();
 
     registry.platforms.emplace(entity);
@@ -190,7 +191,7 @@ Entity create_static_platform(vec2 position, vec2 scale, bool isBoundary) {
     motion.position = position;
     motion.scale = scale;
     motion.velocity = {0, 0};
-    motion.angle = 0.0f;
+    motion.angle = angle;
 
     Blocked& blocked = registry.blocked.emplace(entity);
     blocked.normal = vec2(0, 0);

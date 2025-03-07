@@ -36,6 +36,8 @@ inline std::string mesh_path(const std::string& name) {return data_path() + "/me
 const int WINDOW_WIDTH_PX = 1280;
 const int WINDOW_HEIGHT_PX = 720;
 
+const float FPS_COUNTER_UPDATE_PERIOD_MS = 1000.0f;
+
 // TIME CONTROL
 const float ACCELERATE_FACTOR = 2.0f;
 const float DECELERATE_FACTOR = 0.2f;

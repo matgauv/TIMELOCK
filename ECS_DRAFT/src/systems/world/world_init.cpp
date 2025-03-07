@@ -25,6 +25,11 @@ void demo_level() {
 
     float boltsize = 75.f;
     create_bolt({ 325.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+    create_bolt({ 325.0f, sceneHeight / 2.0f + 300.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+    create_bolt({ 325.0f, sceneHeight / 2.0f + 150.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+
+
+
 
     // initial_pos = {0,0};
     create_player(initial_pos, {50.0f, 50.0f});
@@ -40,7 +45,7 @@ void demo_level() {
     create_static_platform({ xStart, sceneHeight}, {500.0f, 100.0f}, false);
 
     // lil roof to test vertical collisions
-    create_static_platform({xStart - 100.0f, sceneHeight - 125.0f}, {200.0f, 20.0f}, false);
+    create_static_platform({xStart - 100.0f, sceneHeight - 125.0f}, {100.0f, 20.0f}, false);
 
     vec2 moving_plat_size = {200.0f, 20.0f};
 

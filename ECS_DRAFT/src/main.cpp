@@ -1,5 +1,6 @@
 #define GL3W_IMPLEMENTATION
 #include <gl3w.h>
+#include <sstream>
 
 // internal
 #include "systems/systems_manager.hpp"
@@ -17,9 +18,24 @@ int main(int argc, char *argv[])
 {
 
 	bool play_sound = true;
-	if (argc == 2 && strcmp(argv[1], "--nosound") == 0)
+	bool fly = false;
+	if (argc == 2)
 	{
-		play_sound = false;
+		std::vector<std::string> flags;
+		std::stringstream ss (argv[1]);
+		std::string item;
+
+		while (getline (ss, item, ',')) {
+			flags.push_back (item);
+		}
+
+		for (const string& flag : flags) {
+			if (flag == "--fly") {
+				fly = true;
+			} else if (flag == "--nosound") {
+				play_sound = false;
+			}
+		}
 	}
 
 	SystemsManager system_manager;
@@ -38,6 +54,8 @@ int main(int argc, char *argv[])
 	BossSystem boss_system;
 
 	world_system.setSound(play_sound);
+	world_system.setFreeFly(fly);
+	physics_system.setFreeFly(fly);
 
 	// register order is the order steps (and then late steps) will be called
 	system_manager.register_system(&world_system);

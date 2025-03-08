@@ -28,9 +28,20 @@ enum class SPAWN_POINT_STATE {
 	ACTIVE = VISITED + 1
 };
 
+enum class PLAYER_STATE {
+	// TODO: expand this to all possible states and transfer control to player system
+	ALIVE = 0,
+	DEAD = ALIVE + 1
+};
+
 // Player component
 struct Player
 {
+	vec2 spawn_point;
+	float timer = 0.0;
+	// Consider expanding the fields with a state variable (idle, walking, in air, dead, etc.)
+	PLAYER_STATE state = PLAYER_STATE::ALIVE;
+	// Potentially transfer acceleration/deceleration controls to Player as well
 };
 
 struct SpawnPoint

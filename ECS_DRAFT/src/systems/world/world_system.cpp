@@ -143,6 +143,7 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 		lerpTimeState(start, tc.target_time_control_factor, motion, gameState.time_control_start_time);
 	}
 
+	// Can potentially remove
 	if (gameState.game_running_state == GAME_RUNNING_STATE::SHOULD_RESET) {
 		restart_game();
 	}

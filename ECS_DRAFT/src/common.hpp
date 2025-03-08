@@ -69,10 +69,13 @@ const float DYNAMIC_FRICTION = STATIC_FRICTION * 50.0f;
 const float AIR_RESISTANCE = 250.0f;
 const float JUMP_VELOCITY = 300.0f;
 
+// Player Statistics
 const float PLAYER_MAX_FALLING_SPEED = 1000.0f;
 const float PLAYER_MAX_WALKING_SPEED = 300.0f;
 
 const float PLAYER_WALK_ACCELERATION = 500.0f;
+
+const float DEAD_REVIVE_TIME_MS = 500.0f;
 
 // Fore, mid, background Depths; used for scaling only
 const float FOREGROUND_DEPTH = 0.5f;

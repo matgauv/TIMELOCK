@@ -64,6 +64,8 @@ void SpawnPointSystem::activate_spawnpoint(Entity entity) {
 
 	AnimateRequest& animRequest = registry.animateRequests.emplace(entity);
 	animRequest.used_animation = ANIMATION_ID::SPAWNPOINT_ACTIVATE;
+
+	registry.players.components[0].spawn_point = registry.motions.get(entity).position;
 }
 
 // Deactivate an activated spawn point if other spawn points are active

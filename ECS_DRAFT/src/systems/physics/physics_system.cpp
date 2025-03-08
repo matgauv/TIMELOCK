@@ -1,6 +1,7 @@
 // internal
 #include "physics_system.hpp"
 #include "../world/world_init.hpp"
+#include "../player/player_system.hpp"
 #include <iostream>
 
 void PhysicsSystem::init(GLFWwindow* window) {
@@ -250,18 +251,19 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 
 		// if player touches boundary, reset the game
 		GameState& gameState = registry.gameStates.components[0];
-		if (registry.players.has(one) && registry.boundaries.has(other)) {
-			gameState.game_running_state = GAME_RUNNING_STATE::SHOULD_RESET;
-		} else if (registry.players.has(other) && registry.boundaries.has(one)) {
-			gameState.game_running_state = GAME_RUNNING_STATE::SHOULD_RESET;
+		if ((registry.players.has(one) && registry.boundaries.has(other)) ||
+			(registry.players.has(other) && registry.boundaries.has(one))) {
+			PlayerSystem::kill();
 		}
 
 		// if objects touch the boundary, remove them
+		/*
 		if (registry.physicsObjects.has(one) && registry.boundaries.has(other)) {
 			registry.remove_all_components_of(one);
 		} else if (registry.physicsObjects.has(other) && registry.boundaries.has(one)) {
 			registry.remove_all_components_of(other);
 		}
+		*/
 	}
 
 	for (uint i = 0; i < collision_container.components.size(); i++) {

@@ -82,7 +82,8 @@ void demo_level() {
 Entity create_player(vec2 position, vec2 scale) {
     Entity entity = Entity();
 
-    registry.players.emplace(entity);
+    Player &player = registry.players.emplace(entity);
+    player.spawn_point = position;
 
     PhysicsObject& object = registry.physicsObjects.emplace(entity);
     object.weight = 500.0f;

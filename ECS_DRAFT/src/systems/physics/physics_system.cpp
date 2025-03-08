@@ -41,7 +41,7 @@ void PhysicsSystem::step(float elapsed_ms) {
 		}
 
 		if (registry.bolts.has(entity)) {
-			rotate_projectile(entity, motion, step_seconds); // temporary for visual test
+		//	rotate_projectile(entity, motion, step_seconds); // temporary for visual test
 		}
 
 		motion.position += (motion.velocity * motion.velocityModifier) * step_seconds;
@@ -388,7 +388,7 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			Motion& motion = registry.motions.get(entity);
 			float diff = AIR_RESISTANCE * step_seconds;
 			motion.velocity.x = clampToTarget(motion.velocity.x, diff, 0);
-			motion.velocity.y = clampToTarget(motion.velocity.y, diff, 0);
+	//		motion.velocity.y = clampToTarget(motion.velocity.y, diff, 0);
 		} else {
 		//	std::cout << "Removing falling" << std::endl;
 			registry.falling.remove(entity);
@@ -423,7 +423,7 @@ void PhysicsSystem::handle_object_rigid_collision(Entity object_entity, Entity p
 
 	Motion& platform_motion = registry.motions.get(platform_entity);
 	vec2 platform_velocity = get_modified_velocity(platform_motion);
-	platform_velocity.y = 0.0f;
+//	platform_velocity.y = 0.0f;
 
 
 	if (is_grounded(-normal.y)) {
@@ -442,14 +442,14 @@ void PhysicsSystem::handle_object_rigid_collision(Entity object_entity, Entity p
 		obj_motion.velocity = new_relative_vel + platform_velocity;
 		groundedEntities.push_back(object_entity.id());
 
-		// Calculate fling velocity based on horizontal platform movement
-		float platform_speed = abs(platform_velocity.x);
+		// calculate fling velocity based on platform movement
+		float platform_speed = length(platform_velocity);
 		if (platform_speed > 250.0f) {
 			vec2 tangent = normalize(vec2(normal.y, -normal.x));
 
 			// Fling in platform's movement direction scaled by surface alignment
 			float surface_alignment = abs(dot(normalize(platform_velocity), tangent));
-			obj_motion.velocity.x += platform_velocity.x * 0.1f * surface_alignment;
+			obj_motion.velocity += platform_velocity * 0.1f * surface_alignment;
 		}
 	}
 

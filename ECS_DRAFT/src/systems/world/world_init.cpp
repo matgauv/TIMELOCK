@@ -29,8 +29,6 @@ void demo_level() {
     create_bolt({ 325.0f, sceneHeight / 2.0f + 150.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
 
 
-
-
     // initial_pos = {0,0};
     create_player(initial_pos, {50.0f, 50.0f});
     create_camera(initial_pos, { 1.0f, 1.0f }); // TODO: potential open-scene zoom in

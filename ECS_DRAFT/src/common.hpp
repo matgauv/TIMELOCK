@@ -57,7 +57,7 @@ const float M_TO_PIXELS = 60.0f; // 50 px is 1m
 const float GRAVITY = 9.8f * M_TO_PIXELS;
 const float OBJECT_MAX_FALLING_SPEED = 1000.0f;
 
-const float STATIC_FRICTION = 0.2f;
+const float STATIC_FRICTION = 0.15f;
 const float DYNAMIC_FRICTION = 0.015f;
 const float AIR_RESISTANCE = 250.0f;
 const float JUMP_VELOCITY = 350.0f;

@@ -87,7 +87,7 @@ Entity create_player(vec2 position, vec2 scale) {
     registry.players.emplace(entity);
 
     PhysicsObject& object = registry.physicsObjects.emplace(entity);
-    object.mass = 20.0f;
+    object.mass = 15.0f;
 
     Motion& motion = registry.motions.emplace(entity);
     motion.position = position;
@@ -320,7 +320,7 @@ Entity create_bolt(vec2 pos, vec2 size, vec2 velocity)
     blocked.normal = vec2(0, 0);
 
     PhysicsObject& object = registry.physicsObjects.emplace(entity);
-    object.mass = 10.0f;
+    object.mass = 20.0f;
 
     registry.falling.emplace(entity);
 

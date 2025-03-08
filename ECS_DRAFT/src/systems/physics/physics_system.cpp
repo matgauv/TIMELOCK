@@ -528,13 +528,18 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 
     vec2 tangent = vel_relative - dot(vel_relative, normal) * normal;
 
-    if (length(tangent) > 0.1f) {
+    if (length(tangent) > 0.01f) {
         tangent = normalize(tangent);
 
-        float friction_impulse = (-dot(vel_relative, tangent) / total_inv_mass) * STATIC_FRICTION;
+        float friction_impulse_magnitude = (-dot(vel_relative, tangent) / total_inv_mass) * STATIC_FRICTION;
 
-        motionA.velocity -= a_inv_mass * friction_impulse * tangent;
-        motionB.velocity += b_inv_mass * friction_impulse * tangent;
+		// TODO: bit hacky
+		vec2 friction_impulse = friction_impulse_magnitude * tangent;
+		float vertical_scale = 0.5f;
+		friction_impulse.y *= vertical_scale;
+
+        motionA.velocity -= a_inv_mass * friction_impulse;
+        motionB.velocity += b_inv_mass * friction_impulse;
     }
 	// finally, detect if they are on the ground! (or an angled platform)
 	if (is_grounded(-normal.y))

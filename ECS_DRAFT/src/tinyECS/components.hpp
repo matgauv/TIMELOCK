@@ -257,7 +257,6 @@ struct Boss
 {
 	BOSS_ID boss_id;
 	BOSS_STATE boss_state;
-
 	float health;
 	float attack_cooldown_ms = 5000.0f;
 };
@@ -269,8 +268,8 @@ struct BossAttack
 	float cooldown_ms;
 	float total_damage;
 	float duration_ms;
-	vector<float> in_between_delay_ms;
-	vec2<float> velocity_modifier;
+	std::vector<float> in_between_delay_ms;
+	vec2 velocity_modifier;
 	uint num_of_attacks;
 	uint max_num_of_attacks;
 };

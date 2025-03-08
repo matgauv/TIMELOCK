@@ -23,20 +23,17 @@ void BossSystem::step(float elapsed_ms) {
         Boss& boss = registry.bosses.components[0];
         Entity& boss_entity = registry.bosses.entities[0];
 
-        // TODO:
-        // handle the state changes
-        // create a helper function to decide which attack to use
-
-        if (boss_entity, boss.boss_id == BOSS_ID::FIRST) {
-            handleBossOneState(elapsed_ms);
+        // call the appropriate helper function to handle the state changes
+        if (boss.boss_id == BOSS_ID::FIRST) {
+            handleBossOneState(boss_entity, elapsed_ms);
         }
         
         if (boss.boss_id == BOSS_ID::SECOND) {
-            handleBossTwoState(boss, elapsed_ms);
+            handleBossTwoState(boss_entity, elapsed_ms);
         }
 
         if (boss.boss_id == BOSS_ID::FINAL) {
-            handleFinalBossState(boss, elapsed_ms);
+            handleFinalBossState(boss_entity, elapsed_ms);
         }
     }
 }
@@ -60,18 +57,17 @@ void BossSystem::handleBossOneState(Entity& boss_entity, float elapsed_ms) {
     Boss& boss = registry.bosses.get(boss_entity);
 
     bool is_in_phase_two = (boss.health / BOSS_ONE_MAX_HEALTH) <= 0.5;
-
-    boss.attack_cooldown_ms -= elapsed_ms;
     
     if (boss.health <= 0.f) {
         // transition to dead state when health reaches 0
         boss.boss_state = BOSS_STATE::BOSS1_DEAD_STATE;
 
     } else if (boss.attack_cooldown_ms > 0.f) {
-        // transition to move state when alive and attack cooldown has not reached 0 yet
+        // if the boss is alive and their attack cooldown has not reached zero yet, decrement the cooldown
+        boss.attack_cooldown_ms -= elapsed_ms;
         boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
 
-    } else if (boss.attack_cooldown_ms <= 0.f &&  boss.boss_state != BOSS_STATE::BOSS1_CHOOSE_ATTACK_STATE) {
+    } else if (boss.attack_cooldown_ms <= 0.f &&  boss.boss_state == BOSS_STATE::BOSS1_MOVE_STATE) {
         // set the boss state to choose attack state
         boss.boss_state = BOSS_STATE::BOSS1_CHOOSE_ATTACK_STATE;
 

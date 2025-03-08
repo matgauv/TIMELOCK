@@ -59,7 +59,7 @@ void LevelParsingSystem::init_level_background() {
 void LevelParsingSystem::init_player_and_camera() {
     json playerJson = json_data["entities"]["Player"][0];
     vec2 initPos = vec2(playerJson["x"], playerJson["y"]);
-    create_player(initPos, {int(playerJson["width"]) * 2, int(playerJson["height"]) * 2});
+    create_player(initPos, {int(playerJson["width"]), int(playerJson["height"])});
     create_camera(initPos, {1.0f, 1.0f});
 }
 
@@ -86,16 +86,58 @@ void LevelParsingSystem::init_level_entities() {
 
 void LevelParsingSystem::init_platforms(json platforms, bool moving) {
     for (json platform : platforms) {
-        int fullSize = platform["customFields"]["size"];
-        vec2 dimensions = {platform["width"], platform["height"]};
-        vec2 currPos = {platform["x"], platform["y"]};
-
-        for (int i = 0; i < fullSize; i++) {
-            if (moving) {
-            } else {
-                create_static_platform(currPos, dimensions, false);
-            }
-            currPos.x += dimensions[0];
+        vec2 dimensions;
+        vec2 startPos;
+        if (moving) {
+            vector<Path> path;
+            extract_path_attributes(platform, path, startPos, dimensions);
+            create_moving_platform(dimensions, path, startPos);
+        } else {
+            extract_platform_attributes(platform, dimensions, startPos);
+            create_static_platform(startPos, dimensions, false);
         }
     }
+}
+
+void LevelParsingSystem::extract_full_platform_dimensions(json platform, vec2& dimensions) {
+    int full_size = platform["customFields"]["size"];
+    int full_width = full_size * static_cast<int>(platform["width"]);
+    dimensions = {full_width, platform["height"]};
+}
+
+void LevelParsingSystem::extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos) {
+    extract_full_platform_dimensions(platform, dimensions);
+
+    int left_x = static_cast<int>(platform["x"]) - (static_cast<int>(platform["width"]) / 2);
+    int start_x = left_x + (static_cast<int>(dimensions[0]) / 2);
+    startPos = {start_x, platform["y"]};
+}
+
+void LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& paths, vec2& init_pos_in_path, vec2& dimensions) {
+    extract_full_platform_dimensions(platform, dimensions);
+
+    // currently all position values in json are relative to leftmost tile in platform -- need to centralize position on x-axis.
+    int conversion_factor = (static_cast<int>(dimensions.x) / 2) - (static_cast<int>(platform["width"]) / 2);
+
+    json start_pos_json = platform["customFields"]["start"];
+    vec2 start_pos = convert_and_centralize_position(start_pos_json, conversion_factor);
+
+    json end_pos_json = platform["customFields"]["end"];
+    vec2 end_pos = convert_and_centralize_position(end_pos_json, conversion_factor);
+
+    json init_pos_json = platform["customFields"]["position"];
+    init_pos_in_path = convert_and_centralize_position(init_pos_json, conversion_factor);
+
+    // TODO: hardcoded duration value -- should prob parse from json
+    Path forward = Path(start_pos, end_pos, 0.5);
+    Path backward = Path(end_pos, start_pos, 0.5);
+    paths.push_back(forward);
+    paths.push_back(backward);
+}
+
+vec2 LevelParsingSystem::convert_and_centralize_position(json pos, int conversion_factor) {
+    return vec2({
+        static_cast<int>(pos["cx"]) * TILE_TO_PIXELS + conversion_factor,
+        static_cast<int>(pos["cy"]) * TILE_TO_PIXELS
+    });
 }

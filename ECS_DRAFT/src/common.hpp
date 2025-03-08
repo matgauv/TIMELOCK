@@ -88,6 +88,9 @@ const float BOSS_ATTACK_COOLDOWN_MS = 500.0f;
 
 const float PLAYER_ATTACK_DAMAGE = 20.0f;
 
+// Level parsing constants
+const int TILE_TO_PIXELS = 16;
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f
 #endif

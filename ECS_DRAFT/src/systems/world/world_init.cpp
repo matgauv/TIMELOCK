@@ -11,68 +11,68 @@ void load_level(std::string descriptor_path) {
 }
 
 void demo_level() {
-    float sceneHeight = WINDOW_HEIGHT_PX * 2.0f;
-    float xStart = 250.0f;
-    vec2 initial_pos = {xStart, sceneHeight/2.0f + 300.0f};
-    
-
-    float boundaryWidth = WINDOW_WIDTH_PX * 3.0f;
-    float boundaryHeight = WINDOW_HEIGHT_PX * 3.0f;
-    create_parallaxbackground({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::GEARS_BACKGROUND);
-    create_background({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::METAL_BACKGROUND);
-    create_foreground({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
-
-    float boltsize = 300.f;
-    create_bolt({ 300.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
-
-    // initial_pos = {0,0};
-    create_player(initial_pos, {50.0f, 50.0f});
-    create_camera(initial_pos, { 1.0f, 1.0f }); // TODO: potential open-scene zoom in
-
-    // level boundaries
-    create_static_platform({boundaryWidth/2.0f, 0.0f}, {boundaryWidth, 1.0f}, true);
-    create_static_platform({boundaryWidth/2.0f, boundaryHeight}, {boundaryWidth, 1.0f}, true);
-    create_static_platform({0.0f,boundaryHeight/2.0f}, {1.0f, boundaryHeight}, true);
-    create_static_platform({boundaryWidth, boundaryHeight/2.0f}, {1.0f, boundaryHeight}, true);
-
-    // starting platform
-    create_static_platform({ xStart, sceneHeight}, {500.0f, 100.0f}, false);
-
-    vec2 moving_plat_size = {200.0f, 20.0f};
-
-    Path moving_plat_1_forwards = Path({xStart +  400.0f, sceneHeight}, {xStart + 600.0f, sceneHeight}, 0.2f);
-    Path moving_plat_1_backwards = Path({xStart +  600.0f, sceneHeight}, {xStart + 400.0f, sceneHeight}, 0.2f);
-    std::vector<Path> moving_plat_1_movements = {moving_plat_1_forwards, moving_plat_1_backwards};
-    create_moving_platform(moving_plat_size, moving_plat_1_movements);
-
-    Path moving_plat_2_forwards = Path({xStart +  850.0f, sceneHeight}, {xStart + 1050.0f, sceneHeight}, 0.2f);
-    Path moving_plat_2_backwards = Path({xStart +  1050.0f, sceneHeight}, {xStart + 850.0f, sceneHeight}, 0.2f);
-    std::vector<Path> moving_plat_2_movements = {moving_plat_2_backwards, moving_plat_2_forwards};
-    create_moving_platform(moving_plat_size, moving_plat_2_movements);
-
-    create_static_platform({ xStart + 1500.0f, sceneHeight}, {500.0f, 100.0f}, false);
-
-    Path moving_plat_3_up = Path({xStart +  1900.0f, sceneHeight}, {xStart + 1900.0f, sceneHeight - 500.0f}, 1.5f);
-    Path moving_plat_3_down = Path({xStart +  1900.0f, sceneHeight - 500.0f}, {xStart + 1900.0f, sceneHeight}, 1.5f);
-    std::vector<Path> moving_plat_3_movements = {moving_plat_3_up, moving_plat_3_down};
-    create_moving_platform(moving_plat_size, moving_plat_3_movements);
-
-    create_static_platform({ xStart + 2500.0f, sceneHeight - 900.0f}, {500.0f, 100.0f}, false);
-
-    Path moving_plat_4_forwards = Path({xStart + 2750.0f, sceneHeight - 800.0f}, {xStart + 2850.0f, sceneHeight - 800.0f}, 0.1f);
-    Path moving_plat_4_backwards = Path({xStart + 2850.0f, sceneHeight - 800.0f}, {xStart + 2750.0f, sceneHeight - 800.0f}, 0.1f);
-    std::vector<Path> moving_plat_4_movements = {moving_plat_4_forwards, moving_plat_4_backwards};
-    create_moving_platform(moving_plat_size, moving_plat_4_movements);
-
-    Path moving_plat_5_forwards = Path({xStart + 3050.0f, sceneHeight - 800.0f}, {xStart + 3150.0f, sceneHeight - 800.0f}, 0.1f);
-    Path moving_plat_5_backwards = Path({xStart +  3150.0f, sceneHeight - 800.0f}, {xStart + 3050.0f, sceneHeight - 800.0f}, 0.1f);
-    std::vector<Path> moving_plat_5_movements = {moving_plat_5_backwards, moving_plat_5_forwards};
-    create_moving_platform(moving_plat_size, moving_plat_5_movements);
-
-    create_static_platform({ xStart + 2950.0f, sceneHeight - 600.0f}, {500.0f, 100.0f}, false);
-    create_static_platform({ xStart + 2950.0f - 250.0f - 125.0f, sceneHeight - 600.0f - 50.0f + 5.0f}, {250.0f, 10.0f}, false);
-
-    create_physics_object({xStart + 3000.0f, sceneHeight - 650.0f},{50.0f, 50.0f}, 5.0f);
+    // float sceneHeight = WINDOW_HEIGHT_PX * 2.0f;
+    // float xStart = 250.0f;
+    // vec2 initial_pos = {xStart, sceneHeight/2.0f + 300.0f};
+    //
+    //
+    // float boundaryWidth = WINDOW_WIDTH_PX * 3.0f;
+    // float boundaryHeight = WINDOW_HEIGHT_PX * 3.0f;
+    // create_parallaxbackground({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::GEARS_BACKGROUND);
+    // create_background({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::METAL_BACKGROUND);
+    // create_foreground({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
+    //
+    // float boltsize = 300.f;
+    // create_bolt({ 300.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+    //
+    // // initial_pos = {0,0};
+    // create_player(initial_pos, {50.0f, 50.0f});
+    // create_camera(initial_pos, { 1.0f, 1.0f }); // TODO: potential open-scene zoom in
+    //
+    // // level boundaries
+    // create_static_platform({boundaryWidth/2.0f, 0.0f}, {boundaryWidth, 1.0f}, true);
+    // create_static_platform({boundaryWidth/2.0f, boundaryHeight}, {boundaryWidth, 1.0f}, true);
+    // create_static_platform({0.0f,boundaryHeight/2.0f}, {1.0f, boundaryHeight}, true);
+    // create_static_platform({boundaryWidth, boundaryHeight/2.0f}, {1.0f, boundaryHeight}, true);
+    //
+    // // starting platform
+    // create_static_platform({ xStart, sceneHeight}, {500.0f, 100.0f}, false);
+    //
+    // vec2 moving_plat_size = {200.0f, 20.0f};
+    //
+    // Path moving_plat_1_forwards = Path({xStart +  400.0f, sceneHeight}, {xStart + 600.0f, sceneHeight}, 0.2f);
+    // Path moving_plat_1_backwards = Path({xStart +  600.0f, sceneHeight}, {xStart + 400.0f, sceneHeight}, 0.2f);
+    // std::vector<Path> moving_plat_1_movements = {moving_plat_1_forwards, moving_plat_1_backwards};
+    // create_moving_platform(moving_plat_size, moving_plat_1_movements);
+    //
+    // Path moving_plat_2_forwards = Path({xStart +  850.0f, sceneHeight}, {xStart + 1050.0f, sceneHeight}, 0.2f);
+    // Path moving_plat_2_backwards = Path({xStart +  1050.0f, sceneHeight}, {xStart + 850.0f, sceneHeight}, 0.2f);
+    // std::vector<Path> moving_plat_2_movements = {moving_plat_2_backwards, moving_plat_2_forwards};
+    // create_moving_platform(moving_plat_size, moving_plat_2_movements);
+    //
+    // create_static_platform({ xStart + 1500.0f, sceneHeight}, {500.0f, 100.0f}, false);
+    //
+    // Path moving_plat_3_up = Path({xStart +  1900.0f, sceneHeight}, {xStart + 1900.0f, sceneHeight - 500.0f}, 1.5f);
+    // Path moving_plat_3_down = Path({xStart +  1900.0f, sceneHeight - 500.0f}, {xStart + 1900.0f, sceneHeight}, 1.5f);
+    // std::vector<Path> moving_plat_3_movements = {moving_plat_3_up, moving_plat_3_down};
+    // create_moving_platform(moving_plat_size, moving_plat_3_movements);
+    //
+    // create_static_platform({ xStart + 2500.0f, sceneHeight - 900.0f}, {500.0f, 100.0f}, false);
+    //
+    // Path moving_plat_4_forwards = Path({xStart + 2750.0f, sceneHeight - 800.0f}, {xStart + 2850.0f, sceneHeight - 800.0f}, 0.1f);
+    // Path moving_plat_4_backwards = Path({xStart + 2850.0f, sceneHeight - 800.0f}, {xStart + 2750.0f, sceneHeight - 800.0f}, 0.1f);
+    // std::vector<Path> moving_plat_4_movements = {moving_plat_4_forwards, moving_plat_4_backwards};
+    // create_moving_platform(moving_plat_size, moving_plat_4_movements);
+    //
+    // Path moving_plat_5_forwards = Path({xStart + 3050.0f, sceneHeight - 800.0f}, {xStart + 3150.0f, sceneHeight - 800.0f}, 0.1f);
+    // Path moving_plat_5_backwards = Path({xStart +  3150.0f, sceneHeight - 800.0f}, {xStart + 3050.0f, sceneHeight - 800.0f}, 0.1f);
+    // std::vector<Path> moving_plat_5_movements = {moving_plat_5_backwards, moving_plat_5_forwards};
+    // create_moving_platform(moving_plat_size, moving_plat_5_movements);
+    //
+    // create_static_platform({ xStart + 2950.0f, sceneHeight - 600.0f}, {500.0f, 100.0f}, false);
+    // create_static_platform({ xStart + 2950.0f - 250.0f - 125.0f, sceneHeight - 600.0f - 50.0f + 5.0f}, {250.0f, 10.0f}, false);
+    //
+    // create_physics_object({xStart + 3000.0f, sceneHeight - 650.0f},{50.0f, 50.0f}, 5.0f);
 }
 
 Entity create_player(vec2 position, vec2 scale) {
@@ -139,11 +139,11 @@ Entity create_physics_object(vec2 position, vec2 scale, float weight) {
     return entity;
 }
 
-Entity create_moving_platform(vec2 scale, std::vector<Path> movements) {
+Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 initial_position) {
     Entity entity = Entity();
 
     Motion& motion = registry.motions.emplace(entity);
-    motion.position = movements[0].start;
+    motion.position = initial_position;
     motion.scale = scale;
     motion.selfVelocity = {0, 0}; // physics system will calculate this...
     motion.angle = 0.0f;

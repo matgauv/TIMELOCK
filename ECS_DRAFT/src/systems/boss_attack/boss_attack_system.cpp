@@ -27,17 +27,20 @@ void BossAttackSystem::step(float elapsed_ms) {
         Boss& boss = registry.bosses.components[0];
         Entity& boss_entity = registry.bosses.entities[0];
 
+        Player& player = registry.players.components[0];
+        Entity& player_entity = registry.players.entities[0];
+
         // call the appropriate helper function to handle specific boss attack logic
         if (boss.boss_id == BOSS_ID::FIRST) {
-            handleBossOneAttack(boss_entity, elapsed_ms);
+            handleBossOneAttack(boss_entity, player_entity, elapsed_ms);
         }
         
         if (boss.boss_id == BOSS_ID::SECOND) {
-            handleBossTwoAttack(boss_entity, elapsed_ms);
+            handleBossTwoAttack(boss_entity, player_entity, elapsed_ms);
         }
 
         if (boss.boss_id == BOSS_ID::FINAL) {
-            handleFinalBossAttack(boss_entity, elapsed_ms);
+            handleFinalBossAttack(boss_entity, player_entity, elapsed_ms);
         }
     }
 }
@@ -46,34 +49,38 @@ void BossAttackSystem::late_step(float elapsed_ms) {
     (void) elapsed_ms;
 }
 
-void BossAttackSystem::handleBossOneAttack(Entity& boss_entity, float elapsed_time) {
+void BossAttackSystem::handleBossOneAttack(Entity& boss_entity, Entity& player_entity, float elapsed_time) {
     // get the boss component
     Boss& boss = registry.bosses.get(boss_entity);
+    Motion& boss_motion = registry.motions.get(boss_entity);
+
+    // NOTE: boss_motion.selfVelocity is a vec2, this is the acceleration caused by yourself
+    // NOTE: the velocityModifier is just a single float number
 
     // call the appropriate helper function based on the attack state
     if (boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_ATTACK_STATE) {
-        useBossOneGroundSlam();
+        useBossOneGroundSlam(boss_entity, player_entity, elapsed_time);
 
     } else if (boss.boss_state == BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE) {
-        useBossOneDelayedProjectile();
+        useBossOneDelayedProjectile(boss_entity, player_entity, elapsed_time);
 
     } else if (boss.boss_state == BOSS_STATE::BOSS1_FAST_PROJECTILE_ATTACK_STATE) {
-        useBossOneFastProjectile();
+        useBossOneFastProjectile(boss_entity, player_entity, elapsed_time);
 
     } else if (boss.boss_state == BOSS_STATE::BOSS1_REGULAR_PROJECTILE_ATTACK_STATE) {
-        useBossOneRegularProjectile();
+        useBossOneRegularProjectile(boss_entity, player_entity, elapsed_time);
 
     } else if (boss.boss_state == BOSS_STATE::BOSS1_DASH_ATTACK_STATE) {
-        useBossOneDashAttack();
+        useBossOneDashAttack(boss_entity, player_entity, elapsed_time);
     }
 }
 
-void BossAttackSystem::handleBossTwoAttack(Entity& boss_entity, float elapsed_time) {
+void BossAttackSystem::handleBossTwoAttack(Entity& boss_entity, Entity& player_entity, float elapsed_time) {
     // TODO: to be implemented in future milestone
     (void) elapsed_time;
 }
 
-void BossAttackSystem::handleFinalBossAttack(Entity& boss_entity, float elapsed_time) {
+void BossAttackSystem::handleFinalBossAttack(Entity& boss_entity, Entity& player_entity, float elapsed_time) {
     // TODO: to be implemented in future milestone
     (void) elapsed_time;
 }

@@ -10,6 +10,7 @@
 #include "systems/rendering/render_system.hpp"
 #include "systems/world/world_system.hpp"
 #include "systems/boss/boss_system.hpp"
+#include "systems/boss_attack/boss_attack_system.hpp"
 
 // Entry point
 int main(int argc, char *argv[])
@@ -34,6 +35,7 @@ int main(int argc, char *argv[])
 	CameraSystem camera_system;
 	AnimationSystem animation_system;
 	BossSystem boss_system;
+	BossAttackSystem boss_attack_system;
 
 	world_system.setSound(play_sound);
 
@@ -41,6 +43,7 @@ int main(int argc, char *argv[])
 	system_manager.register_system(&world_system);
 	system_manager.register_system(&ai_system);
 	system_manager.register_system(&boss_system);
+	system_manager.register_system(&boss_attack_system);
 	system_manager.register_system(&physics_system);
 	system_manager.register_system(&camera_system);
 	system_manager.register_system(&animation_system);

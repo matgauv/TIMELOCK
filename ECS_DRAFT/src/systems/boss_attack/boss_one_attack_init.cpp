@@ -2,14 +2,31 @@
 #include "../world/world_init.hpp"
 #include <iostream>
 
-void useBossOneRegularProjectile() {
+void useBossOneRegularProjectile(Entity& boss_entity, Entity& player_entity, float elapsed_time) {
     // TODO:
+    // the helper needs to know the boss position
+    // the helper needs to know the player position
+    // the helper needs to know how much time has passed
+    // the helper needs to know the information regarding the boss attack
+    Boss& boss = registry.bosses.get(boss_entity);
+    Motion& boss_motion = registry.motions.get(boss_entity);
+    Motion& player_motion = registry.motions.get(player_entity);
+
+    assert(registry.bossAttackLists.components.size() <= 1);
+    auto& table = registry.bossAttackLists.components[0].boss_attack_table;
+
+    Entity*& attack_entity_ptr = getBossAttackEntity(boss);
+    BossAttack& attack_info = registry.bossAttacks.get(*attack_entity_ptr);
+    
     // create 4 projectiles, a projectile is created every 0.5 seconds (therefore the total time should be 2 seconds)
     // the projectiles should have a normal speed such that the player does not need to use decelerate to avoid this
     // once all 4 projectiles have been created, place the attack on its cooldown (fine tune later)
+    
+
+
 }
 
-void useBossOneFastProjectile() {
+void useBossOneFastProjectile(Entity& boss_entity, Entity& player_entity, float elapsed_time) {
     // TODO:
     // call useBossOneRegularProjectile() helper
     // increase the velocity modifier so that it is much faster
@@ -18,7 +35,7 @@ void useBossOneFastProjectile() {
     // the projectile can be affected by time control
 }
 
-void useBossOneDelayedProjectile() {
+void useBossOneDelayedProjectile(Entity& boss_entity, Entity& player_entity, float elapsed_time) {
     // TODO:
     // create 3 projectiles above the boss in a horizontal line
     // the first projectile travels towards the player after 3 seconds
@@ -29,7 +46,7 @@ void useBossOneDelayedProjectile() {
 
 }
 
-void useBossOneGroundSlam() {
+void useBossOneGroundSlam(Entity& boss_entity, Entity& player_entity, float elapsed_time) {
     // TODO:
     // Give an indicator (texture) that the boss is going to jump into the air
     // While in the air, increase the boss's x-velocity and make the boss easily follow the player
@@ -45,11 +62,34 @@ void useBossOneGroundSlam() {
 }
 
 // may not use this attack... ?
-void useBossOneDashAttack() {
+void useBossOneDashAttack(Entity& boss_entity, Entity& player_entity, float elapsed_time) {
     // TODO:
     // Give an indicator that the boss is going to start dashing
     // After a 1 second delay, start the dash
     // The initial direction is determined by the player direction relative to the boss
     // During the dash, the boss has increased x-velocity
     // When the boss reaches the end of the areana, 
+}
+
+Entity*& getBossAttackEntity(Boss& boss) {
+    assert(registry.bossAttackLists.components.size() <= 1);
+    auto& table = registry.bossAttackLists.components[0].boss_attack_table;
+
+    assert(table.size() == (int) BOSS_ATTACK_ID::TOTAL_COUNT);
+
+    return table.at(getBossAttackId(boss));
+}
+
+int getBossAttackId(Boss& boss) {
+    if (boss.boss_state == BOSS_STATE::BOSS1_REGULAR_PROJECTILE_ATTACK_STATE) return (int) BOSS_ATTACK_ID::BOSS1_REGULAR_PROJECTILE;
+    
+    if (boss.boss_state == BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE) return (int) BOSS_ATTACK_ID::BOSS1_DELAYED_PROJECTILE;
+
+    if (boss.boss_state == BOSS_STATE::BOSS1_FAST_PROJECTILE_ATTACK_STATE) return (int) BOSS_ATTACK_ID::BOSS1_FAST_PROJECTILE;
+
+    if (boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_ATTACK_STATE) return (int) BOSS_ATTACK_ID::BOSS1_GROUND_SLAM;
+
+    if (boss.boss_state == BOSS_STATE::BOSS1_DASH_ATTACK_STATE) return (int) BOSS_ATTACK_ID::BOSS1_DASH_ATTACK;
+
+    return -1;
 }

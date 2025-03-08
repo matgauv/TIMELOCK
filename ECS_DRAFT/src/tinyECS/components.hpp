@@ -32,6 +32,12 @@ struct Platform
 {
 };
 
+struct OnPlatform
+{
+	Entity platform;
+	OnPlatform(Entity e): platform(e) {}
+};
+
 // Boundary component
 struct Boundary
 {

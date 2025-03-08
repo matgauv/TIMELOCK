@@ -116,9 +116,7 @@ std::vector<vec2> get_vertices(Entity& e)
 			vertex = rotated;
 		}
 
-
 		// make sure to translate to world position
-		// TODO: does this happen before or after? (are we using TRS?)
 		for (vec2& vertex : vertices) {
 			vertex += motion.position;
 		}
@@ -156,18 +154,9 @@ std::pair<float, float> project(const std::vector<vec2> verts, const vec2& axis)
 	return std::make_pair(min, max);
 }
 
-
-// TODO: where to define this? can we just use the collison component? storing here now bc im lazy for now
-struct CollisionResult
-{
-	bool collided = false;
-	vec2 normal;
-	float depth;
-};
-
 // see here for details https://dyn4j.org/2010/01/sat/
 // computes collision between any two convex shapes (MUST be convex)
-CollisionResult compute_sat_collision(Entity& a, Entity& b)
+Collision compute_sat_collision(Entity& a, Entity& b)
 {
 	std::vector<vec2> a_verts = get_vertices(a);
 	std::vector<vec2> b_verts = get_vertices(b);
@@ -193,10 +182,12 @@ CollisionResult compute_sat_collision(Entity& a, Entity& b)
 		// if there is any axis where the projections do not overlap, there cannot be a collision. :O
 		if (a_max < b_min || b_max < a_min)
 		{
-			return CollisionResult{false, vec2{0,0}, 0};
+			return Collision{b, vec2{0,0}, vec2{0,0}};
 		}
 
-		float overlap = std::min(a_max - b_min, b_max - a_min);
+		// min and max so that we handle the case where there one is fully contained in the other
+		float overlap = std::min(a_max, b_max) - std::max(a_min, b_min);
+
 		if (overlap < min_overlap)
 		{
 			min_overlap = overlap;
@@ -218,7 +209,7 @@ CollisionResult compute_sat_collision(Entity& a, Entity& b)
 	// the smallest axis is where the shapes overlap the least ->
 	// the minimal amount we need to move one shape to resolve the collision
 	// (the axis are represented by the normals)
-	return {true, smallest_axis, min_overlap};
+	return {b, min_overlap * smallest_axis, smallest_axis};
 }
 
 
@@ -235,14 +226,11 @@ void PhysicsSystem::detect_collisions() {
 		for(uint j = i+1; j < motion_container.components.size(); j++)
 		{
 			Entity entity_j = motion_container.entities[j];
-			CollisionResult result = compute_sat_collision(entity_i, entity_j);
+			Collision result = compute_sat_collision(entity_i, entity_j);
 
-			if (result.collided)
+			if (result.normal != vec2{0,0} && result.overlap != vec2{0,0})
 			{
-				Collision& collision = registry.collisions.emplace_with_duplicates(entity_i, entity_j, result.normal * result.depth, result.normal);
-				collision.other = entity_j;
-				collision.overlap = result.normal * result.depth;
-				collision.normal = result.normal;
+				registry.collisions.emplace_with_duplicates(entity_i, entity_j, result.overlap, result.normal);
 			}
 		}
 	}
@@ -294,11 +282,22 @@ void PhysicsSystem::player_walk(Entity& entity, Motion& motion, float step_secon
 	{
 		Walking& walking = registry.walking.get(entity);
 		vec2 desired_direction = {walking.is_left ? -1.0f : 1.0f, 0.0f};
-
 		vec2 accel = desired_direction * PLAYER_WALK_ACCELERATION;
 
-		motion.velocity += accel * step_seconds;
-		motion.velocity.x = clamp(motion.velocity.x, -PLAYER_MAX_WALKING_SPEED, PLAYER_MAX_WALKING_SPEED);
+		vec2 platform_velocity = {0.0f, 0.0f};
+		if (registry.onPlatforms.has(entity)) {
+			Entity platform = registry.onPlatforms.get(entity).platform;
+			Motion& platform_motion = registry.motions.get(platform);
+			platform_velocity = get_modified_velocity(platform_motion);
+		}
+
+		vec2 rel_velocity = motion.velocity - platform_velocity;
+		rel_velocity += accel * step_seconds;
+
+		// clamp relative velocity instead of world velocity
+		rel_velocity.x = clamp(rel_velocity.x, -PLAYER_MAX_WALKING_SPEED, PLAYER_MAX_WALKING_SPEED);
+
+		motion.velocity = rel_velocity + platform_velocity;
 	}
 }
 
@@ -385,6 +384,11 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			if (!registry.falling.has(entity)) {
 				registry.falling.emplace(entity);
 			}
+
+			if (registry.onPlatforms.has(entity)) {
+				registry.onPlatforms.remove(entity);
+			}
+
 			Motion& motion = registry.motions.get(entity);
 			float diff = AIR_RESISTANCE * step_seconds;
 			motion.velocity.x = clampToTarget(motion.velocity.x, diff, 0);
@@ -441,6 +445,13 @@ void PhysicsSystem::handle_object_rigid_collision(Entity object_entity, Entity p
 
 		obj_motion.velocity = new_relative_vel + platform_velocity;
 		groundedEntities.push_back(object_entity.id());
+
+		if (registry.onPlatforms.has(object_entity)) {
+			registry.onPlatforms.get(object_entity).platform = platform_entity;
+		} else {
+			registry.onPlatforms.emplace(object_entity, platform_entity);
+		}
+
 
 		// calculate fling velocity based on platform movement
 		float platform_speed = length(platform_velocity);
@@ -500,13 +511,13 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 	vec2 bias_velocity = normal * velocity_bias;
 
 	motionA.velocity -= bias_velocity * a_inv_mass;
-	motionB.velocity += bias_velocity * a_inv_mass;
+	motionB.velocity += bias_velocity * b_inv_mass;
 
 	// now get the relative velocities
 	vec2 vel_relative = motionB.velocity - motionA.velocity;
 	float vel_along_normal = dot(vel_relative, normal);
 
-	// // compute the impulse
+	// compute the impulse
 	float impulse_scalar = -(1.0f + PHYSICS_OBJECT_BOUNCE) * vel_along_normal;
 	impulse_scalar /= (total_inv_mass);
 

@@ -365,7 +365,14 @@ void RenderSystem::draw()
 				foregrounds.push_back(entity);
 				break;
 			case LAYER_ID::MIDGROUND:
-				midgrounds.push_back(entity);
+				// Render Player last?
+				// TODO: may need to adjust rendering order for spawn points and interactive objects as well?
+				if (registry.spawnPoints.has(entity)) {
+					midgrounds.insert(midgrounds.begin(), entity);
+				}
+				else {
+					midgrounds.push_back(entity);
+				}
 				break;
 			case LAYER_ID::PARALLAXBACKGROUND:
 				parallaxbackgrounds.push_back(entity);
@@ -387,6 +394,7 @@ void RenderSystem::draw()
 	{
 		drawTexturedMesh(entity, projection_2D);
 	}
+
 
 	for (Entity entity : midgrounds)
 	{

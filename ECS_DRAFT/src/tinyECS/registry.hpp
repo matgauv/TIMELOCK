@@ -72,6 +72,7 @@ public:
 		registry_list.push_back(&bosses);
 		registry_list.push_back(&physicsObjects);
 		registry_list.push_back(&boundaries);
+		registry_list.push_back(&bossAttacks);
 	}
 
 	void clear_all_components() {

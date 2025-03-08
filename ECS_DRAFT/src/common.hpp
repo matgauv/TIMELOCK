@@ -80,16 +80,25 @@ const float CAMERA_MAX_SPEED = PLAYER_MAX_FALLING_SPEED * 1.2f;
 const float CAMERA_TRACE_RANGE = WINDOW_WIDTH_PX * 0.25f; // out of this range, camera will trace at max speed
 const float CAMERA_VEL_LERP_FACTOR = 0.2f;
 
+// Projectile properties
 const float PROJECTILE_WIDTH_PX = 40.0f;
 const float PROJECTILE_HEIGHT_PX = 40.0f;
+const float PROJECTILE_SPEED = (float) WINDOW_WIDTH_PX / 5.f; // projectile should travel across the entire screen in 5 seconds
 
-const float FIRST_BOSS_PROJECTILE_SPEED = -200.0f;
-const float BOSS_ATTACK_COOLDOWN_MS = 500.0f;
-
+// General boss battle related properties
+const float BOSS_ATTACK_COOLDOWN_MS = 5000.0f;
 const float PLAYER_ATTACK_DAMAGE = 20.0f;
 
-// Boss 1 related constants
+// Boss 1 specific properties
 const float BOSS_ONE_MAX_HEALTH = 500.f;
+const float BOSS_ONE_X_VELOCITY = (float) WINDOW_WIDTH_PX / 10.f; // the boss should travel across the entire screen in 10 seconds
+const float BOSS_ONE_BB_WIDTH_PX = 100.f; // TODO: placeholder, we should adjust this once the actual texture is ready
+const float BOSS_ONE_BB_HEIGHT_PX = 100.f; // TODO: placeholder, we should adjust this once the actual texture is ready
+const float BOSS_ONE_DASH_ATTACK_COOLDOWN_MS = 5000.f;
+const float BOSS_ONE_REGULAR_PROJECTILE_COOLDOWN_MS = 5000.f;
+const float BOSS_ONE_FAST_PROJECTILE_COOLDOWN_MS = 5000.f;
+const float BOSS_ONE_DELAYED_PROJECTILE_COOLDOWN_MS = 5000.f;
+const float BOSS_ONE_GROUND_SLAM_COOLDOWN_MS = 5000.f;
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f

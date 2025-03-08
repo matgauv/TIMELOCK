@@ -267,10 +267,10 @@ struct BossAttack
 	BOSS_ATTACK_ID attack_id;
 	bool is_in_use; // a flag to indicate that the attack is currently in use
 	std::chrono::time_point<std::chrono::high_resolution_clock> attack_start_time;
-	float timer_ms; // the timer before the next attack, should directly come from the in_between_delay_ms
-	float cooldown_ms;
 	float duration_ms; // the total duration of the attack (TODO: might remove this field)
+	float cooldown_ms;
 	std::vector<float> in_between_delay_ms; // the amount of delay between each part of the attack
+	float in_between_timer_ms; // the timer before the next attack, should directly come from the in_between_delay_ms
 	vec2 velocity_modifier;
 	uint num_of_attacks;
 	uint max_num_of_attacks;

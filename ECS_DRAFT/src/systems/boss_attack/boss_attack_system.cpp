@@ -47,8 +47,25 @@ void BossAttackSystem::late_step(float elapsed_ms) {
 }
 
 void BossAttackSystem::handleBossOneAttack(Entity& boss_entity, float elapsed_time) {
-    // TODO: 
-    (void) elapsed_time;
+    // get the boss component
+    Boss& boss = registry.bosses.get(boss_entity);
+
+    // call the appropriate helper function based on the attack state
+    if (boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_ATTACK_STATE) {
+        useBossOneGroundSlam();
+
+    } else if (boss.boss_state == BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE) {
+        useBossOneDelayedProjectile();
+
+    } else if (boss.boss_state == BOSS_STATE::BOSS1_FAST_PROJECTILE_ATTACK_STATE) {
+        useBossOneFastProjectile();
+
+    } else if (boss.boss_state == BOSS_STATE::BOSS1_REGULAR_PROJECTILE_ATTACK_STATE) {
+        useBossOneRegularProjectile();
+
+    } else if (boss.boss_state == BOSS_STATE::BOSS1_DASH_ATTACK_STATE) {
+        useBossOneDashAttack();
+    }
 }
 
 void BossAttackSystem::handleBossTwoAttack(Entity& boss_entity, float elapsed_time) {

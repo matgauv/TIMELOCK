@@ -79,7 +79,6 @@ void demo_level() {
     create_static_platform({ xStart + 2950.0f, sceneHeight - 600.0f}, {500.0f, 100.0f}, false);
     create_static_platform({ xStart + 2950.0f - 250.0f - 125.0f, sceneHeight - 600.0f - 50.0f + 5.0f}, {250.0f, 10.0f}, false);
 
-    create_physics_object({xStart + 3000.0f, sceneHeight - 650.0f},{50.0f, 50.0f}, 5.0f);
 }
 
 Entity create_player(vec2 position, vec2 scale) {

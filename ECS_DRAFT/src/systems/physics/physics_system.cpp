@@ -392,9 +392,9 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			Motion& motion = registry.motions.get(entity);
 			float diff = AIR_RESISTANCE * step_seconds;
 			motion.velocity.x = clampToTarget(motion.velocity.x, diff, 0);
-	//		motion.velocity.y = clampToTarget(motion.velocity.y, diff, 0);
+			motion.velocity.y = clampToTarget(motion.velocity.y, diff, 0);
+
 		} else {
-		//	std::cout << "Removing falling" << std::endl;
 			registry.falling.remove(entity);
 
 		}
@@ -494,6 +494,7 @@ void PhysicsSystem::handle_player_boss_collision(Entity player_entity, Entity bo
 // Handles collision between two PhysicsObject entities.
 void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA, Entity entityB, Collision collision, std::vector<unsigned int>& grounded)
 {
+
 	Motion& motionA = registry.motions.get(entityA);
 	Motion& motionB = registry.motions.get(entityB);
 
@@ -507,7 +508,7 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 	float total_inv_mass = a_inv_mass + b_inv_mass;
 	resolve_collision_position(entityA, entityB, collision);
 
-	const float velocity_bias = 1.0f; // Small separation velocity
+	const float velocity_bias = 0.1f; // Small separation velocity
 	vec2 bias_velocity = normal * velocity_bias;
 
 	motionA.velocity -= bias_velocity * a_inv_mass;
@@ -526,13 +527,11 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 	motionB.velocity += impulse * b_inv_mass;
 
     vec2 tangent = vel_relative - dot(vel_relative, normal) * normal;
-    if (length(tangent) > 1e-4) {
-        tangent = normalize(tangent);
-        float friction_impulse = -dot(vel_relative, tangent) / total_inv_mass;
 
-    	// TODO: why is friction so much less between two physics objects and the ground
-		float friction_coefficient = STATIC_FRICTION  * 2.0f;
-		friction_impulse = clamp(friction_impulse, -impulse_scalar * friction_coefficient, impulse_scalar * friction_coefficient);
+    if (length(tangent) > 0.1f) {
+        tangent = normalize(tangent);
+
+        float friction_impulse = (-dot(vel_relative, tangent) / total_inv_mass) * STATIC_FRICTION;
 
         motionA.velocity -= a_inv_mass * friction_impulse * tangent;
         motionB.velocity += b_inv_mass * friction_impulse * tangent;
@@ -571,6 +570,7 @@ vec2 PhysicsSystem::get_friction(Entity& e, vec2& velocity, vec2& normal, float 
 		friction *= 2.0f;
 	}
 
+	// friction normal force is determined by mass * gravity
 	float impulse = friction * (mass * GRAVITY) * step_seconds;
 	impulse = std::min(impulse, tangent_speed);
 
@@ -598,7 +598,10 @@ void PhysicsSystem::resolve_collision_position(Entity& entityA, Entity& entityB,
 	const float total_inv_mass = inv_mass_a + inv_mass_b;
 	if (total_inv_mass <= 0.0f) return;
 
-	const vec2 resolution = collision.normal * length(collision.overlap);
+
+	// leave the objects slightly colliding so that the collision is still triggered
+	const float epsilon = 0.1f;
+	vec2 resolution = collision.normal * (length(collision.overlap) - epsilon);
 	motionA.position += resolution * (inv_mass_a / total_inv_mass);
 	motionB.position -= resolution * (inv_mass_b / total_inv_mass);
 }

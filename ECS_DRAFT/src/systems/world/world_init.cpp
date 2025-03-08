@@ -26,7 +26,7 @@ void demo_level() {
     create_bolt({ 300.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
 
     // initial_pos = {0,0};
-    create_player(initial_pos, {50.0f, 50.0f});
+    create_player(initial_pos, PLAYER_SCALE);
     create_camera(initial_pos, { 1.0f, 1.0f }); // TODO: potential open-scene zoom in
 
 
@@ -38,9 +38,9 @@ void demo_level() {
 
     // starting platform
     create_static_platform({ xStart, sceneHeight}, {500.0f, 100.0f}, false);
-    create_spawnpoint({ xStart - 200, sceneHeight - 110 }, { 60, 120 });
-    create_spawnpoint({ xStart + 200, sceneHeight - 110}, { 60, 120 });
-    create_spawnpoint({ xStart + 1200.0f, sceneHeight - 110 }, { 60, 120 });
+    create_spawnpoint({ xStart - 200, sceneHeight - 110 }, SPAWNPOINT_SCALE);
+    create_spawnpoint({ xStart + 200, sceneHeight - 110}, SPAWNPOINT_SCALE);
+    create_spawnpoint({ xStart + 1200.0f, sceneHeight - 110 }, SPAWNPOINT_SCALE);
 
     vec2 moving_plat_size = {200.0f, 20.0f};
 

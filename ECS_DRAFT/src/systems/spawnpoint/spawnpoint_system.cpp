@@ -65,7 +65,8 @@ void SpawnPointSystem::activate_spawnpoint(Entity entity) {
 	AnimateRequest& animRequest = registry.animateRequests.emplace(entity);
 	animRequest.used_animation = ANIMATION_ID::SPAWNPOINT_ACTIVATE;
 
-	registry.players.components[0].spawn_point = registry.motions.get(entity).position;
+	// Set spawn point
+	set_player_spawnpoint(entity);
 }
 
 // Deactivate an activated spawn point if other spawn points are active
@@ -94,4 +95,12 @@ void SpawnPointSystem::reactivate_spawnpoint(Entity entity) {
 	AnimateRequest& animRequest = registry.animateRequests.get(entity);
 	animRequest.timer = max(SPAWNPOINT_CHARGE_TIME_MS - animRequest.timer, 0.0f);
 	animRequest.used_animation = ANIMATION_ID::SPAWNPOINT_REACTIVATE;
+
+	set_player_spawnpoint(entity);
+}
+
+void SpawnPointSystem::set_player_spawnpoint(Entity spawnpoint_entity) {
+	registry.players.components[0].spawn_point =
+		registry.motions.get(spawnpoint_entity).position +
+		vec2{ 0.0f, SPAWNPOINT_SCALE[1] - PLAYER_SCALE[1] - 0.1f };
 }

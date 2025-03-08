@@ -25,4 +25,5 @@ private:
 	void activate_spawnpoint(Entity entity);
 	void deactivate_spawnpoint(Entity entity);
 	void reactivate_spawnpoint(Entity entity);
+	void set_player_spawnpoint(Entity spawnpoint_entity);
 };

@@ -25,9 +25,16 @@ void CameraSystem::step(float elapsed_ms) {
 		return;
 	}
 
-	const Motion& player_motion = registry.motions.get(player_entity);
 
-	follow(camera_motion, player_motion.position);
+	const Player &player = registry.players.components[0];
+	const Motion& player_motion = registry.motions.get(player_entity);
+	if (player.state == PLAYER_STATE::RESPAWNED) {
+		// Force focus
+		reset(camera_motion, player.spawn_point);
+	}
+	else {
+		follow(camera_motion, player_motion.position);
+	}
 }
 
 
@@ -55,4 +62,9 @@ void CameraSystem::follow(Motion& cam_motion, vec2 target) {
 			cam_motion.selfVelocity * (1.0f - CAMERA_VEL_LERP_FACTOR) +
 			expected_vel * CAMERA_VEL_LERP_FACTOR;
 	}
+}
+
+void CameraSystem::reset(Motion& cam_motion, vec2 target) {
+	cam_motion.position = target;
+	cam_motion.selfVelocity *= 0;
 }

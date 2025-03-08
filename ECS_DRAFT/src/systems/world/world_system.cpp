@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "../physics/physics_system.hpp"
+#include "../player/player_system.hpp"
 
 // create the world
 WorldSystem::WorldSystem()
@@ -307,25 +308,14 @@ void WorldSystem::player_walking(bool walking, bool is_left) {
 			walking_component.is_left = is_left;
 		}
 
-
-		// TODO: this might not be the best approach to flip Player sprite;
-		// Could potentially isolate all Player-related properties into Player component, and update Player system accordingly
-		if (registry.renderRequests.has(player)) {
-			registry.renderRequests.get(player).flipped = is_left;
-		}
-
-		if (registry.animateRequests.has(player)) {
-			registry.animateRequests.get(player).used_animation = ANIMATION_ID::PLAYER_WALKING;
-		}
+		PlayerSystem::set_walking(is_left);
 	} else {
 		if (registry.walking.has(player)) {
 			Walking& walking_component = registry.walking.get(player);
 			// if current walking component is in the direction of this player walk stop call, remove it and stop walking
 			if (walking_component.is_left == is_left) {
 				registry.walking.remove(player);
-				if (registry.animateRequests.has(player)) {
-					registry.animateRequests.get(player).used_animation = ANIMATION_ID::PLAYER_STANDING;
-				}
+				PlayerSystem::set_standing(is_left);
 			}
 		}
 	}
@@ -367,6 +357,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				debugging.in_debug_mode = true;
 			}
 		}
+	}
+
+	// The following actions only available when player is alive
+	// Could extend to case of game pause
+	const Player& player = registry.players.components[0];
+	if (player.state != PLAYER_STATE::ALIVE) {
+		return;
 	}
 
 	GameState& gameState = registry.gameStates.components[0];

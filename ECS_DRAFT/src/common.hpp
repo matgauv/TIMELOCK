@@ -42,6 +42,7 @@ const float FPS_COUNTER_UPDATE_PERIOD_MS = 1000.0f;
 // Spawn Points
 const float SPAWNPOINT_DETECTION_RANGE = 80.0;
 const float SPAWNPOINT_CHARGE_TIME_MS = 500.0;
+const vec2 SPAWNPOINT_SCALE = { 60, 120 };
 
 // TIME CONTROL
 const float ACCELERATE_FACTOR = 2.0f;
@@ -70,6 +71,7 @@ const float AIR_RESISTANCE = 250.0f;
 const float JUMP_VELOCITY = 300.0f;
 
 // Player Statistics
+const vec2 PLAYER_SCALE = { 50.0f, 50.0f };
 const float PLAYER_MAX_FALLING_SPEED = 1000.0f;
 const float PLAYER_MAX_WALKING_SPEED = 300.0f;
 

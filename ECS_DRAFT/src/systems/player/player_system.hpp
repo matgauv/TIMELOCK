@@ -17,6 +17,8 @@ public:
 
 	void set_spawnpoint(vec2 spawnpoint);
 	void static kill();
+	void static set_walking(bool is_left);
+	void static set_standing(bool is_left);
 
 	PlayerSystem()
 	{

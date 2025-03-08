@@ -48,6 +48,14 @@ void WorldSystem::init(GLFWwindow* window) {
 	// Create a single GameState entity
 	registry.gameStates.emplace(game_state_entity);
 
+	// Create a single LevelState entity
+	LevelState& levelState = registry.levelStates.emplace(level_state_entity);
+
+	// This will be the first level we load when the game is started.
+	levelState.curr_level_file_name = "tutorial.json";
+	levelState.shouldLoad = true;
+
+
 	if (this->play_sound && !start_and_load_sounds()) {
 		std::cerr << "ERROR: Failed to start or load sounds." << std::endl;
 	}
@@ -201,10 +209,13 @@ void WorldSystem::restart_game() {
 	gameState.time_control_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
 	gameState.is_in_boss_fight = 0;
 
+	LevelState& levelState = registry.levelStates.components[0];
+	levelState.shouldLoad = true;
+
 	// TODO:
 	// Maybe the game state should also keep track of current level and player spawning position?
 
-	load_level("");
+	//load_level("");
 }
 
 // World initialization

@@ -70,6 +70,9 @@ private:
 	// GameState entity
 	Entity game_state_entity;
 
+	// LevelState entity
+	Entity level_state_entity;
+
 	// OpenGL window handle
 	GLFWwindow* window;
 

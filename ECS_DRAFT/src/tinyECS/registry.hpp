@@ -21,6 +21,7 @@ public:
 	ComponentContainer<DebugComponent> debugComponents;
 	ComponentContainer<vec3> colors;
 	ComponentContainer<GameState> gameStates;
+	ComponentContainer<LevelState> levelStates;
 	ComponentContainer<TimeControllable> timeControllables;
 	ComponentContainer<Harmful> harmfuls;
 	ComponentContainer<Bolt> bolts;
@@ -53,6 +54,7 @@ public:
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&colors);
 		registry_list.push_back(&gameStates);
+		registry_list.push_back(&levelStates);
 		registry_list.push_back(&timeControllables);
 		registry_list.push_back(&harmfuls);
 		registry_list.push_back(&bolts);

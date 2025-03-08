@@ -338,3 +338,8 @@ struct AnimateRequest {
 	float timer = 0.0;
 	vec2 tex_u_range = { 0.0, 1.0 };
 };
+
+struct LevelState {
+	std::string curr_level_file_name;
+	bool shouldLoad = false;
+};

@@ -36,7 +36,12 @@ inline std::string mesh_path(const std::string& name) {return data_path() + "/me
 const int WINDOW_WIDTH_PX = 1280;
 const int WINDOW_HEIGHT_PX = 720;
 
+// FPS Counter Update Period
 const float FPS_COUNTER_UPDATE_PERIOD_MS = 1000.0f;
+
+// Spawn Points
+const float SPAWNPOINT_DETECTION_RANGE = 80.0;
+const float SPAWNPOINT_CHARGE_TIME_MS = 500.0;
 
 // TIME CONTROL
 const float ACCELERATE_FACTOR = 2.0f;

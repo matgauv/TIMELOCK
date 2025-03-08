@@ -257,6 +257,7 @@ struct Boss
 {
 	BOSS_ID boss_id;
 	BOSS_STATE boss_state;
+
 	float health;
 	float attack_cooldown_ms = 5000.0f;
 };
@@ -272,6 +273,11 @@ struct BossAttack
 	vec2<float> velocity_modifier;
 	uint num_of_attacks;
 	uint max_num_of_attacks;
+};
+
+struct BossAttackList
+{
+	std::unordered_map<int,BossAttack> boss_attack_table;
 };
 
 /**

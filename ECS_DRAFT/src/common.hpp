@@ -88,6 +88,9 @@ const float BOSS_ATTACK_COOLDOWN_MS = 500.0f;
 
 const float PLAYER_ATTACK_DAMAGE = 20.0f;
 
+// Boss 1 related constants
+const float BOSS_ONE_MAX_HEALTH = 500.f;
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f
 #endif

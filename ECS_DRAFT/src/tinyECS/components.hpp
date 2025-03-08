@@ -68,7 +68,7 @@ struct Camera
 // use for physics based objects
 struct PhysicsObject
 {
-	float weight;
+	float mass;
 };
 
 

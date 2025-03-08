@@ -415,10 +415,10 @@ void PhysicsSystem::handle_object_rigid_collision(Entity object_entity, Entity p
 
 	adjust_velocity_along_normal(obj_motion, normal);
 
-	float weight = DEFAULT_WEIGHT;
+	float mass = DEFAULT_MASS;
 
 	if (registry.physicsObjects.has(object_entity)) {
-		weight = registry.physicsObjects.get(object_entity).weight;
+		mass = registry.physicsObjects.get(object_entity).mass;
 	}
 
 	Motion& platform_motion = registry.motions.get(platform_entity);
@@ -435,7 +435,7 @@ void PhysicsSystem::handle_object_rigid_collision(Entity object_entity, Entity p
 			relative_vel,
 			normal,
 			step_seconds,
-			weight,
+			mass,
 			is_moving_platform
 		);
 
@@ -491,8 +491,8 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 
 	vec2 normal = collision.normal;
 
-	float a_inv_mass = (1.0f / physA.weight);
-	float b_inv_mass = (1.0f / physB.weight);
+	float a_inv_mass = (1.0f / physA.mass);
+	float b_inv_mass = (1.0f / physB.mass);
 	float total_inv_mass = a_inv_mass + b_inv_mass;
 	resolve_collision_position(entityA, entityB, collision);
 
@@ -540,7 +540,7 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 
 // proper friction using coulomb's law
 // https://www.tribonet.org/wiki/laws-of-friction/
-vec2 PhysicsSystem::get_friction(Entity& e, vec2& velocity, vec2& normal, float step_seconds, float weight, bool is_moving_platform) {
+vec2 PhysicsSystem::get_friction(Entity& e, vec2& velocity, vec2& normal, float step_seconds, float mass, bool is_moving_platform) {
 	vec2 velocity_tangent = velocity - dot(velocity, normal) * normal;
 	float tangent_speed = length(velocity_tangent);
 
@@ -560,7 +560,7 @@ vec2 PhysicsSystem::get_friction(Entity& e, vec2& velocity, vec2& normal, float 
 		friction *= 2.0f;
 	}
 
-	float impulse = friction * (weight * GRAVITY) * step_seconds;
+	float impulse = friction * (mass * GRAVITY) * step_seconds;
 	impulse = std::min(impulse, tangent_speed);
 
 	vec2 tangent_dir = normalize(velocity_tangent);
@@ -575,13 +575,13 @@ void PhysicsSystem::resolve_collision_position(Entity& entityA, Entity& entityB,
 	float inv_mass_a = 0.0f;
 	if (registry.physicsObjects.has(entityA))
 	{
-		inv_mass_a = 1.0f / registry.physicsObjects.get(entityA).weight;
+		inv_mass_a = 1.0f / registry.physicsObjects.get(entityA).mass;
 	}
 
 	float inv_mass_b = 0.0f;
 	if (registry.physicsObjects.has(entityB))
 	{
-		inv_mass_b = 1.0f / registry.physicsObjects.get(entityB).weight;
+		inv_mass_b = 1.0f / registry.physicsObjects.get(entityB).mass;
 	}
 
 	const float total_inv_mass = inv_mass_a + inv_mass_b;

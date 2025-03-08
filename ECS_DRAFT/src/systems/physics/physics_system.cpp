@@ -392,7 +392,6 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			Motion& motion = registry.motions.get(entity);
 			float diff = AIR_RESISTANCE * step_seconds;
 			motion.velocity.x = clampToTarget(motion.velocity.x, diff, 0);
-			motion.velocity.y = clampToTarget(motion.velocity.y, diff, 0);
 
 		} else {
 			registry.falling.remove(entity);

@@ -1,5 +1,6 @@
-#include "boss_system.hpp"
+#include "boss_attack_system.hpp"
 #include "../world/world_init.hpp"
+#incldue "boss_one_attack_init.hpp"
 #include <iostream>
 
 BossSystem::BossSystem() {
@@ -39,13 +40,3 @@ void BossSystem::step(float elapsed_ms) {
 void BossSystem::late_step(float elapsed_ms) {
     (void) elapsed_ms;
 }
-
-// void BossSystem::attack(vec2 boss_position) {
-//     // FUTURE TODO: use rng and uniformdist to determine which attack the boss will use next
-//     Entity player = registry.players.entities[0];
-//     Motion& player_motion = registry.motions.get(player);
-    
-//     create_projectile(vec2(boss_position.x, player_motion.position.y), 
-//         vec2(PROJECTILE_WIDTH_PX, PROJECTILE_HEIGHT_PX),
-//         vec2(boss_position.x < player_motion.position.x ? -FIRST_BOSS_PROJECTILE_SPEED : FIRST_BOSS_PROJECTILE_SPEED, 0.f));
-// }

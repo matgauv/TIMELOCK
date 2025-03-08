@@ -32,6 +32,12 @@ struct Platform
 {
 };
 
+struct OnPlatform
+{
+	Entity platform;
+	OnPlatform(Entity e): platform(e) {}
+};
+
 // Boundary component
 struct Boundary
 {
@@ -68,7 +74,7 @@ struct Camera
 // use for physics based objects
 struct PhysicsObject
 {
-	float weight;
+	float mass;
 };
 
 
@@ -79,8 +85,7 @@ struct Motion {
 	vec2  scale    = { 10, 10 };
 	float frequency = 0.f;
 	float velocityModifier = 1.0f;
-	vec2  selfVelocity = { 0, 0 };
-	vec2  appliedVelocity = {0.0f, 0.0f};
+	vec2  velocity = {0.0f, 0.0f};
 };
 
 
@@ -96,10 +101,7 @@ struct Walking {
 
 // This is added to a player entity when they collide with a wall to block them from walking through the wall.
 struct Blocked {
-	bool left = false;
-	bool right = false;
-	bool top = false;
-	bool bottom = false;
+	vec2 normal = { 0, 0 };
 };
 
 // counterclockwise (sides for collisions)
@@ -116,10 +118,12 @@ struct Collision
 {
 	// Note, the first object is stored in the ECS container.entities
 	Entity other; // the second object involved in the collision
-	SIDE side;
-	Collision(Entity& other, SIDE side) {
+	vec2 overlap;
+	vec2 normal;
+	Collision(Entity& other, vec2 overlap, vec2 normal) {
 		this->other = other;
-		this->side = side;
+		this->overlap = overlap;
+		this->normal = normal;
 	};
 };
 

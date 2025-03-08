@@ -1,5 +1,6 @@
 #include "world_init.hpp"
 #include "../../tinyECS/registry.hpp"
+#include "systems/rendering/render_system.hpp"
 
 // TODO parse file descriptor to create level with render requests
 // For now, hard coded to just put a platform on the screen...
@@ -22,8 +23,11 @@ void demo_level() {
     // create_background({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::METAL_BACKGROUND);
     // create_foreground({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
     //
-    // float boltsize = 300.f;
-    // create_bolt({ 300.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+    // float boltsize = 75.f;
+    // create_bolt({ 325.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+    // create_bolt({ 325.0f, sceneHeight / 2.0f + 300.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+    // create_bolt({ 325.0f, sceneHeight / 2.0f + 150.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+    //
     //
     // // initial_pos = {0,0};
     // create_player(initial_pos, {50.0f, 50.0f});
@@ -38,10 +42,13 @@ void demo_level() {
     // // starting platform
     // create_static_platform({ xStart, sceneHeight}, {500.0f, 100.0f}, false);
     //
+    // // lil roof to test vertical collisions
+    // create_static_platform({xStart - 100.0f, sceneHeight - 125.0f}, {100.0f, 20.0f}, false);
+    //
     // vec2 moving_plat_size = {200.0f, 20.0f};
     //
-    // Path moving_plat_1_forwards = Path({xStart +  400.0f, sceneHeight}, {xStart + 600.0f, sceneHeight}, 0.2f);
-    // Path moving_plat_1_backwards = Path({xStart +  600.0f, sceneHeight}, {xStart + 400.0f, sceneHeight}, 0.2f);
+    // Path moving_plat_1_forwards = Path({xStart +  400.0f, sceneHeight}, {xStart + 600.0f, sceneHeight}, 2.0f);
+    // Path moving_plat_1_backwards = Path({xStart +  600.0f, sceneHeight}, {xStart + 400.0f, sceneHeight}, 2.0f);
     // std::vector<Path> moving_plat_1_movements = {moving_plat_1_forwards, moving_plat_1_backwards};
     // create_moving_platform(moving_plat_size, moving_plat_1_movements);
     //
@@ -71,8 +78,6 @@ void demo_level() {
     //
     // create_static_platform({ xStart + 2950.0f, sceneHeight - 600.0f}, {500.0f, 100.0f}, false);
     // create_static_platform({ xStart + 2950.0f - 250.0f - 125.0f, sceneHeight - 600.0f - 50.0f + 5.0f}, {250.0f, 10.0f}, false);
-    //
-    // create_physics_object({xStart + 3000.0f, sceneHeight - 650.0f},{50.0f, 50.0f}, 5.0f);
 }
 
 Entity create_player(vec2 position, vec2 scale) {
@@ -81,13 +86,16 @@ Entity create_player(vec2 position, vec2 scale) {
     registry.players.emplace(entity);
 
     PhysicsObject& object = registry.physicsObjects.emplace(entity);
-    object.weight = 500.0f;
+    object.mass = 15.0f;
 
     Motion& motion = registry.motions.emplace(entity);
     motion.position = position;
     motion.scale = scale;
-    motion.selfVelocity = {0, 0.0f};
+    motion.velocity = {0, 0.0f};
     motion.angle = 0.0f;
+
+    Blocked& blocked = registry.blocked.emplace(entity);
+    blocked.normal = vec2(0, 0);
 
     registry.falling.emplace(entity);
 
@@ -114,17 +122,20 @@ Entity create_player(vec2 position, vec2 scale) {
     return entity;
 }
 
-Entity create_physics_object(vec2 position, vec2 scale, float weight) {
+Entity create_physics_object(vec2 position, vec2 scale, float mass) {
     Entity entity = Entity();
 
     PhysicsObject& object = registry.physicsObjects.emplace(entity);
-    object.weight = weight;
+    object.mass = mass;
 
     Motion& motion = registry.motions.emplace(entity);
     motion.position = position;
     motion.scale = scale;
-    motion.selfVelocity = {0.0f, 0.0f};
+    motion.velocity = {0.0f, 0.0f};
     motion.angle = 0.0f;
+
+    Blocked& blocked = registry.blocked.emplace(entity);
+    blocked.normal = vec2(0, 0);
 
     registry.falling.emplace(entity);
 
@@ -145,8 +156,11 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 init
     Motion& motion = registry.motions.emplace(entity);
     motion.position = initial_position;
     motion.scale = scale;
-    motion.selfVelocity = {0, 0}; // physics system will calculate this...
+    motion.velocity = {0, 0}; // physics system will calculate this...
     motion.angle = 0.0f;
+
+    Blocked& blocked = registry.blocked.emplace(entity);
+    blocked.normal = vec2(0, 0);
 
     registry.platforms.emplace(entity);
 
@@ -165,7 +179,7 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 init
     return entity;
 }
 
-Entity create_static_platform(vec2 position, vec2 scale, bool isBoundary) {
+Entity create_static_platform(vec2 position, vec2 scale, bool isBoundary, float angle) {
     Entity entity = Entity();
 
     registry.platforms.emplace(entity);
@@ -177,8 +191,11 @@ Entity create_static_platform(vec2 position, vec2 scale, bool isBoundary) {
     Motion& motion = registry.motions.emplace(entity);
     motion.position = position;
     motion.scale = scale;
-    motion.selfVelocity = {0, 0};
-    motion.angle = 0.0f;
+    motion.velocity = {0, 0};
+    motion.angle = angle;
+
+    Blocked& blocked = registry.blocked.emplace(entity);
+    blocked.normal = vec2(0, 0);
 
     registry.renderRequests.insert(entity, {
         isBoundary ? TEXTURE_ASSET_ID::BOUNDARY : TEXTURE_ASSET_ID::BLACK,
@@ -262,9 +279,13 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
 
 	Motion& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.selfVelocity = velocity;
+	motion.velocity = velocity;
 	motion.position = pos;
 	motion.scale = size;
+
+    Blocked& blocked = registry.blocked.emplace(entity);
+    blocked.normal = vec2(0, 0);
+
 
     TimeControllable& tc = registry.timeControllables.emplace(entity);
     tc.can_become_harmless = true;
@@ -289,9 +310,17 @@ Entity create_bolt(vec2 pos, vec2 size, vec2 velocity)
 	auto entity = Entity();
 	Motion& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.selfVelocity = velocity;
+	motion.velocity = velocity;
 	motion.position = pos;
 	motion.scale = size;
+
+    Blocked& blocked = registry.blocked.emplace(entity);
+    blocked.normal = vec2(0, 0);
+
+    PhysicsObject& object = registry.physicsObjects.emplace(entity);
+    object.mass = 20.0f;
+
+    registry.falling.emplace(entity);
 
     registry.bolts.emplace(entity);
 

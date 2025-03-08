@@ -22,6 +22,26 @@ enum class BOSS_ID {
 	FINAL = SECOND + 1
 };
 
+enum class BOSS_STATE {
+	BOSS1_IDLE_STATE = 0,
+	BOSS1_MOVE_STATE = BOSS1_IDLE_STATE + 1,
+	BOSS1_CHOOSE_ATTACK_STATE = BOSS1_MOVE_STATE + 1,
+	BOSS1_REGULAR_PROJECTILE_ATTACK_STATE = BOSS1_CHOOSE_ATTACK_STATE + 1,
+	BOSS1_FAST_PROJECTILE_ATTACK_STATE = BOSS1_REGULAR_PROJECTILE_ATTACK_STATE + 1,
+	BOSS1_DELAYED_PROJECTILE_ATTACK_STATE = BOSS1_FAST_PROJECTILE_ATTACK_STATE + 1,
+	BOSS1_GROUND_SLAM_ATTACK_STATE = BOSS1_DELAYED_PROJECTILE_ATTACK_STATE + 1,
+	BOSS1_DASH_ATTACK_STATE = BOSS1_GROUND_SLAM_ATTACK_STATE + 1,
+	BOSS1_DEAD_STATE = BOSS1_DASH_ATTACK_STATE + 1
+};
+
+enum class BOSS_ATTACK_ID {
+	BOSS1_REGULAR_PROJECTILE = 0,
+	BOSS1_FAST_PROJECTILE = BOSS1_REGULAR_PROJECTILE + 1,
+	BOSS1_DELAYED_PROJECTILE = BOSS1_FAST_PROJECTILE + 1,
+	BOSS1_GROUND_SLAM = BOSS1_DELAYED_PROJECTILE + 1,
+	BOSS1_DASH_ATTACK = BOSS1_GROUND_SLAM + 1
+};
+
 // Player component
 struct Player
 {
@@ -236,8 +256,22 @@ struct WaterDrop
 struct Boss
 {
 	BOSS_ID boss_id;
+	BOSS_STATE boss_state;
 	float health;
-	float attack_cooldown_ms = 500.0f;
+	float attack_cooldown_ms = 5000.0f;
+};
+
+struct BossAttack
+{
+	BOSS_ATTACK_ID attack_id;
+	float attack_start_time;
+	float cooldown_ms;
+	float total_damage;
+	float duration_ms;
+	vector<float> in_between_delay_ms;
+	vec2<float> velocity_modifier;
+	uint num_of_attacks;
+	uint max_num_of_attacks;
 };
 
 /**

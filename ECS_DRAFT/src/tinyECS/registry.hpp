@@ -39,6 +39,7 @@ public:
 	ComponentContainer<Boss> bosses;
 	ComponentContainer<PhysicsObject> physicsObjects;
 	ComponentContainer<Boundary> boundaries;
+	ComponentContainer<BossAttack> bossAttacks;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()

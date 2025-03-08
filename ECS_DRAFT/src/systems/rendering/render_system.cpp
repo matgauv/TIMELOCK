@@ -359,6 +359,16 @@ void RenderSystem::draw()
 		if (!registry.renderRequests.has(entity) || !registry.motions.has(entity))
 			continue;
 
+		// TODO: this could be somewhere else, but idk how to get the mesh pointer without increased system coupling...
+		// Keep track of pointer to any custom mesh in the registry for use in other systems
+		if (!registry.meshPtrs.has(entity)) {
+			RenderRequest request = registry.renderRequests.get(entity);
+			if (request.used_geometry >= GEOMETRY_BUFFER_ID::HEX) {
+				Mesh& mesh = getMesh(request.used_geometry);
+				registry.meshPtrs.emplace(entity, &mesh);
+			}
+		}
+
 		switch (registry.layers.get(entity).layer)
 		{
 			case LAYER_ID::FOREGROUND:

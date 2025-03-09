@@ -29,6 +29,7 @@ private:
     void init_boundaries(json boundaries);
     void init_partof(json partof);
     void init_spikes(json spikes);
+    void init_projectiles(json projectiles);
 
     void extract_full_platform_dimensions(json platform, vec2& dimensions);
     void extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos);

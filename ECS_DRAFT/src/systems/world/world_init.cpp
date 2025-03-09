@@ -96,7 +96,7 @@ Entity create_player(vec2 position, vec2 scale) {
     player.spawn_point = position;
 
     PhysicsObject& object = registry.physicsObjects.emplace(entity);
-    object.mass = 15.0f;
+    object.mass = 40.0f;
 
     Motion& motion = registry.motions.emplace(entity);
     motion.position = position;
@@ -376,7 +376,7 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
 	return entity;
 }
 
-Entity create_bolt(vec2 pos, vec2 size, vec2 velocity)
+Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity)
 {
 	auto entity = Entity();
 	Motion& motion = registry.motions.emplace(entity);
@@ -389,7 +389,8 @@ Entity create_bolt(vec2 pos, vec2 size, vec2 velocity)
     blocked.normal = vec2(0, 0);
 
     PhysicsObject& object = registry.physicsObjects.emplace(entity);
-    object.mass = 20.0f;
+    object.mass = 25.0f;
+    object.apply_gravity = default_gravity;
 
     registry.bolts.emplace(entity);
 

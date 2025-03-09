@@ -52,4 +52,6 @@ private:
 
 	bool is_collision_between_player_and_boundary(Entity& one, Entity& other);
 	bool is_collision_between_player_and_spike(Entity& one, Entity& other);
+
+	void drop_bolt_when_player_near(float dist_threshold);
 };

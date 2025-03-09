@@ -23,6 +23,9 @@ void PhysicsSystem::step(float elapsed_ms) {
 
 	auto& motion_registry = registry.motions;
 	float step_seconds = elapsed_ms / 1000.f;
+
+	drop_bolt_when_player_near(DISTANCE_TO_DROP_BOLT);
+
 	for(uint i = 0; i< motion_registry.size(); i++)
 	{
 		Motion& motion = motion_registry.components[i];
@@ -441,7 +444,7 @@ void PhysicsSystem::handle_object_rigid_collision(Entity object_entity, Entity p
 		// calculate fling velocity based on platform movement
 		float platform_speed = length(platform_velocity);
 		if (platform_speed > 250.0f) {
-			vec2 tangent = normalize(vec2(normal.y, -normal.x));
+			vec2 tangent = normalize(vec2(-normal.y, normal.x));
 
 			// Fling in platform's movement direction scaled by surface alignment
 			float surface_alignment = abs(dot(normalize(platform_velocity), tangent));
@@ -540,13 +543,13 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 	if (is_on_ground(-normal.y))
 	{
 		grounded.push_back(entityA.id());
-		registry.onGrounds.emplace(entityA, entityB);
+		if (!registry.onGrounds.has(entityA)) registry.onGrounds.emplace(entityA, entityB);
 	}
 
 	if (is_on_ground(normal.y))
 	{
 		grounded.push_back(entityB.id());
-		registry.onGrounds.emplace(entityB, entityA);
+		if (!registry.onGrounds.has(entityB)) registry.onGrounds.emplace(entityB, entityA);
 	}
 }
 
@@ -636,6 +639,23 @@ vec2 PhysicsSystem::get_modified_velocity(Motion& m)
 	return {m.velocity.x * m.velocityModifier, m.velocity.y * m.velocityModifier};
 }
 
+
+// apply gravity to any bolt that is within dist_threshold
+void PhysicsSystem::drop_bolt_when_player_near(float dist_threshold) {
+	Entity& player = registry.players.entities[0];
+	Motion& player_motion = registry.motions.get(player);
+
+	for (Entity& bolt : registry.bolts.entities)
+	{
+		Motion& bolt_motion = registry.motions.get(bolt);
+		vec2 dist_to_bolt = abs(bolt_motion.position - player_motion.position);
+
+		if (length(dist_to_bolt) < dist_threshold) {
+			PhysicsObject& bolt_physics_object = registry.physicsObjects.get(bolt);
+			bolt_physics_object.apply_gravity = true;
+		}
+	}
+}
 
 // function for interpolating object velocity, specifically when an object is on a moving platforms.
 float PhysicsSystem::clampToTarget(float value, float change, float target) {

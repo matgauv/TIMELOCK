@@ -22,7 +22,7 @@ Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, in
 Entity create_boundary(vec2 position, vec2 scale);
 Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 initial_position, json& tile_id_array, int stride);
 Entity create_projectile(vec2 pos, vec2 size, vec2 velocity);
-Entity create_bolt(vec2 pos, vec2 size, vec2 velocity);
+Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity);
 Entity create_first_boss();
 Entity create_spawnpoint(vec2 pos, vec2 size);
 Entity create_spike(vec2 position, vec2 scale, json tile_id_array, int stride);

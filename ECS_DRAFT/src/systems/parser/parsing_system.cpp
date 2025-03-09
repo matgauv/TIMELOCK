@@ -47,8 +47,8 @@ void LevelParsingSystem::late_step(float elapsed_ms) {
 
 void LevelParsingSystem::init_level_background() {
     // TODO: static w, h values -- should change (maybe parse from level file).
-    float w = WINDOW_WIDTH_PX * 2.0;
-    float h = WINDOW_HEIGHT_PX * 2.0f;
+    float w = WINDOW_WIDTH_PX * 3.0;
+    float h = WINDOW_HEIGHT_PX * 3.0f;
     create_parallaxbackground({w, h}, TEXTURE_ASSET_ID::GEARS_BACKGROUND);
     create_background({w, h}, TEXTURE_ASSET_ID::METAL_BACKGROUND);
     create_foreground({ w, h}, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
@@ -76,7 +76,7 @@ void LevelParsingSystem::init_level_entities() {
         } else if (entity_type == "Door") {
 
         } else if (entity_type == "Projectile") {
-
+            init_projectiles(entity_list);
         } else if (entity_type == "Pipe") {
 
         } else if (entity_type == "Boundary") {
@@ -84,6 +84,18 @@ void LevelParsingSystem::init_level_entities() {
         } else if (entity_type == "PartOf") {
             init_partof(entity_list);
         }
+    }
+}
+
+void LevelParsingSystem::init_projectiles(json projectiles) {
+    for (json projectile: projectiles) {
+        vec2 position = vec2{projectile["x"], projectile["y"]};
+        vec2 size = vec2{projectile["width"], projectile["height"]};
+        vec2 velocity = {0, 0};
+        // TODO: handle other meshtypes? (some are null in json rn so cannot parse)
+        // string meshtype = "";
+        // if (projectile["customFields"]["meshtype"]) meshtype = projectile["customFields"]["meshtype"];
+        create_bolt(position, size, velocity, false);
     }
 }
 

@@ -70,11 +70,13 @@ const float DYNAMIC_FRICTION = 0.015f;
 const float AIR_RESISTANCE = 250.0f;
 const float JUMP_VELOCITY = 350.0f;
 
-const float PHYSICS_OBJECT_BOUNCE = 0.2f;
+const float PHYSICS_OBJECT_BOUNCE = 0.05f;
 const float DEFAULT_MASS = 1.0f;
 
 const float PLATFORM_SLIP_ANGLE = 45.0f;
 const float PLAYER_MAX_WALK_ANGLE = 80.0f;
+
+const float DISTANCE_TO_DROP_BOLT = 250.0f;
 
 // Player Statistics
 const vec2 PLAYER_SCALE = { 50.0f, 50.0f };

@@ -12,3 +12,4 @@ void useBossOneGroundSlam(Entity& boss_entity, Entity& player_entity, float elap
 void useBossOneDashAttack(Entity& boss_entity, Entity& player_entity, float elapsed_time);
 Entity*& getBossAttackEntity(Boss& boss);
 int getBossAttackId(Boss& boss);
+Entity* getDelayedEntity(int i);

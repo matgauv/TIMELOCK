@@ -42,6 +42,8 @@ public:
 	ComponentContainer<Boundary> boundaries;
 	ComponentContainer<BossAttack> bossAttacks;
 	ComponentContainer<BossAttackList> bossAttackLists;
+	ComponentContainer<Delayed> delayeds;
+	ComponentContainer<Tracking> trackings;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -75,6 +77,8 @@ public:
 		registry_list.push_back(&physicsObjects);
 		registry_list.push_back(&boundaries);
 		registry_list.push_back(&bossAttacks);
+		registry_list.push_back(&delayeds);
+		registry_list.push_back(&trackings);
 	}
 
 	void clear_all_components() {

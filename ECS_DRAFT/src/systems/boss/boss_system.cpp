@@ -75,6 +75,11 @@ void BossSystem::handleBossOneState(Entity& boss_entity, float elapsed_ms) {
         // call the helper to choose which attack to use
         BOSS_STATE chosen_state = handleBossOneChooseAttackState(boss_entity, elapsed_ms, is_in_phase_two);
         boss.boss_state = chosen_state;
+        boss.attack_completed = false;
+    } else {
+        if (boss.boss_state != BOSS_STATE::BOSS1_DEAD_STATE && boss.boss_state != BOSS_STATE::BOSS1_MOVE_STATE && boss.attack_completed) {
+            boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
+        }
     }
 
     // else keep the current state
@@ -101,7 +106,8 @@ BOSS_STATE BossSystem::handleBossOneChooseAttackState(Entity& boss_entity, float
 
         if (is_in_phase_two && isAttackOffCooldown(bossAttackList, BOSS_ATTACK_ID::BOSS1_GROUND_SLAM)) {
             // if ground slam is ready, use it
-            boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_ATTACK_STATE;
+            // boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_ATTACK_STATE;
+            boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_JUMP_STATE;
             
         } else if (isAttackOffCooldown(bossAttackList, BOSS_ATTACK_ID::BOSS1_DELAYED_PROJECTILE)) {
             // else if delayed projectile is ready, use it
@@ -168,5 +174,9 @@ void BossSystem::handleFinalBossState(Entity& boss_entity, float elapsed_ms) {
 }
 
 bool BossSystem::isAttackOffCooldown(BossAttackList& table, BOSS_ATTACK_ID attack_id) {
-    return (table.boss_attack_table.at((int) attack_id)).cooldown_ms <= 0.f;
+    Entity* entity = table.boss_attack_table.at((int) attack_id);
+
+    BossAttack& bossAttack = registry.bossAttacks.get(*entity);
+
+    return bossAttack.cooldown_ms <= 0.f;
 }

@@ -257,11 +257,29 @@ struct WaterDrop
 
 };
 
+// A struct indicating that an attack has some delay before being executed
+struct Delayed
+{
+	std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
+	float delay_timer_ms;
+	vec2 velocity;
+	// vec2 velocity_modifier;
+	Motion* motion_ptr;
+	uint order;
+};
+
+// A struct indicating that an attack can track where the player is
+struct Tracking
+{
+
+};
+
 // A struct indicating that an entity is an enemy boss
 struct Boss
 {
 	BOSS_ID boss_id;
 	BOSS_STATE boss_state;
+	bool attack_completed; // a flag to indicate that the attack state is over
 	float health;
 	float attack_cooldown_ms = 5000.0f;
 };
@@ -276,7 +294,8 @@ struct BossAttack
 	std::vector<float> in_between_delay_ms; // the amount of delay between each part of the attack
 	float in_between_timer_ms; // the timer before the next attack, should directly come from the in_between_delay_ms
 	vec2 velocity_modifier;
-	uint num_of_attacks;
+	uint num_of_attack_created;
+	uint num_of_attack_completed;
 	uint max_num_of_attacks;
 };
 

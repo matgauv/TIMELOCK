@@ -24,31 +24,35 @@ void useBossOneRegularProjectile(Entity& boss_entity, Entity& player_entity, flo
 
     } else {
 
-        if (attack_info.num_of_attacks < attack_info.max_num_of_attacks) {
+        if (attack_info.num_of_attack_created < attack_info.max_num_of_attacks 
+            && attack_info.num_of_attack_completed < attack_info.max_num_of_attacks) {
             // still need to attack
 
             attack_info.in_between_timer_ms -= elapsed_time;
 
             if (attack_info.in_between_timer_ms <= 0.f) {
 
-                int is_boss_to_player_left = boss_motion.position.x - player_motion.position.x > 0 ? -1 : 1;
+                int is_boss_to_player_right = boss_motion.position.x - player_motion.position.x > 0 ? 1 : -1;
 
-                vec2 pos = vec2(boss_motion.position.x + is_boss_to_player_left * (BOSS_ONE_BB_WIDTH_PX + PROJECTILE_WIDTH_PX), player_motion.position.y);
+                vec2 pos = vec2(boss_motion.position.x + is_boss_to_player_right * (BOSS_ONE_BB_WIDTH_PX + PROJECTILE_WIDTH_PX), player_motion.position.y);
                 vec2 size = vec2(PROJECTILE_WIDTH_PX, PROJECTILE_HEIGHT_PX);
-                vec2 velocity = vec2(PROJECTILE_SPEED * attack_info.velocity_modifier.x * is_boss_to_player_left, 0.f);
+                vec2 velocity = vec2(PROJECTILE_SPEED * attack_info.velocity_modifier.x * is_boss_to_player_right, 0.f);
 
                 create_projectile(pos, size, velocity);
 
-                attack_info.num_of_attacks++;
+                attack_info.num_of_attack_created++;
+                attack_info.num_of_attack_completed++;
 
-                attack_info.in_between_timer_ms = attack_info.in_between_delay_ms[attack_info.num_of_attacks]; // reset the timer
+                attack_info.in_between_timer_ms = attack_info.in_between_delay_ms[attack_info.num_of_attack_completed]; // reset the timer
             }
 
         } else {
             // attack is done
-
+            // reset
             attack_info.is_in_use = false;
             attack_info.cooldown_ms = BOSS_ONE_REGULAR_PROJECTILE_COOLDOWN_MS;
+            attack_info.num_of_attack_created = 0;
+            attack_info.num_of_attack_completed = 0;
         }
     }
 }
@@ -75,31 +79,34 @@ void useBossOneFastProjectile(Entity& boss_entity, Entity& player_entity, float 
 
     } else {
 
-        if (attack_info.num_of_attacks < attack_info.max_num_of_attacks) {
+        if (attack_info.num_of_attack_created < attack_info.max_num_of_attacks && attack_info.num_of_attack_completed < attack_info.max_num_of_attacks) {
             // still need to attack
 
             attack_info.in_between_timer_ms -= elapsed_time;
 
             if (attack_info.in_between_timer_ms <= 0.f) {
 
-                int is_boss_to_player_left = boss_motion.position.x - player_motion.position.x > 0 ? -1 : 1;
+                int is_boss_to_player_right = boss_motion.position.x - player_motion.position.x > 0 ? 1 : -1;
 
-                vec2 pos = vec2(boss_motion.position.x + is_boss_to_player_left * (BOSS_ONE_BB_WIDTH_PX + PROJECTILE_WIDTH_PX), player_motion.position.y);
+                vec2 pos = vec2(boss_motion.position.x + is_boss_to_player_right * (BOSS_ONE_BB_WIDTH_PX + PROJECTILE_WIDTH_PX), player_motion.position.y);
                 vec2 size = vec2(PROJECTILE_WIDTH_PX, PROJECTILE_HEIGHT_PX);
-                vec2 velocity = vec2(PROJECTILE_SPEED * attack_info.velocity_modifier.x * is_boss_to_player_left, 0.f);
+                vec2 velocity = vec2(PROJECTILE_SPEED * attack_info.velocity_modifier.x * is_boss_to_player_right, 0.f);
 
                 create_projectile(pos, size, velocity);
 
-                attack_info.num_of_attacks++;
+                attack_info.num_of_attack_created++;
+                attack_info.num_of_attack_completed++;
 
-                attack_info.in_between_timer_ms = attack_info.in_between_delay_ms[attack_info.num_of_attacks]; // reset the timer
+                attack_info.in_between_timer_ms = attack_info.in_between_delay_ms[attack_info.num_of_attack_completed]; // reset the timer
             }
 
         } else {
             // attack is done
-
+            // reset
             attack_info.is_in_use = false;
             attack_info.cooldown_ms = BOSS_ONE_FAST_PROJECTILE_COOLDOWN_MS;
+            attack_info.num_of_attack_created = 0;
+            attack_info.num_of_attack_completed = 0;
         }
     }
 }
@@ -110,7 +117,89 @@ void useBossOneFastProjectile(Entity& boss_entity, Entity& player_entity, float 
 // The third projectile travels towards the player after another 0.5 second
 // Once all 3 projectiles have been fired, place the attack on its cooldown
 void useBossOneDelayedProjectile(Entity& boss_entity, Entity& player_entity, float elapsed_time) {
+    Boss& boss = registry.bosses.get(boss_entity);
+    Motion& boss_motion = registry.motions.get(boss_entity);
+    Motion& player_motion = registry.motions.get(player_entity);
 
+    assert(registry.bossAttackLists.components.size() <= 1);
+    auto& table = registry.bossAttackLists.components[0].boss_attack_table;
+
+    Entity*& attack_entity_ptr = getBossAttackEntity(boss);
+    BossAttack& attack_info = registry.bossAttacks.get(*attack_entity_ptr);
+
+    // Set the flag
+    if (!attack_info.is_in_use) {
+        attack_info.is_in_use = true;
+        // attack_info.attack_start_time = std::chrono::high_resolution_clock::now();
+
+    } else {
+
+        std::vector<Delayed*> delayed_vec;
+
+        if (attack_info.num_of_attack_created < attack_info.max_num_of_attacks) {
+            // create all 3 delayed tracking projectiles at once
+            while (attack_info.num_of_attack_created < attack_info.max_num_of_attacks) {
+                // int is_boss_to_player_left = boss_motion.position.x - player_motion.position.x > 0 ? -1 : 1;
+
+                vec2 pos = vec2(boss_motion.position.x * (BOSS_ONE_BB_WIDTH_PX + PROJECTILE_WIDTH_PX), player_motion.position.y);
+                vec2 size = vec2(PROJECTILE_WIDTH_PX, PROJECTILE_HEIGHT_PX);
+                vec2 velocity = vec2(PROJECTILE_SPEED * attack_info.velocity_modifier.x, 0.f);
+            
+                Entity entity = create_projectile(pos, size, velocity); // create the projectile
+
+                Delayed& delayed = registry.delayeds.emplace(entity); // add delayed component
+                Tracking& tracking = registry.trackings.emplace(entity); // add tracking component
+
+                Motion& projectile_motion = registry.motions.get(entity);
+
+                delayed.motion_ptr = &projectile_motion;
+
+                delayed_vec.push_back(&delayed);
+
+                attack_info.num_of_attack_created++;
+            }
+
+            // now add the information for the delayed component
+            for (int i = 0; i < delayed_vec.size(); i++) {
+                delayed_vec[i]->velocity = vec2(PROJECTILE_SPEED, (float) (BOSS_ONE_BB_HEIGHT_PX + PROJECTILE_HEIGHT_PX + 10.f) / 5.0f);
+                // delayed_vec[i].velocity_modifier = attack_info.velocity_modifier;
+                delayed_vec[i]->order = i;
+                delayed_vec[i]->delay_timer_ms = attack_info.in_between_delay_ms[i];
+                delayed_vec[i]->start_time = std::chrono::high_resolution_clock::now();
+            }
+        } else {
+
+            // the projectiles have already been created, now just decrement the timer and then adjust the velocity
+            if (attack_info.num_of_attack_completed < attack_info.max_num_of_attacks) {
+
+                // decrement the timer for the next attack
+                Entity* delayed_entity_ptr = getDelayedEntity(attack_info.max_num_of_attacks - attack_info.num_of_attack_completed - 1);
+                Delayed& delayed = registry.delayeds.get(*delayed_entity_ptr);
+                delayed.delay_timer_ms -= elapsed_time;
+
+                // fire the attack if ready
+                if (delayed.delay_timer_ms <= 0.f) {
+                    // adjust the velocity
+
+                    // check the horizontal velocity direction
+                    Motion& player_motion = registry.motions.get(player_entity);
+
+                    int is_boss_to_player_right = (boss_motion.position.x - player_motion.position.x) > 0.f ? 1 : -1;
+
+                    (delayed.motion_ptr)->velocity = vec2(delayed.velocity.x * is_boss_to_player_right, delayed.velocity.y);
+
+                    attack_info.num_of_attack_completed++;
+                }
+            }  else {
+                // attack is done
+                // reset
+                attack_info.is_in_use = false;
+                attack_info.cooldown_ms = BOSS_ONE_DELAYED_PROJECTILE_COOLDOWN_MS;
+                attack_info.num_of_attack_created = 0;
+                attack_info.num_of_attack_completed = 0;
+            }
+        }
+    }
 }
 
 void useBossOneGroundSlam(Entity& boss_entity, Entity& player_entity, float elapsed_time) {
@@ -126,6 +215,27 @@ void useBossOneGroundSlam(Entity& boss_entity, Entity& player_entity, float elap
     // Once the last slam is done, place the attack on its cooldown
     // 0.5 seconds right before each attack, give an indicator that the attack is about to occur (a different texture for the boss)
     // (will fine tune whether the ground slam should be affected by time control)
+
+    Boss& boss = registry.bosses.get(boss_entity);
+    Motion& boss_motion = registry.motions.get(boss_entity);
+    Motion& player_motion = registry.motions.get(player_entity);
+
+    assert(registry.bossAttackLists.components.size() <= 1);
+    auto& table = registry.bossAttackLists.components[0].boss_attack_table;
+
+    Entity*& attack_entity_ptr = getBossAttackEntity(boss);
+    BossAttack& attack_info = registry.bossAttacks.get(*attack_entity_ptr);
+
+    // Set the flag
+    if (!attack_info.is_in_use) {
+        attack_info.is_in_use = true;
+        attack_info.attack_start_time = std::chrono::high_resolution_clock::now();
+
+    } else {
+        // do something
+        
+
+    }
 }
 
 // may not use this attack... ?
@@ -159,4 +269,15 @@ int getBossAttackId(Boss& boss) {
     if (boss.boss_state == BOSS_STATE::BOSS1_DASH_ATTACK_STATE) return (int) BOSS_ATTACK_ID::BOSS1_DASH_ATTACK;
 
     return -1;
+}
+
+Entity* getDelayedEntity(int i) {
+    Entity* ptr = NULL;
+    for (auto& curr : registry.delayeds.entities) {
+        if (registry.delayeds.get(curr).order == i) {
+            ptr = &curr;
+            break;
+        }
+    }
+    return ptr;
 }

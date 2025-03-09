@@ -27,7 +27,7 @@ private:
 
 	void detect_collisions();
 	void handle_collisions(float elapsed_ms);
-	void handle_object_rigid_collision(Entity object_entity, Entity platform_entity, Collision collision, float step_seconds,  std::vector<unsigned int>& groundedEntities, std::vector<unsigned int>& onMovingPlatform);
+	void handle_object_rigid_collision(Entity object_entity, Entity platform_entity, Collision collision, float step_seconds,  std::vector<unsigned int>& groundedEntities);
 	void handle_player_attack_collision(Entity player_entity, Entity attack_entity, Collision collision);
 	void handle_player_boss_collision(Entity player_entity, Entity boss_entity, Collision collision);
 	void handle_physics_collision(float step_seconds, Entity entityA, Entity entityB, Collision collision,  std::vector<unsigned int>& groundedEntities);
@@ -45,7 +45,8 @@ private:
 
 	vec2 get_friction(Entity& e, vec2& velocity, vec2& normal, float step_seconds, float mass, bool is_moving_platform);
 	vec2 get_modified_velocity(Motion& m);
-	bool is_grounded(float normal_y);
+	bool should_slip(float normal_y);
+	bool is_on_ground(float normal_y);
 	void adjust_velocity_along_normal(Motion& motion, vec2& normal);
 	void resolve_collision_position(Entity& entityA, Entity& entityB, Collision& collision);
 };

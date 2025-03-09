@@ -15,7 +15,7 @@ public:
 	ComponentContainer<Collision> collisions;
 	ComponentContainer<Player> players;
 	ComponentContainer<Platform> platforms;
-	ComponentContainer<OnPlatform> onPlatforms;
+	ComponentContainer<onGround> onGrounds;
 	ComponentContainer<Mesh*> meshPtrs;
 	ComponentContainer<RenderRequest> renderRequests;
 	ComponentContainer<ScreenState> screenStates;
@@ -31,7 +31,6 @@ public:
 	ComponentContainer<Projectile> projectiles;
 	ComponentContainer<Rock> rocks;
 	ComponentContainer<WaterDrop> waterdrops;
-	ComponentContainer<Falling> falling;
 	ComponentContainer<Walking> walking;
 	ComponentContainer<Blocked> blocked;
 	ComponentContainer<Camera> cameras;
@@ -49,6 +48,7 @@ public:
 		registry_list.push_back(&collisions);
 		registry_list.push_back(&players);
 		registry_list.push_back(&platforms);
+		registry_list.push_back(&onGrounds);
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);
 		registry_list.push_back(&screenStates);
@@ -64,7 +64,6 @@ public:
 		registry_list.push_back(&projectiles);
 		registry_list.push_back(&rocks);
 		registry_list.push_back(&waterdrops);
-		registry_list.push_back(&falling);
 		registry_list.push_back(&walking);
 		registry_list.push_back(&blocked);
 		registry_list.push_back(&cameras);

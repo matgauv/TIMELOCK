@@ -32,10 +32,10 @@ struct Platform
 {
 };
 
-struct OnPlatform
+struct onGround
 {
-	Entity platform;
-	OnPlatform(Entity e): platform(e) {}
+	Entity ground_entity;
+	onGround(Entity e): ground_entity(e) {}
 };
 
 // Boundary component
@@ -75,6 +75,8 @@ struct Camera
 struct PhysicsObject
 {
 	float mass;
+	float friction = STATIC_FRICTION;
+	bool apply_gravity = true;
 };
 
 
@@ -86,12 +88,6 @@ struct Motion {
 	float frequency = 0.f;
 	float velocityModifier = 1.0f;
 	vec2  velocity = {0.0f, 0.0f};
-};
-
-
-// This is added to a player who is free-falling through the air.
-struct Falling
-{
 };
 
 // This is added to a player who is walking.

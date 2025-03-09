@@ -80,7 +80,18 @@ void LevelParsingSystem::init_level_entities() {
 
         } else if (entity_type == "Pipe") {
 
+        } else if (entity_type == "Boundary") {
+            init_boundaries(entity_list);
         }
+    }
+}
+
+void LevelParsingSystem::init_boundaries(json boundaries) {
+    for (json boundary : boundaries) {
+        vec2 dimensions;
+        vec2 position;
+        extract_boundary_attributes(boundary, dimensions, position);
+        create_boundary(position, dimensions);
     }
 }
 
@@ -94,10 +105,52 @@ void LevelParsingSystem::init_platforms(json platforms, bool moving) {
             create_moving_platform(dimensions, path, startPos);
         } else {
             extract_platform_attributes(platform, dimensions, startPos);
-            create_static_platform(startPos, dimensions, false);
+            create_static_platform(startPos, dimensions);
         }
     }
 }
+
+void LevelParsingSystem::extract_boundary_attributes(json boundary, vec2& dimensions, vec2& position) {
+    int x = boundary["x"];
+    int y = boundary["y"];
+    vec2 start_pos = vec2{x / TILE_TO_PIXELS, y / TILE_TO_PIXELS};
+
+    json end_pos_json = boundary["customFields"]["length"];
+    vec2 end_pos = {end_pos_json["cx"], end_pos_json["cy"]};
+
+    int size;
+    string direction = boundary["customFields"]["direction"];
+
+    int conversion_factor;
+    bool is_x_axis;
+    if (direction == "up" || direction == "down")
+    {
+        size = abs(end_pos.y - start_pos.y) + 1;
+        dimensions = {boundary["width"], static_cast<int>(boundary["height"]) * size};
+
+        if (direction == "up") {
+            conversion_factor = (static_cast<int>(boundary["height"]) / 2) - (static_cast<int>(dimensions.y) / 2);
+        } else {
+            conversion_factor = (static_cast<int>(dimensions.y) / 2) - (static_cast<int>(boundary["height"]) / 2);
+        }
+        is_x_axis = false;
+    }
+    else
+    {
+        size = abs(end_pos.x - start_pos.x) + 1;
+        dimensions = {static_cast<int>(boundary["width"]) * size, boundary["height"]};
+
+        if (direction == "left") {
+            conversion_factor = (static_cast<int>(boundary["width"]) / 2) - (static_cast<int>(dimensions.x) / 2);
+        } else {
+            conversion_factor = (static_cast<int>(dimensions.x) / 2) - (static_cast<int>(boundary["width"]) / 2);
+        }
+        is_x_axis = true;
+    }
+
+    position = centralize_position(start_pos, conversion_factor, is_x_axis);
+}
+
 
 void LevelParsingSystem::extract_full_platform_dimensions(json platform, vec2& dimensions) {
     int full_size = platform["customFields"]["size"];
@@ -139,5 +192,12 @@ vec2 LevelParsingSystem::convert_and_centralize_position(json pos, int conversio
     return vec2({
         static_cast<int>(pos["cx"]) * TILE_TO_PIXELS + conversion_factor,
         static_cast<int>(pos["cy"]) * TILE_TO_PIXELS
+    });
+}
+
+vec2 LevelParsingSystem::centralize_position(vec2 pos, int conversion_factor, bool is_x_axis) {
+    return vec2({
+        pos.x * TILE_TO_PIXELS + (is_x_axis ? conversion_factor : 0),
+        pos.y * TILE_TO_PIXELS + (!is_x_axis ? conversion_factor : 0)
     });
 }

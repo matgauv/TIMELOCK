@@ -345,12 +345,11 @@ void WorldSystem::player_walking(bool walking, bool is_left) {
 void WorldSystem::player_jump() {
 	Entity& player = registry.players.entities[0];
 
-	if (!registry.falling.has(player)) {
+	if (registry.onGrounds.has(player)) {
 		if (registry.motions.has(player))
 		{
 			Motion& motion = registry.motions.get(player);
 			motion.velocity.y -= JUMP_VELOCITY;
-			registry.falling.emplace(player);
 		}
 
 	}
@@ -445,18 +444,18 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_S && fly) {
 		Motion& motion = registry.motions.get(registry.players.entities[0]);
 		if (action == GLFW_PRESS) {
-			motion.selfVelocity.y = JUMP_VELOCITY;
+			motion.velocity.y = JUMP_VELOCITY;
 		} else if (action == GLFW_RELEASE) {
-			motion.selfVelocity.y = 0;
+			motion.velocity.y = 0;
 		}
 	}
 
 	if (key == GLFW_KEY_W && fly) {
 		Motion& motion = registry.motions.get(registry.players.entities[0]);
 		if (action == GLFW_PRESS) {
-			motion.selfVelocity.y = -JUMP_VELOCITY;
+			motion.velocity.y = -JUMP_VELOCITY;
 		} else if (action == GLFW_RELEASE) {
-			motion.selfVelocity.y = 0;
+			motion.velocity.y = 0;
 		}
 	}
 }

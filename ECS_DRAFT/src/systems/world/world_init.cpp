@@ -97,8 +97,6 @@ Entity create_player(vec2 position, vec2 scale) {
     Blocked& blocked = registry.blocked.emplace(entity);
     blocked.normal = vec2(0, 0);
 
-    registry.falling.emplace(entity);
-
     registry.renderRequests.insert(entity, {
         TEXTURE_ASSET_ID::GREY_CIRCLE,
         EFFECT_ASSET_ID::TEXTURED,
@@ -136,8 +134,6 @@ Entity create_physics_object(vec2 position, vec2 scale, float mass) {
 
     Blocked& blocked = registry.blocked.emplace(entity);
     blocked.normal = vec2(0, 0);
-
-    registry.falling.emplace(entity);
 
     registry.renderRequests.insert(entity, {
         TEXTURE_ASSET_ID::OBJECT,
@@ -179,26 +175,49 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 init
     return entity;
 }
 
-Entity create_static_platform(vec2 position, vec2 scale, bool isBoundary, float angle) {
+Entity create_static_platform(vec2 position, vec2 scale) {
     Entity entity = Entity();
 
     registry.platforms.emplace(entity);
 
-    if (isBoundary) {
-        registry.boundaries.emplace(entity);
-    }
 
     Motion& motion = registry.motions.emplace(entity);
     motion.position = position;
     motion.scale = scale;
     motion.velocity = {0, 0};
-    motion.angle = angle;
+    motion.angle = 0;
 
     Blocked& blocked = registry.blocked.emplace(entity);
     blocked.normal = vec2(0, 0);
 
     registry.renderRequests.insert(entity, {
-        isBoundary ? TEXTURE_ASSET_ID::BOUNDARY : TEXTURE_ASSET_ID::BLACK,
+        TEXTURE_ASSET_ID::BLACK,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+
+    return entity;
+}
+
+Entity create_boundary(vec2 position, vec2 scale) {
+    Entity entity = Entity();
+
+    registry.platforms.emplace(entity);
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, 0};
+    motion.angle = 0;
+
+    Blocked& blocked = registry.blocked.emplace(entity);
+    blocked.normal = vec2(0, 0);
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::BOUNDARY,
         EFFECT_ASSET_ID::TEXTURED,
         GEOMETRY_BUFFER_ID::SPRITE
     });
@@ -319,8 +338,6 @@ Entity create_bolt(vec2 pos, vec2 size, vec2 velocity)
 
     PhysicsObject& object = registry.physicsObjects.emplace(entity);
     object.mass = 20.0f;
-
-    registry.falling.emplace(entity);
 
     registry.bolts.emplace(entity);
 

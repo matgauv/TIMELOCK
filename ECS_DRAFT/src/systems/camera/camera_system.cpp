@@ -49,7 +49,7 @@ void CameraSystem::follow(Motion& cam_motion, vec2 target) {
 	if (dist < 1.0f) {
 		// Snap camera to ideal location if within small range
 		cam_motion.position = target;
-		cam_motion.selfVelocity = { 0.f, 0.f };
+		cam_motion.velocity = { 0.f, 0.f };
 	}
 	else
 	{
@@ -58,13 +58,13 @@ void CameraSystem::follow(Motion& cam_motion, vec2 target) {
 		float speed = CAMERA_MAX_SPEED * std::clamp(dist / CAMERA_TRACE_RANGE, 0.0f, 1.0f);
 		vec2 expected_vel = speed * direction;
 
-		cam_motion.selfVelocity =
-			cam_motion.selfVelocity * (1.0f - CAMERA_VEL_LERP_FACTOR) +
+		cam_motion.velocity =
+			cam_motion.velocity * (1.0f - CAMERA_VEL_LERP_FACTOR) +
 			expected_vel * CAMERA_VEL_LERP_FACTOR;
 	}
 }
 
 void CameraSystem::reset(Motion& cam_motion, vec2 target) {
 	cam_motion.position = target;
-	cam_motion.selfVelocity *= 0;
+	cam_motion.velocity *= 0;
 }

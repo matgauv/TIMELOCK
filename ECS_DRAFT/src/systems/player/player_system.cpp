@@ -54,8 +54,7 @@ void PlayerSystem::kill() {
 	Entity e = registry.players.entities[0];
 	
 	Motion& motion = registry.motions.get(e);
-	motion.selfVelocity = vec2{ 0.f, 0.f };
-	motion.appliedVelocity = vec2{ 0.f, 0.f };
+	motion.velocity = vec2{ 0.f, 0.f };
 
 	// Clear Physics components
 	if (registry.walking.has(e)) {
@@ -80,8 +79,7 @@ void PlayerSystem::player_respawn() {
 	
 	Motion& motion = registry.motions.get(e);
 	motion.position = player.spawn_point;
-	motion.selfVelocity = vec2{0.f, 0.f};
-	motion.appliedVelocity = vec2{ 0.f, 0.f };
+	motion.velocity = vec2{0.f, 0.f};
 
 	AnimateRequest& animateRequest = registry.animateRequests.get(e);
 	animateRequest.timer = 0.0;

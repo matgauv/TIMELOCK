@@ -23,6 +23,10 @@ void demo_level() {
     create_background({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::METAL_BACKGROUND);
     create_foreground({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
 
+    // initial_pos = {0,0};
+    create_player(initial_pos, PLAYER_SCALE);
+    create_camera(initial_pos, { 1.0f, 1.0f }); // TODO: potential open-scene zoom in
+
     // float boltsize = 75.f;
     // create_bolt({ 325.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
     // create_bolt({ 325.0f, sceneHeight / 2.0f + 300.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
@@ -35,10 +39,6 @@ void demo_level() {
     // create one time-controllable breakable platform
     create_time_controllable_breakable_static_platform({ 1800.0f, sceneHeight - 100 }, {100.0f, 20.0f}, false, -0.05f);
 
-
-    // initial_pos = {0,0};
-    create_player(initial_pos, PLAYER_SCALE);
-    create_camera(initial_pos, { 1.0f, 1.0f }); // TODO: potential open-scene zoom in
 
 
     // level boundaries

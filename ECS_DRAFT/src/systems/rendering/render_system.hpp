@@ -43,8 +43,9 @@ class RenderSystem : public ISystem {
 		textures_path("backgrounds/gears.png"),
 		textures_path("backgrounds/metal.png"),
 		textures_path("backgrounds/chains.png"),
+		textures_path("hex.png"),
 		textures_path("groundlevels/d_tutorial_ground.png"),
-		textures_path("tileset.png")
+		textures_path("tileset.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

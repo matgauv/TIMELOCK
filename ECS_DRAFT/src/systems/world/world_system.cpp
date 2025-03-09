@@ -330,13 +330,18 @@ void WorldSystem::player_walking(bool walking, bool is_left) {
 	}
 }
 
+// TODO: this should be handled by physics?
 void WorldSystem::player_jump() {
 	Entity& player = registry.players.entities[0];
 
 	if (!registry.falling.has(player)) {
-		Motion& motion = registry.motions.get(player);
-		motion.selfVelocity.y = -JUMP_VELOCITY;
-		registry.falling.emplace(player);
+		if (registry.motions.has(player))
+		{
+			Motion& motion = registry.motions.get(player);
+			motion.velocity.y -= JUMP_VELOCITY;
+			registry.falling.emplace(player);
+		}
+
 	}
 
 }
@@ -405,7 +410,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
+	if (key == GLFW_KEY_UP) {
 		player_jump();
 	}
 }

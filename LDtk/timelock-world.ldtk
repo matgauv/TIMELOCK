@@ -29,7 +29,7 @@
 	"minifyJson": false,
 	"externalLevels": false,
 	"exportTiled": false,
-	"simplifiedExport": false,
+	"simplifiedExport": true,
 	"imageExportMode": "None",
 	"exportLevelBg": true,
 	"pngFilePattern": null,
@@ -2359,7 +2359,7 @@
 			"__cHei": 7,
 			"identifier": "Props",
 			"uid": 1,
-			"relPath": "../aseprite/Timelock/tilesets/props-tileset.png",
+			"relPath": "props-tileset.png",
 			"embedAtlas": null,
 			"pxWid": 112,
 			"pxHei": 112,
@@ -2381,7 +2381,7 @@
 			"__cHei": 15,
 			"identifier": "Ground",
 			"uid": 2,
-			"relPath": "../aseprite/Timelock/tilesets/floors-tileset.png",
+			"relPath": "floors-tileset.png",
 			"embedAtlas": null,
 			"pxWid": 240,
 			"pxHei": 240,
@@ -5630,7 +5630,7 @@
 					"__pxTotalOffsetX": 0,
 					"__pxTotalOffsetY": 0,
 					"__tilesetDefUid": 1,
-					"__tilesetRelPath": "../aseprite/Timelock/tilesets/props-tileset.png",
+					"__tilesetRelPath": "props-tileset.png",
 					"iid": "798d9510-e920-11ef-a06b-edf2871a90d4",
 					"levelId": 0,
 					"layerDefUid": 5,
@@ -5848,7 +5848,7 @@
 					"__pxTotalOffsetX": 0,
 					"__pxTotalOffsetY": 0,
 					"__tilesetDefUid": 2,
-					"__tilesetRelPath": "../aseprite/Timelock/tilesets/floors-tileset.png",
+					"__tilesetRelPath": "floors-tileset.png",
 					"iid": "3f79bb70-e920-11ef-a06b-c50b47ae039f",
 					"levelId": 0,
 					"layerDefUid": 4,
@@ -14784,8 +14784,8 @@
 			"identifier": "Level_1",
 			"iid": "2f5c39d0-e920-11ef-943c-43baef00f944",
 			"uid": 93,
-			"worldX": 4832,
-			"worldY": 1792,
+			"worldX": 4528,
+			"worldY": 704,
 			"worldDepth": 0,
 			"pxWid": 2976,
 			"pxHei": 1280,
@@ -14838,8 +14838,8 @@
 							"defUid": 85,
 							"px": [160,1088],
 							"fieldInstances": [],
-							"__worldX": 4992,
-							"__worldY": 2880
+							"__worldX": 4688,
+							"__worldY": 1792
 						},
 						{
 							"__identifier": "MovingPlatform",
@@ -14862,9 +14862,9 @@
 									"id": "V_String",
 									"params": ["17,69"]
 								}] },
-								{ "__identifier": "end", "__type": "Point", "__value": { "cx": 41, "cy": 69 }, "__tile": null, "defUid": 34, "realEditorValues": [{
+								{ "__identifier": "end", "__type": "Point", "__value": { "cx": 35, "cy": 69 }, "__tile": null, "defUid": 34, "realEditorValues": [{
 									"id": "V_String",
-									"params": ["41,69"]
+									"params": ["35,69"]
 								}] },
 								{ "__identifier": "duration", "__type": "Float", "__value": 0, "__tile": null, "defUid": 35, "realEditorValues": [] },
 								{ "__identifier": "velocity", "__type": "Point", "__value": null, "__tile": null, "defUid": 36, "realEditorValues": [] },
@@ -14891,8 +14891,8 @@
 								{ "__identifier": "can_become_harmless", "__type": "Bool", "__value": false, "__tile": null, "defUid": 48, "realEditorValues": [] },
 								{ "__identifier": "size", "__type": "Int", "__value": 7, "__tile": null, "defUid": 52, "realEditorValues": [{ "id": "V_Int", "params": [7] }] }
 							],
-							"__worldX": 5136,
-							"__worldY": 2896
+							"__worldX": 4832,
+							"__worldY": 1808
 						},
 						{
 							"__identifier": "MovingPlatform",
@@ -14915,9 +14915,9 @@
 									"id": "V_String",
 									"params": ["51,69"]
 								}] },
-								{ "__identifier": "end", "__type": "Point", "__value": { "cx": 61, "cy": 69 }, "__tile": null, "defUid": 34, "realEditorValues": [{
+								{ "__identifier": "end", "__type": "Point", "__value": { "cx": 62, "cy": 69 }, "__tile": null, "defUid": 34, "realEditorValues": [{
 									"id": "V_String",
-									"params": ["61,69"]
+									"params": ["62,69"]
 								}] },
 								{ "__identifier": "duration", "__type": "Float", "__value": 0, "__tile": null, "defUid": 35, "realEditorValues": [] },
 								{ "__identifier": "velocity", "__type": "Point", "__value": null, "__tile": null, "defUid": 36, "realEditorValues": [] },
@@ -14942,10 +14942,10 @@
 								}] },
 								{ "__identifier": "can_become_harmful", "__type": "Bool", "__value": false, "__tile": null, "defUid": 47, "realEditorValues": [] },
 								{ "__identifier": "can_become_harmless", "__type": "Bool", "__value": false, "__tile": null, "defUid": 48, "realEditorValues": [] },
-								{ "__identifier": "size", "__type": "Int", "__value": 5, "__tile": null, "defUid": 52, "realEditorValues": [{ "id": "V_Int", "params": [5] }] }
+								{ "__identifier": "size", "__type": "Int", "__value": 4, "__tile": null, "defUid": 52, "realEditorValues": [{ "id": "V_Int", "params": [4] }] }
 							],
-							"__worldX": 5664,
-							"__worldY": 2896
+							"__worldX": 5360,
+							"__worldY": 1808
 						},
 						{
 							"__identifier": "MovingPlatform",
@@ -14964,13 +14964,13 @@
 									"id": "V_Bool",
 									"params": [ true ]
 								}] },
-								{ "__identifier": "start", "__type": "Point", "__value": { "cx": 62, "cy": 69 }, "__tile": null, "defUid": 33, "realEditorValues": [{
+								{ "__identifier": "start", "__type": "Point", "__value": { "cx": 66, "cy": 69 }, "__tile": null, "defUid": 33, "realEditorValues": [{
 									"id": "V_String",
-									"params": ["62,69"]
+									"params": ["66,69"]
 								}] },
-								{ "__identifier": "end", "__type": "Point", "__value": { "cx": 74, "cy": 69 }, "__tile": null, "defUid": 34, "realEditorValues": [{
+								{ "__identifier": "end", "__type": "Point", "__value": { "cx": 76, "cy": 69 }, "__tile": null, "defUid": 34, "realEditorValues": [{
 									"id": "V_String",
-									"params": ["74,69"]
+									"params": ["76,69"]
 								}] },
 								{ "__identifier": "duration", "__type": "Float", "__value": 0, "__tile": null, "defUid": 35, "realEditorValues": [] },
 								{ "__identifier": "velocity", "__type": "Point", "__value": null, "__tile": null, "defUid": 36, "realEditorValues": [] },
@@ -14995,10 +14995,10 @@
 								}] },
 								{ "__identifier": "can_become_harmful", "__type": "Bool", "__value": false, "__tile": null, "defUid": 47, "realEditorValues": [] },
 								{ "__identifier": "can_become_harmless", "__type": "Bool", "__value": false, "__tile": null, "defUid": 48, "realEditorValues": [] },
-								{ "__identifier": "size", "__type": "Int", "__value": 5, "__tile": null, "defUid": 52, "realEditorValues": [{ "id": "V_Int", "params": [5] }] }
+								{ "__identifier": "size", "__type": "Int", "__value": 4, "__tile": null, "defUid": 52, "realEditorValues": [{ "id": "V_Int", "params": [4] }] }
 							],
-							"__worldX": 5840,
-							"__worldY": 2896
+							"__worldX": 5536,
+							"__worldY": 1808
 						},
 						{
 							"__identifier": "MovingPlatform",
@@ -15017,13 +15017,13 @@
 									"id": "V_Bool",
 									"params": [ true ]
 								}] },
-								{ "__identifier": "start", "__type": "Point", "__value": { "cx": 78, "cy": 69 }, "__tile": null, "defUid": 33, "realEditorValues": [{
+								{ "__identifier": "start", "__type": "Point", "__value": { "cx": 80, "cy": 69 }, "__tile": null, "defUid": 33, "realEditorValues": [{
 									"id": "V_String",
-									"params": ["78,69"]
+									"params": ["80,69"]
 								}] },
-								{ "__identifier": "end", "__type": "Point", "__value": { "cx": 93, "cy": 69 }, "__tile": null, "defUid": 34, "realEditorValues": [{
+								{ "__identifier": "end", "__type": "Point", "__value": { "cx": 92, "cy": 69 }, "__tile": null, "defUid": 34, "realEditorValues": [{
 									"id": "V_String",
-									"params": ["93,69"]
+									"params": ["92,69"]
 								}] },
 								{ "__identifier": "duration", "__type": "Float", "__value": 0, "__tile": null, "defUid": 35, "realEditorValues": [] },
 								{ "__identifier": "velocity", "__type": "Point", "__value": null, "__tile": null, "defUid": 36, "realEditorValues": [] },
@@ -15048,10 +15048,10 @@
 								}] },
 								{ "__identifier": "can_become_harmful", "__type": "Bool", "__value": false, "__tile": null, "defUid": 47, "realEditorValues": [] },
 								{ "__identifier": "can_become_harmless", "__type": "Bool", "__value": false, "__tile": null, "defUid": 48, "realEditorValues": [] },
-								{ "__identifier": "size", "__type": "Int", "__value": 5, "__tile": null, "defUid": 52, "realEditorValues": [{ "id": "V_Int", "params": [5] }] }
+								{ "__identifier": "size", "__type": "Int", "__value": 4, "__tile": null, "defUid": 52, "realEditorValues": [{ "id": "V_Int", "params": [4] }] }
 							],
-							"__worldX": 6160,
-							"__worldY": 2896
+							"__worldX": 5856,
+							"__worldY": 1808
 						},
 						{
 							"__identifier": "MovingPlatform",
@@ -15103,8 +15103,8 @@
 								{ "__identifier": "can_become_harmless", "__type": "Bool", "__value": false, "__tile": null, "defUid": 48, "realEditorValues": [] },
 								{ "__identifier": "size", "__type": "Int", "__value": 7, "__tile": null, "defUid": 52, "realEditorValues": [{ "id": "V_Int", "params": [7] }] }
 							],
-							"__worldX": 6512,
-							"__worldY": 2880
+							"__worldX": 6208,
+							"__worldY": 1792
 						},
 						{
 							"__identifier": "MovingPlatform",
@@ -15156,8 +15156,8 @@
 								{ "__identifier": "can_become_harmless", "__type": "Bool", "__value": false, "__tile": null, "defUid": 48, "realEditorValues": [] },
 								{ "__identifier": "size", "__type": "Int", "__value": 7, "__tile": null, "defUid": 52, "realEditorValues": [{ "id": "V_Int", "params": [7] }] }
 							],
-							"__worldX": 6512,
-							"__worldY": 2528
+							"__worldX": 6208,
+							"__worldY": 1440
 						},
 						{
 							"__identifier": "Platform",
@@ -15178,8 +15178,8 @@
 								}] },
 								{ "__identifier": "size", "__type": "Int", "__value": 3, "__tile": null, "defUid": 82, "realEditorValues": [{ "id": "V_Int", "params": [3] }] }
 							],
-							"__worldX": 6432,
-							"__worldY": 2528
+							"__worldX": 6128,
+							"__worldY": 1440
 						},
 						{
 							"__identifier": "Platform",
@@ -15200,8 +15200,8 @@
 								}] },
 								{ "__identifier": "size", "__type": "Int", "__value": 3, "__tile": null, "defUid": 82, "realEditorValues": [{ "id": "V_Int", "params": [3] }] }
 							],
-							"__worldX": 6432,
-							"__worldY": 2544
+							"__worldX": 6128,
+							"__worldY": 1456
 						},
 						{
 							"__identifier": "Platform",
@@ -15222,8 +15222,8 @@
 								}] },
 								{ "__identifier": "size", "__type": "Int", "__value": 3, "__tile": null, "defUid": 82, "realEditorValues": [{ "id": "V_Int", "params": [3] }] }
 							],
-							"__worldX": 6432,
-							"__worldY": 2560
+							"__worldX": 6128,
+							"__worldY": 1472
 						},
 						{
 							"__identifier": "MovingPlatform",
@@ -15275,8 +15275,8 @@
 								{ "__identifier": "can_become_harmless", "__type": "Bool", "__value": false, "__tile": null, "defUid": 48, "realEditorValues": [] },
 								{ "__identifier": "size", "__type": "Int", "__value": 9, "__tile": null, "defUid": 52, "realEditorValues": [{ "id": "V_Int", "params": [9] }] }
 							],
-							"__worldX": 7488,
-							"__worldY": 2608
+							"__worldX": 7184,
+							"__worldY": 1520
 						},
 						{
 							"__identifier": "Door",
@@ -15291,8 +15291,8 @@
 							"defUid": 55,
 							"px": [2928,128],
 							"fieldInstances": [{ "__identifier": "open", "__type": "Bool", "__value": false, "__tile": null, "defUid": 56, "realEditorValues": [] }],
-							"__worldX": 7760,
-							"__worldY": 1920
+							"__worldX": 7456,
+							"__worldY": 832
 						},
 						{
 							"__identifier": "Boundary",
@@ -15316,8 +15316,8 @@
 									"params": ["180,0"]
 								}] }
 							],
-							"__worldX": 7712,
-							"__worldY": 1840
+							"__worldX": 7408,
+							"__worldY": 752
 						},
 						{
 							"__identifier": "Boundary",
@@ -15341,8 +15341,8 @@
 									"params": ["181,3"]
 								}] }
 							],
-							"__worldX": 7792,
-							"__worldY": 1840
+							"__worldX": 7488,
+							"__worldY": 752
 						},
 						{
 							"__identifier": "Boundary",
@@ -15366,8 +15366,8 @@
 									"params": ["165,41"]
 								}] }
 							],
-							"__worldX": 7472,
-							"__worldY": 1792
+							"__worldX": 7168,
+							"__worldY": 704
 						},
 						{
 							"__identifier": "Boundary",
@@ -15391,8 +15391,8 @@
 									"params": ["152,42"]
 								}] }
 							],
-							"__worldX": 7472,
-							"__worldY": 2464
+							"__worldX": 7168,
+							"__worldY": 1376
 						},
 						{
 							"__identifier": "Boundary",
@@ -15416,8 +15416,8 @@
 									"params": ["151,27"]
 								}] }
 							],
-							"__worldX": 7248,
-							"__worldY": 2464
+							"__worldX": 6944,
+							"__worldY": 1376
 						},
 						{
 							"__identifier": "Boundary",
@@ -15441,8 +15441,8 @@
 									"params": ["118,26"]
 								}] }
 							],
-							"__worldX": 7248,
-							"__worldY": 2208
+							"__worldX": 6944,
+							"__worldY": 1120
 						},
 						{
 							"__identifier": "Boundary",
@@ -15466,8 +15466,8 @@
 									"params": ["117,22"]
 								}] }
 							],
-							"__worldX": 6704,
-							"__worldY": 2208
+							"__worldX": 6400,
+							"__worldY": 1120
 						},
 						{
 							"__identifier": "Boundary",
@@ -15491,8 +15491,8 @@
 									"params": ["99,21"]
 								}] }
 							],
-							"__worldX": 6704,
-							"__worldY": 2128
+							"__worldX": 6400,
+							"__worldY": 1040
 						},
 						{
 							"__identifier": "Boundary",
@@ -15516,8 +15516,8 @@
 									"params": ["98,53"]
 								}] }
 							],
-							"__worldX": 6400,
-							"__worldY": 2128
+							"__worldX": 6096,
+							"__worldY": 1040
 						},
 						{
 							"__identifier": "Boundary",
@@ -15541,8 +15541,8 @@
 									"params": ["3,54"]
 								}] }
 							],
-							"__worldX": 6400,
-							"__worldY": 2656
+							"__worldX": 6096,
+							"__worldY": 1568
 						},
 						{
 							"__identifier": "Boundary",
@@ -15566,8 +15566,8 @@
 									"params": ["2,68"]
 								}] }
 							],
-							"__worldX": 4864,
-							"__worldY": 2656
+							"__worldX": 4560,
+							"__worldY": 1568
 						},
 						{
 							"__identifier": "Boundary",
@@ -15591,8 +15591,8 @@
 									"params": ["15,69"]
 								}] }
 							],
-							"__worldX": 4864,
-							"__worldY": 2896
+							"__worldX": 4560,
+							"__worldY": 1808
 						},
 						{
 							"__identifier": "Boundary",
@@ -15616,8 +15616,8 @@
 									"params": ["16,71"]
 								}] }
 							],
-							"__worldX": 5088,
-							"__worldY": 2896
+							"__worldX": 4784,
+							"__worldY": 1808
 						},
 						{
 							"__identifier": "Boundary",
@@ -15641,8 +15641,8 @@
 									"params": ["19,72"]
 								}] }
 							],
-							"__worldX": 5088,
-							"__worldY": 2944
+							"__worldX": 4784,
+							"__worldY": 1856
 						},
 						{
 							"__identifier": "Boundary",
@@ -15666,8 +15666,8 @@
 									"params": ["20,74"]
 								}] }
 							],
-							"__worldX": 5152,
-							"__worldY": 2944
+							"__worldX": 4848,
+							"__worldY": 1856
 						},
 						{
 							"__identifier": "Boundary",
@@ -15691,8 +15691,8 @@
 									"params": ["41,75"]
 								}] }
 							],
-							"__worldX": 5152,
-							"__worldY": 2992
+							"__worldX": 4848,
+							"__worldY": 1904
 						},
 						{
 							"__identifier": "Boundary",
@@ -15716,8 +15716,8 @@
 									"params": ["42,70"]
 								}] }
 							],
-							"__worldX": 5504,
-							"__worldY": 2992
+							"__worldX": 5200,
+							"__worldY": 1904
 						},
 						{
 							"__identifier": "Boundary",
@@ -15741,8 +15741,8 @@
 									"params": ["49,69"]
 								}] }
 							],
-							"__worldX": 5504,
-							"__worldY": 2896
+							"__worldX": 5200,
+							"__worldY": 1808
 						},
 						{
 							"__identifier": "Boundary",
@@ -15766,8 +15766,8 @@
 									"params": ["50,71"]
 								}] }
 							],
-							"__worldX": 5632,
-							"__worldY": 2896
+							"__worldX": 5328,
+							"__worldY": 1808
 						},
 						{
 							"__identifier": "Boundary",
@@ -15791,8 +15791,8 @@
 									"params": ["54,72"]
 								}] }
 							],
-							"__worldX": 5632,
-							"__worldY": 2944
+							"__worldX": 5328,
+							"__worldY": 1856
 						},
 						{
 							"__identifier": "Boundary",
@@ -15816,8 +15816,8 @@
 									"params": ["55,74"]
 								}] }
 							],
-							"__worldX": 5712,
-							"__worldY": 2944
+							"__worldX": 5408,
+							"__worldY": 1856
 						},
 						{
 							"__identifier": "Boundary",
@@ -15841,8 +15841,8 @@
 									"params": ["95,75"]
 								}] }
 							],
-							"__worldX": 5712,
-							"__worldY": 2992
+							"__worldX": 5408,
+							"__worldY": 1904
 						},
 						{
 							"__identifier": "Boundary",
@@ -15866,8 +15866,8 @@
 									"params": ["96,70"]
 								}] }
 							],
-							"__worldX": 6368,
-							"__worldY": 2992
+							"__worldX": 6064,
+							"__worldY": 1904
 						},
 						{
 							"__identifier": "Boundary",
@@ -15891,8 +15891,8 @@
 									"params": ["102,69"]
 								}] }
 							],
-							"__worldX": 6368,
-							"__worldY": 2896
+							"__worldX": 6064,
+							"__worldY": 1808
 						},
 						{
 							"__identifier": "Boundary",
@@ -15916,8 +15916,8 @@
 									"params": ["103,71"]
 								}] }
 							],
-							"__worldX": 6480,
-							"__worldY": 2896
+							"__worldX": 6176,
+							"__worldY": 1808
 						},
 						{
 							"__identifier": "Boundary",
@@ -15941,8 +15941,8 @@
 									"params": ["105,72"]
 								}] }
 							],
-							"__worldX": 6480,
-							"__worldY": 2944
+							"__worldX": 6176,
+							"__worldY": 1856
 						},
 						{
 							"__identifier": "Boundary",
@@ -15966,8 +15966,8 @@
 									"params": ["106,74"]
 								}] }
 							],
-							"__worldX": 6528,
-							"__worldY": 2944
+							"__worldX": 6224,
+							"__worldY": 1856
 						},
 						{
 							"__identifier": "Boundary",
@@ -15991,8 +15991,8 @@
 									"params": ["112,75"]
 								}] }
 							],
-							"__worldX": 6528,
-							"__worldY": 2992
+							"__worldX": 6224,
+							"__worldY": 1904
 						},
 						{
 							"__identifier": "Boundary",
@@ -16016,8 +16016,8 @@
 									"params": ["113,35"]
 								}] }
 							],
-							"__worldX": 6640,
-							"__worldY": 2992
+							"__worldX": 6336,
+							"__worldY": 1904
 						},
 						{
 							"__identifier": "Boundary",
@@ -16041,8 +16041,8 @@
 									"params": ["141,34"]
 								}] }
 							],
-							"__worldX": 6640,
-							"__worldY": 2336
+							"__worldX": 6336,
+							"__worldY": 1248
 						},
 						{
 							"__identifier": "Boundary",
@@ -16066,8 +16066,8 @@
 									"params": ["142,47"]
 								}] }
 							],
-							"__worldX": 7104,
-							"__worldY": 2336
+							"__worldX": 6800,
+							"__worldY": 1248
 						},
 						{
 							"__identifier": "Boundary",
@@ -16091,8 +16091,8 @@
 									"params": ["164,48"]
 								}] }
 							],
-							"__worldX": 7104,
-							"__worldY": 2560
+							"__worldX": 6800,
+							"__worldY": 1472
 						},
 						{
 							"__identifier": "Boundary",
@@ -16116,8 +16116,8 @@
 									"params": ["165,58"]
 								}] }
 							],
-							"__worldX": 7472,
-							"__worldY": 2560
+							"__worldX": 7168,
+							"__worldY": 1472
 						},
 						{
 							"__identifier": "Boundary",
@@ -16141,8 +16141,8 @@
 									"params": ["174,59"]
 								}] }
 							],
-							"__worldX": 7472,
-							"__worldY": 2736
+							"__worldX": 7168,
+							"__worldY": 1648
 						},
 						{
 							"__identifier": "Boundary",
@@ -16166,8 +16166,8 @@
 									"params": ["175,10"]
 								}] }
 							],
-							"__worldX": 7632,
-							"__worldY": 2736
+							"__worldX": 7328,
+							"__worldY": 1648
 						},
 						{
 							"__identifier": "Boundary",
@@ -16191,8 +16191,8 @@
 									"params": ["185,9"]
 								}] }
 							],
-							"__worldX": 7632,
-							"__worldY": 1936
+							"__worldX": 7328,
+							"__worldY": 848
 						},
 						{
 							"__identifier": "Breakable",
@@ -16218,8 +16218,8 @@
 								}] },
 								{ "__identifier": "size", "__type": "Int", "__value": 7, "__tile": null, "defUid": 98, "realEditorValues": [{ "id": "V_Int", "params": [7] }] }
 							],
-							"__worldX": 6880,
-							"__worldY": 2272
+							"__worldX": 6576,
+							"__worldY": 1184
 						},
 						{
 							"__identifier": "Breakable",
@@ -16245,8 +16245,392 @@
 								}] },
 								{ "__identifier": "size", "__type": "Int", "__value": 8, "__tile": null, "defUid": 98, "realEditorValues": [{ "id": "V_Int", "params": [8] }] }
 							],
-							"__worldX": 7168,
-							"__worldY": 2336
+							"__worldX": 6864,
+							"__worldY": 1248
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,45],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "16fe89e0-e920-11ef-a89c-516ff2274033",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,720],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1424
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,44],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "172d6210-e920-11ef-a89c-f5fcb93bf654",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,704],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1408
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,43],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "175a1760-e920-11ef-a89c-43ee9dca8934",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,688],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1392
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,42],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "178d0e40-e920-11ef-a89c-3bafad0b62cc",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,672],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1376
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,41],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "17b7c7c0-e920-11ef-a89c-b999e5d979b1",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,656],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1360
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,40],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "17e47d10-e920-11ef-a89c-4d791b1489d9",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,640],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1344
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,39],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "18118080-e920-11ef-a89c-3f1c8e3506ac",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,624],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1328
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,37],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "183e0ec0-e920-11ef-a89c-939f04a831d1",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,592],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1296
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,38],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "18a7f420-e920-11ef-a89c-6dc93c554814",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,608],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1312
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,36],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "18dce6d0-e920-11ef-a89c-ef2e08e614c6",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,576],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1280
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,35],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "1905a480-e920-11ef-a89c-9d66ce4bbdc4",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,560],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1264
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,34],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "1932a7f0-e920-11ef-a89c-4d1db2f4ab3f",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,544],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1248
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,32],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "195d1350-e920-11ef-a89c-f5f93b52a157",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,512],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1216
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,33],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "19ac92e0-e920-11ef-a89c-55aa78c683b0",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,528],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1232
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,31],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "19df62b0-e920-11ef-a89c-4bc1607d6eb6",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,496],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1200
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,29],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "1a0e3ae0-e920-11ef-a89c-71c3b8f170be",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,464],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1168
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,30],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "1a784750-e920-11ef-a89c-5f68caa8ec8a",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,480],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1184
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,28],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "1aacebe0-e920-11ef-a89c-bf04fd974069",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,448],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1152
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,27],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "1adbc410-e920-11ef-a89c-db20e888097e",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,432],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1136
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,26],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "1b0ebaf0-e920-11ef-a89c-c94e7ded09ee",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,416],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1120
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,25],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "1b3d6c10-e920-11ef-a89c-13e3865d2bb9",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,400],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1104
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,24],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "1b6a4870-e920-11ef-a89c-bd98218184b8",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,384],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1088
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,23],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "1b9d1840-e920-11ef-a89c-a768935d15a8",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,368],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1072
+						},
+						{
+							"__identifier": "PartOf",
+							"__grid": [101,22],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E8948",
+							"iid": "1bcdec40-e920-11ef-a89c-b5cf26484002",
+							"width": 16,
+							"height": 16,
+							"defUid": 88,
+							"px": [1616,352],
+							"fieldInstances": [],
+							"__worldX": 6144,
+							"__worldY": 1056
 						}
 					]
 				},
@@ -16260,7 +16644,7 @@
 					"__pxTotalOffsetX": 0,
 					"__pxTotalOffsetY": 0,
 					"__tilesetDefUid": 1,
-					"__tilesetRelPath": "../aseprite/Timelock/tilesets/props-tileset.png",
+					"__tilesetRelPath": "props-tileset.png",
 					"iid": "2f5c39d2-e920-11ef-943c-b18b064feb6c",
 					"levelId": 93,
 					"layerDefUid": 5,
@@ -16345,18 +16729,15 @@
 						{ "px": [832,1104], "src": [0,0], "f": 0, "t": 0, "d": [12886], "a": 1 },
 						{ "px": [848,1104], "src": [16,0], "f": 0, "t": 1, "d": [12887], "a": 1 },
 						{ "px": [864,1104], "src": [16,0], "f": 0, "t": 1, "d": [12888], "a": 1 },
-						{ "px": [880,1104], "src": [16,0], "f": 0, "t": 1, "d": [12889], "a": 1 },
-						{ "px": [896,1104], "src": [32,0], "f": 0, "t": 2, "d": [12890], "a": 1 },
+						{ "px": [880,1104], "src": [32,0], "f": 0, "t": 2, "d": [12889], "a": 1 },
 						{ "px": [1008,1104], "src": [0,0], "f": 0, "t": 0, "d": [12897], "a": 1 },
 						{ "px": [1024,1104], "src": [16,0], "f": 0, "t": 1, "d": [12898], "a": 1 },
 						{ "px": [1040,1104], "src": [16,0], "f": 0, "t": 1, "d": [12899], "a": 1 },
-						{ "px": [1056,1104], "src": [16,0], "f": 0, "t": 1, "d": [12900], "a": 1 },
-						{ "px": [1072,1104], "src": [32,0], "f": 0, "t": 2, "d": [12901], "a": 1 },
+						{ "px": [1056,1104], "src": [32,0], "f": 0, "t": 2, "d": [12900], "a": 1 },
 						{ "px": [1328,1104], "src": [0,0], "f": 0, "t": 0, "d": [12917], "a": 1 },
 						{ "px": [1344,1104], "src": [16,0], "f": 0, "t": 1, "d": [12918], "a": 1 },
 						{ "px": [1360,1104], "src": [16,0], "f": 0, "t": 1, "d": [12919], "a": 1 },
-						{ "px": [1376,1104], "src": [16,0], "f": 0, "t": 1, "d": [12920], "a": 1 },
-						{ "px": [1392,1104], "src": [32,0], "f": 0, "t": 2, "d": [12921], "a": 1 }
+						{ "px": [1376,1104], "src": [32,0], "f": 0, "t": 2, "d": [12920], "a": 1 }
 					],
 					"entityInstances": []
 				},
@@ -16370,7 +16751,7 @@
 					"__pxTotalOffsetX": 0,
 					"__pxTotalOffsetY": 0,
 					"__tilesetDefUid": 2,
-					"__tilesetRelPath": "../aseprite/Timelock/tilesets/floors-tileset.png",
+					"__tilesetRelPath": "floors-tileset.png",
 					"iid": "2f5c39d3-e920-11ef-943c-29b0a50e053e",
 					"levelId": 93,
 					"layerDefUid": 4,

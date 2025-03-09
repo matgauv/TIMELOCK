@@ -53,7 +53,7 @@ void WorldSystem::init(GLFWwindow* window) {
 	LevelState& levelState = registry.levelStates.emplace(level_state_entity);
 
 	// This will be the first level we load when the game is started.
-	levelState.curr_level_file_name = "tutorial.json";
+	levelState.curr_level_file_name = "decel_tutorial.json";
 	levelState.shouldLoad = true;
 
 

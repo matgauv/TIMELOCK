@@ -18,8 +18,8 @@ void LevelParsingSystem::step(float elapsed_ms) {
     }
 
     // clear all render requests for tiles
-    while (registry.tiles.entities.size() > 0) {
-        registry.remove_all_components_of(registry.tiles.entities.back());
+    while (registry.renderRequests.entities.size() > 0) {
+        registry.remove_all_components_of(registry.renderRequests.entities.back());
     }
 
     if (!parse_json()) {

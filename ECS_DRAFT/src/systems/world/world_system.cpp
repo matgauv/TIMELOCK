@@ -146,6 +146,31 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 
 		lerpTimeState(start, tc.target_time_control_factor, motion, gameState.time_control_start_time);
+
+		// handles breakable wall degradation here
+		if (registry.breakables.has(entity)) {
+			Breakable& breakable = registry.breakables.get(entity);
+
+			Entity& player_entity = registry.players.entities[0];
+			Motion& player_motion = registry.motions.get(player_entity);
+			Motion& breakable_tc_entity_motion = registry.motions.get(entity);
+
+			if (getDistance(player_motion, breakable_tc_entity_motion) <= TIME_CONTROL_VICINITY_THRESHOLD) {
+				// speed up the degrade speed and decrement health
+				std::cout << "Player is close enough to the breakable platform" << std::endl;
+
+				if (tc.can_be_accelerated && gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED) {
+					std::cout << "Subtracting: " << breakable.degrade_speed_per_ms * tc.target_time_control_factor * elapsed_ms_since_last_update << " health from breakable platform" << std::endl;
+					breakable.health += breakable.degrade_speed_per_ms * tc.target_time_control_factor * elapsed_ms_since_last_update;
+				}
+			}
+
+			std::cout << "Breakable platform has " << breakable.health << " health left" << std::endl;
+
+			if (breakable.health <= 0.f) {
+				registry.remove_all_components_of(entity);
+			}
+		}
 	}
 
 	// Can potentially remove

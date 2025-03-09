@@ -23,10 +23,17 @@ void demo_level() {
     create_background({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::METAL_BACKGROUND);
     create_foreground({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
 
-    float boltsize = 75.f;
-    create_bolt({ 325.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
-    create_bolt({ 325.0f, sceneHeight / 2.0f + 300.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
-    create_bolt({ 325.0f, sceneHeight / 2.0f + 150.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+    // float boltsize = 75.f;
+    // create_bolt({ 325.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+    // create_bolt({ 325.0f, sceneHeight / 2.0f + 300.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+    // create_bolt({ 325.0f, sceneHeight / 2.0f + 150.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+
+    // create one non-time-controllable breakable platform
+    float breakable_size = 75.f;
+    create_breakable_static_platform({ 325.0f, sceneHeight / 2.0f + 625.0f }, {breakable_size, breakable_size}, true, 0.0f);
+
+    // create one time-controllable breakable platform
+    create_time_controllable_breakable_static_platform({ 1800.0f, sceneHeight - 100 }, {100.0f, 20.0f}, false, -0.05f);
 
 
     // initial_pos = {0,0};
@@ -44,7 +51,7 @@ void demo_level() {
     create_static_platform({ xStart, sceneHeight}, {500.0f, 100.0f}, false);
     create_spawnpoint({ xStart - 200, sceneHeight - 110 }, SPAWNPOINT_SCALE);
     create_spawnpoint({ xStart + 200, sceneHeight - 110}, SPAWNPOINT_SCALE);
-    create_spawnpoint({ xStart + 1200.0f, sceneHeight - 110 }, SPAWNPOINT_SCALE);
+    create_spawnpoint({ xStart + 1300.0f, sceneHeight - 110 }, SPAWNPOINT_SCALE);
 
     // lil roof to test vertical collisions
     create_static_platform({xStart - 100.0f, sceneHeight - 125.0f}, {100.0f, 20.0f}, false);
@@ -393,4 +400,34 @@ Entity create_spawnpoint(vec2 pos, vec2 size) {
     registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
 
     return entity;
+}
+
+Entity create_breakable_static_platform(vec2 position, vec2 scale, bool should_break_instantly, float degrade_speed, float angle, bool is_time_controllable) {
+    Entity entity = create_static_platform(position, scale, false, angle);
+    Breakable& breakable = registry.breakables.emplace(entity);
+    breakable.health = 1000.f;
+    breakable.degrade_speed_per_ms = degrade_speed;
+    breakable.should_break_instantly = should_break_instantly;
+
+    RenderRequest& renderRequest = registry.renderRequests.get(entity);
+    renderRequest.used_texture = is_time_controllable? TEXTURE_ASSET_ID::OBJECT : TEXTURE_ASSET_ID::GREY_CIRCLE;
+
+    return entity;
+}
+
+Entity create_time_controllable_breakable_static_platform(vec2 position, vec2 scale, bool should_break_instantly, float degrade_speed, float angle) {
+    Entity entity = create_breakable_static_platform(position, scale, should_break_instantly, degrade_speed, angle, true);
+
+    TimeControllable& timeControllable = registry.timeControllables.emplace(entity);
+    timeControllable.can_be_accelerated = true;
+    timeControllable.can_be_decelerated = true;
+    timeControllable.can_become_harmful = false;
+    timeControllable.can_become_harmless = false;
+    timeControllable.target_time_control_factor = 100000.f;
+
+    return entity;
+}
+
+float getDistance(Motion& one, Motion& other) {
+    return sqrt(pow(one.position.x - other.position.x, 2) + pow(one.position.y - other.position.y, 2));
 }

@@ -49,6 +49,9 @@ const float ACCELERATE_FACTOR = 2.0f;
 const float DECELERATE_FACTOR = 0.2f;
 const float NORMAL_FACTOR = 1.0f;
 
+// For Breakable Wall
+const float TIME_CONTROL_VICINITY_THRESHOLD = 150.f;
+
 // TODO: increase these for game...
 const float ACCELERATION_COOLDOWN_MS = 1500.0f;
 const float DECELERATION_COOLDOWN_MS = 1000.0f;

@@ -327,13 +327,24 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 		// 	blocked.normal = collision.normal;
 		// }
 
+		// if player hits a breakable platform
+		if (registry.players.has(one) && registry.breakables.has(other)) {
+			// std::cout << "Player has collided with a breakable platform" << std::endl;
+			handle_player_breakable_collision(one, other, collision);
+		} else if (registry.players.has(other) && registry.breakables.has(one)) {
+			// std::cout << "Player has collided with a breakable platform" << std::endl;
+			handle_player_breakable_collision(other, one, collision);
+		}
+
 		// order here is important so handle both cases sep
 		if (registry.physicsObjects.has(one) && registry.platforms.has(other)) {
 			// std::cout << "  colliding with platform: " << registry.platforms.has(other) << std::endl;
+			// std::cout << "Player has collided with a RIGID breakable platform" << std::endl;
 			handle_object_rigid_collision(one, other, collision, step_seconds, groundedEntities, onMovingPlatform);
 		} else if (registry.physicsObjects.has(other) && registry.platforms.has(one)) {
 			// std::cout << "  colliding with platform: " << registry.platforms.has(one) << std::endl;
 		//	collision.overlap *= -1; //swap sides since coll is from perspective of one (left<->right) (top <-> bottom)
+			// std::cout << "Player has collided with a RIGID breakable platform" << std::endl;
 			handle_object_rigid_collision(other, one, collision, step_seconds, groundedEntities, onMovingPlatform);
 		}
 
@@ -647,4 +658,19 @@ float PhysicsSystem::clampToTarget(float value, float change, float target) {
 // Helper function to check if an entity id is within a vector.
 bool PhysicsSystem::in(std::vector<unsigned int> vec, unsigned int id) {
 	return std::find(vec.begin(), vec.end(), id) != vec.end();
+}
+
+void PhysicsSystem::handle_player_breakable_collision(Entity& player_entity, Entity& breakable_entity, Collision collision) {
+	Breakable& breakable = registry.breakables.get(breakable_entity);
+
+	if (breakable.should_break_instantly) {
+
+		assert(registry.gameStates.components.size() <= 1);
+		GameState& gameState = registry.gameStates.components[0];
+
+		if (gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED) {
+			std::cout << "The breakable platform is instantly breakable!" << std::endl;
+			registry.remove_all_components_of(breakable_entity);
+		}
+	}
 }

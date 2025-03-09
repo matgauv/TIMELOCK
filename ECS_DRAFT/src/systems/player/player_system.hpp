@@ -4,22 +4,27 @@
 #include "../../tinyECS/component_container.hpp"
 #include "../../tinyECS/components.hpp"
 #include "../../tinyECS/registry.hpp"
+
 #include "systems/ISystem.hpp"
 
-// Camera System which follows specified Motion target
-class CameraSystem : public ISystem
+// Player System; manages Player statistics
+class PlayerSystem : public ISystem
 {
 public:
 	void init(GLFWwindow* window) override;
 	void step(float elapsed_ms) override;
 	void late_step(float elapsed_ms) override;
 
-	CameraSystem()
+	void set_spawnpoint(vec2 spawnpoint);
+	void static kill();
+	void static set_walking(bool is_left);
+	void static set_standing(bool is_left);
+
+	PlayerSystem()
 	{
 	}
 private:
 	GLFWwindow* window = nullptr;
 
-	void follow(Motion& cam_motion, vec2 target);
-	void reset(Motion& cam_motion, vec2 target);
+	void static player_respawn();
 };

@@ -19,3 +19,4 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 init
 Entity create_projectile(vec2 pos, vec2 size, vec2 velocity);
 Entity create_bolt(vec2 pos, vec2 size, vec2 velocity);
 Entity create_first_boss();
+Entity create_spawnpoint(vec2 pos, vec2 size);

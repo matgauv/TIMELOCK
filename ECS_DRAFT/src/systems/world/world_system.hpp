@@ -71,6 +71,11 @@ private:
 	// restart level
 	void restart_game();
 
+	// Player kill and respawn
+	void check_player_killed();
+
+	void check_scene_transition();
+
 	// GameState entity
 	Entity game_state_entity;
 

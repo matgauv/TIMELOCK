@@ -40,6 +40,8 @@ public:
 	ComponentContainer<Boss> bosses;
 	ComponentContainer<PhysicsObject> physicsObjects;
 	ComponentContainer<Boundary> boundaries;
+	ComponentContainer<SpawnPoint> spawnPoints;
+
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -73,6 +75,7 @@ public:
 		registry_list.push_back(&bosses);
 		registry_list.push_back(&physicsObjects);
 		registry_list.push_back(&boundaries);
+		registry_list.push_back(&spawnPoints);
 	}
 
 	void clear_all_components() {

@@ -30,8 +30,9 @@ void demo_level() {
     //
     //
     // // initial_pos = {0,0};
-    // create_player(initial_pos, {50.0f, 50.0f});
+    // create_player(initial_pos, PLAYER_SCALE);
     // create_camera(initial_pos, { 1.0f, 1.0f }); // TODO: potential open-scene zoom in
+    //
     //
     // // level boundaries
     // create_static_platform({boundaryWidth/2.0f, 0.0f}, {boundaryWidth, 1.0f}, true);
@@ -41,6 +42,9 @@ void demo_level() {
     //
     // // starting platform
     // create_static_platform({ xStart, sceneHeight}, {500.0f, 100.0f}, false);
+    // create_spawnpoint({ xStart - 200, sceneHeight - 110 }, SPAWNPOINT_SCALE);
+    // create_spawnpoint({ xStart + 200, sceneHeight - 110}, SPAWNPOINT_SCALE);
+    // create_spawnpoint({ xStart + 1200.0f, sceneHeight - 110 }, SPAWNPOINT_SCALE);
     //
     // // lil roof to test vertical collisions
     // create_static_platform({xStart - 100.0f, sceneHeight - 125.0f}, {100.0f, 20.0f}, false);
@@ -78,12 +82,14 @@ void demo_level() {
     //
     // create_static_platform({ xStart + 2950.0f, sceneHeight - 600.0f}, {500.0f, 100.0f}, false);
     // create_static_platform({ xStart + 2950.0f - 250.0f - 125.0f, sceneHeight - 600.0f - 50.0f + 5.0f}, {250.0f, 10.0f}, false);
+
 }
 
 Entity create_player(vec2 position, vec2 scale) {
     Entity entity = Entity();
 
-    registry.players.emplace(entity);
+    Player &player = registry.players.emplace(entity);
+    player.spawn_point = position;
 
     PhysicsObject& object = registry.physicsObjects.emplace(entity);
     object.mass = 15.0f;
@@ -379,6 +385,28 @@ Entity create_first_boss() {
             GEOMETRY_BUFFER_ID::SPRITE
         }
     );
+
+    return entity;
+}
+
+Entity create_spawnpoint(vec2 pos, vec2 size) {
+    Entity entity = Entity();
+
+    SpawnPoint& spawnpoint = registry.spawnPoints.emplace(entity);
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = pos;
+    motion.scale = size;
+
+    registry.renderRequests.insert(
+        entity,
+        {
+            TEXTURE_ASSET_ID::SPAWNPOINT_UNVISITED,
+            EFFECT_ASSET_ID::TEXTURED,
+            GEOMETRY_BUFFER_ID::SPRITE
+        }
+    );
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
 
     return entity;
 }

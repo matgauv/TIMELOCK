@@ -16,15 +16,43 @@ enum class TIME_CONTROL_STATE {
 	DECELERATED = ACCELERATED + 1
 };
 
+enum class SCENE_TRANSITION_STATE {
+	TRANSITION_OUT = 0,
+	TRANSITION_IN = TRANSITION_OUT + 1
+};
+
 enum class BOSS_ID {
 	FIRST = 0,
 	SECOND = FIRST + 1,
 	FINAL = SECOND + 1
 };
 
+enum class SPAWN_POINT_STATE {
+	UNVISITED = 0,
+	VISITED = UNVISITED + 1,
+	ACTIVE = VISITED + 1
+};
+
+enum class PLAYER_STATE {
+	// TODO: expand this to all possible states and transfer control to player system
+	RESPAWNED = 0,
+	ALIVE = RESPAWNED + 1,
+	DEAD = ALIVE + 1
+};
+
 // Player component
 struct Player
 {
+	vec2 spawn_point;
+	float timer = 0.0;
+	// Consider expanding the fields with a state variable (idle, walking, in air, dead, etc.)
+	PLAYER_STATE state = PLAYER_STATE::ALIVE;
+	// Potentially transfer acceleration/deceleration controls to Player as well
+};
+
+struct SpawnPoint
+{
+	SPAWN_POINT_STATE state = SPAWN_POINT_STATE::UNVISITED;
 };
 
 // Platform component
@@ -135,12 +163,14 @@ struct ScreenState
 {
 	float acceleration_factor = -1.0;
 	float deceleration_factor = -1.0;
+	float scene_transition_factor = -1.0;
 };
 
 // A struct that includes the necessary properties of the current game state
 struct GameState {
 	GAME_RUNNING_STATE game_running_state = GAME_RUNNING_STATE::RUNNING;
 	TIME_CONTROL_STATE game_time_control_state = TIME_CONTROL_STATE::NORMAL;
+	SCENE_TRANSITION_STATE game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
 	float accelerate_cooldown_ms = 0.f;
 	float decelerate_cooldown_ms = 0.f;
 	float time_until_alarm_clock_ms = 300000.0f; // 5 minutes
@@ -268,18 +298,22 @@ enum class TEXTURE_ASSET_ID {
 	BLACK = 0,
 	GREY_CIRCLE = BLACK + 1,
 	SAMPLE_BACKGROUND = GREY_CIRCLE + 1,
-	SAMPLE_PLAYER_WALKING = SAMPLE_BACKGROUND + 1,
-	SAMPLE_PLAYER_STANDING = SAMPLE_PLAYER_WALKING + 1,
-	PLAYER_WALKING_V1 = SAMPLE_PLAYER_STANDING + 1,
+	PLAYER_WALKING_V1 = SAMPLE_BACKGROUND + 1,
 	PLAYER_STANDING_V1 = PLAYER_WALKING_V1 + 1,
-	SAMPLE_PROJECTILE = PLAYER_STANDING_V1 + 1,
+	PLAYER_KILL = PLAYER_STANDING_V1 + 1,
+	PLAYER_RESPAWN = PLAYER_KILL + 1,
+	SAMPLE_PROJECTILE = PLAYER_RESPAWN + 1,
 	OBJECT = SAMPLE_PROJECTILE + 1,
 	BOUNDARY = OBJECT + 1,
 	GEARS_BACKGROUND = BOUNDARY + 1,
 	METAL_BACKGROUND = GEARS_BACKGROUND + 1,
 	CHAIN_BACKGROUND = METAL_BACKGROUND + 1,
 	HEX = CHAIN_BACKGROUND + 1,
-	TEXTURE_COUNT = HEX + 1
+	SPAWNPOINT_UNVISITED = HEX + 1,
+	SPAWNPOINT_ACTIVATE = SPAWNPOINT_UNVISITED + 1,
+	SPAWNPOINT_DEACTIVATE = SPAWNPOINT_ACTIVATE + 1,
+	SPAWNPOINT_REACTIVATE = SPAWNPOINT_DEACTIVATE + 1,
+	TEXTURE_COUNT = SPAWNPOINT_REACTIVATE + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -305,7 +339,12 @@ const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 enum class ANIMATION_ID {
 	PLAYER_WALKING = 0,
 	PLAYER_STANDING = PLAYER_WALKING + 1,
-	ANIMATION_COUNT = PLAYER_STANDING + 1
+	PLAYER_KILL = PLAYER_STANDING + 1,
+	PLAYER_RESPAWN = PLAYER_KILL + 1,
+	SPAWNPOINT_ACTIVATE = PLAYER_RESPAWN + 1,
+	SPAWNPOINT_DEACTIVATE = SPAWNPOINT_ACTIVATE + 1,
+	SPAWNPOINT_REACTIVATE = SPAWNPOINT_DEACTIVATE + 1,
+	ANIMATION_COUNT = SPAWNPOINT_REACTIVATE + 1
 };
 const int animation_count = (int)ANIMATION_ID::ANIMATION_COUNT;
 

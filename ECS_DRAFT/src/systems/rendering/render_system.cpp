@@ -230,6 +230,10 @@ void RenderSystem::drawToScreen()
 	GLuint acc_emerge_fac_uloc = glGetUniformLocation(screen_shader_program, "acc_emerge_factor");
 	GLuint dec_emerge_fac_uloc = glGetUniformLocation(screen_shader_program, "dec_emerge_factor");
 
+	GLuint transition_fac_uloc = glGetUniformLocation(screen_shader_program, "transition_factor");
+	GLuint focal_point_uloc = glGetUniformLocation(screen_shader_program, "focal_point");
+	GLuint aspect_ratio_uloc = glGetUniformLocation(screen_shader_program, "aspect_ratio");
+
 	GLuint time_uloc = glGetUniformLocation(screen_shader_program, "time");
 
 	glUniform1f(time_uloc, (float)(glfwGetTime() * 1000.0f));
@@ -242,6 +246,23 @@ void RenderSystem::drawToScreen()
 
 	glUniform1f(acc_emerge_fac_uloc, ACCELERATION_EMERGE_MS/ACCELERATION_DURATION_MS);
 	glUniform1f(dec_emerge_fac_uloc, DECELERATION_EMERGE_MS/DECELERATION_DURATION_MS);
+	gl_has_errors();
+
+	// TODO
+	glUniform1f(transition_fac_uloc, screen.scene_transition_factor);
+	
+	const Entity player_entity = registry.players.entities[0];
+	const Motion& motion = registry.motions.get(player_entity);
+	vec3 augmeted_player_pos = vec3{motion.position.x, motion.position.y, 1.0f};
+	vec3 canonical_player_pos = this->projection_matrix * augmeted_player_pos;
+	
+	float focal_point[2] = {
+		(canonical_player_pos[0] + 1.0f) / 2.0f,
+		(canonical_player_pos[1] + 1.0f) / 2.0f
+	};
+	glUniform2fv(focal_point_uloc, 1, focal_point);
+
+	glUniform1f(aspect_ratio_uloc, ((float)WINDOW_WIDTH_PX) / WINDOW_HEIGHT_PX);
 	gl_has_errors();
 
 	// Set the vertex position and vertex texture coordinates (both stored in the
@@ -273,8 +294,26 @@ void RenderSystem::step(float elapsed_ms) {
 	GameState& gameState = registry.gameStates.components[0];
 	ScreenState& screen = registry.screenStates.get(screen_state_entity);
 
+	// Acceleration & Deceleration
 	updateDecelerationFactor(gameState, screen, elapsed_ms);
 	updateAccelerationFactor(gameState, screen, elapsed_ms);
+
+
+	// Scene Transition
+	// Can extend to enter/exit scenes
+	if (gameState.game_scene_transition_state == SCENE_TRANSITION_STATE::TRANSITION_OUT) {
+		if (screen.scene_transition_factor < 1.0) {
+			screen.scene_transition_factor = max(0.0f, screen.scene_transition_factor) + elapsed_ms/DEAD_REVIVE_TIME_MS;
+		}
+	} else {
+		if (screen.scene_transition_factor > 0.0) {
+			screen.scene_transition_factor = min(1.0f, screen.scene_transition_factor) - elapsed_ms / DEAD_REVIVE_TIME_MS;
+
+			if (screen.scene_transition_factor <= 0.0) {
+				screen.scene_transition_factor = -1.0;
+			}
+		}
+	}
 }
 
 void RenderSystem::updateDecelerationFactor(GameState& gameState, ScreenState& screen, float elapsed_ms)
@@ -312,6 +351,7 @@ void RenderSystem::updateAccelerationFactor(GameState& gameState, ScreenState& s
 }
 
 void RenderSystem::late_step(float elapsed_ms) {
+	this->projection_matrix = createProjectionMatrix();
 	draw();
 };
 
@@ -343,7 +383,6 @@ void RenderSystem::draw()
 							  // sprites back to front
 	gl_has_errors();
 
-	mat3 projection_2D = createProjectionMatrix();
 
 	// draw all entities with a render request to the frame buffer
 	// Assort rendering tasks according to layers
@@ -375,7 +414,14 @@ void RenderSystem::draw()
 				foregrounds.push_back(entity);
 				break;
 			case LAYER_ID::MIDGROUND:
-				midgrounds.push_back(entity);
+				// Render Player last?
+				// TODO: may need to adjust rendering order for spawn points and interactive objects as well?
+				if (registry.spawnPoints.has(entity)) {
+					midgrounds.insert(midgrounds.begin(), entity);
+				}
+				else {
+					midgrounds.push_back(entity);
+				}
 				break;
 			case LAYER_ID::PARALLAXBACKGROUND:
 				parallaxbackgrounds.push_back(entity);
@@ -390,22 +436,23 @@ void RenderSystem::draw()
 
 	for (Entity entity : parallaxbackgrounds)
 	{
-		drawTexturedMesh(entity, projection_2D);
+		drawTexturedMesh(entity, this->projection_matrix);
 	}
 
 	for (Entity entity : backgrounds)
 	{
-		drawTexturedMesh(entity, projection_2D);
+		drawTexturedMesh(entity, this->projection_matrix);
 	}
+
 
 	for (Entity entity : midgrounds)
 	{
-		drawTexturedMesh(entity, projection_2D);
+		drawTexturedMesh(entity, this->projection_matrix);
 	}
 
 	for (Entity entity : foregrounds)
 	{
-		drawTexturedMesh(entity, projection_2D);
+		drawTexturedMesh(entity, this->projection_matrix);
 	}
 
 	/*
@@ -415,7 +462,7 @@ void RenderSystem::draw()
 		if (registry.motions.has(entity)) {
 			// Note, its not very efficient to access elements indirectly via the entity
 			// albeit iterating through all Sprites in sequence. A good point to optimize
-			drawTexturedMesh(entity, projection_2D);
+			drawTexturedMesh(entity, this->projection_matrix );
 		}
 	}
 	*/

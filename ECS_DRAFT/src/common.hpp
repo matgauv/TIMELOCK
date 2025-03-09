@@ -36,7 +36,13 @@ inline std::string mesh_path(const std::string& name) {return data_path() + "/me
 const int WINDOW_WIDTH_PX = 1280;
 const int WINDOW_HEIGHT_PX = 720;
 
+// FPS Counter Update Period
 const float FPS_COUNTER_UPDATE_PERIOD_MS = 1000.0f;
+
+// Spawn Points
+const float SPAWNPOINT_DETECTION_RANGE = 80.0;
+const float SPAWNPOINT_CHARGE_TIME_MS = 500.0;
+const vec2 SPAWNPOINT_SCALE = { 60, 120 };
 
 // TIME CONTROL
 const float ACCELERATE_FACTOR = 2.0f;
@@ -70,10 +76,14 @@ const float DEFAULT_MASS = 1.0f;
 const float PLATFORM_SLIP_ANGLE = 45.0f;
 const float PLAYER_MAX_WALK_ANGLE = 45.0f;
 
+// Player Statistics
+const vec2 PLAYER_SCALE = { 50.0f, 50.0f };
 const float PLAYER_MAX_FALLING_SPEED = 1000.0f;
 const float PLAYER_MAX_WALKING_SPEED = 300.0f;
 
 const float PLAYER_WALK_ACCELERATION = 900.0f;
+
+const float DEAD_REVIVE_TIME_MS = 500.0f;
 
 // Fore, mid, background Depths; used for scaling only
 const float FOREGROUND_DEPTH = 0.5f;

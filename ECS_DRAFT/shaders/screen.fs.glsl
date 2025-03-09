@@ -5,9 +5,14 @@ uniform float acc_act_factor;
 uniform float acc_emerge_factor;
 uniform float dec_act_factor;
 uniform float dec_emerge_factor;
-in vec2 texcoord;
+
+uniform float transition_factor;
+uniform vec2 focal_point; // [0, 1]
+uniform float aspect_ratio;
 
 uniform float time;
+
+in vec2 texcoord;
 
 layout(location = 0) out vec4 color;
 
@@ -58,6 +63,26 @@ vec4 apply_acc_effect(vec4 in_color)
 		min(1.0, in_color.a + transparency_factor));
 }
 
+
+vec4 apply_transition_effect(vec4 in_color) {
+	// float pixel_width = 
+	vec2 focal_adjusted = vec2(aspect_ratio * focal_point.x, focal_point.y);
+	vec2 uv_adjusted = vec2(aspect_ratio * texcoord.x, texcoord.y);
+	vec2 disp = focal_adjusted - uv_adjusted;
+
+	// Square of diagonal length
+	float refined_factor = (1.0 - transition_factor) * (1.0 - transition_factor);
+	float threshold_squared = refined_factor * refined_factor * (aspect_ratio * aspect_ratio + 1.0);
+	
+	if (disp.x*disp.x + disp.y * disp.y > threshold_squared) {
+		return vec4(0.0, 0.0, 0.0, in_color.a);
+	}
+	else {
+		return in_color;
+	}
+}
+
+
 void main()
 {
     vec4 in_color = texture(screen_texture, texcoord);
@@ -71,4 +96,7 @@ void main()
 		color = apply_dec_effect(color);
 	}
 
+	if (transition_factor > 0) {
+		color = apply_transition_effect(color);
+	}
 }

@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "../physics/physics_system.hpp"
+#include "../player/player_system.hpp"
 
 // create the world
 WorldSystem::WorldSystem()
@@ -107,6 +108,10 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Update info on acceleration and deceleration duration and deactivate if needed
 	assert(registry.gameStates.components.size() <= 1);
+
+	check_player_killed();
+	check_scene_transition();
+
 	GameState& gameState = registry.gameStates.components[0];
 	auto now = std::chrono::high_resolution_clock::now();
 
@@ -143,8 +148,38 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 		lerpTimeState(start, tc.target_time_control_factor, motion, gameState.time_control_start_time);
 	}
 
+	// Can potentially remove
 	if (gameState.game_running_state == GAME_RUNNING_STATE::SHOULD_RESET) {
 		restart_game();
+	}
+}
+
+void WorldSystem::check_player_killed() {
+	const Player& player = registry.players.components[0];
+	GameState& gameState = registry.gameStates.components[0];
+
+	// Disable time control during dead & respawn
+	if (player.state == PLAYER_STATE::DEAD || player.state == PLAYER_STATE::RESPAWNED) {
+		if (gameState.game_time_control_state != TIME_CONTROL_STATE::NORMAL) {
+			control_time(false, false);
+		}
+	}
+}
+
+void WorldSystem::check_scene_transition() {
+	const Player& player = registry.players.components[0];
+	GameState& gameState = registry.gameStates.components[0];
+	ScreenState& screenState = registry.screenStates.components[0];
+
+	if ((player.state == PLAYER_STATE::DEAD && gameState.game_scene_transition_state != SCENE_TRANSITION_STATE::TRANSITION_OUT)) {
+		// Conditions for start transition out
+
+		gameState.game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_OUT;
+		screenState.scene_transition_factor = 0.0f;
+	}
+	else if ((player.state != PLAYER_STATE::DEAD && gameState.game_scene_transition_state == SCENE_TRANSITION_STATE::TRANSITION_OUT)) {
+		// Conditions for start transition in
+		gameState.game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
 	}
 }
 
@@ -198,6 +233,7 @@ void WorldSystem::restart_game() {
 	gameState.decelerate_cooldown_ms = 0.f;
 	gameState.game_time_control_state = TIME_CONTROL_STATE::NORMAL;
 	gameState.game_running_state = GAME_RUNNING_STATE::RUNNING;
+	gameState.game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
 	gameState.time_control_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
 	gameState.is_in_boss_fight = 0;
 
@@ -306,25 +342,14 @@ void WorldSystem::player_walking(bool walking, bool is_left) {
 			walking_component.is_left = is_left;
 		}
 
-
-		// TODO: this might not be the best approach to flip Player sprite;
-		// Could potentially isolate all Player-related properties into Player component, and update Player system accordingly
-		if (registry.renderRequests.has(player)) {
-			registry.renderRequests.get(player).flipped = is_left;
-		}
-
-		if (registry.animateRequests.has(player)) {
-			registry.animateRequests.get(player).used_animation = ANIMATION_ID::PLAYER_WALKING;
-		}
+		PlayerSystem::set_walking(is_left);
 	} else {
 		if (registry.walking.has(player)) {
 			Walking& walking_component = registry.walking.get(player);
 			// if current walking component is in the direction of this player walk stop call, remove it and stop walking
 			if (walking_component.is_left == is_left) {
 				registry.walking.remove(player);
-				if (registry.animateRequests.has(player)) {
-					registry.animateRequests.get(player).used_animation = ANIMATION_ID::PLAYER_STANDING;
-				}
+				PlayerSystem::set_standing(is_left);
 			}
 		}
 	}
@@ -371,6 +396,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				debugging.in_debug_mode = true;
 			}
 		}
+	}
+
+	// The following actions only available when player is alive
+	// Could extend to case of game pause
+	const Player& player = registry.players.components[0];
+	if (player.state != PLAYER_STATE::ALIVE) {
+		return;
 	}
 
 	GameState& gameState = registry.gameStates.components[0];

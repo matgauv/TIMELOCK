@@ -1,5 +1,6 @@
 #include "canon_tower_utils.hpp"
 #include <glm/trigonometric.hpp>
+#include <iostream>
 
 void canon_tower_step(float elapsed_ms) {
 	for (int i = 0; i < registry.canonTowers.size(); i++) {
@@ -41,7 +42,7 @@ void canon_tower_step(float elapsed_ms) {
 		float c_a = cos(barrel.angle);
 		barrel_motion.position =
 			tower_motion.position +
-			0.5f * CANON_BARREL_SIZE[0] * vec2{c_a, s_a};
+			0.5f * barrel_motion.scale[0] * vec2{c_a, s_a};
 	}
 }
 
@@ -70,7 +71,8 @@ void aiming_step(Entity tower_entity, CanonTower& tower, float elapsed_ms) {
 	// TODO: aim the barrel in a more natural way
 	// TODO: allow arbitrary orientation of the tower
 
-	if (tower.timer >= 0.2f * CANON_TOWER_AIM_TIME_MS) {
+	// Aim
+	if (tower.timer >= 0.15f * CANON_TOWER_AIM_TIME_MS) {
 		Entity player_entity = registry.players.entities[0];
 		const Motion& player_motion = registry.motions.get(player_entity);
 
@@ -87,13 +89,44 @@ void aiming_step(Entity tower_entity, CanonTower& tower, float elapsed_ms) {
 			barrel.angle = atan2f(disp[1], disp[0]);
 		}
 	}
+	else {
+		// load & fire
+		Motion& barrel_motion = registry.motions.get(tower.barrel_entity);
+
+		// (1-t)^3
+		float t = 1.0f - tower.timer / (0.15f * CANON_TOWER_AIM_TIME_MS);
+		float lerp_factor = (1.0f - t) * (1.0f - t) * (1.0f - t);
+		barrel_motion.scale = CANON_BARREL_SIZE * (vec2{ 1.0f, 1.0f } * lerp_factor + vec2{ 0.6f, 1.6f } * (1.0f - lerp_factor));
+	}
 }
 
 // Currently more like a cooldown state
 void firing_step(Entity tower_entity, CanonTower& tower, float elapsed_ms) {
+	Motion& barrel_motion = registry.motions.get(tower.barrel_entity);
 	if (tower.timer <= 0) {
 		tower.state = CANON_TOWER_STATE::IDLE;
 		tower.timer = 0;
+		barrel_motion.scale = CANON_BARREL_SIZE;
+	}
+
+	if (tower.timer > 0.9f * CANON_TOWER_FIRE_TIME_MS) {
+		// Thrust
+
+		// (x-1)^4
+		float t = 1.0f - (tower.timer - 0.9f * CANON_TOWER_FIRE_TIME_MS) / (0.1f * CANON_TOWER_FIRE_TIME_MS);
+		float lerp_factor = (t - 1.0f) * (t - 1.0f)* (t - 1.0f)* (t - 1.0f);
+		barrel_motion.scale = CANON_BARREL_SIZE * (
+			vec2{ 0.6f, 1.6f } * lerp_factor + vec2{ 1.4f, 0.7f } *(1.0f - lerp_factor));
+
+	}
+	else {
+		// Recoil
+		
+		// (t-1)^2
+		float t = 1.0f - tower.timer / (0.9f * CANON_TOWER_FIRE_TIME_MS);
+		float lerp_factor = (t - 1.0f) * (t - 1.0f);
+		barrel_motion.scale = CANON_BARREL_SIZE * (
+			vec2{ 1.4f, 0.7f } * lerp_factor + vec2{ 1.0f, 1.0f } * (1.0f - lerp_factor));
 	}
 }
 
@@ -111,12 +144,16 @@ bool player_detected(Entity tower_entity, CanonTower& tower) {
 
 void canon_fire(Entity tower_entity, float angle) {
 	// Currently a copy of create bolt
+	CanonTower& tower = registry.canonTowers.get(tower_entity);
+	Motion& barrel_motion = registry.motions.get(tower.barrel_entity);
 
 	auto entity = Entity();
+
+	vec2 dir = vec2{ cos(angle), sin(angle) };
 	Motion& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = CANON_PROJECTILE_SPEED * vec2{cos(angle), sin(angle)};
-	motion.position = registry.motions.get(tower_entity).position;
+	motion.velocity = CANON_PROJECTILE_SPEED * dir;
+	motion.position = registry.motions.get(tower_entity).position + dir * barrel_motion.scale.x;
 	motion.scale = CANON_PROJECTILE_SIZE;
 
 	Blocked& blocked = registry.blocked.emplace(entity);

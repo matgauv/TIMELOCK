@@ -1,6 +1,7 @@
 #include "canon_tower_utils.hpp"
 #include <glm/trigonometric.hpp>
 #include <iostream>
+#include <cmath>
 
 void canon_tower_step(float elapsed_ms) {
 	for (int i = 0; i < registry.canonTowers.size(); i++) {
@@ -82,11 +83,27 @@ void aiming_step(Entity tower_entity, CanonTower& tower, float elapsed_ms) {
 
 
 		CanonBarrel& barrel = registry.canonBarrels.get(tower.barrel_entity);
-		if (glm::length(disp) == 0.0f) {
-			barrel.angle = 0.0f;
+		float target_angle = 0.0f;
+		if (glm::length(disp) > 0.0f) {
+			target_angle = atan2f(disp[1], disp[0]);
+		}
+
+		float turn = elapsed_ms / 1000.0 * CANON_TURN_SPEED;
+		if (abs(barrel.angle - target_angle) <= turn ||
+			abs(barrel.angle - target_angle + 2.0f * M_PI) <= turn ||
+			abs(barrel.angle - target_angle - 2.0f * M_PI) <= turn) {
+			barrel.angle = target_angle;
 		}
 		else {
-			barrel.angle = atan2f(disp[1], disp[0]);
+			turn *= (
+				abs(barrel.angle - target_angle) > M_PI ?
+				(barrel.angle > target_angle ? 1 : -1) :
+				(barrel.angle > target_angle ? -1 : 1));
+
+			barrel.angle = fmod(barrel.angle + turn, 2.0f * M_PI);
+			if (barrel.angle < 0) {
+				barrel.angle += 2.0f * M_PI;
+			}
 		}
 	}
 	else {
@@ -145,34 +162,33 @@ bool player_detected(Entity tower_entity, CanonTower& tower) {
 void canon_fire(Entity tower_entity, float angle) {
 	// Currently a copy of create bolt
 	CanonTower& tower = registry.canonTowers.get(tower_entity);
-	Motion& barrel_motion = registry.motions.get(tower.barrel_entity);
 
-	auto entity = Entity();
+	auto proj_entity = Entity();
 
-	vec2 dir = vec2{ cos(angle), sin(angle) };
-	Motion& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = CANON_PROJECTILE_SPEED * dir;
-	motion.position = registry.motions.get(tower_entity).position + dir * barrel_motion.scale.x;
-	motion.scale = CANON_PROJECTILE_SIZE;
-
-	Blocked& blocked = registry.blocked.emplace(entity);
+	Blocked& blocked = registry.blocked.emplace(proj_entity);
 	blocked.normal = vec2(0, 0);
 
-	PhysicsObject& object = registry.physicsObjects.emplace(entity);
+	PhysicsObject& object = registry.physicsObjects.emplace(proj_entity);
 	object.mass = 10.0f;
 
 	//registry.falling.emplace(entity);
 
-	registry.bolts.emplace(entity);
+	registry.bolts.emplace(proj_entity);
+
+	vec2 dir = vec2{ cos(angle), sin(angle) };
+	Motion& motion = registry.motions.emplace(proj_entity);
+	motion.angle = 0.f;
+	motion.velocity = CANON_PROJECTILE_SPEED * dir;
+	motion.position = registry.motions.get(tower_entity).position + dir * registry.motions.get(tower.barrel_entity).scale.x;
+	motion.scale = CANON_PROJECTILE_SIZE;
 
 	registry.colors.insert(
-		entity,
+		proj_entity,
 		{ 1.0f, 1.0f, 1.0f }
 	);
 
 	registry.renderRequests.insert(
-		entity,
+		proj_entity,
 		{
 			TEXTURE_ASSET_ID::HEX,
 			EFFECT_ASSET_ID::HEX,
@@ -180,5 +196,5 @@ void canon_fire(Entity tower_entity, float angle) {
 		}
 	);
 
-	registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+	registry.layers.insert(proj_entity, { LAYER_ID::MIDGROUND });
 }

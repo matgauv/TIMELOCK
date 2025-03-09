@@ -49,4 +49,7 @@ private:
 	bool is_on_ground(float normal_y);
 	void adjust_velocity_along_normal(Motion& motion, vec2& normal);
 	void resolve_collision_position(Entity& entityA, Entity& entityB, Collision& collision);
+
+	bool is_collision_between_player_and_boundary(Entity& one, Entity& other);
+	bool is_collision_between_player_and_spike(Entity& one, Entity& other);
 };

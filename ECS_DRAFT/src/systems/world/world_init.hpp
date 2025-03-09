@@ -25,3 +25,4 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity);
 Entity create_bolt(vec2 pos, vec2 size, vec2 velocity);
 Entity create_first_boss();
 Entity create_spawnpoint(vec2 pos, vec2 size);
+Entity create_spike(vec2 position, vec2 scale);

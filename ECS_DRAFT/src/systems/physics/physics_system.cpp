@@ -333,7 +333,8 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			handle_object_rigid_collision(one, other, collision, step_seconds, groundedEntities);
 		} else if (registry.physicsObjects.has(other) && registry.platforms.has(one)) {
 			// std::cout << "  colliding with platform: " << registry.platforms.has(one) << std::endl;
-		//	collision.overlap *= -1; //swap sides since coll is from perspective of one (left<->right) (top <-> bottom)
+		//	collision.overlap *= -1; //swap sides since coll is from perspective of one (left<->right) (top <-> bottom);
+			collision.normal *= -1;
 			handle_object_rigid_collision(other, one, collision, step_seconds, groundedEntities);
 		}
 
@@ -350,10 +351,9 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			handle_player_boss_collision(other, one, collision);
 		}
 
-		// if player touches boundary, reset the game
+		// if player touches boundary or spike, reset the game
 		GameState& gameState = registry.gameStates.components[0];
-		if ((registry.players.has(one) && registry.boundaries.has(other)) ||
-			(registry.players.has(other) && registry.boundaries.has(one))) {
+		if (is_collision_between_player_and_boundary(one, other) || is_collision_between_player_and_spike(one, other)) {
 			PlayerSystem::kill();
 		}
 
@@ -491,6 +491,11 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 
 	vec2 normal = collision.normal;
 
+	vec2 posDiff = motionB.position - motionA.position;
+	if (dot(normal, posDiff) < 0) {
+		normal = -normal;
+	}
+
 	float a_inv_mass = (1.0f / physA.mass);
 	float b_inv_mass = (1.0f / physB.mass);
 	float total_inv_mass = a_inv_mass + b_inv_mass;
@@ -505,6 +510,8 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 	// now get the relative velocities
 	vec2 vel_relative = motionB.velocity - motionA.velocity;
 	float vel_along_normal = dot(vel_relative, normal);
+
+	if (vel_along_normal > 0.0f) return;
 
 	// compute the impulse
 	float impulse_scalar = -(1.0f + PHYSICS_OBJECT_BOUNCE) * vel_along_normal;
@@ -644,4 +651,14 @@ float PhysicsSystem::clampToTarget(float value, float change, float target) {
 // Helper function to check if an entity id is within a vector.
 bool PhysicsSystem::in(std::vector<unsigned int> vec, unsigned int id) {
 	return std::find(vec.begin(), vec.end(), id) != vec.end();
+}
+
+bool PhysicsSystem::is_collision_between_player_and_boundary(Entity& one, Entity& other) {
+	return (registry.players.has(one) && registry.boundaries.has(other)) ||
+		(registry.players.has(other) && registry.boundaries.has(one));
+}
+
+bool PhysicsSystem::is_collision_between_player_and_spike(Entity& one, Entity& other) {
+	return (registry.players.has(one) && registry.spikes.has(other)) ||
+	(registry.players.has(other) && registry.spikes.has(one));
 }

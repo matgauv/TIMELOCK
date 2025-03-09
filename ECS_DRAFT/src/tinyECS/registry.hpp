@@ -41,7 +41,7 @@ public:
 	ComponentContainer<PhysicsObject> physicsObjects;
 	ComponentContainer<Boundary> boundaries;
 	ComponentContainer<SpawnPoint> spawnPoints;
-
+	ComponentContainer<Spike> spikes;
 	ComponentContainer<Tile> tiles;
 
 	// constructor that adds all containers for looping over them
@@ -78,6 +78,7 @@ public:
 		registry_list.push_back(&boundaries);
 		registry_list.push_back(&spawnPoints);
 		registry_list.push_back(&tiles);
+		registry_list.push_back(&spikes);
 	}
 
 	void clear_all_components() {

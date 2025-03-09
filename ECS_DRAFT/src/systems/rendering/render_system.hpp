@@ -115,6 +115,8 @@ private:
 	GLuint off_screen_render_buffer_depth;
 
 	Entity screen_state_entity;
+
+	mat3 projection_matrix;
 };
 
 bool loadEffectFromFile(

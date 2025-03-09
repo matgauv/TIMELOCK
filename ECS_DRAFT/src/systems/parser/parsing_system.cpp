@@ -17,6 +17,11 @@ void LevelParsingSystem::step(float elapsed_ms) {
         registry.remove_all_components_of(registry.motions.entities.back());
     }
 
+    // clear all render requests for tiles
+    while (registry.tiles.entities.size() > 0) {
+        registry.remove_all_components_of(registry.tiles.entities.back());
+    }
+
     if (!parse_json()) {
         cout << "Error: could not parse JSON" << endl;
         return;

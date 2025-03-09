@@ -188,9 +188,6 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 init
         tile_component.parent_motion = &motion;
         tile_component.id = tile_id_array[tile_arr_index];
 
-        std::cout << tile_component.id << std::endl;
-
-
         registry.renderRequests.insert(tile_entity, {
             TEXTURE_ASSET_ID::TILE,
             EFFECT_ASSET_ID::TILE,
@@ -199,15 +196,6 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 init
 
         registry.layers.insert(tile_entity, { LAYER_ID::MIDGROUND });
     }
-
-    // registry.renderRequests.insert(entity, {
-    //     TEXTURE_ASSET_ID::BLACK,
-    //     EFFECT_ASSET_ID::TEXTURED,
-    //     GEOMETRY_BUFFER_ID::SPRITE
-    // });
-    //
-    // registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
-    // registry.timeControllables.emplace(entity);
 
     return entity;
 }

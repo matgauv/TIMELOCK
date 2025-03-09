@@ -123,7 +123,7 @@ void canon_fire(Entity tower_entity, float angle) {
 	blocked.normal = vec2(0, 0);
 
 	PhysicsObject& object = registry.physicsObjects.emplace(entity);
-	object.mass = 1.0f;
+	object.mass = 10.0f;
 
 	//registry.falling.emplace(entity);
 

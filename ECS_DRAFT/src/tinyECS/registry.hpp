@@ -41,6 +41,7 @@ public:
 	ComponentContainer<PhysicsObject> physicsObjects;
 	ComponentContainer<Boundary> boundaries;
 	ComponentContainer<SpawnPoint> spawnPoints;
+	ComponentContainer<Spike> spikes;
 
 
 	// constructor that adds all containers for looping over them

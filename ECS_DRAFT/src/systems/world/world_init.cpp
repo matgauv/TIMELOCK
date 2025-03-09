@@ -1,4 +1,5 @@
 #include "world_init.hpp"
+#include <iostream>
 #include "../../tinyECS/registry.hpp"
 #include "systems/rendering/render_system.hpp"
 
@@ -152,7 +153,7 @@ Entity create_physics_object(vec2 position, vec2 scale, float mass) {
     return entity;
 }
 
-Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 initial_position) {
+Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 initial_position, json& tile_id_array, int stride) {
     Entity entity = Entity();
 
     Motion& motion = registry.motions.emplace(entity);
@@ -181,7 +182,7 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 init
     return entity;
 }
 
-Entity create_static_platform(vec2 position, vec2 scale) {
+Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, int stride) {
     Entity entity = Entity();
 
     registry.platforms.emplace(entity);
@@ -196,13 +197,33 @@ Entity create_static_platform(vec2 position, vec2 scale) {
     Blocked& blocked = registry.blocked.emplace(entity);
     blocked.normal = vec2(0, 0);
 
-    registry.renderRequests.insert(entity, {
-        TEXTURE_ASSET_ID::BLACK,
-        EFFECT_ASSET_ID::TEXTURED,
-        GEOMETRY_BUFFER_ID::SPRITE
-    });
 
-    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+    int num_tiles = scale.x / TILE_TO_PIXELS; // only allows for 1 tile tall platforms atm
+    int starting_tile_pos = position.x - (0.5 * scale.x) + (0.5 * TILE_TO_PIXELS);
+    int tile_coord_y = position.y / TILE_TO_PIXELS;
+
+
+    for (int i = 0; i < num_tiles; i++) {
+        Entity tile_entity = Entity();
+
+        int tile_coord_x = (starting_tile_pos / TILE_TO_PIXELS) + i;
+        int tile_arr_index = tile_coord_x + tile_coord_y * stride;
+
+
+        Tile& tile_component = registry.tiles.emplace(tile_entity);
+        tile_component.offset = i;
+        tile_component.parent_motion = &motion;
+        tile_component.id = tile_id_array[tile_arr_index];
+
+
+        registry.renderRequests.insert(tile_entity, {
+            TEXTURE_ASSET_ID::TILE,
+            EFFECT_ASSET_ID::TILE,
+            GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+        registry.layers.insert(tile_entity, { LAYER_ID::MIDGROUND });
+    }
 
 
     return entity;
@@ -221,15 +242,6 @@ Entity create_boundary(vec2 position, vec2 scale) {
 
     Blocked& blocked = registry.blocked.emplace(entity);
     blocked.normal = vec2(0, 0);
-
-    registry.renderRequests.insert(entity, {
-        TEXTURE_ASSET_ID::BOUNDARY,
-        EFFECT_ASSET_ID::TEXTURED,
-        GEOMETRY_BUFFER_ID::SPRITE
-    });
-
-    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
-
 
     return entity;
 }
@@ -299,15 +311,17 @@ Entity create_foreground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
 Entity create_levelground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
     Entity entity = Entity();
     Motion& motion = registry.motions.emplace(entity);
-    motion.position = scene_dimensions * 0.5f; // / FOREGROUND_DEPTH;
-    //motion.scale = scene_dimensions / FOREGROUND_DEPTH * 0.75f;
+    vec2 position = {scene_dimensions.x - (TILE_TO_PIXELS), scene_dimensions.y - (TILE_TO_PIXELS)};
+
+    motion.position = position * 0.5f; // / FOREGROUND_DEPTH;
+    motion.scale = scene_dimensions;
 
 
     registry.renderRequests.insert(entity, {
-        texture_id,
-        EFFECT_ASSET_ID::TEXTURED,
-        GEOMETRY_BUFFER_ID::SPRITE
-        });
+                                       texture_id,
+                                       EFFECT_ASSET_ID::TEXTURED,
+                                       GEOMETRY_BUFFER_ID::SPRITE
+                                   });
 
   registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
 

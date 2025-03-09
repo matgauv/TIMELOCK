@@ -1,8 +1,12 @@
 #pragma once
 
+#include <json.hpp>
+
 #include "../../common.hpp"
 #include "../../tinyECS/component_container.hpp"
 #include "tinyECS/components.hpp"
+
+using namespace nlohmann;
 
 void load_level(std::string descriptor_path);
 void demo_level();
@@ -14,9 +18,9 @@ Entity create_background(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id);
 Entity create_parallaxbackground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id);
 Entity create_foreground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id);
 Entity create_levelground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id);
-Entity create_static_platform(vec2 position, vec2 scale);
+Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, int stride);
 Entity create_boundary(vec2 position, vec2 scale);
-Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 initial_position);
+Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 initial_position, json& tile_id_array, int stride);
 Entity create_projectile(vec2 pos, vec2 size, vec2 velocity);
 Entity create_bolt(vec2 pos, vec2 size, vec2 velocity);
 Entity create_first_boss();

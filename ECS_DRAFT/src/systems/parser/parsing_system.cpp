@@ -22,6 +22,8 @@ void LevelParsingSystem::step(float elapsed_ms) {
         return;
     }
 
+    tile_id_array = json_data["layers"][0]["data"];
+
     init_level_background();
     init_player_and_camera();
     init_level_entities();
@@ -49,11 +51,12 @@ bool LevelParsingSystem::parse_json() {
 
 void LevelParsingSystem::init_level_background() {
     // TODO: static w, h values -- should change (maybe parse from level file).
-    float w = WINDOW_WIDTH_PX * 5.0f;
-    float h = WINDOW_HEIGHT_PX * 5.0f;
+    float w = WINDOW_WIDTH_PX * 2.0;
+    float h = WINDOW_HEIGHT_PX * 2.0f;
     create_parallaxbackground({w, h}, TEXTURE_ASSET_ID::GEARS_BACKGROUND);
     create_background({w, h}, TEXTURE_ASSET_ID::METAL_BACKGROUND);
     create_foreground({ w, h}, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
+    create_levelground({json_data["width"], json_data["height"]}, TEXTURE_ASSET_ID::D_TUTORIAL_GROUND);
 }
 
 void LevelParsingSystem::init_player_and_camera() {
@@ -96,16 +99,17 @@ void LevelParsingSystem::init_boundaries(json boundaries) {
 }
 
 void LevelParsingSystem::init_platforms(json platforms, bool moving) {
+    int stride = static_cast<int>(json_data["width"]) / TILE_TO_PIXELS;
     for (json platform : platforms) {
         vec2 dimensions;
         vec2 startPos;
         if (moving) {
             vector<Path> path;
             extract_path_attributes(platform, path, startPos, dimensions);
-            create_moving_platform(dimensions, path, startPos);
+            create_moving_platform(dimensions, path, startPos, tile_id_array, stride);
         } else {
             extract_platform_attributes(platform, dimensions, startPos);
-            create_static_platform(startPos, dimensions);
+            create_static_platform(startPos, dimensions, tile_id_array, stride);
         }
     }
 }

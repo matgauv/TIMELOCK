@@ -10,11 +10,23 @@
 void RenderSystem::drawTexturedMesh(Entity entity,
 									const mat3 &projection)
 {
-	Motion &motion = registry.motions.get(entity);
+
+
 	// Transformation code, see Rendering and Transformation in the template
 	// specification for more info Incrementally updates transformation matrix,
 	// thus ORDER IS IMPORTANT
+
 	Transform transform;
+	Motion motion;
+
+	if (!registry.tiles.has(entity)) {
+		motion = registry.motions.get(entity);
+
+	} else {
+		Tile& tile = registry.tiles.get(entity);
+		motion = *(tile.parent_motion);
+	}
+
 	transform.translate(motion.position);
 	transform.scale(motion.scale);
 	transform.rotate(radians(motion.angle));
@@ -98,6 +110,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
+
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::HEX)
 	{
@@ -209,10 +222,14 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		Tile& tile_info = registry.tiles.get(entity);
 
+		Motion* motion = tile_info.parent_motion;
+		int tile_start_x = motion->position.x - (motion->scale.x / 2) + (0.5 * TILE_TO_PIXELS);
+
 		glUniform1f(tile_id_uloc, tile_info.id);
-		glUniform2f(tile_pos_uloc, tile_info.pos.x, tile_info.pos.y);
-		glUniform2f(tile_offset_uloc, tile_info.offset.x, tile_info.offset.y);
+		glUniform2f(tile_pos_uloc, tile_start_x, motion->position.y);
+		glUniform2f(tile_offset_uloc, tile_info.offset,0);
 		gl_has_errors();
+		std::cout << "gl error here if this is not printed" << std::endl;
 	}
 
 
@@ -437,7 +454,7 @@ void RenderSystem::draw()
 	for (Entity entity : registry.layers.entities)
 	{
 		// Check for rendering necessity
-		if (!registry.renderRequests.has(entity) || !registry.motions.has(entity))
+		if (!registry.renderRequests.has(entity) || (!registry.motions.has(entity) && !registry.tiles.has(entity)))
 			continue;
 
 		// TODO: this could be somewhere else, but idk how to get the mesh pointer without increased system coupling...
@@ -545,10 +562,10 @@ mat3 RenderSystem::createProjectionMatrix()
 	vec2 camera_pos = registry.motions.get(camera_entity).position;
 
 	
-	float left = camera_pos.x -0.25f * WINDOW_WIDTH_PX;
-	float top = camera_pos.y -0.25f * WINDOW_HEIGHT_PX;
-	float right = camera_pos.x + 0.25f * WINDOW_WIDTH_PX;
-	float bottom = camera_pos.y + 0.25f * WINDOW_HEIGHT_PX;
+	float left = camera_pos.x -0.35f * WINDOW_WIDTH_PX;
+	float top = camera_pos.y -0.35f * WINDOW_HEIGHT_PX;
+	float right = camera_pos.x + 0.35f * WINDOW_WIDTH_PX;
+	float bottom = camera_pos.y + 0.35f * WINDOW_HEIGHT_PX;
 	
 	float sx = 2.f / (right - left);
 	float sy = 2.f / (top - bottom);

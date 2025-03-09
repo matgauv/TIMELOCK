@@ -274,9 +274,8 @@ struct Boss
 struct Tile
 {
 	int id;
-	vec2 pos;     //pixel coords
-	vec2 offset;  // parent pos in pixel coords
-
+	Motion* parent_motion;
+	int offset;
 };
 
 /**

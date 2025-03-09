@@ -18,6 +18,7 @@ public:
 private:
     GLFWwindow* window = nullptr;
     json json_data;
+    json tile_id_array;
 
     bool parse_json();
     void init_level_background();

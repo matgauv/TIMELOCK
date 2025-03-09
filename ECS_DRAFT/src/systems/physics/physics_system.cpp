@@ -333,7 +333,7 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			handle_object_rigid_collision(one, other, collision, step_seconds, groundedEntities, onMovingPlatform);
 		} else if (registry.physicsObjects.has(other) && registry.platforms.has(one)) {
 			// std::cout << "  colliding with platform: " << registry.platforms.has(one) << std::endl;
-		//	collision.overlap *= -1; //swap sides since coll is from perspective of one (left<->right) (top <-> bottom)
+			collision.normal *= -1;
 			handle_object_rigid_collision(other, one, collision, step_seconds, groundedEntities, onMovingPlatform);
 		}
 

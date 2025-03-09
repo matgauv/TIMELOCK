@@ -42,6 +42,7 @@ public:
 	ComponentContainer<Boundary> boundaries;
 	ComponentContainer<SpawnPoint> spawnPoints;
 
+	ComponentContainer<Tile> tiles;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -76,6 +77,7 @@ public:
 		registry_list.push_back(&physicsObjects);
 		registry_list.push_back(&boundaries);
 		registry_list.push_back(&spawnPoints);
+		registry_list.push_back(&tiles);
 	}
 
 	void clear_all_components() {

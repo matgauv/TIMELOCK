@@ -48,6 +48,8 @@ class RenderSystem : public ISystem {
 		textures_path("spawnpoint/SpawnPoint_activate.png"),
 		textures_path("spawnpoint/SpawnPoint_deactivate.png"),
 		textures_path("spawnpoint/SpawnPoint_reactivate.png"),
+		textures_path("groundlevels/d_tutorial_ground.png"),
+		textures_path("tileset.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -58,6 +60,7 @@ class RenderSystem : public ISystem {
         shader_path("line"),
         shader_path("screen"),
 		shader_path("hex"),
+		shader_path("tile"),
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;

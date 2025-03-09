@@ -74,7 +74,7 @@ void RenderSystem::initializeGlTextures()
 		{
 			const std::string message = "Could not load the file " + path + ".";
 			fprintf(stderr, "%s", message.c_str());
-			assert(false);
+			assert(false); 
 		}
 		glBindTexture(GL_TEXTURE_2D, texture_gl_handles[i]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dimensions.x, dimensions.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);

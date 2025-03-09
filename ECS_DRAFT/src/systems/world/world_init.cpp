@@ -296,6 +296,24 @@ Entity create_foreground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
     return entity;
 }
 
+Entity create_levelground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
+    Entity entity = Entity();
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = scene_dimensions * 0.5f; // / FOREGROUND_DEPTH;
+    //motion.scale = scene_dimensions / FOREGROUND_DEPTH * 0.75f;
+
+
+    registry.renderRequests.insert(entity, {
+        texture_id,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+  registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+    return entity;
+}
+
 Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
 {
 	auto entity = Entity();

@@ -13,6 +13,7 @@ Entity create_camera(vec2 position, vec2 scale);
 Entity create_background(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id);
 Entity create_parallaxbackground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id);
 Entity create_foreground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id);
+Entity create_levelground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id);
 Entity create_static_platform(vec2 position, vec2 scale);
 Entity create_boundary(vec2 position, vec2 scale);
 Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 initial_position);

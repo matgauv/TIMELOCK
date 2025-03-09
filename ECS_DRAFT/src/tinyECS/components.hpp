@@ -270,6 +270,15 @@ struct Boss
 	float attack_cooldown_ms = 500.0f;
 };
 
+// A struct indicating that an entity is tile
+struct Tile
+{
+	int id;
+	vec2 pos;     //pixel coords
+	vec2 offset;  // parent pos in pixel coords
+
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -313,7 +322,9 @@ enum class TEXTURE_ASSET_ID {
 	SPAWNPOINT_ACTIVATE = SPAWNPOINT_UNVISITED + 1,
 	SPAWNPOINT_DEACTIVATE = SPAWNPOINT_ACTIVATE + 1,
 	SPAWNPOINT_REACTIVATE = SPAWNPOINT_DEACTIVATE + 1,
-	TEXTURE_COUNT = SPAWNPOINT_REACTIVATE + 1
+	D_TUTORIAL_GROUND = SPAWNPOINT_REACTIVATE + 1,
+	TILE = D_TUTORIAL_GROUND + 1,
+	TEXTURE_COUNT = TILE + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -323,7 +334,8 @@ enum class EFFECT_ASSET_ID {
   	LINE = TEXTURED + 1,
   	SCREEN = LINE + 1,
 	HEX = SCREEN + 1,
-	EFFECT_COUNT = HEX + 1
+	TILE = HEX + 1,
+	EFFECT_COUNT = TILE + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

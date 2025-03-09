@@ -22,6 +22,7 @@ void demo_level() {
     create_parallaxbackground({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::GEARS_BACKGROUND);
     create_background({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::METAL_BACKGROUND);
     create_foreground({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
+    //create_levelground({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::D_TUTORIAL_GROUND);
 
     float boltsize = 75.f;
     create_bolt({ 325.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
@@ -269,6 +270,24 @@ Entity create_foreground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
     });
 
     registry.layers.insert(entity, { LAYER_ID::FOREGROUND });
+
+    return entity;
+}
+
+Entity create_levelground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
+    Entity entity = Entity();
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = scene_dimensions * 0.5f; // / FOREGROUND_DEPTH;
+    //motion.scale = scene_dimensions / FOREGROUND_DEPTH * 0.75f;
+
+
+    registry.renderRequests.insert(entity, {
+        texture_id,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+  registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
 
     return entity;
 }

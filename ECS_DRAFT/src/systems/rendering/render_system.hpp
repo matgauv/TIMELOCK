@@ -43,7 +43,8 @@ class RenderSystem : public ISystem {
 		textures_path("backgrounds/gears.png"),
 		textures_path("backgrounds/metal.png"),
 		textures_path("backgrounds/chains.png"),
-		textures_path("hex.png"),
+		textures_path("groundlevels/d_tutorial_ground.png"),
+		textures_path("tileset.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -54,6 +55,7 @@ class RenderSystem : public ISystem {
         shader_path("line"),
         shader_path("screen"),
 		shader_path("hex"),
+		shader_path("tile"),
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;

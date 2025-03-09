@@ -418,7 +418,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	GameState& gameState = registry.gameStates.components[0];
 
 	// Activate acceleration
-	if (key == GLFW_KEY_2 && action == GLFW_RELEASE) {
+	if (key == GLFW_KEY_EQUAL && action == GLFW_RELEASE) {
 		if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED) {
 			control_time(true, false);
 		} else {
@@ -427,7 +427,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Activate deceleration
-	if (key == GLFW_KEY_1 && action == GLFW_RELEASE)
+	if (key == GLFW_KEY_MINUS && action == GLFW_RELEASE)
 	{
 		if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED) {
 			control_time(false, false);
@@ -436,7 +436,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (key == GLFW_KEY_RIGHT) {
+	if (key == GLFW_KEY_D) {
 		if (action == GLFW_PRESS) {
 			player_walking(true, false);
 		} else if (action == GLFW_RELEASE) {
@@ -444,7 +444,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (key == GLFW_KEY_LEFT) {
+	if (key == GLFW_KEY_A) {
 		if (action == GLFW_PRESS) {
 			player_walking(true, true);
 		} else if (action == GLFW_RELEASE) {
@@ -452,12 +452,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (key == GLFW_KEY_UP) {
+	if (key == GLFW_KEY_W) {
 		player_jump();
 	}
 
 	// Fly controls (run ./TIMELOCK --fly):
-	if (key == GLFW_KEY_D && fly) {
+	if (key == GLFW_KEY_RIGHT && fly) {
 		if (action == GLFW_PRESS) {
 			player_walking(true, false);
 		} else if (action == GLFW_RELEASE) {
@@ -465,7 +465,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (key == GLFW_KEY_A && fly) {
+	if (key == GLFW_KEY_LEFT && fly) {
 		if (action == GLFW_PRESS) {
 			player_walking(true, true);
 		} else if (action == GLFW_RELEASE) {
@@ -473,7 +473,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (key == GLFW_KEY_S && fly) {
+	if (key == GLFW_KEY_DOWN && fly) {
 		Motion& motion = registry.motions.get(registry.players.entities[0]);
 		if (action == GLFW_PRESS) {
 			motion.velocity.y = JUMP_VELOCITY;
@@ -482,7 +482,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (key == GLFW_KEY_W && fly) {
+	if (key == GLFW_KEY_UP && fly) {
 		Motion& motion = registry.motions.get(registry.players.entities[0]);
 		if (action == GLFW_PRESS) {
 			motion.velocity.y = -JUMP_VELOCITY;

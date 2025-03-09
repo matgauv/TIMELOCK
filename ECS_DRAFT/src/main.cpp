@@ -62,8 +62,8 @@ int main(int argc, char *argv[])
 	physics_system.setFreeFly(fly);
 
 	// register order is the order steps (and then late steps) will be called
-	system_manager.register_system(&world_system);
 	system_manager.register_system(&parsing_system);
+	system_manager.register_system(&world_system);
 	system_manager.register_system(&player_system);
 	system_manager.register_system(&ai_system);
 	system_manager.register_system(&spawnpoint_system);

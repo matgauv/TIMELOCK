@@ -17,8 +17,7 @@ enum class TIME_CONTROL_STATE {
 };
 
 enum class SCENE_TRANSITION_STATE {
-	NONE = 0,
-	TRANSITION_OUT = NONE + 1,
+	TRANSITION_OUT = 0,
 	TRANSITION_IN = TRANSITION_OUT + 1
 };
 
@@ -175,7 +174,7 @@ struct ScreenState
 struct GameState {
 	GAME_RUNNING_STATE game_running_state = GAME_RUNNING_STATE::RUNNING;
 	TIME_CONTROL_STATE game_time_control_state = TIME_CONTROL_STATE::NORMAL;
-	SCENE_TRANSITION_STATE game_scene_transition_state = SCENE_TRANSITION_STATE::NONE;
+	SCENE_TRANSITION_STATE game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
 	float accelerate_cooldown_ms = 0.f;
 	float decelerate_cooldown_ms = 0.f;
 	float time_until_alarm_clock_ms = 300000.0f; // 5 minutes

@@ -181,10 +181,6 @@ void WorldSystem::check_scene_transition() {
 		// Conditions for start transition in
 		gameState.game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
 	}
-
-	if (gameState.game_scene_transition_state == SCENE_TRANSITION_STATE::TRANSITION_OUT && screenState.scene_transition_factor < 0.0) {
-		gameState.game_scene_transition_state == SCENE_TRANSITION_STATE::NONE;
-	}
 }
 
 // M1 interpolation implementation
@@ -237,6 +233,7 @@ void WorldSystem::restart_game() {
 	gameState.decelerate_cooldown_ms = 0.f;
 	gameState.game_time_control_state = TIME_CONTROL_STATE::NORMAL;
 	gameState.game_running_state = GAME_RUNNING_STATE::RUNNING;
+	gameState.game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
 	gameState.time_control_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
 	gameState.is_in_boss_fight = 0;
 

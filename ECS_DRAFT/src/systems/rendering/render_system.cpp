@@ -305,7 +305,7 @@ void RenderSystem::step(float elapsed_ms) {
 		if (screen.scene_transition_factor < 1.0) {
 			screen.scene_transition_factor = max(0.0f, screen.scene_transition_factor) + elapsed_ms/DEAD_REVIVE_TIME_MS;
 		}
-	} else if (gameState.game_scene_transition_state == SCENE_TRANSITION_STATE::TRANSITION_IN) {
+	} else {
 		if (screen.scene_transition_factor > 0.0) {
 			screen.scene_transition_factor = min(1.0f, screen.scene_transition_factor) - elapsed_ms / DEAD_REVIVE_TIME_MS;
 

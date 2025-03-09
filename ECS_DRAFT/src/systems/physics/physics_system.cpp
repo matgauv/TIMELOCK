@@ -501,6 +501,11 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 
 	vec2 normal = collision.normal;
 
+	vec2 posDiff = motionB.position - motionA.position;
+	if (dot(normal, posDiff) < 0) {
+		normal = -normal;
+	}
+
 	float a_inv_mass = (1.0f / physA.mass);
 	float b_inv_mass = (1.0f / physB.mass);
 	float total_inv_mass = a_inv_mass + b_inv_mass;
@@ -515,6 +520,8 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 	// now get the relative velocities
 	vec2 vel_relative = motionB.velocity - motionA.velocity;
 	float vel_along_normal = dot(vel_relative, normal);
+
+	if (vel_along_normal > 0.0f) return;
 
 	// compute the impulse
 	float impulse_scalar = -(1.0f + PHYSICS_OBJECT_BOUNCE) * vel_along_normal;

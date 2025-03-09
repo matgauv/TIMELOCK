@@ -329,17 +329,14 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 
 		// if player hits a breakable platform
 		if (registry.players.has(one) && registry.breakables.has(other)) {
-			// std::cout << "Player has collided with a breakable platform" << std::endl;
 			handle_player_breakable_collision(one, other, collision);
 		} else if (registry.players.has(other) && registry.breakables.has(one)) {
-			// std::cout << "Player has collided with a breakable platform" << std::endl;
 			handle_player_breakable_collision(other, one, collision);
 		}
 
 		// order here is important so handle both cases sep
 		if (registry.physicsObjects.has(one) && registry.platforms.has(other)) {
 			// std::cout << "  colliding with platform: " << registry.platforms.has(other) << std::endl;
-			// std::cout << "Player has collided with a RIGID breakable platform" << std::endl;
 			handle_object_rigid_collision(one, other, collision, step_seconds, groundedEntities, onMovingPlatform);
 		} else if (registry.physicsObjects.has(other) && registry.platforms.has(one)) {
 			// std::cout << "  colliding with platform: " << registry.platforms.has(one) << std::endl;
@@ -677,7 +674,6 @@ void PhysicsSystem::handle_player_breakable_collision(Entity& player_entity, Ent
 		GameState& gameState = registry.gameStates.components[0];
 
 		if (gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED) {
-			std::cout << "The breakable platform is instantly breakable!" << std::endl;
 			registry.remove_all_components_of(breakable_entity);
 		}
 	}

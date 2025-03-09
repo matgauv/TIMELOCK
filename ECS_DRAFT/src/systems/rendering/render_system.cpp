@@ -225,9 +225,9 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		Motion* motion = tile_info.parent_motion;
 		int tile_start_x = motion->position.x - (motion->scale.x / 2) + (0.5 * TILE_TO_PIXELS);
 
-		glUniform1f(tile_id_uloc, tile_info.id);
-		glUniform2f(tile_pos_uloc, tile_start_x, motion->position.y);
-		glUniform2f(tile_offset_uloc, tile_info.offset,0);
+		glUniform1i(tile_id_uloc, tile_info.id);
+		glUniform2f(tile_pos_uloc, (float)tile_start_x, motion->position.y);
+		glUniform2f(tile_offset_uloc, (float)tile_info.offset,0.0f);
 		gl_has_errors();
 		std::cout << "gl error here if this is not printed" << std::endl;
 	}

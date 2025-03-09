@@ -106,8 +106,7 @@ BOSS_STATE BossSystem::handleBossOneChooseAttackState(Entity& boss_entity, float
 
         if (is_in_phase_two && isAttackOffCooldown(bossAttackList, BOSS_ATTACK_ID::BOSS1_GROUND_SLAM)) {
             // if ground slam is ready, use it
-            // boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_ATTACK_STATE;
-            boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_JUMP_STATE;
+            boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_ATTACK_STATE;
             
         } else if (isAttackOffCooldown(bossAttackList, BOSS_ATTACK_ID::BOSS1_DELAYED_PROJECTILE)) {
             // else if delayed projectile is ready, use it

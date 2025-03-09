@@ -19,3 +19,4 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity);
 Entity create_bolt(vec2 pos, vec2 size, vec2 velocity);
 Entity create_first_boss();
 Entity create_spawnpoint(vec2 pos, vec2 size);
+Entity create_canon_tower(vec2 pos);

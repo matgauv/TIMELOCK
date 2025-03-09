@@ -105,14 +105,16 @@ const float BOSS_ATTACK_COOLDOWN_MS = 500.0f;
 const float PLAYER_ATTACK_DAMAGE = 20.0f;
 
 // Canon Tower
-const float CANON_TOWER_DETECTION_RANGE = 100.0f;
+const float CANON_TOWER_DETECTION_RANGE = 300.0f;
 const float CANON_TOWER_AIM_TIME_MS = 5000.0f;
 const float CANON_TOWER_FIRE_TIME_MS = 3000.0f;
 
 const vec2 CANON_TOWER_SIZE = vec2{80, 120};
 
 // barrel lies horizontally to the right at angle = 0
-const vec2 CANON_BARREL_SIZE = vec2{ 60, 40 };
+const vec2 CANON_BARREL_SIZE = vec2{ 80, 30 };
+const float CANON_PROJECTILE_SPEED = 100.0f;
+const vec2 CANON_PROJECTILE_SIZE = vec2 {30.0f, 30.0f};
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f

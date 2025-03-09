@@ -176,15 +176,11 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 init
 
     int num_tiles = scale.x / TILE_TO_PIXELS; // only allows for 1 tile tall platforms atm
     int starting_tile_pos = initial_position.x - (0.5 * scale.x) + (0.5 * TILE_TO_PIXELS);
-    int tile_coord_y = initial_position.y / TILE_TO_PIXELS;
-
 
     for (int i = 0; i < num_tiles; i++) {
         Entity tile_entity = Entity();
 
-        int tile_coord_x = (starting_tile_pos / TILE_TO_PIXELS) + i;
-        int tile_arr_index = tile_coord_x + tile_coord_y * stride;
-
+        int tile_arr_index = get_tile_index(starting_tile_pos, initial_position.y, i, 0, stride);
 
         Tile& tile_component = registry.tiles.emplace(tile_entity);
         tile_component.offset = i;
@@ -221,14 +217,11 @@ Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, in
 
     int num_tiles = scale.x / TILE_TO_PIXELS; // only allows for 1 tile tall platforms atm
     int starting_tile_pos = position.x - (0.5 * scale.x) + (0.5 * TILE_TO_PIXELS);
-    int tile_coord_y = position.y / TILE_TO_PIXELS;
-
 
     for (int i = 0; i < num_tiles; i++) {
         Entity tile_entity = Entity();
 
-        int tile_coord_x = (starting_tile_pos / TILE_TO_PIXELS) + i;
-        int tile_arr_index = tile_coord_x + tile_coord_y * stride;
+        int tile_arr_index = get_tile_index(starting_tile_pos, position.y, i, 0, stride);
 
 
         Tile& tile_component = registry.tiles.emplace(tile_entity);
@@ -464,7 +457,7 @@ Entity create_spawnpoint(vec2 pos, vec2 size) {
     return entity;
 }
 
-Entity create_spike(vec2 position, vec2 scale) {
+Entity create_spike(vec2 position, vec2 scale, json tile_id_array, int stride) {
     Entity entity = Entity();
 
     registry.spikes.emplace(entity);
@@ -475,13 +468,53 @@ Entity create_spike(vec2 position, vec2 scale) {
     motion.velocity = {0, 0};
     motion.angle = 0.f;
 
+    int tile_arr_index = get_tile_index(position.x, position.y, 0, 0, stride);
+
+    Tile& tile_component = registry.tiles.emplace(entity);
+    tile_component.offset = 0;
+    tile_component.parent_motion = &motion;
+    tile_component.id = tile_id_array[tile_arr_index];
+
     registry.renderRequests.insert(entity, {
-        TEXTURE_ASSET_ID::BLACK,
-        EFFECT_ASSET_ID::TEXTURED,
-        GEOMETRY_BUFFER_ID::SPRITE
-    });
+            TEXTURE_ASSET_ID::TILE,
+            EFFECT_ASSET_ID::TILE,
+            GEOMETRY_BUFFER_ID::SPRITE
+        });
 
     registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
 
     return entity;
+}
+
+Entity create_partof(vec2 position, vec2 scale, json tile_id_array, int stride) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.angle = 0.0f;
+    motion.velocity = {0.0f, 0.0f};
+
+    int tile_arr_index = get_tile_index(position.x, position.y, 0, 0, stride);
+
+    Tile& tile_component = registry.tiles.emplace(entity);
+    tile_component.offset = 0;
+    tile_component.parent_motion = &motion;
+    tile_component.id = tile_id_array[tile_arr_index];
+
+    registry.renderRequests.insert(entity, {
+            TEXTURE_ASSET_ID::TILE,
+            EFFECT_ASSET_ID::TILE,
+            GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+    return entity;
+}
+
+int get_tile_index(int pos_x, int pos_y, int offset_x, int offset_y, int stride) {
+    int tile_coord_y = pos_y / TILE_TO_PIXELS + offset_y;
+    int tile_coord_x = (pos_x / TILE_TO_PIXELS) + offset_x;
+    return tile_coord_x + tile_coord_y * stride;
 }

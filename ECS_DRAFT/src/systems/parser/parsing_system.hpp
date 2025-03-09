@@ -19,6 +19,7 @@ private:
     GLFWwindow* window = nullptr;
     json json_data;
     json tile_id_array;
+    int stride;
 
     bool parse_json();
     void init_level_background();
@@ -26,6 +27,8 @@ private:
     void init_level_entities();
     void init_platforms(json platforms, bool moving);
     void init_boundaries(json boundaries);
+    void init_partof(json partof);
+    void init_spikes(json spikes);
 
     void extract_full_platform_dimensions(json platform, vec2& dimensions);
     void extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos);

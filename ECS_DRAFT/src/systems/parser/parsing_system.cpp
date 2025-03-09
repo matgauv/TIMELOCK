@@ -28,6 +28,7 @@ void LevelParsingSystem::step(float elapsed_ms) {
     }
 
     tile_id_array = json_data["layers"][0]["data"];
+    stride = static_cast<int>(json_data["width"]) / TILE_TO_PIXELS;
 
     init_level_background();
     init_player_and_camera();
@@ -40,19 +41,9 @@ void LevelParsingSystem::late_step(float elapsed_ms) {
 
 }
 
-bool LevelParsingSystem::parse_json() {
-    LevelState& level_state = registry.levelStates.components[0];
-    string filename = PROJECT_SOURCE_DIR + std::string("data/levels/") + level_state.curr_level_file_name;
-    ifstream level_file(filename);
-    if (!level_file) {
-        cout << "Error could not open file " << filename << endl;
-        return false;
-    }
-
-    level_file >> json_data;
-    level_file.close();
-    return true;
-}
+/*
+ * INITIALIZATION FUNCTIONS FOR PARSING AND CREATING OBJECTS FROM JSON
+ */
 
 void LevelParsingSystem::init_level_background() {
     // TODO: static w, h values -- should change (maybe parse from level file).
@@ -81,7 +72,7 @@ void LevelParsingSystem::init_level_entities() {
         } else if (entity_type == "MovingPlatform") {
             init_platforms(entity_list, true);
         } else if (entity_type == "Spike") {
-
+            init_spikes(entity_list);
         } else if (entity_type == "Door") {
 
         } else if (entity_type == "Projectile") {
@@ -90,6 +81,8 @@ void LevelParsingSystem::init_level_entities() {
 
         } else if (entity_type == "Boundary") {
             init_boundaries(entity_list);
+        } else if (entity_type == "PartOf") {
+            init_partof(entity_list);
         }
     }
 }
@@ -103,8 +96,37 @@ void LevelParsingSystem::init_boundaries(json boundaries) {
     }
 }
 
+void LevelParsingSystem::init_spikes(json spikes) {
+    for (json spike : spikes) {
+        int num_spikes = spike["customFields"]["size"];
+        string direction = spike["customFields"]["direction"];
+        bool is_x_axis = direction == "left" || direction == "right";
+        int pos_stride = TILE_TO_PIXELS * (direction == "left" || direction == "up" ? -1 : 1);
+
+        vec2 dimensions = {spike["width"], spike["height"]};
+        vec2 start_pos = {spike["x"], spike["y"]};
+        for (int i = 0; i < num_spikes; i++) {
+            vec2 position;
+            if (is_x_axis) {
+                position = {start_pos.x + (i * pos_stride), start_pos.y};
+            } else {
+                position = {start_pos.x, start_pos.y + (i * pos_stride)};
+            }
+
+            create_spike(position, dimensions, tile_id_array, stride);
+        }
+    }
+}
+
+void LevelParsingSystem::init_partof(json partof) {
+    for (json pf : partof) {
+        vec2 dimensions = {pf["width"], pf["height"]};
+        vec2 position = {pf["x"], pf["y"]};
+        create_partof(position, dimensions, tile_id_array, stride);
+    }
+}
+
 void LevelParsingSystem::init_platforms(json platforms, bool moving) {
-    int stride = static_cast<int>(json_data["width"]) / TILE_TO_PIXELS;
     for (json platform : platforms) {
         vec2 dimensions;
         vec2 startPos;
@@ -118,6 +140,10 @@ void LevelParsingSystem::init_platforms(json platforms, bool moving) {
         }
     }
 }
+
+/*
+ * HELPERS FOR EXTRACTING INFORMATION FROM JSON
+ */
 
 void LevelParsingSystem::extract_boundary_attributes(json boundary, vec2& dimensions, vec2& position) {
     int x = boundary["x"];
@@ -196,6 +222,24 @@ void LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& pa
     Path backward = Path(end_pos, start_pos, 0.5);
     paths.push_back(forward);
     paths.push_back(backward);
+}
+
+/*
+ * OTHER HELPERS
+ */
+
+bool LevelParsingSystem::parse_json() {
+    LevelState& level_state = registry.levelStates.components[0];
+    string filename = PROJECT_SOURCE_DIR + std::string("data/levels/") + level_state.curr_level_file_name;
+    ifstream level_file(filename);
+    if (!level_file) {
+        cout << "Error could not open file " << filename << endl;
+        return false;
+    }
+
+    level_file >> json_data;
+    level_file.close();
+    return true;
 }
 
 vec2 LevelParsingSystem::convert_and_centralize_position(json pos, int conversion_factor) {

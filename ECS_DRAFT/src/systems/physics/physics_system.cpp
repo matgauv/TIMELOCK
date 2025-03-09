@@ -387,11 +387,11 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			motion.velocity.x = clampToTarget(motion.velocity.x, diff, 0);
 		//	motion.velocity.y = clampToTarget(motion.velocity.y, diff, 0);
 
-			if (registry.players.has(entity)) std::cout << "adding falling" << std::endl;
+		//	if (registry.players.has(entity)) std::cout << "adding falling" << std::endl;
 
 		} else {
-			if (registry.players.has(entity))
-				std::cout << "removing falling" << std::endl;
+		//	if (registry.players.has(entity))
+			//	std::cout << "removing falling" << std::endl;
 		}
 	}
 

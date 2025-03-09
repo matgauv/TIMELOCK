@@ -59,7 +59,7 @@ void LevelParsingSystem::init_level_background() {
 void LevelParsingSystem::init_player_and_camera() {
     json playerJson = json_data["entities"]["Player"][0];
     vec2 initPos = vec2(playerJson["x"], playerJson["y"]);
-    create_player(initPos, {int(playerJson["width"]), int(playerJson["height"])});
+    create_player(initPos, {int(playerJson["width"]) * 1.75, int(playerJson["height"]) * 1.75});
     create_camera(initPos, {1.0f, 1.0f});
 }
 

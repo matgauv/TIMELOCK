@@ -503,10 +503,10 @@ mat3 RenderSystem::createProjectionMatrix()
 	vec2 camera_pos = registry.motions.get(camera_entity).position;
 
 	
-	float left = camera_pos.x -0.5f * WINDOW_WIDTH_PX;
-	float top = camera_pos.y -0.5f * WINDOW_HEIGHT_PX;
-	float right = camera_pos.x + 0.5f * WINDOW_WIDTH_PX;
-	float bottom = camera_pos.y + 0.5f * WINDOW_HEIGHT_PX;
+	float left = camera_pos.x -0.25f * WINDOW_WIDTH_PX;
+	float top = camera_pos.y -0.25f * WINDOW_HEIGHT_PX;
+	float right = camera_pos.x + 0.25f * WINDOW_WIDTH_PX;
+	float bottom = camera_pos.y + 0.25f * WINDOW_HEIGHT_PX;
 	
 	float sx = 2.f / (right - left);
 	float sy = 2.f / (top - bottom);

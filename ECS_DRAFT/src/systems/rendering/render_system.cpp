@@ -17,19 +17,13 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	// thus ORDER IS IMPORTANT
 
 	Transform transform;
-	Motion motion;
 
 	if (!registry.tiles.has(entity)) {
-		motion = registry.motions.get(entity);
-
-	} else {
-		Tile& tile = registry.tiles.get(entity);
-		motion = *(tile.parent_motion);
+		Motion& motion = registry.motions.get(entity);
+		transform.translate(motion.position);
+		transform.scale(motion.scale);
+		transform.rotate(radians(motion.angle));
 	}
-
-	transform.translate(motion.position);
-	transform.scale(motion.scale);
-	transform.rotate(radians(motion.angle));
 
 	assert(registry.renderRequests.has(entity));
 	const RenderRequest &render_request = registry.renderRequests.get(entity);
@@ -218,7 +212,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	{
 		GLuint tile_id_uloc = glGetUniformLocation(currProgram, "tile_id");
 		GLuint tile_pos_uloc = glGetUniformLocation(currProgram, "tile_pos");
-		GLuint tile_offset_uloc = glGetUniformLocation(currProgram, "offset");
+		GLuint tile_offset_uloc = glGetUniformLocation(currProgram, "t_offset");
 
 		Tile& tile_info = registry.tiles.get(entity);
 
@@ -227,9 +221,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		glUniform1i(tile_id_uloc, tile_info.id);
 		glUniform2f(tile_pos_uloc, (float)tile_start_x, motion->position.y);
-		glUniform2f(tile_offset_uloc, (float)tile_info.offset,0.0f);
+		glUniform2f(tile_offset_uloc, (float)(tile_info.offset * TILE_TO_PIXELS),0.0f);
 		gl_has_errors();
-		std::cout << "gl error here if this is not printed" << std::endl;
 	}
 
 

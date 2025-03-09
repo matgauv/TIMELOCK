@@ -165,19 +165,49 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 init
     Blocked& blocked = registry.blocked.emplace(entity);
     blocked.normal = vec2(0, 0);
 
-    registry.platforms.emplace(entity);
-
     MovementPath& movementPath = registry.movementPaths.emplace(entity);
     movementPath.paths = movements;
 
-    registry.renderRequests.insert(entity, {
-        TEXTURE_ASSET_ID::BLACK,
-        EFFECT_ASSET_ID::TEXTURED,
-        GEOMETRY_BUFFER_ID::SPRITE
-    });
-
-    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+    registry.platforms.emplace(entity);
     registry.timeControllables.emplace(entity);
+
+    int num_tiles = scale.x / TILE_TO_PIXELS; // only allows for 1 tile tall platforms atm
+    int starting_tile_pos = initial_position.x - (0.5 * scale.x) + (0.5 * TILE_TO_PIXELS);
+    int tile_coord_y = initial_position.y / TILE_TO_PIXELS;
+
+
+    for (int i = 0; i < num_tiles; i++) {
+        Entity tile_entity = Entity();
+
+        int tile_coord_x = (starting_tile_pos / TILE_TO_PIXELS) + i;
+        int tile_arr_index = tile_coord_x + tile_coord_y * stride;
+
+
+        Tile& tile_component = registry.tiles.emplace(tile_entity);
+        tile_component.offset = i;
+        tile_component.parent_motion = &motion;
+        tile_component.id = tile_id_array[tile_arr_index];
+
+        std::cout << tile_component.id << std::endl;
+
+
+        registry.renderRequests.insert(tile_entity, {
+            TEXTURE_ASSET_ID::TILE,
+            EFFECT_ASSET_ID::TILE,
+            GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+        registry.layers.insert(tile_entity, { LAYER_ID::MIDGROUND });
+    }
+
+    // registry.renderRequests.insert(entity, {
+    //     TEXTURE_ASSET_ID::BLACK,
+    //     EFFECT_ASSET_ID::TEXTURED,
+    //     GEOMETRY_BUFFER_ID::SPRITE
+    // });
+    //
+    // registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+    // registry.timeControllables.emplace(entity);
 
     return entity;
 }

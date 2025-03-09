@@ -595,7 +595,7 @@ void PhysicsSystem::resolve_collision_position(Entity& entityA, Entity& entityB,
 
 
 	// leave the objects slightly colliding so that the collision is still triggered
-	const float epsilon = 0.1f;
+	const float epsilon = 0.01f;
 	vec2 resolution = collision.normal * (length(collision.overlap) - epsilon);
 	motionA.position += resolution * (inv_mass_a / total_inv_mass);
 	motionB.position -= resolution * (inv_mass_b / total_inv_mass);

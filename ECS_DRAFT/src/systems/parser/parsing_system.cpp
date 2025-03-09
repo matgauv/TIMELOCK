@@ -182,8 +182,9 @@ void LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& pa
     json end_pos_json = platform["customFields"]["end"];
     vec2 end_pos = convert_and_centralize_position(end_pos_json, conversion_factor);
 
-    json init_pos_json = platform["customFields"]["position"];
-    init_pos_in_path = convert_and_centralize_position(init_pos_json, conversion_factor);
+    int left_x = static_cast<int>(platform["x"]) - (static_cast<int>(platform["width"]) / 2);
+    int start_x = left_x + (static_cast<int>(dimensions[0]) / 2);
+    init_pos_in_path = {start_x, platform["y"]};
 
     // TODO: hardcoded duration value -- should prob parse from json
     Path forward = Path(start_pos, end_pos, 0.5);

@@ -49,6 +49,7 @@ class RenderSystem : public ISystem {
 		textures_path("spawnpoint/SpawnPoint_deactivate.png"),
 		textures_path("spawnpoint/SpawnPoint_reactivate.png"),
 		textures_path("groundlevels/d_tutorial_ground.png"),
+		textures_path("groundlevels/a_tutorial_ground.png"),
 		textures_path("tileset.png"),
 	};
 

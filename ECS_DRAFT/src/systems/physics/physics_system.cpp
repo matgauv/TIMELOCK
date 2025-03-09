@@ -343,8 +343,7 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			handle_object_rigid_collision(one, other, collision, step_seconds, groundedEntities, onMovingPlatform);
 		} else if (registry.physicsObjects.has(other) && registry.platforms.has(one)) {
 			// std::cout << "  colliding with platform: " << registry.platforms.has(one) << std::endl;
-		//	collision.overlap *= -1; //swap sides since coll is from perspective of one (left<->right) (top <-> bottom)
-			// std::cout << "Player has collided with a RIGID breakable platform" << std::endl;
+			collision.normal *= -1;
 			handle_object_rigid_collision(other, one, collision, step_seconds, groundedEntities, onMovingPlatform);
 		}
 
@@ -361,10 +360,9 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			handle_player_boss_collision(other, one, collision);
 		}
 
-		// if player touches boundary, reset the game
+		// if player touches boundary or spike, reset the game
 		GameState& gameState = registry.gameStates.components[0];
-		if ((registry.players.has(one) && registry.boundaries.has(other)) ||
-			(registry.players.has(other) && registry.boundaries.has(one))) {
+		if (is_collision_between_player_and_boundary(one, other) || is_collision_between_player_and_spike(one, other)) {
 			PlayerSystem::kill();
 		}
 
@@ -658,6 +656,16 @@ float PhysicsSystem::clampToTarget(float value, float change, float target) {
 // Helper function to check if an entity id is within a vector.
 bool PhysicsSystem::in(std::vector<unsigned int> vec, unsigned int id) {
 	return std::find(vec.begin(), vec.end(), id) != vec.end();
+}
+
+bool PhysicsSystem::is_collision_between_player_and_boundary(Entity& one, Entity& other) {
+	return (registry.players.has(one) && registry.boundaries.has(other)) ||
+		(registry.players.has(other) && registry.boundaries.has(one));
+}
+
+bool PhysicsSystem::is_collision_between_player_and_spike(Entity& one, Entity& other) {
+	return (registry.players.has(one) && registry.spikes.has(other)) ||
+	(registry.players.has(other) && registry.spikes.has(one));
 }
 
 void PhysicsSystem::handle_player_breakable_collision(Entity& player_entity, Entity& breakable_entity, Collision collision) {

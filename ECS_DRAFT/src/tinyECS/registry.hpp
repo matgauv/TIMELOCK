@@ -41,6 +41,7 @@ public:
 	ComponentContainer<PhysicsObject> physicsObjects;
 	ComponentContainer<Boundary> boundaries;
 	ComponentContainer<SpawnPoint> spawnPoints;
+	ComponentContainer<Spike> spikes;
 	ComponentContainer<Breakable> breakables;
 
 
@@ -76,6 +77,7 @@ public:
 		registry_list.push_back(&physicsObjects);
 		registry_list.push_back(&boundaries);
 		registry_list.push_back(&spawnPoints);
+		registry_list.push_back(&spikes);
 		registry_list.push_back(&breakables);
 	}
 

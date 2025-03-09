@@ -266,6 +266,12 @@ struct WaterDrop
 
 };
 
+// A struct indicating that an entity is a spike
+struct Spike
+{
+
+};
+
 // A struct indicating that an entity is breakable
 struct Breakable
 {

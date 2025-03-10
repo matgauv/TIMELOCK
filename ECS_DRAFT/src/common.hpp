@@ -30,6 +30,11 @@ inline std::string textures_path(const std::string& name) {return data_path() + 
 inline std::string audio_path(const std::string& name) {return data_path() + "/audio/" + std::string(name);};
 inline std::string mesh_path(const std::string& name) {return data_path() + "/meshes/" + std::string(name);};
 
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846f
+#endif
+
 //
 // game constants
 //
@@ -112,6 +117,20 @@ const int TILE_TO_PIXELS = 16;
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f
 #endif
+// Canon Tower
+const float CANON_TOWER_DETECTION_RANGE = 300.0f;
+const float CANON_TOWER_AIM_TIME_MS = 4000.0f;
+const float CANON_TOWER_FIRE_TIME_MS = 1500.0f;
+
+const float CANON_TURN_SPEED = M_PI;
+
+const vec2 CANON_TOWER_SIZE = vec2{80, 120};
+
+// barrel lies horizontally to the right at angle = 0
+const vec2 CANON_BARREL_SIZE = vec2{ 80, 30 };
+const float CANON_PROJECTILE_SPEED = 600.0f;
+const vec2 CANON_PROJECTILE_SIZE = vec2 {30.0f, 30.0f};
+
 
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)

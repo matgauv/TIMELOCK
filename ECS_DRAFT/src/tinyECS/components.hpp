@@ -275,7 +275,7 @@ struct Rock
 
 };
 
-// A struct indiciating that an entity is a water drop
+// A struct indicating that an entity is a water drop
 struct WaterDrop
 {
 
@@ -285,6 +285,14 @@ struct WaterDrop
 struct Spike
 {
 
+};
+
+// A struct indicating that an entity is breakable
+struct Breakable
+{
+	float health;
+	float degrade_speed_per_ms; // should be negative
+	bool should_break_instantly; 
 };
 
 // A struct indicating that an entity is an enemy boss

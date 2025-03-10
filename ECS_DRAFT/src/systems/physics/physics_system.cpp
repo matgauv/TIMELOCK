@@ -195,21 +195,11 @@ std::pair<float, float> project(const std::vector<vec2>& verts, const vec2& axis
 
 // see here for details https://dyn4j.org/2010/01/sat/
 // computes collision between any two convex shapes (MUST be convex)
-Collision compute_sat_collision(Entity& a, Entity& b)
-{
-	std::vector<vec2>& a_verts = get_vertices(a);
-	std::vector<vec2>& b_verts = get_vertices(b);
-
-	// now we need to get all of the axis (edge normals) from both shapes
-	// TODO: make this a set to reduce redundant calculations
-	std::vector<vec2>& a_axes = get_axes(a);
-	std::vector<vec2>& b_axes = get_axes(b);
-
-	std::vector<vec2> combined_axes;
-	combined_axes.reserve(a_axes.size() + b_axes.size()); // Reserve memory to avoid multiple allocations
-	combined_axes.insert(combined_axes.end(), a_axes.begin(), a_axes.end());
-	combined_axes.insert(combined_axes.end(), b_axes.begin(), b_axes.end());
-
+Collision compute_sat_collision(Motion& a_motion, Motion& b_motion, Entity a, Entity b) {
+	std::vector<vec2>& a_verts = a_motion.cached_vertices;
+	std::vector<vec2>& b_verts = b_motion.cached_vertices;
+	std::vector<vec2>& a_axes = a_motion.cached_axes;
+	std::vector<vec2>& b_axes = b_motion.cached_axes;
 
 
 	float min_overlap = FLT_MAX;
@@ -220,7 +210,29 @@ Collision compute_sat_collision(Entity& a, Entity& b)
 	// For every axis:
 	//	1. project each shape onto the axis
 	//  2. check overlap on the axis
-	for (const auto& axis : combined_axes)
+	for (const auto& axis : a_axes)
+	{
+		auto [a_min, a_max] = project(a_verts, axis);
+		auto [b_min, b_max] = project(b_verts, axis);
+
+		// by the theorem:
+		// if there is any axis where the projections do not overlap, there cannot be a collision. :O
+		if (a_max < b_min || b_max < a_min)
+		{
+			return Collision{b.id(), vec2{0,0}, vec2{0,0}};
+		}
+
+		// min and max so that we handle the case where there one is fully contained in the other
+		float overlap = std::min(a_max, b_max) - std::max(a_min, b_min);
+
+		if (overlap < min_overlap)
+		{
+			min_overlap = overlap;
+			smallest_axis = axis;
+		}
+	}
+
+	for (const auto& axis : b_axes)
 	{
 		auto [a_min, a_max] = project(a_verts, axis);
 		auto [b_min, b_max] = project(b_verts, axis);
@@ -243,9 +255,7 @@ Collision compute_sat_collision(Entity& a, Entity& b)
 	}
 
 	// make sure that the normal points from A -> B
-	Motion& motionA = registry.motions.get(a);
-	Motion& motionB = registry.motions.get(b);
-	vec2 direction = motionA.position - motionB.position;
+	vec2 direction = a_motion.position - b_motion.position;
 	if (dot(direction, smallest_axis) < 0) {
 		smallest_axis *= -1;
 	}
@@ -253,36 +263,30 @@ Collision compute_sat_collision(Entity& a, Entity& b)
 	// the smallest axis is where the shapes overlap the least ->
 	// the minimal amount we need to move one shape to resolve the collision
 	// (the axis are represented by the normals)
-	return {b.id(), min_overlap * smallest_axis, smallest_axis};
+    return Collision{ b.id(), min_overlap * smallest_axis, smallest_axis };
 }
 
 // detect collisions between all moving entities.
 void PhysicsSystem::detect_collisions() {
+	auto& physics_objects = registry.physicsObjects;
+	auto& motion_container = registry.motions;
 
-	ComponentContainer<PhysicsObject> &physics_objects = registry.physicsObjects;
-	ComponentContainer<Motion> &motion_container = registry.motions;
-	for(uint i = 0; i < physics_objects.components.size(); i++)
-	{
-		Entity& entity_i = physics_objects.entities[i];
+	for (uint i = 0; i < physics_objects.size(); ++i) {
+		Entity entity_i = physics_objects.entities[i];
+		Motion& motion_i = registry.motions.get(entity_i);
 
+		for (uint j = 0; j < motion_container.size(); ++j) {
+			Entity entity_j = motion_container.entities[j];
+			if (entity_i == entity_j) continue;
 
-		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
-		for(uint j = 0; j < motion_container.components.size(); j++)
-		{
-			Entity& entity_j = motion_container.entities[j];
-			if (entity_j.id() == entity_i.id()
-				|| (registry.collisions.has(entity_i) && registry.collisions.get(entity_i).other_id == entity_j.id())
-				|| (registry.collisions.has(entity_j) && registry.collisions.get(entity_j).other_id == entity_i.id())) continue;
+			Motion& motion_j = registry.motions.get(entity_j);
+			Collision result = compute_sat_collision(motion_i, motion_j, entity_i, entity_j);
 
-			Collision result = compute_sat_collision(entity_i, entity_j);
-
-			if (result.normal != vec2{0,0} && result.overlap != vec2{0,0})
-			{
+			if (result.normal != vec2{0, 0}) {
 				registry.collisions.emplace_with_duplicates(entity_i, entity_j, result.overlap, result.normal);
 			}
 		}
 	}
-
 }
 
 // will move an object along its movement path, rotating between the different paths specified in the component

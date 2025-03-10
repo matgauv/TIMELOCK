@@ -7,14 +7,16 @@
 #include "../player/player_system.hpp"
 #include <iostream>
 
-std::vector<vec2> compute_vertices(Entity& e) {
+void compute_vertices(Motion& motion, Entity& e) {
+	motion.cached_vertices.clear();
+	float angle_cos = cos(motion.angle);
+	float angle_sin = sin(motion.angle);
+
 	if (registry.meshPtrs.has(e))
 	{
 		Mesh* mesh = registry.meshPtrs.get(e);
-		Motion& motion = registry.motions.get(e);
-		std::vector<vec2> vertices;
-		float angle_cos = cos(motion.angle);
-		float angle_sin = sin(motion.angle);
+		motion.cached_vertices.reserve( mesh->vertices.size() );
+
 		for (auto & vertex : mesh->vertices)
 		{
 			vec2 scaled = {vertex.position.x * motion.scale.x, vertex.position.y * motion.scale.y};
@@ -24,28 +26,24 @@ std::vector<vec2> compute_vertices(Entity& e) {
 			};
 			vec2 vertex_pos = vec2{(rotated.x) + motion.position.x , (rotated.y) + motion.position.y};
 
-			vertices.push_back(vertex_pos);
+			motion.cached_vertices.push_back(vertex_pos);
 		}
 
-		return vertices;
 	} else
 	{
-		// TODO: store this ? no need to compute EVERY FRAME -> other than the translation
 		// No mesh, we assume square BB
-		std::vector<vec2> vertices(4);
-		Motion& motion = registry.motions.get(e);
+		motion.cached_vertices.reserve(4);
+
 		vec2 half_size = motion.scale * 0.5f;
 
-		vertices[0] = { -half_size.x, -half_size.y };
-		vertices[1] = {  half_size.x, -half_size.y };
-		vertices[2] = {  half_size.x,  half_size.y };
-		vertices[3] = { -half_size.x,  half_size.y };
+		motion.cached_vertices[0] = { -half_size.x, -half_size.y };
+		motion.cached_vertices[1] = {  half_size.x, -half_size.y };
+		motion.cached_vertices[2] = {  half_size.x,  half_size.y };
+		motion.cached_vertices[3] = { -half_size.x,  half_size.y };
 
 		// if there's a rotation, we need to apply
-		float angle_cos = cos(motion.angle);
-		float angle_sin = sin(motion.angle);
 
-		for (vec2& vertex : vertices)
+		for (vec2& vertex : motion.cached_vertices)
 		{
 			// rotate around z axis using this matrix:
 			//[ cos -sin ]
@@ -57,13 +55,26 @@ std::vector<vec2> compute_vertices(Entity& e) {
 			vertex = rotated;
 		}
 
-		// make sure to translate to world position
-		for (vec2& vertex : vertices) {
-			vertex += motion.position;
+		for (vec2& vertex : motion.cached_vertices)
+		{
+			vertex = vertex + motion.position;
 		}
-		return vertices;
 	}
 }
+
+// returns the normals of the edge between the verticies
+void compute_axes(Motion& motion, std::vector<vec2>& vertices)
+{
+	motion.cached_axes.clear();
+	motion.cached_axes.reserve(vertices.size());
+	for (int i = 0; i < vertices.size(); i++)
+	{
+		vec2 edge = vertices[(i+1)%vertices.size()] - vertices[i]; // modulo so we properly wrap around
+		vec2 normal = normalize(vec2{-edge.y, edge.x});
+		motion.cached_axes.push_back(normal);
+	}
+}
+
 
 
 void PhysicsSystem::init(GLFWwindow* window) {
@@ -119,11 +130,11 @@ void PhysicsSystem::step(float elapsed_ms) {
 		}
 	}
 
-	// precompute the verticies (for multi threaded collision detection)
 	for (Entity entity : registry.motions.entities) {
 		Motion& motion = registry.motions.get(entity);
 		if (motion.cache_invalidated) {
-			motion.cached_vertices = compute_vertices(entity);
+			compute_vertices(motion, entity);
+			compute_axes(motion, motion.cached_vertices);
 			motion.cache_invalidated = false; // Reset flag
 		}
 	}
@@ -134,37 +145,28 @@ void PhysicsSystem::step(float elapsed_ms) {
 
 // Handles all collisions detected in PhysicsSystem::step
 void PhysicsSystem::late_step(float elapsed_ms) {
-//	const int iterations = 1;
-//	for (int i = 0; i < iterations; ++i) {
 
-	//}
 }
 
 
 
 
 // returns the mesh verticies if a mesh exists, otherwise, returns verticies of a square defined by the scale of the object (BB)
-std::vector<vec2> get_vertices(Entity& e) {
+std::vector<vec2>& get_vertices(Entity& e) {
 	Motion& motion = registry.motions.get(e);
 	return motion.cached_vertices;
 }
 
-// returns the normals of the edge between the verticies
-std::vector<vec2> get_axis(std::vector<vec2>& vertices)
+
+std::vector<vec2>& get_axes(Entity& e)
 {
-	std::vector<vec2> local_axes;
-	for (int i = 0; i < vertices.size(); i++)
-	{
-		vec2 edge = vertices[(i+1)%vertices.size()] - vertices[i]; // modulo so we properly wrap around
-		vec2 normal = normalize(vec2{-edge.y, edge.x});
-		local_axes.push_back(normal);
-	}
-	return local_axes;
+	Motion& motion = registry.motions.get(e);
+	return motion.cached_axes;
 }
 
 // projects the verticies onto the axis
 // only return the min and max since the object is convex and the axis is 1 dimensional
-std::pair<float, float> project(const std::vector<vec2> verts, const vec2& axis)
+std::pair<float, float> project(const std::vector<vec2>& verts, const vec2& axis)
 {
 	float min = dot(axis, verts[0]);
 	float max = min; // init to min
@@ -179,27 +181,35 @@ std::pair<float, float> project(const std::vector<vec2> verts, const vec2& axis)
 	return std::make_pair(min, max);
 }
 
+
 // see here for details https://dyn4j.org/2010/01/sat/
 // computes collision between any two convex shapes (MUST be convex)
 Collision compute_sat_collision(Entity& a, Entity& b)
 {
-	std::vector<vec2> a_verts = get_vertices(a);
-	std::vector<vec2> b_verts = get_vertices(b);
+	std::vector<vec2>& a_verts = get_vertices(a);
+	std::vector<vec2>& b_verts = get_vertices(b);
 
 	// now we need to get all of the axis (edge normals) from both shapes
 	// TODO: make this a set to reduce redundant calculations
-	std::vector<vec2> axes = get_axis(a_verts);
-	std::vector<vec2> b_axes = get_axis(b_verts);
-	axes.insert(axes.end(), b_axes.begin(), b_axes.end());
+	std::vector<vec2>& a_axes = get_axes(a);
+	std::vector<vec2>& b_axes = get_axes(b);
+
+	std::vector<vec2> combined_axes;
+	combined_axes.reserve(a_axes.size() + b_axes.size()); // Reserve memory to avoid multiple allocations
+	combined_axes.insert(combined_axes.end(), a_axes.begin(), a_axes.end());
+	combined_axes.insert(combined_axes.end(), b_axes.begin(), b_axes.end());
+
+
 
 	float min_overlap = FLT_MAX;
 	vec2 smallest_axis;
+
 
 	// SAT time!! (perform the main SAT check)
 	// For every axis:
 	//	1. project each shape onto the axis
 	//  2. check overlap on the axis
-	for (const auto& axis : axes) // const bc I watched a TikTok about a vulnerability if you don't use it
+	for (const auto& axis : combined_axes)
 	{
 		auto [a_min, a_max] = project(a_verts, axis);
 		auto [b_min, b_max] = project(b_verts, axis);
@@ -208,7 +218,7 @@ Collision compute_sat_collision(Entity& a, Entity& b)
 		// if there is any axis where the projections do not overlap, there cannot be a collision. :O
 		if (a_max < b_min || b_max < a_min)
 		{
-			return Collision{&b, vec2{0,0}, vec2{0,0}};
+			return Collision{b.id(), vec2{0,0}, vec2{0,0}};
 		}
 
 		// min and max so that we handle the case where there one is fully contained in the other
@@ -224,18 +234,15 @@ Collision compute_sat_collision(Entity& a, Entity& b)
 	// make sure that the normal points from A -> B
 	Motion& motionA = registry.motions.get(a);
 	Motion& motionB = registry.motions.get(b);
-	vec2 center_a = motionA.position;
-	vec2 center_b = motionB.position;
-	vec2 direction = center_a - center_b;
-	if (dot(direction, smallest_axis) < 0)
-	{
+	vec2 direction = motionA.position - motionB.position;
+	if (dot(direction, smallest_axis) < 0) {
 		smallest_axis *= -1;
 	}
 
 	// the smallest axis is where the shapes overlap the least ->
 	// the minimal amount we need to move one shape to resolve the collision
 	// (the axis are represented by the normals)
-	return {&b, min_overlap * smallest_axis, smallest_axis};
+	return {b.id(), min_overlap * smallest_axis, smallest_axis};
 }
 
 // detect collisions between all moving entities.
@@ -253,17 +260,18 @@ void PhysicsSystem::detect_collisions() {
 		{
 			Entity& entity_j = motion_container.entities[j];
 			if (entity_j.id() == entity_i.id()
-				|| (registry.collisions.has(entity_i) && registry.collisions.get(entity_i).other->id() == entity_j.id())
-				|| (registry.collisions.has(entity_j) && registry.collisions.get(entity_j).other->id() == entity_i.id())) continue;
+				|| (registry.collisions.has(entity_i) && registry.collisions.get(entity_i).other_id == entity_j.id())
+				|| (registry.collisions.has(entity_j) && registry.collisions.get(entity_j).other_id == entity_i.id())) continue;
 
 			Collision result = compute_sat_collision(entity_i, entity_j);
 
 			if (result.normal != vec2{0,0} && result.overlap != vec2{0,0})
 			{
-				registry.collisions.emplace_with_duplicates(entity_i, &entity_j, result.overlap, result.normal);
+				registry.collisions.emplace_with_duplicates(entity_i, entity_j, result.overlap, result.normal);
 			}
 		}
 	}
+
 }
 
 // will move an object along its movement path, rotating between the different paths specified in the component
@@ -317,8 +325,8 @@ void PhysicsSystem::player_walk(Entity& entity, Motion& motion, float step_secon
 
 		vec2 platform_velocity = {0.0f, 0.0f};
 		if (registry.onGrounds.has(entity)) {
-			Entity& platform = *(registry.onGrounds.get(entity).ground_entity);
-			Motion& platform_motion = registry.motions.get(platform);
+			unsigned int ground_id = registry.onGrounds.get(entity).other_id;
+			Motion& platform_motion = registry.motions.get(ground_id);
 			platform_velocity = get_modified_velocity(platform_motion);
 		}
 
@@ -346,7 +354,7 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 	for (uint i = 0; i < collision_container.components.size(); i++) {
 		Entity& one = collision_container.entities[i];
 		Collision& collision = collision_container.components[i];
-		Entity& other = *(collision.other);
+		Entity other = Entity(collision.other_id);
 
 
 		// if (!registry.blocked.has(one))
@@ -357,10 +365,10 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 
 		// order here is important so handle both cases sep
 		if (registry.physicsObjects.has(one) && registry.platforms.has(other)) {
-			// std::cout << "  colliding with platform: " << registry.platforms.has(other) << std::endl;
+			std::cout << "  colliding with platform: " << registry.platforms.has(other) << std::endl;
 			handle_object_rigid_collision(one, other, collision, step_seconds, groundedEntities);
 		} else if (registry.physicsObjects.has(other) && registry.platforms.has(one)) {
-			// std::cout << "  colliding with platform: " << registry.platforms.has(one) << std::endl;
+			std::cout << "  colliding with platform: " << registry.platforms.has(one) << std::endl;
 		//	collision.overlap *= -1; //swap sides since coll is from perspective of one (left<->right) (top <-> bottom);
 			collision.normal *= -1;
 			handle_object_rigid_collision(other, one, collision, step_seconds, groundedEntities);
@@ -410,7 +418,7 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 	for (uint i = 0; i < collision_container.components.size(); i++) {
 		Entity& one = collision_container.entities[i];
 		Collision& collision = collision_container.components[i];
-		Entity& other = *(collision.other);
+		Entity other = Entity(collision.other_id);
 
 		if (registry.physicsObjects.has(one) && registry.physicsObjects.has(other)) {
 			handle_physics_collision(step_seconds, one, other, collision, groundedEntities);
@@ -497,7 +505,7 @@ void PhysicsSystem::handle_object_rigid_collision(Entity& object_entity, Entity&
 			vec2 tangent = normalize(vec2(-normal.y, normal.x));
 
 			// Fling in platform's movement direction scaled by surface alignment
-			float surface_alignment = abs(dot(normalize(platform_velocity), tangent));
+		//	float surface_alignment = abs(dot(normalize(platform_velocity), tangent));
 			obj_motion.velocity += vec2{platform_velocity.x * 0.05f, platform_velocity.y * 0.005f};
 		}
 	}
@@ -505,9 +513,9 @@ void PhysicsSystem::handle_object_rigid_collision(Entity& object_entity, Entity&
 	if (is_on_ground(-normal.y)) {
 		groundedEntities.push_back(object_entity);
 		if (registry.onGrounds.has(object_entity)) {
-			registry.onGrounds.get(object_entity).ground_entity = &platform_entity;
+			registry.onGrounds.get(object_entity).other_id = platform_entity.id();
 		} else {
-			registry.onGrounds.emplace(object_entity, &platform_entity);
+			registry.onGrounds.emplace(object_entity, platform_entity.id());
 		}
 	}
 }
@@ -574,7 +582,7 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 	{
 		grounded.push_back(entityA.id());
 		if (!registry.onGrounds.has(entityA)) {
-			registry.onGrounds.emplace(entityA, &entityB);
+			registry.onGrounds.emplace(entityA, entityB.id());
 		}
 	}
 
@@ -582,7 +590,7 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 	{
 		grounded.push_back(entityB.id());
 		if (!registry.onGrounds.has(entityB)) {
-			registry.onGrounds.emplace(entityB, &entityA);
+			registry.onGrounds.emplace(entityB, entityA.id());
 		}
 	}
 

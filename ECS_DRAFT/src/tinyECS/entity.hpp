@@ -14,6 +14,11 @@ public:
         m_id = id_count++; // assign and increment
     }
 
+    Entity(unsigned int id)
+    {
+        m_id = id;
+    }
+
     // Entity(Entity& e)
     // {
     //     m_id = e.m_id;

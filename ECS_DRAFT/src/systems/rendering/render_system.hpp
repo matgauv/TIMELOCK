@@ -53,6 +53,8 @@ class RenderSystem : public ISystem {
 		textures_path("tileset.png"),
 		textures_path("tutorial-text/wasd.png"),
 		textures_path("tutorial-text/decel.png"),
+		textures_path("tutorial-text/accel.png"),
+		textures_path("tutorial-text/accel2.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

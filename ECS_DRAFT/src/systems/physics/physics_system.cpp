@@ -26,9 +26,6 @@ void PhysicsSystem::step(float elapsed_ms) {
 
 	drop_bolt_when_player_near(DISTANCE_TO_DROP_BOLT);
 
-	Entity& some_entity = registry.players.entities[0];
-	std::cout << some_entity.get_id_count() << std::endl;
-
 	for(uint i = 0; i< motion_registry.size(); i++)
 	{
 		Motion& motion = motion_registry.components[i];

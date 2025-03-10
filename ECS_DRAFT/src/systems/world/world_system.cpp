@@ -165,6 +165,23 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			if (breakable.health <= 0.f) {
 				registry.remove_all_components_of(entity);
+      }  
+
+		// TODO: Below are copied from control_time; checks for harmful/harmless transitions should be coordinated by world system constantly
+		
+		// become harmful when activating acceleration and can become harmful or when deactivating deceleration (and became harmless when decellerating)
+		if ((gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED && tc.can_become_harmful) ||
+			(gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED && tc.can_become_harmless)) {
+			if (!registry.harmfuls.has(entity)) {
+				registry.harmfuls.emplace(entity);
+			}
+		}
+
+		// become harmless when activating deceleration and can become harmless or when deactivating acceleration (and became harmful during acceleration)
+		if ((gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED && tc.can_become_harmless) ||
+			(gameState.game_time_control_state != TIME_CONTROL_STATE::ACCELERATED && tc.can_become_harmful)) {
+			if (registry.harmfuls.has(entity)) {
+				registry.harmfuls.remove(entity);
 			}
 		}
 	}
@@ -294,6 +311,9 @@ bool WorldSystem::start_and_load_sounds() {
 	return true;
 }
 
+// TODO: setting harmful component in trigger-based control_time function can be redundant;
+// we have to configure newly summoned entities to obey their harmful/harmless rules anyways
+// (e.g., when summoning a projectile during decel, we have to ensure it does not have a harmful component)
 void WorldSystem::control_time(bool accelerate, bool activate) {
 	GameState& gameState = registry.gameStates.components[0];
 
@@ -338,13 +358,17 @@ void WorldSystem::control_time(bool accelerate, bool activate) {
 		// become harmful when activating acceleration and can become harmful or when deactivating deceleration (and became harmless when decellerating)
 		if ((activate && accelerate && tc.can_become_harmful) ||
 			(!activate && !accelerate && tc.can_become_harmless)) {
-			registry.harmfuls.emplace(entity);
+			if (!registry.harmfuls.has(entity)) {
+				registry.harmfuls.emplace(entity);
+			}
 		}
 
 		// become harmless when activating deceleration and can become harmless or when deactivating acceleration (and became harmful during acceleration)
 		if ((activate && !accelerate && tc.can_become_harmless) ||
 			(!activate && accelerate && tc.can_become_harmful)) {
-			registry.harmfuls.remove(entity);
+			if (registry.harmfuls.has(entity)) {
+				registry.harmfuls.remove(entity);
+			}
 		}
 	}
 }

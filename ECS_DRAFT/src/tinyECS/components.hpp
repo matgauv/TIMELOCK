@@ -55,6 +55,23 @@ struct SpawnPoint
 	SPAWN_POINT_STATE state = SPAWN_POINT_STATE::UNVISITED;
 };
 
+enum class CANON_TOWER_STATE {
+	IDLE = 0,
+	AIMING = IDLE + 1,
+	FIRING = AIMING + 1
+};
+
+struct CanonTower {
+	CANON_TOWER_STATE state = CANON_TOWER_STATE::IDLE;
+	float detection_range = CANON_TOWER_DETECTION_RANGE;
+	float timer = 0.0f;
+	Entity barrel_entity;
+};
+
+struct CanonBarrel {
+	float angle = 0.0f;
+};
+
 // Platform component
 struct Platform
 {

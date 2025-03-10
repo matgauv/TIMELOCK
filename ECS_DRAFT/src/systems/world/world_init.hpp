@@ -23,3 +23,4 @@ Entity create_spike(vec2 position, vec2 scale);
 Entity create_breakable_static_platform(vec2 position, vec2 scale, bool should_break_instantly, float degrade_speed, float angle = 0.0f, bool is_time_controllable = false);
 Entity create_time_controllable_breakable_static_platform(vec2 position, vec2 scale, bool should_break_instantly, float degrade_speed, float angle = 0.0f);
 float getDistance(Motion& one, Motion& other);
+Entity create_canon_tower(vec2 pos);

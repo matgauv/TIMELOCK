@@ -27,6 +27,7 @@ private:
 	void handle_player_boss_collision(Entity player_entity, Entity boss_entity, Collision collision);
 	void handle_player_breakable_collision(Entity& player_entity, Entity& breakable_entity, Collision collision);
 	void handle_physics_collision(float step_seconds, Entity entityA, Entity entityB, Collision collision,  std::vector<unsigned int>& groundedEntities);
+	void handle_projectile_collision(Entity proj_entity, Entity other_entity);
 	void apply_gravity(Entity& entity, Motion& motion, float step_seconds);
 	void player_walk(Entity& entity, Motion& motion, float step_seconds);
 	void move_object_along_path(Entity& entity, Motion& motion, float step_seconds);

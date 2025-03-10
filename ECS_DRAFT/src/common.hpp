@@ -70,7 +70,7 @@ const float ACCELERATION_EMERGE_MS = 150.0f;
 const float DECELERATION_EMERGE_MS = 150.0f;
 
 // Physics
-const float M_TO_PIXELS = 60.0f; // 50 px is 1m
+const float M_TO_PIXELS = 65.0f; // 50 px is 1m
 const float GRAVITY = 9.8f * M_TO_PIXELS;
 const float OBJECT_MAX_FALLING_SPEED = 1000.0f;
 
@@ -78,7 +78,7 @@ const float STATIC_FRICTION = 0.15f;
 const float DYNAMIC_FRICTION = 0.015f;
 const float BOLT_FRICTION = 0.1f;
 const float AIR_RESISTANCE = 250.0f;
-const float JUMP_VELOCITY = 350.0f;
+const float JUMP_VELOCITY = 305.0f;
 
 const float PHYSICS_OBJECT_BOUNCE = 0.2f;
 const float DEFAULT_MASS = 1.0f;
@@ -91,7 +91,7 @@ const float DISTANCE_TO_DROP_BOLT = 250.0f;
 // Player Statistics
 const vec2 PLAYER_SCALE = { 50.0f, 50.0f };
 const float PLAYER_MAX_FALLING_SPEED = 1000.0f;
-const float PLAYER_MAX_WALKING_SPEED = 300.0f;
+const float PLAYER_MAX_WALKING_SPEED = 305.0f;
 
 const float PLAYER_WALK_ACCELERATION = 900.0f;
 

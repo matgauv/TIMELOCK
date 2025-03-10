@@ -174,6 +174,8 @@ void canon_fire(Entity tower_entity, float angle) {
 	//registry.falling.emplace(entity);
 
 	registry.bolts.emplace(proj_entity);
+	registry.harmfuls.emplace(proj_entity);
+	registry.projectiles.emplace(proj_entity);
 
 	vec2 dir = vec2{ cos(angle), sin(angle) };
 	Motion& motion = registry.motions.emplace(proj_entity);
@@ -197,4 +199,7 @@ void canon_fire(Entity tower_entity, float angle) {
 	);
 
 	registry.layers.insert(proj_entity, { LAYER_ID::MIDGROUND });
+
+	TimeControllable &timeControllable = registry.timeControllables.emplace(proj_entity);
+	timeControllable.can_become_harmless = true;
 }

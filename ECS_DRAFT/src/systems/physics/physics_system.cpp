@@ -340,9 +340,23 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 
 		if (registry.players.has(one) && registry.projectiles.has(other)) {
 			// TODO: should handle_player_projectile_collision() be handle_player_attack_collision() ?
+			// TODO: should leave all events that kill player to collision with harmful entities
+
 			handle_player_attack_collision(one, other, collision);
 		} else if (registry.players.has(other) && registry.projectiles.has(one)) {
 			handle_player_attack_collision(other, one, collision);
+		}
+
+		GameState& gameState = registry.gameStates.components[0];
+		// Very coarse method of eliminating projectiles;
+		// Should consider:
+		// - Bouncing projectiles (if exists);
+		// - Projectile dying effect (need particle system);
+		if (registry.projectiles.has(one)) {
+			handle_projectile_collision(one, other);
+		}
+		else if (registry.projectiles.has(other)) {
+			handle_projectile_collision(other, one);
 		}
 
 		if (registry.players.has(one) && registry.bosses.has(other)) {
@@ -352,7 +366,6 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 		}
 
 		// if player touches boundary, reset the game
-		GameState& gameState = registry.gameStates.components[0];
 		if ((registry.players.has(one) && registry.boundaries.has(other)) ||
 			(registry.players.has(other) && registry.boundaries.has(one))) {
 			PlayerSystem::kill();
@@ -404,6 +417,18 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 	registry.collisions.clear();
 }
 
+void PhysicsSystem::handle_projectile_collision(Entity proj_entity, Entity other_entity) {
+	// If not harmful, don't remove projectile upon player collision
+	if (!registry.harmfuls.has(proj_entity) && registry.players.has(other_entity)) {
+		return;
+	}
+
+	// Upon colliding with physicsObjects (other projectiles, player) / platforms
+	if (registry.physicsObjects.has(other_entity) || (registry.platforms.has(other_entity))) {
+		// TODO: add more effects to killing projectiles, likely based on types
+		registry.remove_all_components_of(proj_entity);
+	}
+}
 
 // Handles collision between a PhysicsObject entity and a Platform entity.
 void PhysicsSystem::handle_object_rigid_collision(Entity object_entity, Entity platform_entity, Collision collision, float step_seconds, std::vector<unsigned int>& groundedEntities, std::vector<unsigned int>& onMovingPlatform)
@@ -471,10 +496,32 @@ void PhysicsSystem::handle_object_rigid_collision(Entity object_entity, Entity p
 }
 
 void PhysicsSystem::handle_player_attack_collision(Entity player_entity, Entity attack_entity, Collision collision) {
-	if (registry.harmfuls.has(attack_entity)) {
+	GameState& gameState = registry.gameStates.components[0];
+
+	/*
+	bool canDealDamage = false;
+
+	if (!registry.timeControllables.has(attack_entity)) {
+		// Case 1: attack not influenced by time control
+		canDealDamage = registry.harmfuls.has(attack_entity);
+	}
+	else {
+		// Case 2: attack influenced by time control
+		// - 2.1: harmful + NOT (decel + can become harmless)
+		// - 2.2: accel + can become harmful
+		TimeControllable& tc_config = registry.timeControllables.get(attack_entity);
+		if ((registry.harmfuls.has(attack_entity) && !(tc_config.can_become_harmless)) || 
+			()) {
+		}
+	}*/
+	
+	// TODO: make this part of logic consistent with WorldSystem::control_time
+	if ((registry.harmfuls.has(attack_entity))) {
 		assert(registry.gameStates.components.size() <= 1);
 		GameState& gameState = registry.gameStates.components[0];
-		gameState.game_running_state = GAME_RUNNING_STATE::OVER;
+		gameState.game_running_state = GAME_RUNNING_STATE::OVER; // might not be necessary
+
+		PlayerSystem::kill();
 	}
 }
 

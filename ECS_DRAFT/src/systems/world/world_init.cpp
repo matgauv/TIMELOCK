@@ -505,6 +505,6 @@ Entity create_time_controllable_breakable_static_platform(vec2 position, vec2 sc
     return entity;
 }
 
-float getDistance(Motion& one, Motion& other) {
-    return sqrt(pow(one.position.x - other.position.x, 2) + pow(one.position.y - other.position.y, 2));
+float getDistance(const Motion& one, const Motion& other) {
+    return glm::length(one.position - other.position);
 }

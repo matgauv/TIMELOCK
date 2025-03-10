@@ -417,5 +417,6 @@ struct AnimateRequest {
 
 struct LevelState {
 	std::string curr_level_file_name;
+	TEXTURE_ASSET_ID ground;
 	bool shouldLoad = false;
 };

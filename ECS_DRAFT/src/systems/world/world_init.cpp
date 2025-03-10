@@ -46,7 +46,7 @@ void demo_level() {
     create_spawnpoint({ xStart - 200, sceneHeight - 110 }, SPAWNPOINT_SCALE);
     create_spawnpoint({ xStart + 200, sceneHeight - 110}, SPAWNPOINT_SCALE);
     create_spawnpoint({ xStart + 1500.0f, sceneHeight - 110 }, SPAWNPOINT_SCALE);
-    create_canon_tower({ xStart - 100.0f, sceneHeight - 185 });
+    create_canon_tower({ xStart + 200.0f, sceneHeight - 185 });
 
     // lil roof to test vertical collisions
     create_static_platform({xStart - 100.0f, sceneHeight - 125.0f}, {100.0f, 20.0f}, false);

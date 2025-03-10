@@ -419,7 +419,7 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 
 void PhysicsSystem::handle_projectile_collision(Entity proj_entity, Entity other_entity) {
 	// If not harmful, don't remove projectile upon player collision
-	if (!registry.harmfuls.has(proj_entity) && registry.players.has(other_entity)) {
+	if (!registry.harmfuls.has(proj_entity) /* && registry.players.has(other_entity)*/) {
 		return;
 	}
 
@@ -497,23 +497,6 @@ void PhysicsSystem::handle_object_rigid_collision(Entity object_entity, Entity p
 
 void PhysicsSystem::handle_player_attack_collision(Entity player_entity, Entity attack_entity, Collision collision) {
 	GameState& gameState = registry.gameStates.components[0];
-
-	/*
-	bool canDealDamage = false;
-
-	if (!registry.timeControllables.has(attack_entity)) {
-		// Case 1: attack not influenced by time control
-		canDealDamage = registry.harmfuls.has(attack_entity);
-	}
-	else {
-		// Case 2: attack influenced by time control
-		// - 2.1: harmful + NOT (decel + can become harmless)
-		// - 2.2: accel + can become harmful
-		TimeControllable& tc_config = registry.timeControllables.get(attack_entity);
-		if ((registry.harmfuls.has(attack_entity) && !(tc_config.can_become_harmless)) || 
-			()) {
-		}
-	}*/
 	
 	// TODO: make this part of logic consistent with WorldSystem::control_time
 	if ((registry.harmfuls.has(attack_entity))) {

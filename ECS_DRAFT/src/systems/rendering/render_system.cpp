@@ -463,6 +463,9 @@ void RenderSystem::draw()
 				break;
 			case LAYER_ID::MIDGROUND:
 				// Render Player last?
+				if (registry.players.has(entity)) {
+					continue;
+				}
 				// TODO: may need to adjust rendering order for spawn points and interactive objects as well?
 				if (registry.spawnPoints.has(entity)) {
 					midgrounds.insert(midgrounds.begin(), entity);
@@ -481,6 +484,7 @@ void RenderSystem::draw()
 				break;
 		}
 	}
+	midgrounds.push_back(registry.players.entities[0]);
 
 	for (Entity entity : parallaxbackgrounds)
 	{

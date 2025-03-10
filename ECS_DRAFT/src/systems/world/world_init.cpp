@@ -391,6 +391,7 @@ Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity)
     PhysicsObject& object = registry.physicsObjects.emplace(entity);
     object.mass = 25.0f;
     object.apply_gravity = default_gravity;
+    object.friction = BOLT_FRICTION;
 
     registry.bolts.emplace(entity);
 

@@ -67,6 +67,7 @@ const float OBJECT_MAX_FALLING_SPEED = 1000.0f;
 
 const float STATIC_FRICTION = 0.15f;
 const float DYNAMIC_FRICTION = 0.015f;
+const float BOLT_FRICTION = 0.1f;
 const float AIR_RESISTANCE = 250.0f;
 const float JUMP_VELOCITY = 350.0f;
 

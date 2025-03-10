@@ -44,6 +44,9 @@ public:
 	ComponentContainer<SpawnPoint> spawnPoints;
 	ComponentContainer<Spike> spikes;
 	ComponentContainer<Tile> tiles;
+	ComponentContainer<CanonTower> canonTowers;
+	ComponentContainer<CanonBarrel> canonBarrels;
+
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -81,6 +84,8 @@ public:
 		registry_list.push_back(&spawnPoints);
 		registry_list.push_back(&tiles);
 		registry_list.push_back(&spikes);
+		registry_list.push_back(&canonTowers);
+		registry_list.push_back(&canonBarrels);
 	}
 
 	void clear_all_components() {

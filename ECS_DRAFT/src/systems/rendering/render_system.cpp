@@ -105,6 +105,29 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
 
+
+
+		GLint color_uloc = glGetUniformLocation(program, "silhouette_color");
+		vec4 color = vec4(-1.0f);
+		const GameState& gameState = registry.gameStates.components[0];
+
+		if (registry.timeControllables.has(entity)) {
+			const TimeControllable& tc = registry.timeControllables.get(entity);
+			if (
+				(gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED && tc.can_become_harmless) ||
+				(gameState.game_time_control_state != TIME_CONTROL_STATE::ACCELERATED && tc.can_become_harmful)) {
+				// Green silhouette if (become harmless + decel) OR (become harmful + !accel)
+				color = vec4(0.0f, 1.0f, 0.0f, 1.0f);
+			}
+			else if (
+				(gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED && tc.can_become_harmful) ||
+				(gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED && tc.can_become_harmless)) {
+				// Red silhouette if (become harmful + accel) OR (become harmless + !decel)
+				color = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			}
+		}
+		glUniform4fv(color_uloc, 1, (float*)&color);
+		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::HEX)
 	{
@@ -141,6 +164,31 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		GLuint texture_id = texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
 
 		glBindTexture(GL_TEXTURE_2D, texture_id);
+		gl_has_errors();
+
+
+		GLint color_uloc = glGetUniformLocation(program, "silhouette_color");
+		vec4 color = vec4(-1.0f);
+		const GameState& gameState = registry.gameStates.components[0];
+
+
+		if (registry.timeControllables.has(entity)) {
+			const TimeControllable& tc = registry.timeControllables.get(entity);
+			if (
+				(gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED && tc.can_become_harmless) ||
+				(gameState.game_time_control_state != TIME_CONTROL_STATE::ACCELERATED && tc.can_become_harmful)) {
+				// Green silhouette if (become harmless + decel) OR (become harmful + !accel)
+				color = vec4(0.0f, 1.0f, 0.0f, 1.0f);
+			}
+			else if (
+				(gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED && tc.can_become_harmful) ||
+				(gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED && tc.can_become_harmless)) {
+				// Red silhouette if (become harmful + accel) OR (become harmless + !decel)
+				color = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			}
+		}
+
+		glUniform4fv(color_uloc, 1, (float*)&color);
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::LINE)
@@ -215,12 +263,11 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		GLuint tile_offset_uloc = glGetUniformLocation(currProgram, "t_offset");
 
 		Tile& tile_info = registry.tiles.get(entity);
-
-		Motion* motion = tile_info.parent_motion;
-		int tile_start_x = motion->position.x - (motion->scale.x / 2) + (0.5 * TILE_TO_PIXELS);
+		Motion& motion = registry.motions.get(tile_info.parent_id);
+		int tile_start_x = motion.position.x - (motion.scale.x / 2) + (0.5 * TILE_TO_PIXELS);
 
 		glUniform1i(tile_id_uloc, tile_info.id);
-		glUniform2f(tile_pos_uloc, (float)tile_start_x, motion->position.y);
+		glUniform2f(tile_pos_uloc, (float)tile_start_x, motion.position.y);
 		glUniform2f(tile_offset_uloc, (float)(tile_info.offset * TILE_TO_PIXELS),0.0f);
 		gl_has_errors();
 	}

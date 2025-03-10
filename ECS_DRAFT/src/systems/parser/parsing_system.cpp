@@ -47,14 +47,13 @@ void LevelParsingSystem::late_step(float elapsed_ms) {
 
 void LevelParsingSystem::init_level_background() {
     // TODO: static w, h values -- should change (maybe parse from level file).
+    LevelState& levelState = registry.levelStates.components[0];
     float w = WINDOW_WIDTH_PX * 3.0;
     float h = WINDOW_HEIGHT_PX * 3.0f;
     create_parallaxbackground({w, h}, TEXTURE_ASSET_ID::GEARS_BACKGROUND);
     create_background({w, h}, TEXTURE_ASSET_ID::METAL_BACKGROUND);
     create_foreground({ w, h}, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
-    create_levelground({json_data["width"], json_data["height"]}, TEXTURE_ASSET_ID::D_TUTORIAL_GROUND);
-
-
+    create_levelground({json_data["width"], json_data["height"]}, levelState.ground);
 }
 
 void LevelParsingSystem::init_player_and_camera() {

@@ -165,7 +165,8 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			if (breakable.health <= 0.f) {
 				registry.remove_all_components_of(entity);
-      }  
+			}
+		}
 
 		// TODO: Below are copied from control_time; checks for harmful/harmless transitions should be coordinated by world system constantly
 		

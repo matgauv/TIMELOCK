@@ -1,5 +1,4 @@
 #include "world_init.hpp"
-#include <iostream>
 #include "../../tinyECS/registry.hpp"
 #include "systems/rendering/render_system.hpp"
 
@@ -49,7 +48,8 @@ void demo_level() {
     // create_static_platform({ xStart, sceneHeight}, {500.0f, 100.0f}, false);
     // create_spawnpoint({ xStart - 200, sceneHeight - 110 }, SPAWNPOINT_SCALE);
     // create_spawnpoint({ xStart + 200, sceneHeight - 110}, SPAWNPOINT_SCALE);
-    // create_spawnpoint({ xStart + 1200.0f, sceneHeight - 110 }, SPAWNPOINT_SCALE);
+    // create_spawnpoint({ xStart + 1500.0f, sceneHeight - 110 }, SPAWNPOINT_SCALE);
+    // create_canon_tower({ xStart + 200.0f, sceneHeight - 185 });
     //
     // // lil roof to test vertical collisions
     // create_static_platform({xStart - 100.0f, sceneHeight - 125.0f}, {100.0f, 20.0f}, false);
@@ -184,7 +184,7 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 init
 
         Tile& tile_component = registry.tiles.emplace(tile_entity);
         tile_component.offset = i;
-        tile_component.parent_motion = &motion;
+        tile_component.parent_id = entity.id();
         tile_component.id = tile_id_array[tile_arr_index];
 
         registry.renderRequests.insert(tile_entity, {
@@ -226,7 +226,7 @@ Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, in
 
         Tile& tile_component = registry.tiles.emplace(tile_entity);
         tile_component.offset = i;
-        tile_component.parent_motion = &motion;
+        tile_component.parent_id = entity.id();
         tile_component.id = tile_id_array[tile_arr_index];
 
 
@@ -459,6 +459,50 @@ Entity create_spawnpoint(vec2 pos, vec2 size) {
     return entity;
 }
 
+Entity create_canon_tower(vec2 pos) {
+    Entity entity = Entity();
+
+    CanonTower& tower = registry.canonTowers.emplace(entity);
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = pos;
+    motion.scale = CANON_TOWER_SIZE;
+
+    registry.renderRequests.insert(
+        entity,
+        {
+            TEXTURE_ASSET_ID::GREY_CIRCLE,
+            EFFECT_ASSET_ID::TEXTURED,
+            GEOMETRY_BUFFER_ID::SPRITE
+        }
+    );
+
+    registry.timeControllables.emplace(entity);
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+    Entity barrel_entity = Entity();
+    tower.barrel_entity = barrel_entity;
+    registry.canonBarrels.emplace(barrel_entity);
+
+    Motion& barrel_motion = registry.motions.emplace(barrel_entity);
+    barrel_motion.position = pos + vec2{CANON_BARREL_SIZE[0] * 0.5f, 0};
+    barrel_motion.scale = CANON_BARREL_SIZE;
+
+    registry.renderRequests.insert(
+        barrel_entity,
+        {
+            TEXTURE_ASSET_ID::BLACK,
+            EFFECT_ASSET_ID::TEXTURED,
+            GEOMETRY_BUFFER_ID::SPRITE
+        }
+    );
+
+    registry.layers.insert(barrel_entity, { LAYER_ID::MIDGROUND});
+    registry.timeControllables.emplace(barrel_entity);
+
+    return entity;
+}
+
 Entity create_spike(vec2 position, vec2 scale, json tile_id_array, int stride) {
     Entity entity = Entity();
 
@@ -474,7 +518,7 @@ Entity create_spike(vec2 position, vec2 scale, json tile_id_array, int stride) {
 
     Tile& tile_component = registry.tiles.emplace(entity);
     tile_component.offset = 0;
-    tile_component.parent_motion = &motion;
+    tile_component.parent_id = entity.id();
     tile_component.id = tile_id_array[tile_arr_index];
 
     registry.renderRequests.insert(entity, {
@@ -501,7 +545,7 @@ Entity create_partof(vec2 position, vec2 scale, json tile_id_array, int stride) 
 
     Tile& tile_component = registry.tiles.emplace(entity);
     tile_component.offset = 0;
-    tile_component.parent_motion = &motion;
+    tile_component.parent_id = entity.id();
     tile_component.id = tile_id_array[tile_arr_index];
 
     registry.renderRequests.insert(entity, {

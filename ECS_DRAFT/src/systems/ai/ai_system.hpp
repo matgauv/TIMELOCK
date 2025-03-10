@@ -1,7 +1,12 @@
 #pragma once
 
-#include "../rendering/render_system.hpp"
+#include "../../common.hpp"
+#include "../../tinyECS/component_container.hpp"
+#include "../../tinyECS/components.hpp"
 #include "../../tinyECS/registry.hpp"
+#include "systems/ISystem.hpp"
+
+#include "canon_tower/canon_tower_utils.hpp"
 
 class AISystem : public ISystem
 {
@@ -12,4 +17,6 @@ public:
 	void late_step(float elapsed_ms) override;
 private:
 	GLFWwindow* window = nullptr;
+
+	// A collection of AI-related functions; executed in specific order?
 };

@@ -32,6 +32,7 @@ private:
 
 	void detect_collisions();
 	void handle_collisions(float elapsed_ms);
+	void handle_projectile_collision(Entity proj_entity, Entity other_entity);
 	void handle_object_rigid_collision(Entity& object_entity, Entity& platform_entity, Collision collision, float step_seconds,  std::vector<unsigned int>& groundedEntities);
 	void handle_player_attack_collision(Entity& player_entity, Entity& attack_entity, Collision collision);
 	void handle_player_boss_collision(Entity& player_entity, Entity& boss_entity, Collision collision);

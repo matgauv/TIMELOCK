@@ -327,6 +327,13 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 		// 	blocked.normal = collision.normal;
 		// }
 
+		// if player hits a breakable platform
+		if (registry.players.has(one) && registry.breakables.has(other)) {
+			handle_player_breakable_collision(one, other, collision);
+		} else if (registry.players.has(other) && registry.breakables.has(one)) {
+			handle_player_breakable_collision(other, one, collision);
+		}
+
 		// order here is important so handle both cases sep
 		if (registry.physicsObjects.has(one) && registry.platforms.has(other)) {
 			// std::cout << "  colliding with platform: " << registry.platforms.has(other) << std::endl;
@@ -693,4 +700,18 @@ bool PhysicsSystem::is_collision_between_player_and_boundary(Entity& one, Entity
 bool PhysicsSystem::is_collision_between_player_and_spike(Entity& one, Entity& other) {
 	return (registry.players.has(one) && registry.spikes.has(other)) ||
 	(registry.players.has(other) && registry.spikes.has(one));
+}
+
+void PhysicsSystem::handle_player_breakable_collision(Entity& player_entity, Entity& breakable_entity, Collision collision) {
+	Breakable& breakable = registry.breakables.get(breakable_entity);
+
+	if (breakable.should_break_instantly) {
+
+		assert(registry.gameStates.components.size() <= 1);
+		GameState& gameState = registry.gameStates.components[0];
+
+		if (gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED) {
+			registry.remove_all_components_of(breakable_entity);
+		}
+	}
 }

@@ -119,6 +119,8 @@ void PhysicsSystem::step(float elapsed_ms) {
 			blocked.normal = vec2{0, 0};
 		}
 	}
+
+	// precompute the verticies (for multi threaded collision detection)
 	for (Entity entity : registry.motions.entities) {
 		Motion& motion = registry.motions.get(entity);
 		if (motion.cache_invalidated) {
@@ -248,63 +250,6 @@ Collision compute_sat_collision(Entity& a, Entity& b)
 	// (the axis are represented by the normals)
 	return {&b, min_overlap * smallest_axis, smallest_axis};
 }
-
-
-// detect collisions between all moving entities.
-// void PhysicsSystem::detect_collisions() {
-//     ComponentContainer<PhysicsObject>& physics_objects = registry.physicsObjects;
-//     ComponentContainer<Motion>& motion_container = registry.motions;
-//     size_t num_objects = physics_objects.size();
-//
-//     // Use the number of hardware threads available
-//     unsigned num_threads = std::thread::hardware_concurrency();
-//     // Create a vector to store collision results per thread
-//     std::vector<std::vector<std::tuple<Entity*, Entity*, vec2, vec2>>> thread_collisions(num_threads);
-//
-//     // Launch threads with a workload partition based on physics objects
-//     std::vector<std::thread> threads;
-//     threads.reserve(num_threads);
-//     for (unsigned t = 0; t < num_threads; ++t) {
-//         threads.emplace_back([&, t] {
-//             size_t start = t * num_objects / num_threads;
-//             size_t end = (t + 1) * num_objects / num_threads;
-//             for (size_t i = start; i < end; ++i) {
-//                 Entity& entity_i = physics_objects.entities[i];
-//                 for (size_t j = 0; j < motion_container.entities.size(); ++j) {
-//                     Entity& entity_j = motion_container.entities[j];
-//                     Collision result = compute_sat_collision(entity_i, entity_j);
-//                     if (result.normal != vec2{0, 0} && result.overlap != vec2{0, 0}) {
-//                         thread_collisions[t].emplace_back(&entity_i, &entity_j, result.overlap, result.normal);
-//                     }
-//                 }
-//             }
-//         });
-//     }
-//
-//     // Wait for all threads to complete their work
-//     for (auto& thread : threads) {
-//         thread.join();
-//     }
-//
-//     // Merge all thread-local collision results into one vector
-//     std::vector<std::tuple<Entity*, Entity*, vec2, vec2>> all_collisions;
-//     for (auto& local : thread_collisions) {
-//         all_collisions.insert(all_collisions.end(), local.begin(), local.end());
-//     }
-//
-//     // Process each collision while avoiding duplicates
-//     for (auto& [entity_i, entity_j, overlap, normal] : all_collisions) {
-//         if (entity_j->id() == entity_i->id() ||
-//             (registry.collisions.has(*entity_i) && registry.collisions.get(*entity_i).other->id() == entity_j->id()) ||
-//             (registry.collisions.has(*entity_j) && registry.collisions.get(*entity_j).other->id() == entity_i->id()))
-//             continue;
-//
-//         registry.collisions.emplace_with_duplicates(*entity_i, entity_j, overlap, normal);
-//     }
-// }
-
-
-
 
 // detect collisions between all moving entities.
 void PhysicsSystem::detect_collisions() {

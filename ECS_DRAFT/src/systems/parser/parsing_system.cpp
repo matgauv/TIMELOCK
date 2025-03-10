@@ -84,7 +84,16 @@ void LevelParsingSystem::init_level_entities() {
             init_boundaries(entity_list);
         } else if (entity_type == "PartOf") {
             init_partof(entity_list);
+        } else if (entity_type == "Cannon") {
+            init_cannons(entity_list);
         }
+    }
+}
+
+void LevelParsingSystem::init_cannons(json cannons) {
+    for (json cannon : cannons) {
+        vec2 position = {cannon["x"], cannon["y"]};
+        create_canon_tower(position);
     }
 }
 

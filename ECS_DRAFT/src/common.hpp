@@ -27,6 +27,7 @@ using namespace glm;
 inline std::string data_path() { return std::string(PROJECT_SOURCE_DIR) + "data"; };
 inline std::string shader_path(const std::string& name) {return std::string(PROJECT_SOURCE_DIR) + "/shaders/" + name;};
 inline std::string textures_path(const std::string& name) {return data_path() + "/textures/" + std::string(name);};
+inline std::string level_ground_path(const std::string& folder_name) {return PROJECT_SOURCE_DIR + std::string("../LDtk/") + folder_name + std::string("/Ground.png");}
 inline std::string audio_path(const std::string& name) {return data_path() + "/audio/" + std::string(name);};
 inline std::string mesh_path(const std::string& name) {return data_path() + "/meshes/" + std::string(name);};
 
@@ -53,6 +54,9 @@ const vec2 SPAWNPOINT_SCALE = { 60, 120 };
 const float ACCELERATE_FACTOR = 2.0f;
 const float DECELERATE_FACTOR = 0.2f;
 const float NORMAL_FACTOR = 1.0f;
+
+// For Breakable Wall
+const float TIME_CONTROL_VICINITY_THRESHOLD = 150.f;
 
 // TODO: increase these for game...
 const float ACCELERATION_COOLDOWN_MS = 1500.0f;

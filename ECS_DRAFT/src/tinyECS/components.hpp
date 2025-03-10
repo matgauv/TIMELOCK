@@ -252,6 +252,12 @@ struct Bolt
 {
 };
 
+// A struct indicating that an entity is a Text (for tutorial)
+struct Text
+{
+	Entity textEntity;
+};
+
 // A struct indicating that an entity is a swinging pendulum
 struct Pendulum
 {
@@ -276,7 +282,7 @@ struct Rock
 
 };
 
-// A struct indiciating that an entity is a water drop
+// A struct indicating that an entity is a water drop
 struct WaterDrop
 {
 
@@ -286,6 +292,14 @@ struct WaterDrop
 struct Spike
 {
 
+};
+
+// A struct indicating that an entity is breakable
+struct Breakable
+{
+	float health;
+	float degrade_speed_per_ms; // should be negative
+	bool should_break_instantly; 
 };
 
 // A struct indicating that an entity is an enemy boss
@@ -350,7 +364,11 @@ enum class TEXTURE_ASSET_ID {
 	D_TUTORIAL_GROUND = SPAWNPOINT_REACTIVATE + 1,
 	A_TUTORIAL_GROUND = D_TUTORIAL_GROUND + 1,
 	TILE = A_TUTORIAL_GROUND + 1,
-	TEXTURE_COUNT = TILE + 1
+	WASD = TILE + 1,
+	DECEL = WASD + 1,
+	DECEL2 = DECEL + 1,
+	ACCEL = DECEL2 + 1,
+	TEXTURE_COUNT = ACCEL + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -417,6 +435,7 @@ struct AnimateRequest {
 };
 
 struct LevelState {
-	std::string curr_level_file_name;
+	std::string curr_level_folder_name;
+	TEXTURE_ASSET_ID ground;
 	bool shouldLoad = false;
 };

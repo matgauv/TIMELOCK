@@ -26,6 +26,7 @@ public:
 	ComponentContainer<TimeControllable> timeControllables;
 	ComponentContainer<Harmful> harmfuls;
 	ComponentContainer<Bolt> bolts;
+	ComponentContainer<Text> texts;
 	ComponentContainer<Pendulum> pendulums;
 	ComponentContainer<Gear> gears;
 	ComponentContainer<Projectile> projectiles;
@@ -43,9 +44,9 @@ public:
 	ComponentContainer<SpawnPoint> spawnPoints;
 	ComponentContainer<Spike> spikes;
 	ComponentContainer<Tile> tiles;
+	ComponentContainer<Breakable> breakables;
 	ComponentContainer<CanonTower> canonTowers;
 	ComponentContainer<CanonBarrel> canonBarrels;
-
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -65,6 +66,7 @@ public:
 		registry_list.push_back(&timeControllables);
 		registry_list.push_back(&harmfuls);
 		registry_list.push_back(&bolts);
+		registry_list.push_back(&texts);
 		registry_list.push_back(&pendulums);
 		registry_list.push_back(&gears);
 		registry_list.push_back(&projectiles);
@@ -82,6 +84,7 @@ public:
 		registry_list.push_back(&spawnPoints);
 		registry_list.push_back(&tiles);
 		registry_list.push_back(&spikes);
+		registry_list.push_back(&breakables);
 		registry_list.push_back(&canonTowers);
 		registry_list.push_back(&canonBarrels);
 	}

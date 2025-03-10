@@ -32,6 +32,7 @@ private:
 
 	void detect_collisions();
 	void handle_collisions(float elapsed_ms);
+	void handle_player_breakable_collision(Entity& player_entity, Entity& breakable_entity, Collision collision);
 	void handle_projectile_collision(Entity proj_entity, Entity other_entity);
 	void handle_object_rigid_collision(Entity& object_entity, Entity& platform_entity, Collision collision, float step_seconds,  std::vector<unsigned int>& groundedEntities);
 	void handle_player_attack_collision(Entity& player_entity, Entity& attack_entity, Collision collision);
@@ -41,6 +42,7 @@ private:
 	void player_walk(Entity& entity, Motion& motion, float step_seconds);
 	void move_object_along_path(Entity& entity, Motion& motion, float step_seconds);
 	void rotate_projectile(Entity& entity, Motion& motion, float step_seconds);
+	void move_text(Entity& entity, Motion& motion, float step_seconds);
 	float clampToTarget(float value, float change, float target);
 	bool in(std::vector<unsigned int> vec, unsigned int in);
 	vec2 get_bounding_box(const Motion& motion);

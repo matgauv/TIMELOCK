@@ -21,8 +21,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	if (!registry.tiles.has(entity)) {
 		Motion& motion = registry.motions.get(entity);
 		transform.translate(motion.position);
-		transform.scale(motion.scale);
 		transform.rotate(radians(motion.angle));
+		transform.scale(motion.scale);
 	}
 
 	assert(registry.renderRequests.has(entity));

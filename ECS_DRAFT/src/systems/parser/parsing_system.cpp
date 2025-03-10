@@ -30,8 +30,6 @@ void LevelParsingSystem::step(float elapsed_ms) {
     tile_id_array = json_data["layers"][0]["data"];
     stride = static_cast<int>(json_data["width"]) / TILE_TO_PIXELS;
 
-
-
     init_level_background();
     init_level_entities();
     init_player_and_camera();
@@ -50,19 +48,34 @@ void LevelParsingSystem::late_step(float elapsed_ms) {
 
 void LevelParsingSystem::init_level_background() {
     // TODO: static w, h values -- should change (maybe parse from level file).
+    LevelState& levelState = registry.levelStates.components[0];
     float w = WINDOW_WIDTH_PX * 3.0;
     float h = WINDOW_HEIGHT_PX * 3.0f;
     create_parallaxbackground({w, h}, TEXTURE_ASSET_ID::GEARS_BACKGROUND);
     create_background({w, h}, TEXTURE_ASSET_ID::METAL_BACKGROUND);
     create_foreground({ w, h}, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
-    create_levelground({json_data["width"], json_data["height"]}, TEXTURE_ASSET_ID::D_TUTORIAL_GROUND);
+    create_levelground({json_data["width"], json_data["height"]}, levelState.ground);
 }
 
 void LevelParsingSystem::init_player_and_camera() {
     json playerJson = json_data["entities"]["Player"][0];
     vec2 initPos = vec2(playerJson["x"], playerJson["y"]);
-    create_player(initPos, {int(playerJson["width"]) * 1.75, int(playerJson["height"]) * 1.75});
-    create_camera(initPos, {1.0f, 1.0f});
+    create_player(initPos, { int(playerJson["width"]) * 1.75, int(playerJson["height"]) * 1.75 });
+    create_camera(initPos, { 1.0f, 1.0f });
+
+    // TEMP: for now, tutorial text is always shown
+    // hardcode rn but maybe should pass position as text entity in ldtk?
+    bool tutorial = true;
+    if (tutorial) {
+		if (json_data["identifier"] == "Level_0") {
+            create_tutorial_text({ initPos.x + 250, initPos.y - 150 }, { 450, 70 }, TEXTURE_ASSET_ID::WASD);
+            create_tutorial_text({ initPos.x + 850, initPos.y - 175 }, { 450, 70 }, TEXTURE_ASSET_ID::DECEL);
+            create_tutorial_text({ initPos.x + 2300, initPos.y - 500 }, { 450, 70 }, TEXTURE_ASSET_ID::DECEL2);
+        }
+        else if (json_data["identifier"] == "Level_1") {
+            create_tutorial_text({ initPos.x + 250, initPos.y - 150 }, { 450, 70 }, TEXTURE_ASSET_ID::ACCEL);
+        }
+    }
 }
 
 void LevelParsingSystem::init_level_entities() {
@@ -86,7 +99,17 @@ void LevelParsingSystem::init_level_entities() {
             init_boundaries(entity_list);
         } else if (entity_type == "PartOf") {
             init_partof(entity_list);
+        } else if (entity_type == "Cannon") {
+            init_cannons(entity_list);
         }
+    }
+}
+
+void LevelParsingSystem::init_cannons(json cannons) {
+    for (json cannon : cannons) {
+        // TODO: Hardcoded cannon positioning for cross-play demo -- need to fix later.
+        vec2 position = {cannon["x"], static_cast<int>(cannon["y"]) - 50.0f};
+        create_canon_tower(position);
     }
 }
 
@@ -245,7 +268,7 @@ void LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& pa
 
 bool LevelParsingSystem::parse_json() {
     LevelState& level_state = registry.levelStates.components[0];
-    string filename = PROJECT_SOURCE_DIR + std::string("data/levels/") + level_state.curr_level_file_name;
+    string filename = PROJECT_SOURCE_DIR + std::string("../LDtk/") + level_state.curr_level_folder_name + string("/data.json");
     ifstream level_file(filename);
     if (!level_file) {
         cout << "Error could not open file " << filename << endl;

@@ -37,6 +37,19 @@ void demo_level() {
     // create_player(initial_pos, PLAYER_SCALE);
     // create_camera(initial_pos, { 1.0f, 1.0f }); // TODO: potential open-scene zoom in
     //
+    // // float boltsize = 75.f;
+    // // create_bolt({ 325.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+    // // create_bolt({ 325.0f, sceneHeight / 2.0f + 300.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+    // // create_bolt({ 325.0f, sceneHeight / 2.0f + 150.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+    //
+    // // create one non-time-controllable breakable platform
+    // float breakable_size = 75.f;
+    // create_breakable_static_platform({ 325.0f, sceneHeight / 2.0f + 625.0f }, {breakable_size, breakable_size}, true, 0.0f);
+    //
+    // // create one time-controllable breakable platform
+    // create_time_controllable_breakable_static_platform({ 1800.0f, sceneHeight - 100 }, {100.0f, 20.0f}, false, -0.05f);
+    //
+    //
     //
     // // level boundaries
     // create_static_platform({boundaryWidth/2.0f, 0.0f}, {boundaryWidth, 1.0f}, true);
@@ -50,6 +63,7 @@ void demo_level() {
     // create_spawnpoint({ xStart + 200, sceneHeight - 110}, SPAWNPOINT_SCALE);
     // create_spawnpoint({ xStart + 1500.0f, sceneHeight - 110 }, SPAWNPOINT_SCALE);
     // create_canon_tower({ xStart + 200.0f, sceneHeight - 185 });
+    //
     //
     // // lil roof to test vertical collisions
     // create_static_platform({xStart - 100.0f, sceneHeight - 125.0f}, {100.0f, 20.0f}, false);
@@ -342,6 +356,27 @@ Entity create_levelground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
     return entity;
 }
 
+Entity create_tutorial_text(vec2 position, vec2 size, TEXTURE_ASSET_ID texture_id) {
+
+    Entity entity = Entity();
+
+    Motion& text_motion = registry.motions.emplace(entity);
+
+    text_motion.position = position; 
+    text_motion.scale = size;
+
+
+    registry.renderRequests.insert(entity, {
+        texture_id,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+    return entity;
+}
+
 Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
 {
 	auto entity = Entity();
@@ -559,8 +594,39 @@ Entity create_partof(vec2 position, vec2 scale, json tile_id_array, int stride) 
     return entity;
 }
 
+Entity create_breakable_static_platform(vec2 position, vec2 scale, bool should_break_instantly, float degrade_speed, bool is_time_controllable, json& tile_id_array, int stride) {
+    Entity entity = create_static_platform(position, scale, tile_id_array, stride);
+    Breakable& breakable = registry.breakables.emplace(entity);
+    breakable.health = 1000.f;
+    breakable.degrade_speed_per_ms = degrade_speed;
+    breakable.should_break_instantly = should_break_instantly;
+
+    RenderRequest& renderRequest = registry.renderRequests.get(entity);
+    renderRequest.used_texture = is_time_controllable? TEXTURE_ASSET_ID::OBJECT : TEXTURE_ASSET_ID::GREY_CIRCLE;
+
+    return entity;
+}
+
+Entity create_time_controllable_breakable_static_platform(vec2 position, vec2 scale, bool should_break_instantly, float degrade_speed, json& tile_id_array, int stride) {
+    Entity entity = create_breakable_static_platform(position, scale, should_break_instantly, degrade_speed,  true,  tile_id_array, stride);
+
+    TimeControllable& timeControllable = registry.timeControllables.emplace(entity);
+    timeControllable.can_be_accelerated = true;
+    timeControllable.can_be_decelerated = true;
+    timeControllable.can_become_harmful = false;
+    timeControllable.can_become_harmless = false;
+    timeControllable.target_time_control_factor = 100000.f;
+
+    return entity;
+}
+
+float getDistance(const Motion& one, const Motion& other) {
+    return glm::length(one.position - other.position);
+}
+
 int get_tile_index(int pos_x, int pos_y, int offset_x, int offset_y, int stride) {
     int tile_coord_y = pos_y / TILE_TO_PIXELS + offset_y;
     int tile_coord_x = (pos_x / TILE_TO_PIXELS) + offset_x;
     return tile_coord_x + tile_coord_y * stride;
 }
+

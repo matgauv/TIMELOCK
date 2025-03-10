@@ -15,7 +15,7 @@ void compute_vertices(Motion& motion, Entity& e) {
 	if (registry.meshPtrs.has(e))
 	{
 		Mesh* mesh = registry.meshPtrs.get(e);
-		motion.cached_vertices.reserve( mesh->vertices.size() );
+		motion.cached_vertices.resize( mesh->vertices.size() );
 
 		for (auto & vertex : mesh->vertices)
 		{
@@ -32,7 +32,7 @@ void compute_vertices(Motion& motion, Entity& e) {
 	} else
 	{
 		// No mesh, we assume square BB
-		motion.cached_vertices.reserve(4);
+		motion.cached_vertices.resize(4);
 
 		vec2 half_size = motion.scale * 0.5f;
 
@@ -365,10 +365,10 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 
 		// order here is important so handle both cases sep
 		if (registry.physicsObjects.has(one) && registry.platforms.has(other)) {
-			std::cout << "  colliding with platform: " << registry.platforms.has(other) << std::endl;
+			//	std::cout << "  colliding with platform: " << registry.platforms.has(other) << std::endl;
 			handle_object_rigid_collision(one, other, collision, step_seconds, groundedEntities);
 		} else if (registry.physicsObjects.has(other) && registry.platforms.has(one)) {
-			std::cout << "  colliding with platform: " << registry.platforms.has(one) << std::endl;
+		//	std::cout << "  colliding with platform: " << registry.platforms.has(one) << std::endl;
 		//	collision.overlap *= -1; //swap sides since coll is from perspective of one (left<->right) (top <-> bottom);
 			collision.normal *= -1;
 			handle_object_rigid_collision(other, one, collision, step_seconds, groundedEntities);
@@ -502,7 +502,7 @@ void PhysicsSystem::handle_object_rigid_collision(Entity& object_entity, Entity&
 		// calculate fling velocity based on platform movement
 		float platform_speed = length(platform_velocity);
 		if (platform_speed > 250.0f) {
-			vec2 tangent = normalize(vec2(-normal.y, normal.x));
+			//vec2 tangent = normalize(vec2(-normal.y, normal.x));
 
 			// Fling in platform's movement direction scaled by surface alignment
 		//	float surface_alignment = abs(dot(normalize(platform_velocity), tangent));

@@ -29,6 +29,15 @@ public:
     {
     }
 
+    Entity& operator=(const Entity& e)
+    {
+        if (this != &e) // Prevent self-assignment
+        {
+            m_id = e.m_id;
+        }
+        return *this;
+    }
+
     operator unsigned int() { return m_id; } // enables automatic casting to int
     unsigned int id() { return m_id; }
 };

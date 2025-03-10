@@ -79,7 +79,6 @@ void PhysicsSystem::init(GLFWwindow* window) {
  *		- Detects collisions between all entities.
  */
 void PhysicsSystem::step(float elapsed_ms) {
-
 	auto& motion_registry = registry.motions;
 	float step_seconds = elapsed_ms / 1000.f;
 
@@ -130,7 +129,7 @@ void PhysicsSystem::step(float elapsed_ms) {
 	}
 
 	detect_collisions();
-
+	handle_collisions(elapsed_ms);
 }
 
 // Handles all collisions detected in PhysicsSystem::step
@@ -138,7 +137,6 @@ void PhysicsSystem::late_step(float elapsed_ms) {
 //	const int iterations = 1;
 //	for (int i = 0; i < iterations; ++i) {
 
-		handle_collisions(elapsed_ms);
 	//}
 }
 
@@ -148,17 +146,6 @@ void PhysicsSystem::late_step(float elapsed_ms) {
 // returns the mesh verticies if a mesh exists, otherwise, returns verticies of a square defined by the scale of the object (BB)
 std::vector<vec2> get_vertices(Entity& e) {
 	Motion& motion = registry.motions.get(e);
-
-	// if (motion.cache_invalidated) {
-	// 	static std::mutex vertex_mutex;
-	// 	std::lock_guard<std::mutex> lock(vertex_mutex);
-	//
-	// 	// double check after lock
-	// 	if (motion.cache_invalidated) {
-	// 		motion.cached_vertices = compute_vertices(e);
-	// 		motion.cache_invalidated = false;
-	// 	}
-	// }
 	return motion.cached_vertices;
 }
 
@@ -552,6 +539,23 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 	vec2 vel_relative = motionB.velocity - motionA.velocity;
 	float vel_along_normal = dot(vel_relative, normal);
 
+	// finally, detect if they are on the ground! (or an angled platform)
+	if (is_on_ground(normal.y))
+	{
+		grounded.push_back(entityA.id());
+		if (!registry.onGrounds.has(entityA)) {
+			registry.onGrounds.emplace(entityA, &entityB);
+		}
+	}
+
+	if (is_on_ground(normal.y))
+	{
+		grounded.push_back(entityB.id());
+		if (!registry.onGrounds.has(entityB)) {
+			registry.onGrounds.emplace(entityB, &entityA);
+		}
+	}
+
 	if (vel_along_normal > 0.0f) return;
 
 	// compute the impulse
@@ -577,22 +581,7 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
         motionA.velocity -= a_inv_mass * friction_impulse * step_seconds;
         motionB.velocity += b_inv_mass * friction_impulse * step_seconds;
     }
-	// finally, detect if they are on the ground! (or an angled platform)
-	if (is_on_ground(-normal.y))
-	{
-		grounded.push_back(entityA.id());
-		if (!registry.onGrounds.has(entityA)) {
-			registry.onGrounds.emplace(entityA, &entityB);
-		}
-	}
 
-	if (is_on_ground(normal.y))
-	{
-		grounded.push_back(entityB.id());
-		if (!registry.onGrounds.has(entityB)) {
-			registry.onGrounds.emplace(entityB, &entityA);
-		}
-	}
 }
 
 // proper friction using coulomb's law

@@ -51,6 +51,8 @@ class RenderSystem : public ISystem {
 		textures_path("groundlevels/d_tutorial_ground.png"),
 		textures_path("groundlevels/a_tutorial_ground.png"),
 		textures_path("tileset.png"),
+		textures_path("tutorial-text/wasd.png"),
+		textures_path("tutorial-text/decel.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

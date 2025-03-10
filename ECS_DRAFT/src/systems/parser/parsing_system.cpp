@@ -53,13 +53,23 @@ void LevelParsingSystem::init_level_background() {
     create_background({w, h}, TEXTURE_ASSET_ID::METAL_BACKGROUND);
     create_foreground({ w, h}, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
     create_levelground({json_data["width"], json_data["height"]}, TEXTURE_ASSET_ID::D_TUTORIAL_GROUND);
+
+
 }
 
 void LevelParsingSystem::init_player_and_camera() {
     json playerJson = json_data["entities"]["Player"][0];
     vec2 initPos = vec2(playerJson["x"], playerJson["y"]);
-    create_player(initPos, {int(playerJson["width"]) * 1.75, int(playerJson["height"]) * 1.75});
-    create_camera(initPos, {1.0f, 1.0f});
+    create_player(initPos, { int(playerJson["width"]) * 1.75, int(playerJson["height"]) * 1.75 });
+    create_camera(initPos, { 1.0f, 1.0f });
+
+    // TEMP: for now, tutorial text is always shown
+    // hardcode rn but maybe should pass position as text entity in ldtk?
+    bool tutorial = true;
+    if (tutorial) {
+        create_tutorial_text({ initPos.x + 250, initPos.y - 150 }, { 450, 70 }, TEXTURE_ASSET_ID::WASD);
+        create_tutorial_text({ initPos.x + 850, initPos.y - 150 }, { 450, 70 }, TEXTURE_ASSET_ID::DECEL);
+    }
 }
 
 void LevelParsingSystem::init_level_entities() {

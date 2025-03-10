@@ -28,3 +28,4 @@ Entity create_spawnpoint(vec2 pos, vec2 size);
 Entity create_spike(vec2 position, vec2 scale, json tile_id_array, int stride);
 Entity create_partof(vec2 position, vec2 scale, json tile_id_array, int stride);
 int get_tile_index(int pos_x, int pos_y, int offset_x, int offset_y, int stride);
+Entity create_tutorial_text(vec2 position, vec2 size, TEXTURE_ASSET_ID texture_id);

@@ -234,6 +234,12 @@ struct Bolt
 {
 };
 
+// A struct indicating that an entity is a Text (for tutorial)
+struct Text
+{
+	Entity textEntity;
+};
+
 // A struct indicating that an entity is a swinging pendulum
 struct Pendulum
 {
@@ -332,7 +338,9 @@ enum class TEXTURE_ASSET_ID {
 	D_TUTORIAL_GROUND = SPAWNPOINT_REACTIVATE + 1,
 	A_TUTORIAL_GROUND = D_TUTORIAL_GROUND + 1,
 	TILE = A_TUTORIAL_GROUND + 1,
-	TEXTURE_COUNT = TILE + 1
+	WASD = TILE + 1,
+	DECEL = WASD + 1, 
+	TEXTURE_COUNT = DECEL + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

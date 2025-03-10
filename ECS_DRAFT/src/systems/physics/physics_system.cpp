@@ -473,7 +473,7 @@ void PhysicsSystem::handle_object_rigid_collision(Entity& object_entity, Entity&
 
 			// Fling in platform's movement direction scaled by surface alignment
 			float surface_alignment = abs(dot(normalize(platform_velocity), tangent));
-			obj_motion.velocity += platform_velocity * 0.1f * surface_alignment;
+			obj_motion.velocity += vec2{platform_velocity.x * 0.05f, platform_velocity.y * 0.005f};
 		}
 	}
 

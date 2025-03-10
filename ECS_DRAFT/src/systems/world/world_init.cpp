@@ -23,12 +23,15 @@ void demo_level() {
     create_background({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::METAL_BACKGROUND);
     create_foreground({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
 
-    float boltsize = 75.f;
-    /*
-    create_bolt({ 325.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
-    create_bolt({ 325.0f, sceneHeight / 2.0f + 300.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
-    create_bolt({ 325.0f, sceneHeight / 2.0f + 150.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
-    */
+    // float boltsize = 75.f;
+    // create_bolt({ 325.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+    // create_bolt({ 325.0f, sceneHeight / 2.0f + 300.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+    // create_bolt({ 325.0f, sceneHeight / 2.0f + 150.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
+
+    // create a spike component to test the logic
+    float spike_size = 25.0f;
+    create_spike({ 325.0f, sceneHeight / 2.0f + 600.0f }, { spike_size, spike_size });
+
 
     // initial_pos = {0,0};
     create_player(initial_pos, PLAYER_SCALE);
@@ -84,7 +87,6 @@ void demo_level() {
 
     create_static_platform({ xStart + 2950.0f, sceneHeight - 600.0f}, {500.0f, 100.0f}, false);
     create_static_platform({ xStart + 2950.0f - 250.0f - 125.0f, sceneHeight - 600.0f - 50.0f + 5.0f}, {250.0f, 10.0f}, false);
-
 }
 
 Entity create_player(vec2 position, vec2 scale) {
@@ -437,6 +439,28 @@ Entity create_canon_tower(vec2 pos) {
 
     registry.layers.insert(barrel_entity, { LAYER_ID::MIDGROUND});
     registry.timeControllables.emplace(barrel_entity);
+
+    return entity;
+}
+
+Entity create_spike(vec2 position, vec2 scale) {
+    Entity entity = Entity();
+
+    registry.spikes.emplace(entity);
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, 0};
+    motion.angle = 0.f;
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::BLACK,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
 
     return entity;
 }

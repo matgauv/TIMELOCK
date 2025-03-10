@@ -13,19 +13,18 @@ public:
         // ensure that each entity gets a unique ID
         m_id = id_count++; // assign and increment
     }
+    
+    // Entity(Entity& e)
+    // {
+    //     m_id = e.m_id;
+    // }
 
-    /*
-    Entity(Entity& e)
-    {
-        m_id = e.m_id;
-    }
-    */
 
     ~Entity()
     {
     }
 
     operator unsigned int() { return m_id; } // enables automatic casting to int
-
+    unsigned int get_id_count() { return id_count; }
     unsigned int id() { return m_id; }
 };

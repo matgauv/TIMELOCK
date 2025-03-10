@@ -62,8 +62,10 @@ struct Platform
 
 struct onGround
 {
-	Entity ground_entity;
-	onGround(Entity e): ground_entity(e) {}
+	Entity* ground_entity;
+	onGround (Entity* entity) {
+		ground_entity  = entity;
+	}
 };
 
 // Boundary component
@@ -141,10 +143,10 @@ enum SIDE {
 struct Collision
 {
 	// Note, the first object is stored in the ECS container.entities
-	Entity other; // the second object involved in the collision
+	Entity* other; // the second object involved in the collision
 	vec2 overlap;
-	vec2 normal;
-	Collision(Entity& other, vec2 overlap, vec2 normal) {
+	vec2 normal;;
+	Collision(Entity* other, vec2 overlap, vec2 normal) {
 		this->other = other;
 		this->overlap = overlap;
 		this->normal = normal;

@@ -26,10 +26,13 @@ void PhysicsSystem::step(float elapsed_ms) {
 
 	drop_bolt_when_player_near(DISTANCE_TO_DROP_BOLT);
 
+	Entity& some_entity = registry.players.entities[0];
+	std::cout << some_entity.get_id_count() << std::endl;
+
 	for(uint i = 0; i< motion_registry.size(); i++)
 	{
 		Motion& motion = motion_registry.components[i];
-		Entity entity = motion_registry.entities[i];
+		Entity& entity = motion_registry.entities[i];
 
 
 		if (registry.physicsObjects.has(entity)) {
@@ -48,7 +51,7 @@ void PhysicsSystem::step(float elapsed_ms) {
 	}
 
 	// clear blocked...
-	for (Entity entity : registry.physicsObjects.entities) {
+	for (Entity& entity : registry.physicsObjects.entities) {
 		if (registry.blocked.has(entity)) {
 			Blocked& blocked = registry.blocked.get(entity);
 			blocked.normal = vec2{0, 0};
@@ -183,7 +186,7 @@ Collision compute_sat_collision(Entity& a, Entity& b)
 		// if there is any axis where the projections do not overlap, there cannot be a collision. :O
 		if (a_max < b_min || b_max < a_min)
 		{
-			return Collision{b, vec2{0,0}, vec2{0,0}};
+			return Collision{&b, vec2{0,0}, vec2{0,0}};
 		}
 
 		// min and max so that we handle the case where there one is fully contained in the other
@@ -210,7 +213,7 @@ Collision compute_sat_collision(Entity& a, Entity& b)
 	// the smallest axis is where the shapes overlap the least ->
 	// the minimal amount we need to move one shape to resolve the collision
 	// (the axis are represented by the normals)
-	return {b, min_overlap * smallest_axis, smallest_axis};
+	return {&b, min_overlap * smallest_axis, smallest_axis};
 }
 
 
@@ -221,22 +224,22 @@ void PhysicsSystem::detect_collisions() {
 	ComponentContainer<Motion> &motion_container = registry.motions;
 	for(uint i = 0; i < physics_objects.components.size(); i++)
 	{
-		Entity entity_i = physics_objects.entities[i];
+		Entity& entity_i = physics_objects.entities[i];
 
 
 		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
 		for(uint j = 0; j < motion_container.components.size(); j++)
 		{
-			Entity entity_j = motion_container.entities[j];
+			Entity& entity_j = motion_container.entities[j];
 			if (entity_j.id() == entity_i.id()
-				|| (registry.collisions.has(entity_i) && registry.collisions.get(entity_i).other == entity_j)
-				|| (registry.collisions.has(entity_j) && registry.collisions.get(entity_j).other == entity_i)) continue;
+				|| (registry.collisions.has(entity_i) && registry.collisions.get(entity_i).other->id() == entity_j.id())
+				|| (registry.collisions.has(entity_j) && registry.collisions.get(entity_j).other->id() == entity_i.id())) continue;
 
 			Collision result = compute_sat_collision(entity_i, entity_j);
 
 			if (result.normal != vec2{0,0} && result.overlap != vec2{0,0})
 			{
-				registry.collisions.emplace_with_duplicates(entity_i, entity_j, result.overlap, result.normal);
+				registry.collisions.emplace_with_duplicates(entity_i, &entity_j, result.overlap, result.normal);
 			}
 		}
 	}
@@ -292,7 +295,7 @@ void PhysicsSystem::player_walk(Entity& entity, Motion& motion, float step_secon
 
 		vec2 platform_velocity = {0.0f, 0.0f};
 		if (registry.onGrounds.has(entity)) {
-			Entity platform = registry.onGrounds.get(entity).ground_entity;
+			Entity& platform = *(registry.onGrounds.get(entity).ground_entity);
 			Motion& platform_motion = registry.motions.get(platform);
 			platform_velocity = get_modified_velocity(platform_motion);
 		}
@@ -321,7 +324,7 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 	for (uint i = 0; i < collision_container.components.size(); i++) {
 		Entity& one = collision_container.entities[i];
 		Collision& collision = collision_container.components[i];
-		Entity& other = collision.other;
+		Entity& other = *(collision.other);
 
 
 		// if (!registry.blocked.has(one))
@@ -372,7 +375,7 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 	for (uint i = 0; i < collision_container.components.size(); i++) {
 		Entity& one = collision_container.entities[i];
 		Collision& collision = collision_container.components[i];
-		Entity& other = collision.other;
+		Entity& other = *(collision.other);
 
 		if (registry.physicsObjects.has(one) && registry.physicsObjects.has(other)) {
 			handle_physics_collision(step_seconds, one, other, collision, groundedEntities);
@@ -404,7 +407,7 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 
 
 // Handles collision between a PhysicsObject entity and a Platform entity.
-void PhysicsSystem::handle_object_rigid_collision(Entity object_entity, Entity platform_entity, Collision collision, float step_seconds, std::vector<unsigned int>& groundedEntities)
+void PhysicsSystem::handle_object_rigid_collision(Entity& object_entity, Entity& platform_entity, Collision collision, float step_seconds, std::vector<unsigned int>& groundedEntities)
 {
 	Blocked& blocked = registry.blocked.get(object_entity);
 	Motion& obj_motion = registry.motions.get(object_entity);
@@ -455,14 +458,14 @@ void PhysicsSystem::handle_object_rigid_collision(Entity object_entity, Entity p
 	if (is_on_ground(-normal.y)) {
 		groundedEntities.push_back(object_entity);
 		if (registry.onGrounds.has(object_entity)) {
-			registry.onGrounds.get(object_entity).ground_entity = platform_entity;
+			registry.onGrounds.get(object_entity).ground_entity = &platform_entity;
 		} else {
-			registry.onGrounds.emplace(object_entity, platform_entity);
+			registry.onGrounds.emplace(object_entity, &platform_entity);
 		}
 	}
 }
 
-void PhysicsSystem::handle_player_attack_collision(Entity player_entity, Entity attack_entity, Collision collision) {
+void PhysicsSystem::handle_player_attack_collision(Entity& player_entity, Entity& attack_entity, Collision collision) {
 	if (registry.harmfuls.has(attack_entity)) {
 		assert(registry.gameStates.components.size() <= 1);
 		GameState& gameState = registry.gameStates.components[0];
@@ -470,7 +473,7 @@ void PhysicsSystem::handle_player_attack_collision(Entity player_entity, Entity 
 	}
 }
 
-void PhysicsSystem::handle_player_boss_collision(Entity player_entity, Entity boss_entity, Collision collision) {
+void PhysicsSystem::handle_player_boss_collision(Entity& player_entity, Entity& boss_entity, Collision collision) {
 	Boss& boss = registry.bosses.get(boss_entity);
 
 	boss.health -= PLAYER_ATTACK_DAMAGE;
@@ -484,7 +487,7 @@ void PhysicsSystem::handle_player_boss_collision(Entity player_entity, Entity bo
 }
 
 // Handles collision between two PhysicsObject entities.
-void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA, Entity entityB, Collision collision, std::vector<unsigned int>& grounded)
+void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA, Entity& entityB, Collision collision, std::vector<unsigned int>& grounded)
 {
 	Motion& motionA = registry.motions.get(entityA);
 	Motion& motionB = registry.motions.get(entityB);
@@ -543,13 +546,17 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity entityA,
 	if (is_on_ground(-normal.y))
 	{
 		grounded.push_back(entityA.id());
-		if (!registry.onGrounds.has(entityA)) registry.onGrounds.emplace(entityA, entityB);
+		if (!registry.onGrounds.has(entityA)) {
+			registry.onGrounds.emplace(entityA, &entityB);
+		}
 	}
 
 	if (is_on_ground(normal.y))
 	{
 		grounded.push_back(entityB.id());
-		if (!registry.onGrounds.has(entityB)) registry.onGrounds.emplace(entityB, entityA);
+		if (!registry.onGrounds.has(entityB)) {
+			registry.onGrounds.emplace(entityB, &entityA);
+		}
 	}
 }
 

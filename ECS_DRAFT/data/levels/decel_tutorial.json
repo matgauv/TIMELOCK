@@ -1,8 +1,8 @@
 {
 	"identifier": "Level_0",
 	"uniqueIdentifer": "7affba61-e920-11ef-a06b-537a61e4ff94",
-	"x": 0,
-	"y": 0,
+	"x": 1040,
+	"y": 800,
 	"width": 3104,
 	"height": 1072,
 	"bgColor": "#696A79",
@@ -107,20 +107,6 @@
 				"customFields": {
 					"platform": true,
 					"size": 8
-				}
-			},
-			{
-				"id": "Platform",
-				"iid": "a3416c30-e920-11ef-a06b-45c8623332c7",
-				"layer": "Components",
-				"x": 1056,
-				"y": 464,
-				"width": 16,
-				"height": 16,
-				"color": 12470831,
-				"customFields": {
-					"platform": true,
-					"size": 5
 				}
 			},
 			{
@@ -639,6 +625,45 @@
 					"can_become_harmful": false,
 					"can_become_harmless": false,
 					"size": 7
+				}
+			},
+			{
+				"id": "MovingPlatform",
+				"iid": "ff74dbc0-e920-11ef-943c-3919c3facb66",
+				"layer": "Components",
+				"x": 1056,
+				"y": 464,
+				"width": 16,
+				"height": 16,
+				"color": 7552569,
+				"customFields": {
+					"Platform": true,
+					"start": {
+						"cx": 66,
+						"cy": 26
+					},
+					"end": {
+						"cx": 66,
+						"cy": 7
+					},
+					"duration": 0,
+					"velocity": null,
+					"position": {
+						"cx": 66,
+						"cy": 26
+					},
+					"angle": 0,
+					"scale": null,
+					"frequency": 0,
+					"velocityModifier": 0,
+					"selfVelocity": null,
+					"appliedVelocity": null,
+					"target_time_control_factor": 0,
+					"can_be_accelerated": false,
+					"can_be_decelerated": false,
+					"can_become_harmful": false,
+					"can_become_harmless": false,
+					"size": 5
 				}
 			}
 		],

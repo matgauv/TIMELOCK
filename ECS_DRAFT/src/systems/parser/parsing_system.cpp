@@ -31,8 +31,8 @@ void LevelParsingSystem::step(float elapsed_ms) {
     stride = static_cast<int>(json_data["width"]) / TILE_TO_PIXELS;
 
     init_level_background();
-    init_player_and_camera();
     init_level_entities();
+    init_player_and_camera();
 
     level_state.shouldLoad = false;
 }
@@ -243,7 +243,7 @@ void LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& pa
 
 bool LevelParsingSystem::parse_json() {
     LevelState& level_state = registry.levelStates.components[0];
-    string filename = PROJECT_SOURCE_DIR + std::string("data/levels/") + level_state.curr_level_file_name;
+    string filename = PROJECT_SOURCE_DIR + std::string("../LDtk/") + level_state.curr_level_folder_name + string("/data.json");
     ifstream level_file(filename);
     if (!level_file) {
         cout << "Error could not open file " << filename << endl;

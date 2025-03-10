@@ -37,6 +37,7 @@ private:
 	void player_walk(Entity& entity, Motion& motion, float step_seconds);
 	void move_object_along_path(Entity& entity, Motion& motion, float step_seconds);
 	void rotate_projectile(Entity& entity, Motion& motion, float step_seconds);
+	void move_text(Entity& entity, Motion& motion, float step_seconds);
 	float clampToTarget(float value, float change, float target);
 	bool in(std::vector<unsigned int> vec, unsigned int in);
 	vec2 get_bounding_box(const Motion& motion);

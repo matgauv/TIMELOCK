@@ -356,6 +356,27 @@ Entity create_levelground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
     return entity;
 }
 
+Entity create_tutorial_text(vec2 position, vec2 size, TEXTURE_ASSET_ID texture_id) {
+
+    Entity entity = Entity();
+
+    Motion& text_motion = registry.motions.emplace(entity);
+
+    text_motion.position = position; 
+    text_motion.scale = size;
+
+
+    registry.renderRequests.insert(entity, {
+        texture_id,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+    return entity;
+}
+
 Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
 {
 	auto entity = Entity();
@@ -607,3 +628,4 @@ int get_tile_index(int pos_x, int pos_y, int offset_x, int offset_y, int stride)
     int tile_coord_x = (pos_x / TILE_TO_PIXELS) + offset_x;
     return tile_coord_x + tile_coord_y * stride;
 }
+

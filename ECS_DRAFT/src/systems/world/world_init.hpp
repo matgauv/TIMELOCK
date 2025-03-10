@@ -32,3 +32,4 @@ Entity create_time_controllable_breakable_static_platform(vec2 position, vec2 sc
 float getDistance(const Motion& one, const Motion& other);
 Entity create_canon_tower(vec2 pos);
 int get_tile_index(int pos_x, int pos_y, int offset_x, int offset_y, int stride);
+Entity create_tutorial_text(vec2 position, vec2 size, TEXTURE_ASSET_ID texture_id);

@@ -184,7 +184,7 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 init
 
         Tile& tile_component = registry.tiles.emplace(tile_entity);
         tile_component.offset = i;
-        tile_component.parent_motion = &motion;
+        tile_component.parent_id = entity.id();
         tile_component.id = tile_id_array[tile_arr_index];
 
         registry.renderRequests.insert(tile_entity, {
@@ -226,7 +226,7 @@ Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, in
 
         Tile& tile_component = registry.tiles.emplace(tile_entity);
         tile_component.offset = i;
-        tile_component.parent_motion = &motion;
+        tile_component.parent_id = entity.id();
         tile_component.id = tile_id_array[tile_arr_index];
 
 
@@ -517,7 +517,7 @@ Entity create_spike(vec2 position, vec2 scale, json tile_id_array, int stride) {
 
     Tile& tile_component = registry.tiles.emplace(entity);
     tile_component.offset = 0;
-    tile_component.parent_motion = &motion;
+    tile_component.parent_id = entity.id();
     tile_component.id = tile_id_array[tile_arr_index];
 
     registry.renderRequests.insert(entity, {
@@ -544,7 +544,7 @@ Entity create_partof(vec2 position, vec2 scale, json tile_id_array, int stride) 
 
     Tile& tile_component = registry.tiles.emplace(entity);
     tile_component.offset = 0;
-    tile_component.parent_motion = &motion;
+    tile_component.parent_id = entity.id();
     tile_component.id = tile_id_array[tile_arr_index];
 
     registry.renderRequests.insert(entity, {

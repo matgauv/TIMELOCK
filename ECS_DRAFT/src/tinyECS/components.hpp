@@ -299,7 +299,7 @@ struct Boss
 struct Tile
 {
 	int id;
-	Motion* parent_motion;
+	unsigned int parent_id;
 	int offset;
 };
 

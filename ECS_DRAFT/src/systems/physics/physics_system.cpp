@@ -15,7 +15,7 @@ void compute_vertices(Motion& motion, Entity& e) {
 	if (registry.meshPtrs.has(e))
 	{
 		Mesh* mesh = registry.meshPtrs.get(e);
-		motion.cached_vertices.resize( mesh->vertices.size() );
+		motion.cached_vertices.reserve( mesh->vertices.size() );
 
 		for (auto & vertex : mesh->vertices)
 		{
@@ -166,19 +166,30 @@ std::vector<vec2>& get_axes(Entity& e)
 
 // projects the verticies onto the axis
 // only return the min and max since the object is convex and the axis is 1 dimensional
-std::pair<float, float> project(const std::vector<vec2>& verts, const vec2& axis)
-{
-	float min = dot(axis, verts[0]);
-	float max = min; // init to min
-
-	for (const auto& vertex : verts)
-	{
-		float proj = dot(axis, vertex);
-		min = std::min(min, proj);
-		max = std::max(max, proj);
+std::pair<float, float> project(const std::vector<vec2>& verts, const vec2& axis) {
+	const size_t num_verts = verts.size();
+	if (num_verts == 0) {
+		return {0.0f, 0.0f};
 	}
 
-	return std::make_pair(min, max);
+	const float ax = axis.x;
+	const float ay = axis.y;
+	const vec2* verts_ptr = verts.data();
+
+	float min_proj = ax * verts_ptr[0].x + ay * verts_ptr[0].y;
+	float max_proj = min_proj;
+
+	for (size_t i = 1; i < num_verts; ++i) {
+		const vec2& v = verts_ptr[i];
+		const float proj = ax * v.x + ay * v.y;
+		if (proj < min_proj) {
+			min_proj = proj;
+		} else if (proj > max_proj) {
+			max_proj = proj;
+		}
+	}
+
+	return {min_proj, max_proj};
 }
 
 

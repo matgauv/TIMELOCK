@@ -79,7 +79,6 @@ void PlayerSystem::player_respawn() {
 	
 	Motion& motion = registry.motions.get(e);
 	motion.position = player.spawn_point;
-	motion.position.y -= 100.0f;
 	motion.velocity = vec2{0.f, 0.f};
 	motion.cache_invalidated = true;
 

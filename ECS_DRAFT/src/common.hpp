@@ -120,7 +120,7 @@ const vec2 CANON_TOWER_SIZE = vec2{80, 120};
 
 // barrel lies horizontally to the right at angle = 0
 const vec2 CANON_BARREL_SIZE = vec2{ 80, 30 };
-const float CANON_PROJECTILE_SPEED = 900.0f;
+const float CANON_PROJECTILE_SPEED = 600.0f;
 const vec2 CANON_PROJECTILE_SIZE = vec2 {30.0f, 30.0f};
 
 

@@ -7,66 +7,7 @@
 #include "../player/player_system.hpp"
 #include <iostream>
 
-void PhysicsSystem::init(GLFWwindow* window) {
-	this->window = window;
-}
-
-/*
- *	PhysicsSystem::step
- *		- Loops over every motion entity
- *		- Applies gravity to entities that are mid-air (falling)
- *		- Moves player entity if it's walking (i.e. the player is holding the walk key)
- *		- Updates positions of entities with movement paths (i.e. moving platforms).
- *		- Detects collisions between all entities.
- */
-void PhysicsSystem::step(float elapsed_ms) {
-
-	auto& motion_registry = registry.motions;
-	float step_seconds = elapsed_ms / 1000.f;
-
-	drop_bolt_when_player_near(DISTANCE_TO_DROP_BOLT);
-
-	for(uint i = 0; i< motion_registry.size(); i++)
-	{
-		Motion& motion = motion_registry.components[i];
-		Entity& entity = motion_registry.entities[i];
-
-
-		if (registry.physicsObjects.has(entity)) {
-			if (registry.physicsObjects.get(entity).apply_gravity) apply_gravity(entity, motion, step_seconds);
-		}
-
-		if (registry.players.has(entity)	) {
-			player_walk(entity, motion, step_seconds);
-		}
-
-		if (registry.movementPaths.has(entity)) {
-			move_object_along_path(entity, motion, step_seconds);
-		}
-
-		motion.position += (motion.velocity * motion.velocityModifier) * step_seconds;
-	}
-
-	// clear blocked...
-	for (Entity& entity : registry.physicsObjects.entities) {
-		if (registry.blocked.has(entity)) {
-			Blocked& blocked = registry.blocked.get(entity);
-			blocked.normal = vec2{0, 0};
-		}
-	}
-
-	detect_collisions();
-}
-
-// Handles all collisions detected in PhysicsSystem::step
-void PhysicsSystem::late_step(float elapsed_ms) {
-	handle_collisions(elapsed_ms);
-}
-
-
-// returns the mesh verticies if a mesh exists, otherwise, returns verticies of a square defined by the scale of the object (BB)
-std::vector<vec2> get_vertices(Entity& e)
-{
+std::vector<vec2> compute_vertices(Entity& e) {
 	if (registry.meshPtrs.has(e))
 	{
 		Mesh* mesh = registry.meshPtrs.get(e);
@@ -122,6 +63,101 @@ std::vector<vec2> get_vertices(Entity& e)
 		}
 		return vertices;
 	}
+}
+
+
+void PhysicsSystem::init(GLFWwindow* window) {
+	this->window = window;
+}
+
+/*
+ *	PhysicsSystem::step
+ *		- Loops over every motion entity
+ *		- Applies gravity to entities that are mid-air (falling)
+ *		- Moves player entity if it's walking (i.e. the player is holding the walk key)
+ *		- Updates positions of entities with movement paths (i.e. moving platforms).
+ *		- Detects collisions between all entities.
+ */
+void PhysicsSystem::step(float elapsed_ms) {
+
+	auto& motion_registry = registry.motions;
+	float step_seconds = elapsed_ms / 1000.f;
+
+	drop_bolt_when_player_near(DISTANCE_TO_DROP_BOLT);
+
+	for(uint i = 0; i< motion_registry.size(); i++)
+	{
+		Motion& motion = motion_registry.components[i];
+		Entity& entity = motion_registry.entities[i];
+
+
+		if (registry.physicsObjects.has(entity)) {
+			if (registry.physicsObjects.get(entity).apply_gravity) apply_gravity(entity, motion, step_seconds);
+		}
+
+		if (registry.players.has(entity)	) {
+			player_walk(entity, motion, step_seconds);
+		}
+
+		if (registry.movementPaths.has(entity)) {
+			move_object_along_path(entity, motion, step_seconds);
+		}
+
+		vec2 oldMotion = motion.position;
+		motion.position += (motion.velocity * motion.velocityModifier) * step_seconds;
+
+		// invalidate the cached vertices of the motion moved
+		if (oldMotion != motion.position) {
+			motion.cache_invalidated = true;
+		}
+	}
+
+	// clear blocked...
+	for (Entity& entity : registry.physicsObjects.entities) {
+		if (registry.blocked.has(entity)) {
+			Blocked& blocked = registry.blocked.get(entity);
+			blocked.normal = vec2{0, 0};
+		}
+	}
+	for (Entity entity : registry.motions.entities) {
+		Motion& motion = registry.motions.get(entity);
+		if (motion.cache_invalidated) {
+			motion.cached_vertices = compute_vertices(entity);
+			motion.cache_invalidated = false; // Reset flag
+		}
+	}
+
+	detect_collisions();
+
+}
+
+// Handles all collisions detected in PhysicsSystem::step
+void PhysicsSystem::late_step(float elapsed_ms) {
+//	const int iterations = 1;
+//	for (int i = 0; i < iterations; ++i) {
+
+		handle_collisions(elapsed_ms);
+	//}
+}
+
+
+
+
+// returns the mesh verticies if a mesh exists, otherwise, returns verticies of a square defined by the scale of the object (BB)
+std::vector<vec2> get_vertices(Entity& e) {
+	Motion& motion = registry.motions.get(e);
+
+	// if (motion.cache_invalidated) {
+	// 	static std::mutex vertex_mutex;
+	// 	std::lock_guard<std::mutex> lock(vertex_mutex);
+	//
+	// 	// double check after lock
+	// 	if (motion.cache_invalidated) {
+	// 		motion.cached_vertices = compute_vertices(e);
+	// 		motion.cache_invalidated = false;
+	// 	}
+	// }
+	return motion.cached_vertices;
 }
 
 // returns the normals of the edge between the verticies
@@ -215,9 +251,65 @@ Collision compute_sat_collision(Entity& a, Entity& b)
 
 
 // detect collisions between all moving entities.
+// void PhysicsSystem::detect_collisions() {
+//     ComponentContainer<PhysicsObject>& physics_objects = registry.physicsObjects;
+//     ComponentContainer<Motion>& motion_container = registry.motions;
+//     size_t num_objects = physics_objects.size();
+//
+//     // Use the number of hardware threads available
+//     unsigned num_threads = std::thread::hardware_concurrency();
+//     // Create a vector to store collision results per thread
+//     std::vector<std::vector<std::tuple<Entity*, Entity*, vec2, vec2>>> thread_collisions(num_threads);
+//
+//     // Launch threads with a workload partition based on physics objects
+//     std::vector<std::thread> threads;
+//     threads.reserve(num_threads);
+//     for (unsigned t = 0; t < num_threads; ++t) {
+//         threads.emplace_back([&, t] {
+//             size_t start = t * num_objects / num_threads;
+//             size_t end = (t + 1) * num_objects / num_threads;
+//             for (size_t i = start; i < end; ++i) {
+//                 Entity& entity_i = physics_objects.entities[i];
+//                 for (size_t j = 0; j < motion_container.entities.size(); ++j) {
+//                     Entity& entity_j = motion_container.entities[j];
+//                     Collision result = compute_sat_collision(entity_i, entity_j);
+//                     if (result.normal != vec2{0, 0} && result.overlap != vec2{0, 0}) {
+//                         thread_collisions[t].emplace_back(&entity_i, &entity_j, result.overlap, result.normal);
+//                     }
+//                 }
+//             }
+//         });
+//     }
+//
+//     // Wait for all threads to complete their work
+//     for (auto& thread : threads) {
+//         thread.join();
+//     }
+//
+//     // Merge all thread-local collision results into one vector
+//     std::vector<std::tuple<Entity*, Entity*, vec2, vec2>> all_collisions;
+//     for (auto& local : thread_collisions) {
+//         all_collisions.insert(all_collisions.end(), local.begin(), local.end());
+//     }
+//
+//     // Process each collision while avoiding duplicates
+//     for (auto& [entity_i, entity_j, overlap, normal] : all_collisions) {
+//         if (entity_j->id() == entity_i->id() ||
+//             (registry.collisions.has(*entity_i) && registry.collisions.get(*entity_i).other->id() == entity_j->id()) ||
+//             (registry.collisions.has(*entity_j) && registry.collisions.get(*entity_j).other->id() == entity_i->id()))
+//             continue;
+//
+//         registry.collisions.emplace_with_duplicates(*entity_i, entity_j, overlap, normal);
+//     }
+// }
+
+
+
+
+// detect collisions between all moving entities.
 void PhysicsSystem::detect_collisions() {
 
-    ComponentContainer<PhysicsObject> &physics_objects = registry.physicsObjects;
+	ComponentContainer<PhysicsObject> &physics_objects = registry.physicsObjects;
 	ComponentContainer<Motion> &motion_container = registry.motions;
 	for(uint i = 0; i < physics_objects.components.size(); i++)
 	{
@@ -267,6 +359,7 @@ void PhysicsSystem::move_object_along_path(Entity& entity, Motion& motion, float
 void PhysicsSystem::rotate_projectile(Entity& entity, Motion& motion, float step_seconds) {
 	float angularSpeed = 40.0f;
 	motion.angle -= angularSpeed * step_seconds;
+	motion.cache_invalidated = true;
 }
 
 // accelerates the entity by GRAVITY until it reaches the max_speed (terminal velocity)
@@ -536,8 +629,8 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 		float vertical_scale = 0.5f;
 		friction_impulse.y *= vertical_scale;
 
-        motionA.velocity -= a_inv_mass * friction_impulse;
-        motionB.velocity += b_inv_mass * friction_impulse;
+        motionA.velocity -= a_inv_mass * friction_impulse * step_seconds;
+        motionB.velocity += b_inv_mass * friction_impulse * step_seconds;
     }
 	// finally, detect if they are on the ground! (or an angled platform)
 	if (is_on_ground(-normal.y))

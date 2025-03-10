@@ -118,6 +118,8 @@ struct Motion {
 	float frequency = 0.f;
 	float velocityModifier = 1.0f;
 	vec2  velocity = {0.0f, 0.0f};
+	std::vector<vec2> cached_vertices;
+	bool cache_invalidated = true;
 };
 
 // This is added to a player who is walking.

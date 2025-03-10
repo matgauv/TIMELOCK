@@ -6,6 +6,9 @@
 #include "../../tinyECS/registry.hpp"
 #include "systems/ISystem.hpp"
 
+#include <mutex>
+#include <future>
+
 // A simple physics system that moves rigid bodies and checks for collision
 class PhysicsSystem : public ISystem
 {
@@ -22,6 +25,8 @@ public:
 	{
 	}
 private:
+	std::mutex collision_mutex;
+
 	GLFWwindow* window = nullptr;
 	bool fly = false;
 

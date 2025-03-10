@@ -70,7 +70,7 @@ const float DYNAMIC_FRICTION = 0.015f;
 const float AIR_RESISTANCE = 250.0f;
 const float JUMP_VELOCITY = 350.0f;
 
-const float PHYSICS_OBJECT_BOUNCE = 0.05f;
+const float PHYSICS_OBJECT_BOUNCE = 0.9f;
 const float DEFAULT_MASS = 1.0f;
 
 const float PLATFORM_SLIP_ANGLE = 45.0f;

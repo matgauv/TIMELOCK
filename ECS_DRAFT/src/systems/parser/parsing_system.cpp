@@ -66,13 +66,13 @@ void LevelParsingSystem::init_player_and_camera() {
     // hardcode rn but maybe should pass position as text entity in ldtk?
     bool tutorial = true;
     if (tutorial) {
-		if (json_data["level"]["identifier"] == "Level_0") {
+		if (json_data["identifier"] == "Level_0") {
             create_tutorial_text({ initPos.x + 250, initPos.y - 150 }, { 450, 70 }, TEXTURE_ASSET_ID::WASD);
-            create_tutorial_text({ initPos.x + 850, initPos.y - 150 }, { 450, 70 }, TEXTURE_ASSET_ID::DECEL);
+            create_tutorial_text({ initPos.x + 850, initPos.y - 175 }, { 450, 70 }, TEXTURE_ASSET_ID::DECEL);
+            create_tutorial_text({ initPos.x + 2300, initPos.y - 500 }, { 450, 70 }, TEXTURE_ASSET_ID::DECEL2);
         }
-        else if (json_data["level"]["identifier"] == "Level_1") {
+        else if (json_data["identifier"] == "Level_1") {
             create_tutorial_text({ initPos.x + 250, initPos.y - 150 }, { 450, 70 }, TEXTURE_ASSET_ID::ACCEL);
-            create_tutorial_text({ initPos.x + 850, initPos.y - 150 }, { 450, 70 }, TEXTURE_ASSET_ID::ACCEL2);
         }
     }
 }

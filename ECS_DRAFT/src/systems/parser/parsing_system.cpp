@@ -254,9 +254,14 @@ void LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& pa
     int start_x = left_x + (static_cast<int>(dimensions[0]) / 2);
     init_pos_in_path = {start_x, platform["y"]};
 
-    // TODO: hardcoded duration value -- should prob parse from json
-    Path forward = Path(start_pos, end_pos, 0.5);
-    Path backward = Path(end_pos, start_pos, 0.5);
+    // set duration to default value of 0.5 if no duration is set.
+    float duration = platform["customFields"]["duration"];
+    if (duration == 0.0) {
+        duration = 0.5;
+    }
+
+    Path forward = Path(start_pos, end_pos, duration);
+    Path backward = Path(end_pos, start_pos, duration);
     paths.push_back(forward);
     paths.push_back(backward);
 }

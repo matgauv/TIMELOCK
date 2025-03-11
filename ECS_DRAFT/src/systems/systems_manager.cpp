@@ -37,21 +37,23 @@ void SystemsManager::run_game_loop() {
 		physics_accumulator += elapsed_ms;
 		physics_accumulator = std::min(physics_accumulator, max_accumulator_ms);
 
-		// Update regular systems
+		// step regular systems with the frame time
 		for (ISystem* system : systems) {
 			system->step(elapsed_ms);
 		}
 
-		// process physics in fixed substeps
+		// step physics systems if enough time has elapsed with fixed frame time
 		while (physics_accumulator >= physics_step) {
 			float substep_dt = physics_step / substep_count;
 
+			// perform the physics step in sub steps for more consistent behaviour
 			for (int i = 0; i < substep_count; ++i) {
 				for (ISystem* system : fixed_systems) {
 					system->step(substep_dt);
 				}
 			}
 
+			// late step once
 			for (ISystem* system : fixed_systems) {
 				system->late_step(physics_step);
 			}
@@ -59,7 +61,7 @@ void SystemsManager::run_game_loop() {
 			physics_accumulator -= physics_step;
 		}
 
-		// Update late steps for regular systems
+		// late step regular systems with frame time
 		for (ISystem* system : systems) {
 			system->late_step(elapsed_ms);
 		}

@@ -133,7 +133,7 @@ Frame rate is especially good on hardware with dedicated graphics. Frame rate ma
    <td>
    </td>
    <td>
-<code>https://drive.google.com/file/d/1akS5ioX5ALLA50Z7wR3A30Ud-D9efPnt/view?usp=sharing</code>
+<code>https://www.youtube.com/watch?v=QnRECzxyw7Y</code>
    </td>
   </tr>
 </table>

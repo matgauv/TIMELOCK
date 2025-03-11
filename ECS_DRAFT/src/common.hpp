@@ -114,7 +114,8 @@ const float PLAYER_ATTACK_DAMAGE = 20.0f;
 
 // Canon Tower
 const float CANON_TOWER_DETECTION_RANGE = 300.0f;
-const float CANON_TOWER_AIM_TIME_MS = 4000.0f;
+const float CANON_TOWER_AIM_TIME_MS = 2750.0f;
+const float CANON_TOWER_LOAD_TIME_MS = 600.0f;
 const float CANON_TOWER_FIRE_TIME_MS = 1500.0f;
 
 const float CANON_TURN_SPEED = M_PI;

@@ -55,10 +55,12 @@ struct SpawnPoint
 	SPAWN_POINT_STATE state = SPAWN_POINT_STATE::UNVISITED;
 };
 
+// Canon Towers
 enum class CANON_TOWER_STATE {
 	IDLE = 0,
 	AIMING = IDLE + 1,
-	FIRING = AIMING + 1
+	LOADING = AIMING + 1,
+	FIRING = LOADING + 1
 };
 
 struct CanonTower {

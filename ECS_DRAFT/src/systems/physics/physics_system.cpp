@@ -450,7 +450,15 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 	for (int i = 0; i < registry.physicsObjects.entities.size(); i++){
 		Entity& entity = registry.physicsObjects.entities[i];
 
+		if (registry.players.has(entity)) {
+			bool isOnGround = registry.onGrounds.has(entity);
+			std::cout << "player is grounded " << isOnGround << std::endl;
+		}
+
 		if(!in(groundedEntities, entity.id())) {
+			if (registry.players.has(entity)) {
+				std::cout << "removing on ground" << std::endl;
+			}
 			registry.onGrounds.remove(entity);
 
 			Motion& motion = registry.motions.get(entity);
@@ -465,6 +473,8 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			//	std::cout << "removing falling" << std::endl;
 		}
 	}
+
+	std::cout << std::endl;
 
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
@@ -529,7 +539,16 @@ void PhysicsSystem::handle_object_rigid_collision(Entity& object_entity, Entity&
 			// Fling in platform's movement direction scaled by surface alignment
 		//	float surface_alignment = abs(dot(normalize(platform_velocity), tangent));
 			obj_motion.velocity += vec2{platform_velocity.x * 0.05f, platform_velocity.y * 0.005f};
+
+
+			// TODO I wanted to avoid explicitly doing this, but it works
+			float relative_y = obj_motion.velocity.y - platform_velocity.y;
+			if (fabs(relative_y) > 5.0f) {
+				obj_motion.velocity.y = platform_velocity.y;
+			}
 		}
+
+
 	}
 
 	if (is_on_ground(-normal.y)) {
@@ -589,15 +608,25 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 	float total_inv_mass = a_inv_mass + b_inv_mass;
 	resolve_collision_position(entityA, entityB, collision);
 
-	const float velocity_bias = 0.1f; // Small separation velocity
-	vec2 bias_velocity = normal * velocity_bias;
-
-	motionA.velocity -= bias_velocity * a_inv_mass;
-	motionB.velocity += bias_velocity * b_inv_mass;
+	// const float velocity_bias = 0.1f; // Small separation velocity
+	// vec2 bias_velocity = normal * velocity_bias;
+	//
+	// motionA.velocity -= bias_velocity * a_inv_mass;
+	// motionB.velocity += bias_velocity * b_inv_mass;
 
 	// now get the relative velocities
 	vec2 vel_relative = motionB.velocity - motionA.velocity;
 	float vel_along_normal = dot(vel_relative, normal);
+
+	bool aIsPlayer = registry.players.has(entityA);
+	bool bIsPlayer = registry.players.has(entityB);
+
+	if (aIsPlayer || bIsPlayer) {
+		std::cout << "Normal y component: " << normal.y << std::endl;
+		std::cout << "Player is entity " << (aIsPlayer ? "A" : "B") << std::endl;
+	}
+
+
 
 	// finally, detect if they are on the ground! (or an angled platform)
 	if (is_on_ground(normal.y))
@@ -606,13 +635,19 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 		if (!registry.onGrounds.has(entityA)) {
 			registry.onGrounds.emplace(entityA, entityB.id());
 		}
+		if (aIsPlayer) {
+			std::cout << "grounding player" << std::endl;
+		}
 	}
 
-	if (is_on_ground(normal.y))
+	if (is_on_ground(-normal.y))
 	{
 		grounded.push_back(entityB.id());
 		if (!registry.onGrounds.has(entityB)) {
 			registry.onGrounds.emplace(entityB, entityA.id());
+		}
+		if (bIsPlayer) {
+			std::cout << "grounding player" << std::endl;
 		}
 	}
 
@@ -697,7 +732,7 @@ void PhysicsSystem::resolve_collision_position(Entity& entityA, Entity& entityB,
 
 
 	// leave the objects slightly colliding so that the collision is still triggered
-	const float epsilon = 0.01f;
+	const float epsilon = 0.01f * sign(collision.normal.y);
 	vec2 resolution = collision.normal * (length(collision.overlap) - epsilon);
 	motionA.position += resolution * (inv_mass_a / total_inv_mass);
 	motionB.position -= resolution * (inv_mass_b / total_inv_mass);
@@ -761,7 +796,7 @@ float PhysicsSystem::clampToTarget(float value, float change, float target) {
 }
 
 // Helper function to check if an entity id is within a vector.
-bool PhysicsSystem::in(std::vector<unsigned int> vec, unsigned int id) {
+bool PhysicsSystem::in(std::vector<unsigned int>& vec, unsigned int id) {
 	return std::find(vec.begin(), vec.end(), id) != vec.end();
 }
 

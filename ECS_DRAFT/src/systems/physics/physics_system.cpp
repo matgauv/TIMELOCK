@@ -629,7 +629,7 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 		}
 	}
 
-	if (is_on_ground(-normal.y))
+	if (is_on_ground(normal.y))
 	{
 		grounded.push_back(entityB.id());
 		if (!registry.onGrounds.has(entityB)) {

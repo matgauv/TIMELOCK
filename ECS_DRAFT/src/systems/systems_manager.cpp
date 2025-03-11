@@ -16,44 +16,48 @@ bool SystemsManager::is_over() const {
 }
 
 void SystemsManager::run_game_loop() {
-    auto t = Clock::now();
+	auto t = Clock::now();
 
 	float physics_accumulator = 0.0f;
-	const float physics_step = 1000.0f / 120.0f;
+	const float physics_step = 1000.0f / 120.0f; // we step physics at 120 fps
+	const int substep_count = 8; // of these 120 fps, we step physics 8 times in small sub steps
 
-    while (!is_over()) {
-        // processes system messages, if this wasn't present the window would become unresponsive
-        glfwPollEvents();
+	while (!is_over()) {
+		glfwPollEvents();
 
-        // calculate elapsed times in milliseconds from the previous iteration
-        auto now = Clock::now();
-        float elapsed_ms =
-            (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
-        t = now;
+		auto now = Clock::now();
+		float elapsed_ms = (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
+		t = now;
 
-    	physics_accumulator += elapsed_ms;
+		physics_accumulator += elapsed_ms;
 
+		// Update regular systems
+		for (ISystem* system : systems) {
+			system->step(elapsed_ms);
+		}
 
+		// process physics in fixed substeps
+		while (physics_accumulator >= physics_step) {
+			float substep_dt = physics_step / substep_count;
 
-        for (ISystem* system : systems) {
-            system->step(elapsed_ms);
-        }
+			for (int i = 0; i < substep_count; ++i) {
+				for (ISystem* system : fixed_systems) {
+					system->step(substep_dt);
+				}
+			}
 
-    	while (physics_accumulator >= physics_step) {
-    		for (ISystem* system : fixed_systems)
-    		{
-    			system->step(physics_step);
-    			system->late_step(physics_step); // TODO: late step later...
-    		}
+			for (ISystem* system : fixed_systems) {
+				system->late_step(physics_step);
+			}
 
-    		physics_accumulator -= physics_step;
-    	}
+			physics_accumulator -= physics_step;
+		}
 
-
-        for (ISystem* system : systems) {
-            system->late_step(elapsed_ms);
-        }
-    }
+		// Update late steps for regular systems
+		for (ISystem* system : systems) {
+			system->late_step(elapsed_ms);
+		}
+	}
 }
 
 void SystemsManager::register_system(ISystem* system) {

@@ -549,6 +549,10 @@ void PhysicsSystem::handle_object_rigid_collision(Entity& object_entity, Entity&
 		} else {
 			registry.onGrounds.emplace(object_entity, platform_entity.id());
 		}
+
+		if (registry.players.has(object_entity)) {
+			PlayerSystem::set_jumping_validity(true);
+		}
 	}
 }
 
@@ -619,6 +623,10 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 		if (!registry.onGrounds.has(entityA)) {
 			registry.onGrounds.emplace(entityA, entityB.id());
 		}
+
+		if (registry.players.has(entityA)) {
+			PlayerSystem::set_jumping_validity(true);
+		}
 	}
 
 	if (is_on_ground(-normal.y))
@@ -626,6 +634,10 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 		grounded.push_back(entityB.id());
 		if (!registry.onGrounds.has(entityB)) {
 			registry.onGrounds.emplace(entityB, entityA.id());
+		}
+
+		if (registry.players.has(entityB)) {
+			PlayerSystem::set_jumping_validity(true);
 		}
 	}
 

@@ -97,6 +97,8 @@ const float PLAYER_WALK_ACCELERATION = 900.0f;
 
 const float DEAD_REVIVE_TIME_MS = 500.0f;
 
+const float JUMPING_VALID_TIME_MS = 3000.0f;
+
 // Fore, mid, background Depths; used for scaling only
 const float FOREGROUND_DEPTH = 0.5f;
 const float MIDGROUND_DEPTH = 0.75f;

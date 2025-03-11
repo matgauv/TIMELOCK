@@ -417,11 +417,14 @@ void WorldSystem::player_walking(bool walking, bool is_left) {
 void WorldSystem::player_jump() {
 	Entity& player = registry.players.entities[0];
 
-	if (registry.onGrounds.has(player)) {
+	//if (registry.onGrounds.has(player)) {
+	if (PlayerSystem::can_jump()) {
 		if (registry.motions.has(player))
 		{
 			Motion& motion = registry.motions.get(player);
 			motion.velocity.y -= JUMP_VELOCITY;
+
+			PlayerSystem::set_jumping_validity(false);
 		}
 
 	}

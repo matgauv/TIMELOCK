@@ -48,6 +48,8 @@ struct Player
 	// Consider expanding the fields with a state variable (idle, walking, in air, dead, etc.)
 	PLAYER_STATE state = PLAYER_STATE::ALIVE;
 	// Potentially transfer acceleration/deceleration controls to Player as well
+
+	float jumping_valid_time = -1.0f;
 };
 
 struct SpawnPoint

@@ -22,6 +22,11 @@ void SystemsManager::run_game_loop() {
 	const float physics_step = 1000.0f / 120.0f; // we step physics at 120 fps
 	const int substep_count = 8; // of these 120 fps, we step physics 8 times in small sub steps
 
+	// if the game is running really fast, we just step the physics system anyways..
+	// https://gafferongames.com/post/fix_your_timestep/
+	const float max_accumulator_ms = 250.0f;
+
+
 	while (!is_over()) {
 		glfwPollEvents();
 
@@ -30,6 +35,7 @@ void SystemsManager::run_game_loop() {
 		t = now;
 
 		physics_accumulator += elapsed_ms;
+		physics_accumulator = std::min(physics_accumulator, max_accumulator_ms);
 
 		// Update regular systems
 		for (ISystem* system : systems) {

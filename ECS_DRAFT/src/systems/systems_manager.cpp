@@ -17,6 +17,10 @@ bool SystemsManager::is_over() const {
 
 void SystemsManager::run_game_loop() {
     auto t = Clock::now();
+
+	float physics_accumulator = 0.0f;
+	const float physics_step = 1000.0f / 120.0f;
+
     while (!is_over()) {
         // processes system messages, if this wasn't present the window would become unresponsive
         glfwPollEvents();
@@ -27,9 +31,24 @@ void SystemsManager::run_game_loop() {
             (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
         t = now;
 
+    	physics_accumulator += elapsed_ms;
+
+
+
         for (ISystem* system : systems) {
             system->step(elapsed_ms);
         }
+
+    	while (physics_accumulator >= physics_step) {
+    		for (ISystem* system : fixed_systems)
+    		{
+    			system->step(physics_step);
+    			system->late_step(physics_step); // TODO: late step later...
+    		}
+
+    		physics_accumulator -= physics_step;
+    	}
+
 
         for (ISystem* system : systems) {
             system->late_step(elapsed_ms);
@@ -41,6 +60,12 @@ void SystemsManager::register_system(ISystem* system) {
     systems.push_back(system);
     system->init(this->window);
 };
+
+void SystemsManager::register_fixed_system(ISystem* system)
+{
+	fixed_systems.push_back(system);
+	system->init(this->window);
+}
 
 
 

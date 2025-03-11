@@ -48,6 +48,8 @@ struct Player
 	// Consider expanding the fields with a state variable (idle, walking, in air, dead, etc.)
 	PLAYER_STATE state = PLAYER_STATE::ALIVE;
 	// Potentially transfer acceleration/deceleration controls to Player as well
+
+	float jumping_valid_time = -1.0f;
 };
 
 struct SpawnPoint
@@ -79,10 +81,8 @@ struct Platform
 
 struct onGround
 {
-	Entity* ground_entity;
-	onGround (Entity* entity) {
-		ground_entity  = entity;
-	}
+	unsigned int other_id;
+	onGround(unsigned int other_id) : other_id(other_id) {}
 };
 
 // Boundary component
@@ -135,6 +135,9 @@ struct Motion {
 	float frequency = 0.f;
 	float velocityModifier = 1.0f;
 	vec2  velocity = {0.0f, 0.0f};
+	std::vector<vec2> cached_vertices;
+	std::vector<vec2> cached_axes;
+	bool cache_invalidated = true;
 };
 
 // This is added to a player who is walking.
@@ -160,11 +163,11 @@ enum SIDE {
 struct Collision
 {
 	// Note, the first object is stored in the ECS container.entities
-	Entity* other; // the second object involved in the collision
+	unsigned int other_id; // the second object involved in the collision
 	vec2 overlap;
 	vec2 normal;;
-	Collision(Entity* other, vec2 overlap, vec2 normal) {
-		this->other = other;
+	Collision(unsigned int other, vec2 overlap, vec2 normal) {
+		this->other_id = other;
 		this->overlap = overlap;
 		this->normal = normal;
 	};

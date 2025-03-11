@@ -68,10 +68,13 @@ int main(int argc, char *argv[])
 	system_manager.register_system(&ai_system);
 	system_manager.register_system(&spawnpoint_system);
 	system_manager.register_system(&boss_system);
-	system_manager.register_system(&physics_system);
+
 	system_manager.register_system(&camera_system);
 	system_manager.register_system(&animation_system);
 	system_manager.register_system(&renderer_system); // render system should prob stay last (?)
+
+
+	system_manager.register_fixed_system(&physics_system);
 
 	system_manager.run_game_loop();
 	return EXIT_SUCCESS;

@@ -34,6 +34,7 @@ void LevelParsingSystem::step(float elapsed_ms) {
     init_level_entities();
     init_player_and_camera();
 
+
     level_state.shouldLoad = false;
 }
 

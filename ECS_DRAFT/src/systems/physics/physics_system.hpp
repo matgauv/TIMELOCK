@@ -6,6 +6,9 @@
 #include "../../tinyECS/registry.hpp"
 #include "systems/ISystem.hpp"
 
+#include <mutex>
+#include <future>
+
 // A simple physics system that moves rigid bodies and checks for collision
 class PhysicsSystem : public ISystem
 {
@@ -22,6 +25,8 @@ public:
 	{
 	}
 private:
+	std::mutex collision_mutex;
+
 	GLFWwindow* window = nullptr;
 	bool fly = false;
 
@@ -39,7 +44,7 @@ private:
 	void rotate_projectile(Entity& entity, Motion& motion, float step_seconds);
 	void move_text(Entity& entity, Motion& motion, float step_seconds);
 	float clampToTarget(float value, float change, float target);
-	bool in(std::vector<unsigned int> vec, unsigned int in);
+	bool in(std::vector<unsigned int>& vec, unsigned int in);
 	vec2 get_bounding_box(const Motion& motion);
 
 	SIDE get_collision_side(Motion& a, Motion& b, vec2 overlap);

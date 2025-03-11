@@ -12,4 +12,4 @@ ECS_DRAFT/cmake-build-debug
 .vscode/settings.json
 /build
 
-CMakeSettings.json
+/ECS_DRAFT/CMakeSettings.json

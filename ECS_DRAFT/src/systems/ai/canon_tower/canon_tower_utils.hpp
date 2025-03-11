@@ -11,6 +11,8 @@ void idle_step(Entity tower_entity, CanonTower& tower, float elapsed_ms);
 
 void aiming_step(Entity tower_entity, CanonTower& tower, float elapsed_ms);
 
+void loading_step(Entity tower_entity, CanonTower& tower, float elapsed_ms);
+
 void firing_step(Entity tower_entity, CanonTower& tower, float elapsed_ms);
 
 bool player_detected(Entity tower_entity, CanonTower& tower);

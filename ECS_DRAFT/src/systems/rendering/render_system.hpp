@@ -48,6 +48,8 @@ class RenderSystem : public ISystem {
 		textures_path("spawnpoint/SpawnPoint_activate.png"),
 		textures_path("spawnpoint/SpawnPoint_deactivate.png"),
 		textures_path("spawnpoint/SpawnPoint_reactivate.png"),
+		textures_path("canontower/CanonTower.png"),
+		textures_path("canontower/Barrel.png"),
 		level_ground_path("Level_0"),
 		level_ground_path("Level_1"),
 		textures_path("tileset.png"),

@@ -15,6 +15,9 @@ void canon_tower_step(float elapsed_ms) {
 			case CANON_TOWER_STATE::AIMING:
 				aiming_step(tower_entity, tower, elapsed_ms);
 				break;
+			case CANON_TOWER_STATE::LOADING:
+				loading_step(tower_entity, tower, elapsed_ms);
+				break;
 			case CANON_TOWER_STATE::FIRING:
 				firing_step(tower_entity, tower, elapsed_ms);
 				break;
@@ -63,58 +66,65 @@ void aiming_step(Entity tower_entity, CanonTower& tower, float elapsed_ms) {
 	}
 
 	if (tower.timer <= 0) {
-		tower.state = CANON_TOWER_STATE::FIRING;
-		tower.timer = CANON_TOWER_FIRE_TIME_MS;
-		canon_fire(tower_entity, registry.canonBarrels.get(tower.barrel_entity).angle);
+		tower.state = CANON_TOWER_STATE::LOADING;
+		tower.timer = CANON_TOWER_LOAD_TIME_MS;
+
 		return;
 	}
 
 	// TODO: aim the barrel in a more natural way
 	// TODO: allow arbitrary orientation of the tower
 
-	// Aim
-	if (tower.timer >= 0.15f * CANON_TOWER_AIM_TIME_MS) {
-		Entity player_entity = registry.players.entities[0];
-		const Motion& player_motion = registry.motions.get(player_entity);
 
-		const Motion& tower_motion = registry.motions.get(tower_entity);
+	Entity player_entity = registry.players.entities[0];
+	const Motion& player_motion = registry.motions.get(player_entity);
 
-		vec2 disp = player_motion.position - tower_motion.position;
+	const Motion& tower_motion = registry.motions.get(tower_entity);
+
+	vec2 disp = player_motion.position - tower_motion.position;
 
 
-		CanonBarrel& barrel = registry.canonBarrels.get(tower.barrel_entity);
-		float target_angle = 0.0f;
-		if (glm::length(disp) > 0.0f) {
-			target_angle = atan2f(disp[1], disp[0]);
-		}
+	CanonBarrel& barrel = registry.canonBarrels.get(tower.barrel_entity);
+	float target_angle = 0.0f;
+	if (glm::length(disp) > 0.0f) {
+		target_angle = atan2f(disp[1], disp[0]);
+	}
 
-		float turn = elapsed_ms / 1000.0 * CANON_TURN_SPEED;
-		if (abs(barrel.angle - target_angle) <= turn ||
-			abs(barrel.angle - target_angle + 2.0f * M_PI) <= turn ||
-			abs(barrel.angle - target_angle - 2.0f * M_PI) <= turn) {
-			barrel.angle = target_angle;
-		}
-		else {
-			turn *= (
-				abs(barrel.angle - target_angle) > M_PI ?
-				(barrel.angle > target_angle ? 1 : -1) :
-				(barrel.angle > target_angle ? -1 : 1));
-
-			barrel.angle = fmod(barrel.angle + turn, 2.0f * M_PI);
-			if (barrel.angle < 0) {
-				barrel.angle += 2.0f * M_PI;
-			}
-		}
+	float turn = elapsed_ms / 1000.0 * CANON_TURN_SPEED;
+	if (abs(barrel.angle - target_angle) <= turn ||
+		abs(barrel.angle - target_angle + 2.0f * M_PI) <= turn ||
+		abs(barrel.angle - target_angle - 2.0f * M_PI) <= turn) {
+		barrel.angle = target_angle;
 	}
 	else {
-		// load & fire
-		Motion& barrel_motion = registry.motions.get(tower.barrel_entity);
+		turn *= (
+			abs(barrel.angle - target_angle) > M_PI ?
+			(barrel.angle > target_angle ? 1 : -1) :
+			(barrel.angle > target_angle ? -1 : 1));
 
-		// (1-t)^3
-		float t = 1.0f - tower.timer / (0.15f * CANON_TOWER_AIM_TIME_MS);
-		float lerp_factor = (1.0f - t) * (1.0f - t) * (1.0f - t);
-		barrel_motion.scale = CANON_BARREL_SIZE * (vec2{ 1.0f, 1.0f } * lerp_factor + vec2{ 0.6f, 1.6f } * (1.0f - lerp_factor));
+		barrel.angle = fmod(barrel.angle + turn, 2.0f * M_PI);
+		if (barrel.angle < 0) {
+			barrel.angle += 2.0f * M_PI;
+		}
 	}
+}
+
+void loading_step(Entity tower_entity, CanonTower& tower, float elapsed_ms) {
+	if (tower.timer <= 0.0f) {
+		tower.state = CANON_TOWER_STATE::FIRING;
+		tower.timer = CANON_TOWER_FIRE_TIME_MS;
+
+		canon_fire(tower_entity, registry.canonBarrels.get(tower.barrel_entity).angle);
+
+		return;
+	}
+
+	Motion& barrel_motion = registry.motions.get(tower.barrel_entity);
+
+	// (1-t)^3
+	float t = 1.0f - tower.timer / CANON_TOWER_LOAD_TIME_MS;
+	float lerp_factor = (1.0f - t) * (1.0f - t) * (1.0f - t);
+	barrel_motion.scale = CANON_BARREL_SIZE * (vec2{ 1.0f, 1.0f } *lerp_factor + vec2{ 0.6f, 1.6f } *(1.0f - lerp_factor));
 }
 
 // Currently more like a cooldown state

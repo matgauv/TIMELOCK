@@ -243,6 +243,9 @@ Basic phenomena are approximated, such as gravity, friction, and inertia.
 
 - How to build on Windows Visual Studio:
   - Open folder `ECS_DRAFT`, wait for CMakeList.txt file to be loaded
+  - Can also manually configure CMake cache by going to `Navigation bar` -> `Project` -> `Configure Cache`
+  - Update CMake settings according to need; we suggest build and run release version of the game
+    - Windows user can go to `/ECS_DRAFT/CMakeSettings.json` and add build modes, such as `x64-Release`
   - Build `TIMELOCK.exe`
   - Run `TIMELOCK.exe`
  

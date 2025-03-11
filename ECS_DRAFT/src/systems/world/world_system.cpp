@@ -388,51 +388,58 @@ void WorldSystem::control_time(bool accelerate, bool activate) {
 
 
 void WorldSystem::player_walking(bool walking, bool is_left) {
-	Entity& player = registry.players.entities[0];
+	if (registry.players.size() > 0) {
+		Entity& player = registry.players.entities[0];
 
-	if (walking) {
-		// if already walking, just update direction. Otherwise, add component.
-		if (registry.walking.has(player)) {
-			Walking& walking_component = registry.walking.get(player);
-			walking_component.is_left = is_left;
+		if (walking) {
+			// if already walking, just update direction. Otherwise, add component.
+			if (registry.walking.has(player)) {
+				Walking& walking_component = registry.walking.get(player);
+				walking_component.is_left = is_left;
+			} else {
+				Walking& walking_component = registry.walking.emplace(player);
+				walking_component.is_left = is_left;
+			}
+
+			PlayerSystem::set_walking(is_left);
 		} else {
-			Walking& walking_component = registry.walking.emplace(player);
-			walking_component.is_left = is_left;
-		}
-
-		PlayerSystem::set_walking(is_left);
-	} else {
-		if (registry.walking.has(player)) {
-			Walking& walking_component = registry.walking.get(player);
-			// if current walking component is in the direction of this player walk stop call, remove it and stop walking
-			if (walking_component.is_left == is_left) {
-				registry.walking.remove(player);
-				PlayerSystem::set_standing(is_left);
+			if (registry.walking.has(player)) {
+				Walking& walking_component = registry.walking.get(player);
+				// if current walking component is in the direction of this player walk stop call, remove it and stop walking
+				if (walking_component.is_left == is_left) {
+					registry.walking.remove(player);
+					PlayerSystem::set_standing(is_left);
+				}
 			}
 		}
 	}
+
 }
 
 // TODO: this should be handled by physics?
 void WorldSystem::player_jump() {
-	Entity& player = registry.players.entities[0];
+	if (registry.players.size() > 0) {
+		Entity& player = registry.players.entities[0];
 
-	//if (registry.onGrounds.has(player)) {
-	if (PlayerSystem::can_jump()) {
-		if (registry.motions.has(player))
-		{
-			Motion& motion = registry.motions.get(player);
-			motion.velocity.y -= JUMP_VELOCITY;
+		//if (registry.onGrounds.has(player)) {
+		if (PlayerSystem::can_jump()) {
+			if (registry.motions.has(player))
+			{
+				Motion& motion = registry.motions.get(player);
+				motion.velocity.y -= JUMP_VELOCITY;
 
-			PlayerSystem::set_jumping_validity(false);
+				PlayerSystem::set_jumping_validity(false);
+			}
+
 		}
-
 	}
-
 }
 
 // on key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
+
+	if (registry.players.size() == 0) { return; } // level not loaded. TODO: set flag in the registry once level loading is done
+
 
 	// exit game w/ ESC
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
@@ -458,6 +465,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 	}
+
 
 	// The following actions only available when player is alive
 	// Could extend to case of game pause

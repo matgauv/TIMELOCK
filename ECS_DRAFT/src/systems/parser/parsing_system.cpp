@@ -48,12 +48,25 @@ void LevelParsingSystem::late_step(float elapsed_ms) {
 void LevelParsingSystem::init_level_background() {
     // TODO: static w, h values -- should change (maybe parse from level file).
     LevelState& levelState = registry.levelStates.components[0];
-    float w = WINDOW_WIDTH_PX * 3.0;
-    float h = WINDOW_HEIGHT_PX * 3.0f;
-    create_parallaxbackground({w, h}, TEXTURE_ASSET_ID::GEARS_BACKGROUND);
-    create_background({w, h}, TEXTURE_ASSET_ID::METAL_BACKGROUND);
-    create_foreground({ w, h}, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
+    float background_w = WINDOW_WIDTH_PX * 3.0;
+    float background_h = WINDOW_HEIGHT_PX * 3.0;
+    create_parallaxbackground({background_w, background_h}, TEXTURE_ASSET_ID::GEARS_BACKGROUND);
+    create_background({background_w, background_h}, TEXTURE_ASSET_ID::METAL_BACKGROUND);
+    create_foreground({ background_w, background_h}, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
     create_levelground({json_data["width"], json_data["height"]}, levelState.ground);
+
+    // world boundaries
+    float world_w = json_data["width"];
+    float world_h = json_data["height"];
+    float shift_differential = 0.5 * TILE_TO_PIXELS;
+
+    // horizontal world boundaries (top/bottom)
+    create_world_boundary({world_w / 2.0f - shift_differential, 0.0f - (0.25 * world_h) - shift_differential}, {world_w, 1.0f});
+    create_world_boundary({world_w / 2.0f - shift_differential, world_h + (0.25 * world_h) - shift_differential}, {world_w, 1.0f});
+
+    // vertical world boundaries (left/right)
+    create_world_boundary({0.0f - shift_differential, world_h / 2.0f - shift_differential}, {1.0f, world_h * 1.5});
+    create_world_boundary({world_w - shift_differential, world_h / 2.0f - shift_differential}, {1.0f, world_h * 1.5});
 }
 
 void LevelParsingSystem::init_player_and_camera() {
@@ -129,7 +142,7 @@ void LevelParsingSystem::init_boundaries(json boundaries) {
         vec2 dimensions;
         vec2 position;
         extract_boundary_attributes(boundary, dimensions, position);
-        create_boundary(position, dimensions);
+        create_level_boundary(position, dimensions);
     }
 }
 

@@ -424,7 +424,7 @@ Entity create_canon_tower(vec2 pos) {
     registry.renderRequests.insert(
         entity,
         {
-            TEXTURE_ASSET_ID::GREY_CIRCLE,
+            TEXTURE_ASSET_ID::CANON_TOWER,
             EFFECT_ASSET_ID::TEXTURED,
             GEOMETRY_BUFFER_ID::SPRITE
         }
@@ -445,7 +445,7 @@ Entity create_canon_tower(vec2 pos) {
     registry.renderRequests.insert(
         barrel_entity,
         {
-            TEXTURE_ASSET_ID::BLACK,
+            TEXTURE_ASSET_ID::BARREL,
             EFFECT_ASSET_ID::TEXTURED,
             GEOMETRY_BUFFER_ID::SPRITE
         }

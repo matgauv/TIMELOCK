@@ -48,6 +48,8 @@ class RenderSystem : public ISystem {
 		textures_path("spawnpoint/SpawnPoint_activate.png"),
 		textures_path("spawnpoint/SpawnPoint_deactivate.png"),
 		textures_path("spawnpoint/SpawnPoint_reactivate.png"),
+		textures_path("canontower/CanonTower.png"),
+		textures_path("canontower/Barrel.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

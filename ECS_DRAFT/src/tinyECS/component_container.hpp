@@ -68,9 +68,20 @@ public:
 		return components[map_entity_componentID[e]];
 	}
 
+	// overloaded to take in entity id
+	Component& get(unsigned int id) {
+		assert(has(id) && "Entity not contained in ECS registry");
+		return components[map_entity_componentID[id]];
+	}
+
 	// Check if entity has a component of type 'Component'
 	bool has(Entity entity) {
 		return map_entity_componentID.count(entity) > 0;
+	}
+
+	// overloaded to take in entity id
+	bool has(unsigned int id) {
+		return map_entity_componentID.count(id) > 0;
 	}
 
 	// Remove an component and pack the container to re-use the empty space

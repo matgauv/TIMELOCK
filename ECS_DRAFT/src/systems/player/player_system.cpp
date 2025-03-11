@@ -61,8 +61,8 @@ void PlayerSystem::kill() {
 		registry.walking.remove(e);
 	}
 
-	if (registry.falling.has(e)) {
-		registry.falling.remove(e);
+	if (registry.onGrounds.has(e)) {
+		registry.onGrounds.remove(e);
 	}
 
 	AnimateRequest& animateRequest = registry.animateRequests.get(e);

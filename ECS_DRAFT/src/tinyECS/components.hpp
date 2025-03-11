@@ -77,10 +77,12 @@ struct Platform
 {
 };
 
-struct OnPlatform
+struct onGround
 {
-	Entity platform;
-	OnPlatform(Entity e): platform(e) {}
+	Entity* ground_entity;
+	onGround (Entity* entity) {
+		ground_entity  = entity;
+	}
 };
 
 // Boundary component
@@ -120,6 +122,8 @@ struct Camera
 struct PhysicsObject
 {
 	float mass;
+	float friction = STATIC_FRICTION;
+	bool apply_gravity = true;
 };
 
 
@@ -131,12 +135,6 @@ struct Motion {
 	float frequency = 0.f;
 	float velocityModifier = 1.0f;
 	vec2  velocity = {0.0f, 0.0f};
-};
-
-
-// This is added to a player who is free-falling through the air.
-struct Falling
-{
 };
 
 // This is added to a player who is walking.
@@ -162,10 +160,10 @@ enum SIDE {
 struct Collision
 {
 	// Note, the first object is stored in the ECS container.entities
-	Entity other; // the second object involved in the collision
+	Entity* other; // the second object involved in the collision
 	vec2 overlap;
-	vec2 normal;
-	Collision(Entity& other, vec2 overlap, vec2 normal) {
+	vec2 normal;;
+	Collision(Entity* other, vec2 overlap, vec2 normal) {
 		this->other = other;
 		this->overlap = overlap;
 		this->normal = normal;
@@ -253,6 +251,12 @@ struct Bolt
 {
 };
 
+// A struct indicating that an entity is a Text (for tutorial)
+struct Text
+{
+	Entity textEntity;
+};
+
 // A struct indicating that an entity is a swinging pendulum
 struct Pendulum
 {
@@ -305,6 +309,14 @@ struct Boss
 	float attack_cooldown_ms = 500.0f;
 };
 
+// A struct indicating that an entity is tile
+struct Tile
+{
+	int id;
+	unsigned int parent_id;
+	int offset;
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -348,7 +360,14 @@ enum class TEXTURE_ASSET_ID {
 	SPAWNPOINT_ACTIVATE = SPAWNPOINT_UNVISITED + 1,
 	SPAWNPOINT_DEACTIVATE = SPAWNPOINT_ACTIVATE + 1,
 	SPAWNPOINT_REACTIVATE = SPAWNPOINT_DEACTIVATE + 1,
-	TEXTURE_COUNT = SPAWNPOINT_REACTIVATE + 1
+	D_TUTORIAL_GROUND = SPAWNPOINT_REACTIVATE + 1,
+	A_TUTORIAL_GROUND = D_TUTORIAL_GROUND + 1,
+	TILE = A_TUTORIAL_GROUND + 1,
+	WASD = TILE + 1,
+	DECEL = WASD + 1,
+	DECEL2 = DECEL + 1,
+	ACCEL = DECEL2 + 1,
+	TEXTURE_COUNT = ACCEL + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -358,7 +377,8 @@ enum class EFFECT_ASSET_ID {
   	LINE = TEXTURED + 1,
   	SCREEN = LINE + 1,
 	HEX = SCREEN + 1,
-	EFFECT_COUNT = HEX + 1
+	TILE = HEX + 1,
+	EFFECT_COUNT = TILE + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -411,4 +431,10 @@ struct AnimateRequest {
 	ANIMATION_ID used_animation;
 	float timer = 0.0;
 	vec2 tex_u_range = { 0.0, 1.0 };
+};
+
+struct LevelState {
+	std::string curr_level_folder_name;
+	TEXTURE_ASSET_ID ground;
+	bool shouldLoad = false;
 };

@@ -49,6 +49,15 @@ void WorldSystem::init(GLFWwindow* window) {
 	// Create a single GameState entity
 	registry.gameStates.emplace(game_state_entity);
 
+	// Create a single LevelState entity
+	LevelState& levelState = registry.levelStates.emplace(level_state_entity);
+
+	// This will be the first level we load when the game is started.
+	levelState.curr_level_folder_name = "Level_0";
+	levelState.ground = TEXTURE_ASSET_ID::D_TUTORIAL_GROUND;
+	levelState.shouldLoad = true;
+
+
 	if (this->play_sound && !start_and_load_sounds()) {
 		std::cerr << "ERROR: Failed to start or load sounds." << std::endl;
 	}
@@ -276,10 +285,13 @@ void WorldSystem::restart_game() {
 	gameState.time_control_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
 	gameState.is_in_boss_fight = 0;
 
+	LevelState& levelState = registry.levelStates.components[0];
+	levelState.shouldLoad = true;
+
 	// TODO:
 	// Maybe the game state should also keep track of current level and player spawning position?
 
-	load_level("");
+	//load_level("");
 }
 
 // World initialization
@@ -405,12 +417,11 @@ void WorldSystem::player_walking(bool walking, bool is_left) {
 void WorldSystem::player_jump() {
 	Entity& player = registry.players.entities[0];
 
-	if (!registry.falling.has(player)) {
+	if (registry.onGrounds.has(player)) {
 		if (registry.motions.has(player))
 		{
 			Motion& motion = registry.motions.get(player);
 			motion.velocity.y -= JUMP_VELOCITY;
-			registry.falling.emplace(player);
 		}
 
 	}
@@ -431,6 +442,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		glfwGetWindowSize(window, &w, &h);
 
         restart_game();
+		return;
 	}
 
 	if (key == GLFW_KEY_D) {
@@ -454,7 +466,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	GameState& gameState = registry.gameStates.components[0];
 
 	// Activate acceleration
-	if (key == GLFW_KEY_Q && action == GLFW_RELEASE) {
+	if (key == GLFW_KEY_EQUAL && action == GLFW_RELEASE) {
 		if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED) {
 			control_time(true, false);
 		} else {
@@ -463,7 +475,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Activate deceleration
-	if (key == GLFW_KEY_W && action == GLFW_RELEASE)
+	if (key == GLFW_KEY_MINUS && action == GLFW_RELEASE)
 	{
 		if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED) {
 			control_time(false, false);
@@ -472,7 +484,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (key == GLFW_KEY_RIGHT) {
+	if (key == GLFW_KEY_D) {
 		if (action == GLFW_PRESS) {
 			player_walking(true, false);
 		} else if (action == GLFW_RELEASE) {
@@ -480,7 +492,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (key == GLFW_KEY_LEFT) {
+	if (key == GLFW_KEY_A) {
 		if (action == GLFW_PRESS) {
 			player_walking(true, true);
 		} else if (action == GLFW_RELEASE) {
@@ -488,8 +500,57 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (key == GLFW_KEY_UP) {
+	if (key == GLFW_KEY_W) {
 		player_jump();
+	}
+
+	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+		LevelState& levelState = registry.levelStates.components[0];
+		levelState.curr_level_folder_name = "Level_0";
+		levelState.ground = TEXTURE_ASSET_ID::D_TUTORIAL_GROUND;
+		levelState.shouldLoad = true;
+	}
+
+	if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+		LevelState& levelState = registry.levelStates.components[0];
+		levelState.curr_level_folder_name = "Level_1";
+		levelState.ground = TEXTURE_ASSET_ID::A_TUTORIAL_GROUND;
+		levelState.shouldLoad = true;
+	}
+
+	// Fly controls (run ./TIMELOCK --fly):
+	if (key == GLFW_KEY_RIGHT && fly) {
+		if (action == GLFW_PRESS) {
+			player_walking(true, false);
+		} else if (action == GLFW_RELEASE) {
+			player_walking(false, false);
+		}
+	}
+
+	if (key == GLFW_KEY_LEFT && fly) {
+		if (action == GLFW_PRESS) {
+			player_walking(true, true);
+		} else if (action == GLFW_RELEASE) {
+			player_walking(false, true);
+		}
+	}
+
+	if (key == GLFW_KEY_DOWN && fly) {
+		Motion& motion = registry.motions.get(registry.players.entities[0]);
+		if (action == GLFW_PRESS) {
+			motion.velocity.y = JUMP_VELOCITY;
+		} else if (action == GLFW_RELEASE) {
+			motion.velocity.y = 0;
+		}
+	}
+
+	if (key == GLFW_KEY_UP && fly) {
+		Motion& motion = registry.motions.get(registry.players.entities[0]);
+		if (action == GLFW_PRESS) {
+			motion.velocity.y = -JUMP_VELOCITY;
+		} else if (action == GLFW_RELEASE) {
+			motion.velocity.y = 0;
+		}
 	}
 }
 

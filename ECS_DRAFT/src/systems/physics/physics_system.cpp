@@ -450,15 +450,8 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 	for (int i = 0; i < registry.physicsObjects.entities.size(); i++){
 		Entity& entity = registry.physicsObjects.entities[i];
 
-		if (registry.players.has(entity)) {
-			bool isOnGround = registry.onGrounds.has(entity);
-			std::cout << "player is grounded " << isOnGround << std::endl;
-		}
 
 		if(!in(groundedEntities, entity.id())) {
-			if (registry.players.has(entity)) {
-				std::cout << "removing on ground" << std::endl;
-			}
 			registry.onGrounds.remove(entity);
 
 			Motion& motion = registry.motions.get(entity);
@@ -473,8 +466,6 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			//	std::cout << "removing falling" << std::endl;
 		}
 	}
-
-	std::cout << std::endl;
 
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
@@ -618,13 +609,6 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 	vec2 vel_relative = motionB.velocity - motionA.velocity;
 	float vel_along_normal = dot(vel_relative, normal);
 
-	bool aIsPlayer = registry.players.has(entityA);
-	bool bIsPlayer = registry.players.has(entityB);
-
-	if (aIsPlayer || bIsPlayer) {
-		std::cout << "Normal y component: " << normal.y << std::endl;
-		std::cout << "Player is entity " << (aIsPlayer ? "A" : "B") << std::endl;
-	}
 
 
 
@@ -635,9 +619,6 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 		if (!registry.onGrounds.has(entityA)) {
 			registry.onGrounds.emplace(entityA, entityB.id());
 		}
-		if (aIsPlayer) {
-			std::cout << "grounding player" << std::endl;
-		}
 	}
 
 	if (is_on_ground(-normal.y))
@@ -645,9 +626,6 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 		grounded.push_back(entityB.id());
 		if (!registry.onGrounds.has(entityB)) {
 			registry.onGrounds.emplace(entityB, entityA.id());
-		}
-		if (bIsPlayer) {
-			std::cout << "grounding player" << std::endl;
 		}
 	}
 

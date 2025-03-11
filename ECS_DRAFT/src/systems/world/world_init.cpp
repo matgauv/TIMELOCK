@@ -257,7 +257,7 @@ Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, in
     return entity;
 }
 
-Entity create_boundary(vec2 position, vec2 scale) {
+Entity create_level_boundary(vec2 position, vec2 scale) {
     Entity entity = Entity();
 
     registry.platforms.emplace(entity);
@@ -270,6 +270,20 @@ Entity create_boundary(vec2 position, vec2 scale) {
 
     Blocked& blocked = registry.blocked.emplace(entity);
     blocked.normal = vec2(0, 0);
+
+    return entity;
+}
+
+Entity create_world_boundary(vec2 position, vec2 scale) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, 0};
+    motion.angle = 0;
+
+    registry.boundaries.emplace(entity);
 
     return entity;
 }

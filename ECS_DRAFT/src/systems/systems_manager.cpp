@@ -20,7 +20,7 @@ void SystemsManager::run_game_loop() {
 
 	float physics_accumulator = 0.0f;
 	const float physics_step = 1000.0f / 120.0f; // we step physics at 120 fps
-	const int substep_count = 8; // of these 120 fps, we step physics 8 times in small sub steps
+	const int substep_count = 4; // for each of these 120 fps, we step physics 8 times in small sub steps
 
 	// if the game is running really fast, we just step the physics system anyways..
 	// https://gafferongames.com/post/fix_your_timestep/

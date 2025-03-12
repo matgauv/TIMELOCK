@@ -629,7 +629,7 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 		}
 	}
 
-	if (is_on_ground(normal.y))
+	if (is_on_ground(-normal.y))
 	{
 		grounded.push_back(entityB.id());
 		if (!registry.onGrounds.has(entityB)) {
@@ -661,7 +661,7 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 
 		// TODO: bit hacky
 		vec2 friction_impulse = friction_impulse_magnitude * tangent;
-		float vertical_scale = 0.5f;
+		float vertical_scale = 0.33f;
 		friction_impulse.y *= vertical_scale;
 
         motionA.velocity -= a_inv_mass * friction_impulse;

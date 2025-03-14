@@ -50,6 +50,8 @@ private:
 	SIDE get_collision_side(Motion& a, Motion& b, vec2 overlap);
 	vec2 get_collision_overlap(Motion& a, Motion& b);
 	vec2 get_friction_impulse(vec2 relative_velocity, float total_inv_mass, float impulse_scalar, vec2 normal);
+	void  apply_air_resistance(Entity entity, Motion& motion, float step_seconds);
+
 
 	vec2 get_friction(Entity& e, vec2& velocity, vec2& normal, float step_seconds, float mass, bool is_moving_platform);
 	vec2 get_modified_velocity(Motion& m);

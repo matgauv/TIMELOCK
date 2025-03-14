@@ -70,15 +70,16 @@ const float ACCELERATION_EMERGE_MS = 150.0f;
 const float DECELERATION_EMERGE_MS = 150.0f;
 
 // Physics
-const float M_TO_PIXELS = 69.0f; // 50 px is 1m
+const float M_TO_PIXELS = 68.0f; // 50 px is 1m
 const float GRAVITY = 9.8f * M_TO_PIXELS;
 const float OBJECT_MAX_FALLING_SPEED = 1000.0f;
 
-const float STATIC_FRICTION = 0.12f;
+const float STATIC_FRICTION = 0.1f;
 const float DYNAMIC_FRICTION = 0.015f;
 const float BOLT_FRICTION = 0.1f;
 const float AIR_RESISTANCE = 250.0f;
-const float JUMP_VELOCITY = 312.0f;
+const float JUMP_VELOCITY = 315.0f;
+const float AIR_DENSITY = 0.025f;
 
 const float PHYSICS_OBJECT_BOUNCE = 0.2f;
 const float DEFAULT_MASS = 10.0f;
@@ -91,13 +92,13 @@ const float DISTANCE_TO_DROP_BOLT = 150.0f;
 // Player Statistics
 const vec2 PLAYER_SCALE = { 50.0f, 50.0f };
 const float PLAYER_MAX_FALLING_SPEED = 1000.0f;
-const float PLAYER_MAX_WALKING_SPEED = 240.0f;
+const float PLAYER_MAX_WALKING_SPEED = 220.0f;
 
 const float PLAYER_WALK_ACCELERATION = 900.0f;
 
 const float DEAD_REVIVE_TIME_MS = 500.0f;
 
-const float JUMPING_VALID_TIME_MS = 100.0f;
+const float JUMPING_VALID_TIME_MS = 3000.0f;
 
 // Fore, mid, background Depths; used for scaling only
 const float FOREGROUND_DEPTH = 0.5f;

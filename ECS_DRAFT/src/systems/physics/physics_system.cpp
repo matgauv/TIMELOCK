@@ -453,10 +453,8 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 
 		if(!in(groundedEntities, entity.id())) {
 			registry.onGrounds.remove(entity);
-
 			Motion& motion = registry.motions.get(entity);
-			float diff = AIR_RESISTANCE * step_seconds;
-			motion.velocity.x = clampToTarget(motion.velocity.x, diff, 0);
+			apply_air_resistance(entity, motion, step_seconds);
 		//	motion.velocity.y = clampToTarget(motion.velocity.y, diff, 0);
 
 		//	if (registry.players.has(entity)) std::cout << "adding falling" << std::endl;
@@ -699,6 +697,27 @@ vec2 PhysicsSystem::get_friction(Entity& e, vec2& velocity, vec2& normal, float 
 	vec2 tangent_dir = normalize(velocity_tangent);
 	return velocity - tangent_dir * impulse;
 }
+
+void PhysicsSystem::apply_air_resistance(Entity entity, Motion& motion, float step_seconds)
+{
+	if (!registry.physicsObjects.has(entity)) return;
+
+	PhysicsObject& physics = registry.physicsObjects.get(entity);
+	vec2 velocity = motion.velocity;
+	float spped_squared = dot(velocity, velocity);
+	if (spped_squared <= 0.0f) return;
+
+	float drag = physics.drag_coefficient;
+	float area = motion.scale.x * motion.scale.y;
+
+	float magnitude = 0.5 * AIR_DENSITY * spped_squared * drag * area;
+
+	vec2 direction = -normalize(velocity);
+	vec2 acceleration = (direction * magnitude) / physics.mass; // divide by mass since F=ma
+
+	motion.velocity += acceleration * step_seconds;
+}
+
 
 void PhysicsSystem::resolve_collision_position(Entity& entityA, Entity& entityB, Collision& collision)
 {

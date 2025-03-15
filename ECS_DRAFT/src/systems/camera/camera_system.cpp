@@ -33,6 +33,7 @@ void CameraSystem::step(float elapsed_ms) {
 		reset(camera_motion, player.spawn_point);
 	}
 	else {
+
 		follow(camera_motion, player_motion.position);
 	}
 }
@@ -43,6 +44,7 @@ void CameraSystem::late_step(float elapsed_ms) {
 }
 
 void CameraSystem::follow(Motion& cam_motion, vec2 target) {
+	target = restricted_boundary_position(target, cam_motion.scale);
 	vec2 displacement = target - cam_motion.position;
 	const float dist = glm::length(displacement);
 
@@ -65,6 +67,36 @@ void CameraSystem::follow(Motion& cam_motion, vec2 target) {
 }
 
 void CameraSystem::reset(Motion& cam_motion, vec2 target) {
-	cam_motion.position = target;
-	cam_motion.velocity *= 0;
+	cam_motion.position = restricted_boundary_position(target, cam_motion.scale);
+	cam_motion.velocity = { 0.f, 0.f };
+}
+
+vec2 CameraSystem::get_camera_offsets(vec2 camera_scale) {
+	float x_scale = std::clamp(camera_scale[0], CAMERA_MIN_SCALING, CAMERA_MAX_SCALING);
+	float y_scale = std::clamp(camera_scale[1], CAMERA_MIN_SCALING, CAMERA_MAX_SCALING);
+
+	// Note that this might not work for the case when scene is smaller than camera front screen
+	const float cam_x_offset = 0.5f * CAMERA_DEFAULT_SCALING * WINDOW_WIDTH_PX / x_scale;
+	const float cam_y_offset = 0.5f * CAMERA_DEFAULT_SCALING * WINDOW_HEIGHT_PX / y_scale;
+
+	return vec2{ cam_x_offset, cam_y_offset };
+}
+
+vec2 CameraSystem::restricted_boundary_position(vec2 raw_target, vec2 camera_scale = {1.0, 1.0}) {
+	const LevelState& level_state = registry.levelStates.components[0];
+
+	vec2 camera_offsets = get_camera_offsets(camera_scale);
+	camera_offsets *= CAMERA_BOUNDARY_PADDING;
+
+	float refined_x = (
+		(level_state.dimensions[0] - camera_offsets[0] > camera_offsets[0]) ? 
+		std::clamp(raw_target[0], camera_offsets[0], level_state.dimensions[0] - camera_offsets[0]):
+		level_state.dimensions[0] * 0.5f);
+
+	float refined_y = (
+		(level_state.dimensions[1] - camera_offsets[1] > camera_offsets[1]) ?
+		std::clamp(raw_target[1], camera_offsets[1], level_state.dimensions[1] - camera_offsets[1]) :
+		level_state.dimensions[1] * 0.5f);
+
+	return vec2{refined_x, refined_y};
 }

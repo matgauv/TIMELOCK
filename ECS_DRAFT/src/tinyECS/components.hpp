@@ -444,4 +444,5 @@ struct LevelState {
 	std::string curr_level_folder_name;
 	TEXTURE_ASSET_ID ground;
 	bool shouldLoad = false;
+	vec2 dimensions;
 };

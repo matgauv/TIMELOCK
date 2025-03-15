@@ -37,6 +37,10 @@ public:
 
 	void setSound(bool play_sound) { this->play_sound = play_sound; }
 
+	void setFreeFly(bool fly) {
+		this->fly = fly;
+	}
+
 private:
 	// starts and loads music and sound effects
 	bool start_and_load_sounds();
@@ -75,6 +79,9 @@ private:
 	// GameState entity
 	Entity game_state_entity;
 
+	// LevelState entity
+	Entity level_state_entity;
+
 	// OpenGL window handle
 	GLFWwindow* window;
 
@@ -88,6 +95,7 @@ private:
 	std::vector<Mix_Chunk*> sound_effects;
 
 	bool play_sound = true;
+	bool fly = false;
 
 	// C++ random number generator
 	std::default_random_engine rng;

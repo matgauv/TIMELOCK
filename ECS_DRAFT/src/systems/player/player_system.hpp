@@ -19,6 +19,8 @@ public:
 	void static kill();
 	void static set_walking(bool is_left);
 	void static set_standing(bool is_left);
+	void static set_jumping_validity(bool can_jump);
+	bool static can_jump();
 
 	PlayerSystem()
 	{

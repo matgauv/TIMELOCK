@@ -10,14 +10,20 @@
 void RenderSystem::drawTexturedMesh(Entity entity,
 									const mat3 &projection)
 {
-	Motion &motion = registry.motions.get(entity);
+
+
 	// Transformation code, see Rendering and Transformation in the template
 	// specification for more info Incrementally updates transformation matrix,
 	// thus ORDER IS IMPORTANT
+
 	Transform transform;
-	transform.translate(motion.position);
-	transform.rotate(radians(motion.angle));
-	transform.scale(motion.scale);
+
+	if (!registry.tiles.has(entity)) {
+		Motion& motion = registry.motions.get(entity);
+		transform.translate(motion.position);
+		transform.rotate(radians(motion.angle));
+		transform.scale(motion.scale);
+	}
 
 	assert(registry.renderRequests.has(entity));
 	const RenderRequest &render_request = registry.renderRequests.get(entity);
@@ -69,6 +75,36 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
+	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::TILE)
+	{
+		GLint in_position_loc = glGetAttribLocation(program, "in_position");
+		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+		gl_has_errors();
+		assert(in_texcoord_loc >= 0);
+
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+			sizeof(TexturedVertex), (void*)0);
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_texcoord_loc);
+		glVertexAttribPointer(
+			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
+			(void*)sizeof(
+				vec3)); // note the stride to skip the preceeding vertex position
+
+		// Enabling and binding texture to slot 0
+		glActiveTexture(GL_TEXTURE0);
+		gl_has_errors();
+
+		assert(registry.renderRequests.has(entity));
+		GLuint texture_id =
+			texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
+
+		glBindTexture(GL_TEXTURE_2D, texture_id);
+		gl_has_errors();
+
 
 
 		GLint color_uloc = glGetUniformLocation(program, "silhouette_color");
@@ -78,7 +114,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		if (registry.timeControllables.has(entity)) {
 			const TimeControllable& tc = registry.timeControllables.get(entity);
 			if (
-				(gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED && tc.can_become_harmless) || 
+				(gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED && tc.can_become_harmless) ||
 				(gameState.game_time_control_state != TIME_CONTROL_STATE::ACCELERATED && tc.can_become_harmful)) {
 				// Green silhouette if (become harmless + decel) OR (become harmful + !accel)
 				color = vec4(0.0f, 1.0f, 0.0f, 1.0f);
@@ -218,6 +254,21 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		}
 
 		glUniform2fv(tex_u_range_loc, 1, (float*)&tex_u_range);
+		gl_has_errors();
+	}
+	if (render_request.used_effect == EFFECT_ASSET_ID::TILE)
+	{
+		GLuint tile_id_uloc = glGetUniformLocation(currProgram, "tile_id");
+		GLuint tile_pos_uloc = glGetUniformLocation(currProgram, "tile_pos");
+		GLuint tile_offset_uloc = glGetUniformLocation(currProgram, "t_offset");
+
+		Tile& tile_info = registry.tiles.get(entity);
+		Motion& motion = registry.motions.get(tile_info.parent_id);
+		int tile_start_x = motion.position.x - (motion.scale.x / 2) + (0.5 * TILE_TO_PIXELS);
+
+		glUniform1i(tile_id_uloc, tile_info.id);
+		glUniform2f(tile_pos_uloc, (float)tile_start_x, motion.position.y);
+		glUniform2f(tile_offset_uloc, (float)(tile_info.offset * TILE_TO_PIXELS),0.0f);
 		gl_has_errors();
 	}
 
@@ -443,7 +494,7 @@ void RenderSystem::draw()
 	for (Entity entity : registry.layers.entities)
 	{
 		// Check for rendering necessity
-		if (!registry.renderRequests.has(entity) || !registry.motions.has(entity))
+		if (!registry.renderRequests.has(entity) || (!registry.motions.has(entity) && !registry.tiles.has(entity)))
 			continue;
 
 		// TODO: this could be somewhere else, but idk how to get the mesh pointer without increased system coupling...
@@ -555,10 +606,10 @@ mat3 RenderSystem::createProjectionMatrix()
 	vec2 camera_pos = registry.motions.get(camera_entity).position;
 
 	
-	float left = camera_pos.x -0.5f * WINDOW_WIDTH_PX;
-	float top = camera_pos.y -0.5f * WINDOW_HEIGHT_PX;
-	float right = camera_pos.x + 0.5f * WINDOW_WIDTH_PX;
-	float bottom = camera_pos.y + 0.5f * WINDOW_HEIGHT_PX;
+	float left = camera_pos.x -0.35f * WINDOW_WIDTH_PX;
+	float top = camera_pos.y -0.35f * WINDOW_HEIGHT_PX;
+	float right = camera_pos.x + 0.35f * WINDOW_WIDTH_PX;
+	float bottom = camera_pos.y + 0.35f * WINDOW_HEIGHT_PX;
 	
 	float sx = 2.f / (right - left);
 	float sy = 2.f / (top - bottom);

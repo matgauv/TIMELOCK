@@ -29,9 +29,34 @@ void PlayerSystem::step(float elapsed_ms) {
 		}
 	}
 
-	Motion& motion = registry.motions.get(registry.players.entities[0]);
+	if (player.jumping_valid_time >= 0) {
+		player.jumping_valid_time -= elapsed_ms;
+
+		if (player.jumping_valid_time <= 0) {
+			player.jumping_valid_time = -1.0f;
+		}
+	}
+
+	//std::cout << registry.onGrounds.has(registry.players.entities[0]);
+
+	//Motion& motion = registry.motions.get(registry.players.entities[0]);
 
 	//std::cout << "(" << motion.selfVelocity[0] << "," << motion.selfVelocity[1] << ") : (" << motion.appliedVelocity[0] << "," << motion.appliedVelocity[1] << ")" << std::endl;
+}
+
+void PlayerSystem::set_jumping_validity(bool can_jump) {
+	Player& player = registry.players.components[0];
+
+	if (can_jump) {
+		player.jumping_valid_time = JUMPING_VALID_TIME_MS;
+	}
+	else {
+		player.jumping_valid_time = -1.0f;
+	}
+}
+
+bool PlayerSystem::can_jump() {
+	return registry.players.components[0].jumping_valid_time > 0.0f;
 }
 
 void PlayerSystem::late_step(float elapsed_ms) {
@@ -61,8 +86,8 @@ void PlayerSystem::kill() {
 		registry.walking.remove(e);
 	}
 
-	if (registry.falling.has(e)) {
-		registry.falling.remove(e);
+	if (registry.onGrounds.has(e)) {
+		registry.onGrounds.remove(e);
 	}
 
 	AnimateRequest& animateRequest = registry.animateRequests.get(e);
@@ -80,6 +105,7 @@ void PlayerSystem::player_respawn() {
 	Motion& motion = registry.motions.get(e);
 	motion.position = player.spawn_point;
 	motion.velocity = vec2{0.f, 0.f};
+	motion.cache_invalidated = true;
 
 	AnimateRequest& animateRequest = registry.animateRequests.get(e);
 	animateRequest.timer = 0.0;

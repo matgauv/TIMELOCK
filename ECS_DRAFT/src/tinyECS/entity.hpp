@@ -14,18 +14,30 @@ public:
         m_id = id_count++; // assign and increment
     }
 
-    /*
-    Entity(Entity& e)
+    Entity(unsigned int id)
     {
-        m_id = e.m_id;
+        m_id = id;
     }
-    */
+
+    // Entity(Entity& e)
+    // {
+    //     m_id = e.m_id;
+    // }
+
 
     ~Entity()
     {
     }
 
-    operator unsigned int() { return m_id; } // enables automatic casting to int
+    Entity& operator=(const Entity& e)
+    {
+        if (this != &e) // Prevent self-assignment
+        {
+            m_id = e.m_id;
+        }
+        return *this;
+    }
 
+    operator unsigned int() { return m_id; } // enables automatic casting to int
     unsigned int id() { return m_id; }
 };

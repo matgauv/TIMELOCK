@@ -27,6 +27,7 @@ using namespace glm;
 inline std::string data_path() { return std::string(PROJECT_SOURCE_DIR) + "data"; };
 inline std::string shader_path(const std::string& name) {return std::string(PROJECT_SOURCE_DIR) + "/shaders/" + name;};
 inline std::string textures_path(const std::string& name) {return data_path() + "/textures/" + std::string(name);};
+inline std::string level_ground_path(const std::string& folder_name) {return PROJECT_SOURCE_DIR + std::string("../LDtk/") + folder_name + std::string("/Ground.png");}
 inline std::string audio_path(const std::string& name) {return data_path() + "/audio/" + std::string(name);};
 inline std::string mesh_path(const std::string& name) {return data_path() + "/meshes/" + std::string(name);};
 
@@ -69,29 +70,34 @@ const float ACCELERATION_EMERGE_MS = 150.0f;
 const float DECELERATION_EMERGE_MS = 150.0f;
 
 // Physics
-const float M_TO_PIXELS = 60.0f; // 50 px is 1m
+const float M_TO_PIXELS = 65.0f; // 50 px is 1m
 const float GRAVITY = 9.8f * M_TO_PIXELS;
 const float OBJECT_MAX_FALLING_SPEED = 1000.0f;
 
 const float STATIC_FRICTION = 0.15f;
 const float DYNAMIC_FRICTION = 0.015f;
+const float BOLT_FRICTION = 0.1f;
 const float AIR_RESISTANCE = 250.0f;
-const float JUMP_VELOCITY = 350.0f;
+const float JUMP_VELOCITY = 305.0f;
 
 const float PHYSICS_OBJECT_BOUNCE = 0.2f;
 const float DEFAULT_MASS = 1.0f;
 
 const float PLATFORM_SLIP_ANGLE = 45.0f;
-const float PLAYER_MAX_WALK_ANGLE = 45.0f;
+const float PLAYER_MAX_WALK_ANGLE = 80.0f;
+
+const float DISTANCE_TO_DROP_BOLT = 250.0f;
 
 // Player Statistics
 const vec2 PLAYER_SCALE = { 50.0f, 50.0f };
 const float PLAYER_MAX_FALLING_SPEED = 1000.0f;
-const float PLAYER_MAX_WALKING_SPEED = 300.0f;
+const float PLAYER_MAX_WALKING_SPEED = 305.0f;
 
 const float PLAYER_WALK_ACCELERATION = 900.0f;
 
 const float DEAD_REVIVE_TIME_MS = 500.0f;
+
+const float JUMPING_VALID_TIME_MS = 100.0f;
 
 // Fore, mid, background Depths; used for scaling only
 const float FOREGROUND_DEPTH = 0.5f;
@@ -112,9 +118,16 @@ const float BOSS_ATTACK_COOLDOWN_MS = 500.0f;
 
 const float PLAYER_ATTACK_DAMAGE = 20.0f;
 
+// Level parsing constants
+const int TILE_TO_PIXELS = 16;
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846f
+#endif
 // Canon Tower
 const float CANON_TOWER_DETECTION_RANGE = 300.0f;
-const float CANON_TOWER_AIM_TIME_MS = 4000.0f;
+const float CANON_TOWER_AIM_TIME_MS = 2750.0f;
+const float CANON_TOWER_LOAD_TIME_MS = 600.0f;
 const float CANON_TOWER_FIRE_TIME_MS = 1500.0f;
 
 const float CANON_TURN_SPEED = M_PI;

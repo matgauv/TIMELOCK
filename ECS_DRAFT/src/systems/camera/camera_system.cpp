@@ -28,13 +28,38 @@ void CameraSystem::step(float elapsed_ms) {
 
 	const Player &player = registry.players.components[0];
 	const Motion& player_motion = registry.motions.get(player_entity);
+	Camera& cam = registry.cameras.components[0];
 	if (player.state == PLAYER_STATE::RESPAWNED) {
 		// Force focus
 		reset(camera_motion, player.spawn_point);
 	}
 	else {
+		// Create horizontal spacing along motion distance
 
-		follow(camera_motion, player_motion.position);
+		// Check player facing direction
+		float facing_dir = (registry.renderRequests.get(player_entity).flipped ? -1.0f : 1.0f);
+		float offset = 
+			std::clamp((facing_dir * player_motion.velocity[0]) / PLAYER_MAX_WALKING_SPEED, 0.0f, 1.0f) *
+			CAMERA_SCREEN_SPACING_FOR_MOTION_RATIO * WINDOW_WIDTH_PX * 
+			facing_dir;
+
+		// If in the same direction & smaller offset, do not force-set and wait for natural decay
+		if (offset * cam.horizontal_offset < 0) {
+			cam.horizontal_offset = (1.0f - CAMERA_VEL_LERP_FACTOR) * cam.horizontal_offset + CAMERA_VEL_LERP_FACTOR * offset;
+		}
+		else if (abs(offset) > abs(cam.horizontal_offset)) {
+			cam.horizontal_offset = offset;
+		}
+
+		follow(camera_motion, player_motion.position + vec2{cam.horizontal_offset, 0.0f});
+	}
+
+	// Update offset
+	if (abs(cam.horizontal_offset) < 0.5f) {
+		cam.horizontal_offset = 0.0f;
+	}
+	else {
+		cam.horizontal_offset *= (1.0f - CAMERA_VEL_LERP_FACTOR * 0.1f);
 	}
 }
 
@@ -48,7 +73,7 @@ void CameraSystem::follow(Motion& cam_motion, vec2 target) {
 	vec2 displacement = target - cam_motion.position;
 	const float dist = glm::length(displacement);
 
-	if (dist < 1.0f) {
+	if (dist < 0.5f) {
 		// Snap camera to ideal location if within small range
 		cam_motion.position = target;
 		cam_motion.velocity = { 0.f, 0.f };
@@ -60,6 +85,7 @@ void CameraSystem::follow(Motion& cam_motion, vec2 target) {
 		float speed = CAMERA_MAX_SPEED * std::clamp(dist / CAMERA_TRACE_RANGE, 0.0f, 1.0f);
 		vec2 expected_vel = speed * direction;
 
+
 		cam_motion.velocity =
 			cam_motion.velocity * (1.0f - CAMERA_VEL_LERP_FACTOR) +
 			expected_vel * CAMERA_VEL_LERP_FACTOR;
@@ -69,6 +95,8 @@ void CameraSystem::follow(Motion& cam_motion, vec2 target) {
 void CameraSystem::reset(Motion& cam_motion, vec2 target) {
 	cam_motion.position = restricted_boundary_position(target, cam_motion.scale);
 	cam_motion.velocity = { 0.f, 0.f };
+
+	registry.cameras.components[0].horizontal_offset = 0.0f;
 }
 
 vec2 CameraSystem::get_camera_offsets(vec2 camera_scale) {

@@ -181,13 +181,14 @@ void LevelParsingSystem::init_platforms(json platforms, bool moving) {
     for (json platform : platforms) {
         vec2 dimensions;
         vec2 startPos;
+        bool rounded;
         if (moving) {
             vector<Path> path;
-            extract_path_attributes(platform, path, startPos, dimensions);
-            create_moving_platform(dimensions, path, startPos, tile_id_array, stride);
+            extract_path_attributes(platform, path, startPos, dimensions, rounded);
+            create_moving_platform(dimensions, path, startPos, tile_id_array, stride, rounded);
         } else {
-            extract_platform_attributes(platform, dimensions, startPos);
-            create_static_platform(startPos, dimensions, tile_id_array, stride);
+            extract_platform_attributes(platform, dimensions, startPos, rounded);
+            create_static_platform(startPos, dimensions, tile_id_array, stride, rounded);
         }
     }
 }
@@ -244,15 +245,17 @@ void LevelParsingSystem::extract_full_platform_dimensions(json platform, vec2& d
     dimensions = {full_width, platform["height"]};
 }
 
-void LevelParsingSystem::extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos) {
+void LevelParsingSystem::extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos, bool& rounded) {
     extract_full_platform_dimensions(platform, dimensions);
 
     int left_x = static_cast<int>(platform["x"]) - (static_cast<int>(platform["width"]) / 2);
     int start_x = left_x + (static_cast<int>(dimensions[0]) / 2);
     startPos = {start_x, platform["y"]};
+
+    rounded = platform["customFields"]["rounded"];
 }
 
-void LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& paths, vec2& init_pos_in_path, vec2& dimensions) {
+void LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& paths, vec2& init_pos_in_path, vec2& dimensions, bool& rounded) {
     extract_full_platform_dimensions(platform, dimensions);
 
     // currently all position values in json are relative to leftmost tile in platform -- need to centralize position on x-axis.
@@ -278,6 +281,9 @@ void LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& pa
     Path backward = Path(end_pos, start_pos, duration);
     paths.push_back(forward);
     paths.push_back(backward);
+
+    rounded = platform["customFields"]["rounded"];
+
 }
 
 /*

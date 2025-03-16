@@ -7,13 +7,66 @@
 #include "../player/player_system.hpp"
 #include <iostream>
 
+void compute_platform_verticies(Motion& motion, Entity& e, float& angle_cos, float& angle_sin) {
+	PlatformGeometry& geo = registry.platformGeometries.get(e);
+	Mesh* edge_mesh = registry.meshPtrs.get(e);
+
+	const float total_tiles = geo.num_tiles;
+	const float platform_center_offset = total_tiles * 0.5f * TILE_TO_PIXELS;
+
+	std::vector<vec2> platform_vertices;
+
+	// left edge
+	for (auto& v : edge_mesh->vertices) {
+		vec2 pos = v.position;
+		platform_vertices.emplace_back(pos / 3.75f);
+	}
+
+	// middle flat seciton of the platform
+	const float middle_start = 1.0f;
+	const float middle_end = total_tiles - 1.0f;
+	platform_vertices.insert(platform_vertices.end(), {
+		{middle_start, -0.5f},
+		{middle_end, -0.5f},
+		{middle_end, 0.5f},
+		{middle_start, 0.5f}
+	});
+
+	// right edge (mirrored left edge)
+	for (auto& v : edge_mesh->vertices) {
+		v.position /= 3.75;
+		platform_vertices.emplace_back(
+						(geo.num_tiles) - v.position.x,
+						v.position.y
+		);
+	}
+
+	vec2 pos = motion.position;
+	pos.x -= (platform_center_offset);
+
+	for (auto& vert : platform_vertices) {
+		vec2 scaled = vert * (float)TILE_TO_PIXELS;
+		// Apply rotation
+		vec2 rotated = {
+			scaled.x * angle_cos - scaled.y * angle_sin,
+			scaled.x * angle_sin + scaled.y * angle_cos
+		};
+		// Apply position
+		motion.cached_vertices.push_back(rotated + pos);
+	}
+}
+
+
 void compute_vertices(Motion& motion, Entity& e) {
 	motion.cached_vertices.clear();
 	float angle_cos = cos(motion.angle);
 	float angle_sin = sin(motion.angle);
 
+
 	if (registry.meshPtrs.has(e))
 	{
+		if (registry.platformGeometries.has(e)) return compute_platform_verticies(motion, e, angle_cos, angle_sin);
+
 		Mesh* mesh = registry.meshPtrs.get(e);
 		motion.cached_vertices.reserve( mesh->vertices.size() );
 

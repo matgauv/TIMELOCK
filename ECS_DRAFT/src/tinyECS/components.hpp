@@ -81,6 +81,12 @@ struct Platform
 {
 };
 
+// this component indicates that the platform has a geometry, and we should consider the rounded corners when computing collisions
+// (all rigid objects are "platforms" but some have the visual appearance of rounded corners)
+struct PlatformGeometry {
+	int num_tiles;
+};
+
 struct onGround
 {
 	unsigned int other_id;
@@ -395,7 +401,9 @@ enum class GEOMETRY_BUFFER_ID {
 	DEBUG_LINE = SPRITE + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
 	HEX = SCREEN_TRIANGLE + 1,
-	GEOMETRY_COUNT = HEX + 1
+	PLAYER = HEX + 1,
+	PLATFORM = PLAYER + 1,
+	GEOMETRY_COUNT = PLATFORM + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 

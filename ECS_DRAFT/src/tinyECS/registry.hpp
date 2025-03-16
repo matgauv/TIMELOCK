@@ -15,6 +15,7 @@ public:
 	ComponentContainer<Collision> collisions;
 	ComponentContainer<Player> players;
 	ComponentContainer<Platform> platforms;
+	ComponentContainer<PlatformGeometry> platformGeometries;
 	ComponentContainer<onGround> onGrounds;
 	ComponentContainer<Mesh*> meshPtrs;
 	ComponentContainer<RenderRequest> renderRequests;
@@ -55,6 +56,7 @@ public:
 		registry_list.push_back(&collisions);
 		registry_list.push_back(&players);
 		registry_list.push_back(&platforms);
+		registry_list.push_back(&platformGeometries);
 		registry_list.push_back(&onGrounds);
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);

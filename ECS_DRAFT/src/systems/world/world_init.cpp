@@ -170,7 +170,7 @@ Entity create_physics_object(vec2 position, vec2 scale, float mass) {
     return entity;
 }
 
-Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 initial_position, json& tile_id_array, int stride) {
+Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 initial_position, json& tile_id_array, int stride, bool rounded) {
     Entity entity = Entity();
 
     Motion& motion = registry.motions.emplace(entity);
@@ -210,10 +210,15 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 init
         registry.layers.insert(tile_entity, { LAYER_ID::MIDGROUND });
     }
 
+    if (rounded) {
+        PlatformGeometry &platform_geometry = registry.platformGeometries.emplace(entity);
+        platform_geometry.num_tiles = num_tiles;
+    }
+
     return entity;
 }
 
-Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, int stride) {
+Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, int stride, bool rounded) {
     Entity entity = Entity();
 
     registry.platforms.emplace(entity);
@@ -251,6 +256,11 @@ Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, in
         });
 
         registry.layers.insert(tile_entity, { LAYER_ID::MIDGROUND });
+    }
+
+    if (rounded) {
+        PlatformGeometry &platform_geometry = registry.platformGeometries.emplace(entity);
+        platform_geometry.num_tiles = num_tiles;
     }
 
 
@@ -609,7 +619,7 @@ Entity create_partof(vec2 position, vec2 scale, json tile_id_array, int stride) 
 }
 
 Entity create_breakable_static_platform(vec2 position, vec2 scale, bool should_break_instantly, float degrade_speed, bool is_time_controllable, json& tile_id_array, int stride) {
-    Entity entity = create_static_platform(position, scale, tile_id_array, stride);
+    Entity entity = create_static_platform(position, scale, tile_id_array, stride, false);
     Breakable& breakable = registry.breakables.emplace(entity);
     breakable.health = 1000.f;
     breakable.degrade_speed_per_ms = degrade_speed;

@@ -483,6 +483,23 @@ void RenderSystem::draw()
 	gl_has_errors();
 
 
+	// handle meshes
+	// TODO prob handle this somewhere better...
+	for (Entity entity : registry.players.entities) {
+		if (!registry.meshPtrs.has(entity)) {
+			Mesh& player = getMesh(GEOMETRY_BUFFER_ID::PLAYER);
+			registry.meshPtrs.emplace(entity, &player);
+		}
+	}
+
+	for (Entity entity : registry.platformGeometries.entities) {
+		if (!registry.meshPtrs.has(entity)) {
+			Mesh& platform = getMesh(GEOMETRY_BUFFER_ID::PLATFORM);
+			registry.meshPtrs.emplace(entity, &platform);
+		}
+	}
+
+
 	// draw all entities with a render request to the frame buffer
 	// Assort rendering tasks according to layers
 	
@@ -501,7 +518,7 @@ void RenderSystem::draw()
 		// Keep track of pointer to any custom mesh in the registry for use in other systems
 		if (!registry.meshPtrs.has(entity)) {
 			RenderRequest request = registry.renderRequests.get(entity);
-			if (request.used_geometry >= GEOMETRY_BUFFER_ID::HEX) {
+			if (request.used_geometry == GEOMETRY_BUFFER_ID::HEX) {
 				Mesh& mesh = getMesh(request.used_geometry);
 				registry.meshPtrs.emplace(entity, &mesh);
 			}

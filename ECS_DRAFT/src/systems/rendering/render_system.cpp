@@ -268,7 +268,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		glUniform1i(tile_id_uloc, tile_info.id);
 		glUniform2f(tile_pos_uloc, (float)tile_start_x, motion.position.y);
-		glUniform2f(tile_offset_uloc, (float)(tile_info.offset * TILE_TO_PIXELS),0.0f);
+		glUniform2f(tile_offset_uloc, (float)(tile_info.offset.x * TILE_TO_PIXELS), (tile_info.offset.y * TILE_TO_PIXELS));
 		gl_has_errors();
 	}
 

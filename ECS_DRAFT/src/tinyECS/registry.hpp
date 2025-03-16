@@ -34,6 +34,7 @@ public:
 	ComponentContainer<Rock> rocks;
 	ComponentContainer<WaterDrop> waterdrops;
 	ComponentContainer<Walking> walking;
+	ComponentContainer<Climbing> climbing;
 	ComponentContainer<Blocked> blocked;
 	ComponentContainer<Camera> cameras;
 	ComponentContainer<Layer> layers;
@@ -44,6 +45,7 @@ public:
 	ComponentContainer<Boundary> boundaries;
 	ComponentContainer<SpawnPoint> spawnPoints;
 	ComponentContainer<Spike> spikes;
+	ComponentContainer<Ladder> ladders;
 	ComponentContainer<Tile> tiles;
 	ComponentContainer<Breakable> breakables;
 	ComponentContainer<CanonTower> canonTowers;
@@ -75,6 +77,7 @@ public:
 		registry_list.push_back(&rocks);
 		registry_list.push_back(&waterdrops);
 		registry_list.push_back(&walking);
+		registry_list.push_back(&climbing);
 		registry_list.push_back(&blocked);
 		registry_list.push_back(&cameras);
 		registry_list.push_back(&layers);
@@ -86,6 +89,7 @@ public:
 		registry_list.push_back(&spawnPoints);
 		registry_list.push_back(&tiles);
 		registry_list.push_back(&spikes);
+		registry_list.push_back(&ladders);
 		registry_list.push_back(&breakables);
 		registry_list.push_back(&canonTowers);
 		registry_list.push_back(&canonBarrels);

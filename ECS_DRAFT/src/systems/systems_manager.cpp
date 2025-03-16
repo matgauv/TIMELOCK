@@ -53,10 +53,7 @@ void SystemsManager::run_game_loop() {
 				}
 			}
 
-			// late step once
-			for (ISystem* system : fixed_systems) {
-				system->late_step(physics_step);
-			}
+
 
 			physics_accumulator -= physics_step;
 		}
@@ -64,6 +61,11 @@ void SystemsManager::run_game_loop() {
 		// late step regular systems with frame time
 		for (ISystem* system : systems) {
 			system->late_step(elapsed_ms);
+		}
+
+		// late step once (NOT FIXED)
+		for (ISystem* system : fixed_systems) {
+			system->late_step(physics_step);
 		}
 	}
 }

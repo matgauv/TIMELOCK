@@ -32,14 +32,16 @@ private:
 
 	void detect_collisions();
 	void handle_collisions(float elapsed_ms);
-	void handle_player_breakable_collision(Entity& player_entity, Entity& breakable_entity, Collision collision);
+	void handle_player_breakable_collision(Entity& player_entity, Entity& breakable_edtity, Collision collision);
 	void handle_projectile_collision(Entity proj_entity, Entity other_entity);
+	void handle_player_ladder_collision(Entity& player_entity, Entity& ladder_entity, int step_seconds);
 	void handle_object_rigid_collision(Entity& object_entity, Entity& platform_entity, Collision collision, float step_seconds,  std::vector<unsigned int>& groundedEntities);
 	void handle_player_attack_collision(Entity& player_entity, Entity& attack_entity, Collision collision);
 	void handle_player_boss_collision(Entity& player_entity, Entity& boss_entity, Collision collision);
 	void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entityB, Collision collision,  std::vector<unsigned int>& groundedEntities);
 	void apply_gravity(Entity& entity, Motion& motion, float step_seconds);
 	void player_walk(Entity& entity, Motion& motion, float step_seconds);
+	void player_climb(Entity& entity, Motion& motion, float step_seconds);
 	void move_object_along_path(Entity& entity, Motion& motion, float step_seconds);
 	void rotate_projectile(Entity& entity, Motion& motion, float step_seconds);
 	void move_text(Entity& entity, Motion& motion, float step_seconds);

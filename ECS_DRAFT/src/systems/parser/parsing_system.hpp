@@ -31,6 +31,7 @@ private:
     void init_spikes(json spikes);
     void init_projectiles(json projectiles);
     void init_cannons(json cannons);
+    void init_ladders(json ladders);
 
     void extract_full_platform_dimensions(json platform, vec2& dimensions);
     void extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos, bool& rounded);

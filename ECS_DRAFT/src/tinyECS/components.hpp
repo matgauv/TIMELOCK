@@ -154,6 +154,13 @@ struct Walking {
 	bool is_left = false;
 };
 
+// this struct is added to a player who is climbing
+struct Climbing {
+	bool is_moving = false;
+	bool is_up = false;
+	bool was_climbing = false; // climbing in previous frame
+};
+
 // This is added to a player entity when they collide with a wall to block them from walking through the wall.
 struct Blocked {
 	vec2 normal = { 0, 0 };
@@ -305,6 +312,11 @@ struct Spike
 
 };
 
+// struct indicating that entity is a Ladder
+struct Ladder {
+
+};
+
 // A struct indicating that an entity is breakable
 struct Breakable
 {
@@ -326,7 +338,7 @@ struct Tile
 {
 	int id;
 	unsigned int parent_id;
-	int offset;
+	vec2 offset = vec2{0.0f,0.0f};
 };
 
 /**

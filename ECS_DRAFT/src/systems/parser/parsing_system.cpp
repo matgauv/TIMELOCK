@@ -114,6 +114,8 @@ void LevelParsingSystem::init_level_entities() {
             init_partof(entity_list);
         } else if (entity_type == "Cannon") {
             init_cannons(entity_list);
+        } else if (entity_type == "Ladder") {
+            init_ladders(entity_list);
         }
     }
 }
@@ -123,6 +125,15 @@ void LevelParsingSystem::init_cannons(json cannons) {
         // TODO: Hardcoded cannon positioning for cross-play demo -- need to fix later.
         vec2 position = {cannon["x"], static_cast<int>(cannon["y"]) - 50.0f};
         create_canon_tower(position);
+    }
+}
+
+void LevelParsingSystem::init_ladders(json ladders) {
+    for (json ladder : ladders) {
+        vec2 position = {ladder["x"], ladder["y"]};
+        int height = ladder["customFields"]["height_tiles"];
+        vec2 dimensions = {ladder["width"], ladder["height"]};
+        create_ladder(position, dimensions, height, tile_id_array, stride);
     }
 }
 

@@ -27,6 +27,7 @@ Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity);
 Entity create_first_boss();
 Entity create_spawnpoint(vec2 pos, vec2 size);
 Entity create_spike(vec2 position, vec2 scale, json tile_id_array, int stride);
+Entity create_ladder(vec2 position, vec2 scale, int height, json tile_id_array, int stride);
 Entity create_partof(vec2 position, vec2 scale, json tile_id_array, int stride);
 Entity create_breakable_static_platform(vec2 position, vec2 scale, bool should_break_instantly, float degrade_speed, bool is_time_controllable, json& tile_id_array, int stride);
 Entity create_time_controllable_breakable_static_platform(vec2 position, vec2 scale, bool should_break_instantly, float degrade_speed, json& tile_id_array, int stride);

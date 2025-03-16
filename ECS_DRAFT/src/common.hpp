@@ -93,8 +93,10 @@ const float DISTANCE_TO_DROP_BOLT = 150.0f;
 const vec2 PLAYER_SCALE = { 50.0f, 50.0f };
 const float PLAYER_MAX_FALLING_SPEED = 1000.0f;
 const float PLAYER_MAX_WALKING_SPEED = 220.0f;
+const float PLAYER_CLIMBING_SPEED = 150.0f;
 
 const float PLAYER_WALK_ACCELERATION = 900.0f;
+const float PLAYER_WALK_LADDER_ACCELERATION = 200.0f;
 
 const float DEAD_REVIVE_TIME_MS = 500.0f;
 

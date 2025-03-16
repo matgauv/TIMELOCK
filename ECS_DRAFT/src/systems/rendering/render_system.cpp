@@ -10,14 +10,20 @@
 void RenderSystem::drawTexturedMesh(Entity entity,
 									const mat3 &projection)
 {
-	Motion &motion = registry.motions.get(entity);
+
+
 	// Transformation code, see Rendering and Transformation in the template
 	// specification for more info Incrementally updates transformation matrix,
 	// thus ORDER IS IMPORTANT
+
 	Transform transform;
-	transform.translate(motion.position);
-	transform.scale(motion.scale);
-	transform.rotate(radians(motion.angle));
+
+	if (!registry.tiles.has(entity)) {
+		Motion& motion = registry.motions.get(entity);
+		transform.translate(motion.position);
+		transform.rotate(radians(motion.angle));
+		transform.scale(motion.scale);
+	}
 
 	assert(registry.renderRequests.has(entity));
 	const RenderRequest &render_request = registry.renderRequests.get(entity);
@@ -70,6 +76,59 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
 	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::TILE)
+	{
+		GLint in_position_loc = glGetAttribLocation(program, "in_position");
+		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+		gl_has_errors();
+		assert(in_texcoord_loc >= 0);
+
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+			sizeof(TexturedVertex), (void*)0);
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_texcoord_loc);
+		glVertexAttribPointer(
+			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
+			(void*)sizeof(
+				vec3)); // note the stride to skip the preceeding vertex position
+
+		// Enabling and binding texture to slot 0
+		glActiveTexture(GL_TEXTURE0);
+		gl_has_errors();
+
+		assert(registry.renderRequests.has(entity));
+		GLuint texture_id =
+			texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
+
+		glBindTexture(GL_TEXTURE_2D, texture_id);
+		gl_has_errors();
+
+
+
+		GLint color_uloc = glGetUniformLocation(program, "silhouette_color");
+		vec4 color = vec4(-1.0f);
+		const GameState& gameState = registry.gameStates.components[0];
+
+		if (registry.timeControllables.has(entity)) {
+			const TimeControllable& tc = registry.timeControllables.get(entity);
+			if (
+				(gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED && tc.can_become_harmless) ||
+				(gameState.game_time_control_state != TIME_CONTROL_STATE::ACCELERATED && tc.can_become_harmful)) {
+				// Green silhouette if (become harmless + decel) OR (become harmful + !accel)
+				color = vec4(0.0f, 1.0f, 0.0f, 1.0f);
+			}
+			else if (
+				(gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED && tc.can_become_harmful) ||
+				(gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED && tc.can_become_harmless)) {
+				// Red silhouette if (become harmful + accel) OR (become harmless + !decel)
+				color = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			}
+		}
+		glUniform4fv(color_uloc, 1, (float*)&color);
+		gl_has_errors();
+	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::HEX)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
@@ -105,6 +164,31 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		GLuint texture_id = texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
 
 		glBindTexture(GL_TEXTURE_2D, texture_id);
+		gl_has_errors();
+
+
+		GLint color_uloc = glGetUniformLocation(program, "silhouette_color");
+		vec4 color = vec4(-1.0f);
+		const GameState& gameState = registry.gameStates.components[0];
+
+
+		if (registry.timeControllables.has(entity)) {
+			const TimeControllable& tc = registry.timeControllables.get(entity);
+			if (
+				(gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED && tc.can_become_harmless) ||
+				(gameState.game_time_control_state != TIME_CONTROL_STATE::ACCELERATED && tc.can_become_harmful)) {
+				// Green silhouette if (become harmless + decel) OR (become harmful + !accel)
+				color = vec4(0.0f, 1.0f, 0.0f, 1.0f);
+			}
+			else if (
+				(gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED && tc.can_become_harmful) ||
+				(gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED && tc.can_become_harmless)) {
+				// Red silhouette if (become harmful + accel) OR (become harmless + !decel)
+				color = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+			}
+		}
+
+		glUniform4fv(color_uloc, 1, (float*)&color);
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::LINE)
@@ -172,6 +256,21 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform2fv(tex_u_range_loc, 1, (float*)&tex_u_range);
 		gl_has_errors();
 	}
+	if (render_request.used_effect == EFFECT_ASSET_ID::TILE)
+	{
+		GLuint tile_id_uloc = glGetUniformLocation(currProgram, "tile_id");
+		GLuint tile_pos_uloc = glGetUniformLocation(currProgram, "tile_pos");
+		GLuint tile_offset_uloc = glGetUniformLocation(currProgram, "t_offset");
+
+		Tile& tile_info = registry.tiles.get(entity);
+		Motion& motion = registry.motions.get(tile_info.parent_id);
+		int tile_start_x = motion.position.x - (motion.scale.x / 2) + (0.5 * TILE_TO_PIXELS);
+
+		glUniform1i(tile_id_uloc, tile_info.id);
+		glUniform2f(tile_pos_uloc, (float)tile_start_x, motion.position.y);
+		glUniform2f(tile_offset_uloc, (float)(tile_info.offset * TILE_TO_PIXELS),0.0f);
+		gl_has_errors();
+	}
 
 
 	GLuint transform_loc = glGetUniformLocation(currProgram, "transform");
@@ -230,6 +329,10 @@ void RenderSystem::drawToScreen()
 	GLuint acc_emerge_fac_uloc = glGetUniformLocation(screen_shader_program, "acc_emerge_factor");
 	GLuint dec_emerge_fac_uloc = glGetUniformLocation(screen_shader_program, "dec_emerge_factor");
 
+	GLuint transition_fac_uloc = glGetUniformLocation(screen_shader_program, "transition_factor");
+	GLuint focal_point_uloc = glGetUniformLocation(screen_shader_program, "focal_point");
+	GLuint aspect_ratio_uloc = glGetUniformLocation(screen_shader_program, "aspect_ratio");
+
 	GLuint time_uloc = glGetUniformLocation(screen_shader_program, "time");
 
 	glUniform1f(time_uloc, (float)(glfwGetTime() * 1000.0f));
@@ -242,6 +345,23 @@ void RenderSystem::drawToScreen()
 
 	glUniform1f(acc_emerge_fac_uloc, ACCELERATION_EMERGE_MS/ACCELERATION_DURATION_MS);
 	glUniform1f(dec_emerge_fac_uloc, DECELERATION_EMERGE_MS/DECELERATION_DURATION_MS);
+	gl_has_errors();
+
+	// TODO
+	glUniform1f(transition_fac_uloc, screen.scene_transition_factor);
+	
+	const Entity player_entity = registry.players.entities[0];
+	const Motion& motion = registry.motions.get(player_entity);
+	vec3 augmeted_player_pos = vec3{motion.position.x, motion.position.y, 1.0f};
+	vec3 canonical_player_pos = this->projection_matrix * augmeted_player_pos;
+	
+	float focal_point[2] = {
+		(canonical_player_pos[0] + 1.0f) / 2.0f,
+		(canonical_player_pos[1] + 1.0f) / 2.0f
+	};
+	glUniform2fv(focal_point_uloc, 1, focal_point);
+
+	glUniform1f(aspect_ratio_uloc, ((float)WINDOW_WIDTH_PX) / WINDOW_HEIGHT_PX);
 	gl_has_errors();
 
 	// Set the vertex position and vertex texture coordinates (both stored in the
@@ -273,8 +393,26 @@ void RenderSystem::step(float elapsed_ms) {
 	GameState& gameState = registry.gameStates.components[0];
 	ScreenState& screen = registry.screenStates.get(screen_state_entity);
 
+	// Acceleration & Deceleration
 	updateDecelerationFactor(gameState, screen, elapsed_ms);
 	updateAccelerationFactor(gameState, screen, elapsed_ms);
+
+
+	// Scene Transition
+	// Can extend to enter/exit scenes
+	if (gameState.game_scene_transition_state == SCENE_TRANSITION_STATE::TRANSITION_OUT) {
+		if (screen.scene_transition_factor < 1.0) {
+			screen.scene_transition_factor = max(0.0f, screen.scene_transition_factor) + elapsed_ms/DEAD_REVIVE_TIME_MS;
+		}
+	} else {
+		if (screen.scene_transition_factor > 0.0) {
+			screen.scene_transition_factor = min(1.0f, screen.scene_transition_factor) - elapsed_ms / DEAD_REVIVE_TIME_MS;
+
+			if (screen.scene_transition_factor <= 0.0) {
+				screen.scene_transition_factor = -1.0;
+			}
+		}
+	}
 }
 
 void RenderSystem::updateDecelerationFactor(GameState& gameState, ScreenState& screen, float elapsed_ms)
@@ -312,6 +450,7 @@ void RenderSystem::updateAccelerationFactor(GameState& gameState, ScreenState& s
 }
 
 void RenderSystem::late_step(float elapsed_ms) {
+	this->projection_matrix = createProjectionMatrix();
 	draw();
 };
 
@@ -343,7 +482,6 @@ void RenderSystem::draw()
 							  // sprites back to front
 	gl_has_errors();
 
-	mat3 projection_2D = createProjectionMatrix();
 
 	// draw all entities with a render request to the frame buffer
 	// Assort rendering tasks according to layers
@@ -356,7 +494,7 @@ void RenderSystem::draw()
 	for (Entity entity : registry.layers.entities)
 	{
 		// Check for rendering necessity
-		if (!registry.renderRequests.has(entity) || !registry.motions.has(entity))
+		if (!registry.renderRequests.has(entity) || (!registry.motions.has(entity) && !registry.tiles.has(entity)))
 			continue;
 
 		// TODO: this could be somewhere else, but idk how to get the mesh pointer without increased system coupling...
@@ -375,7 +513,14 @@ void RenderSystem::draw()
 				foregrounds.push_back(entity);
 				break;
 			case LAYER_ID::MIDGROUND:
-				midgrounds.push_back(entity);
+				// Render Player last?
+				// TODO: may need to adjust rendering order for spawn points and interactive objects as well?
+				if (registry.spawnPoints.has(entity)) {
+					midgrounds.insert(midgrounds.begin(), entity);
+				}
+				else {
+					midgrounds.push_back(entity);
+				}
 				break;
 			case LAYER_ID::PARALLAXBACKGROUND:
 				parallaxbackgrounds.push_back(entity);
@@ -390,22 +535,23 @@ void RenderSystem::draw()
 
 	for (Entity entity : parallaxbackgrounds)
 	{
-		drawTexturedMesh(entity, projection_2D);
+		drawTexturedMesh(entity, this->projection_matrix);
 	}
 
 	for (Entity entity : backgrounds)
 	{
-		drawTexturedMesh(entity, projection_2D);
+		drawTexturedMesh(entity, this->projection_matrix);
 	}
+
 
 	for (Entity entity : midgrounds)
 	{
-		drawTexturedMesh(entity, projection_2D);
+		drawTexturedMesh(entity, this->projection_matrix);
 	}
 
 	for (Entity entity : foregrounds)
 	{
-		drawTexturedMesh(entity, projection_2D);
+		drawTexturedMesh(entity, this->projection_matrix);
 	}
 
 	/*
@@ -415,7 +561,7 @@ void RenderSystem::draw()
 		if (registry.motions.has(entity)) {
 			// Note, its not very efficient to access elements indirectly via the entity
 			// albeit iterating through all Sprites in sequence. A good point to optimize
-			drawTexturedMesh(entity, projection_2D);
+			drawTexturedMesh(entity, this->projection_matrix );
 		}
 	}
 	*/
@@ -456,10 +602,10 @@ mat3 RenderSystem::createProjectionMatrix()
 	vec2 camera_pos = registry.motions.get(camera_entity).position;
 
 	
-	float left = camera_pos.x -0.5f * WINDOW_WIDTH_PX;
-	float top = camera_pos.y -0.5f * WINDOW_HEIGHT_PX;
-	float right = camera_pos.x + 0.5f * WINDOW_WIDTH_PX;
-	float bottom = camera_pos.y + 0.5f * WINDOW_HEIGHT_PX;
+	float left = camera_pos.x -0.35f * WINDOW_WIDTH_PX;
+	float top = camera_pos.y -0.35f * WINDOW_HEIGHT_PX;
+	float right = camera_pos.x + 0.35f * WINDOW_WIDTH_PX;
+	float bottom = camera_pos.y + 0.35f * WINDOW_HEIGHT_PX;
 	
 	float sx = 2.f / (right - left);
 	float sy = 2.f / (top - bottom);

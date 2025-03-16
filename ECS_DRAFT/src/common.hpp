@@ -27,8 +27,14 @@ using namespace glm;
 inline std::string data_path() { return std::string(PROJECT_SOURCE_DIR) + "data"; };
 inline std::string shader_path(const std::string& name) {return std::string(PROJECT_SOURCE_DIR) + "/shaders/" + name;};
 inline std::string textures_path(const std::string& name) {return data_path() + "/textures/" + std::string(name);};
+inline std::string level_ground_path(const std::string& folder_name) {return PROJECT_SOURCE_DIR + std::string("../LDtk/") + folder_name + std::string("/Ground.png");}
 inline std::string audio_path(const std::string& name) {return data_path() + "/audio/" + std::string(name);};
 inline std::string mesh_path(const std::string& name) {return data_path() + "/meshes/" + std::string(name);};
+
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846f
+#endif
 
 //
 // game constants
@@ -36,12 +42,21 @@ inline std::string mesh_path(const std::string& name) {return data_path() + "/me
 const int WINDOW_WIDTH_PX = 1280;
 const int WINDOW_HEIGHT_PX = 720;
 
+// FPS Counter Update Period
 const float FPS_COUNTER_UPDATE_PERIOD_MS = 1000.0f;
+
+// Spawn Points
+const float SPAWNPOINT_DETECTION_RANGE = 80.0;
+const float SPAWNPOINT_CHARGE_TIME_MS = 500.0;
+const vec2 SPAWNPOINT_SCALE = { 60, 120 };
 
 // TIME CONTROL
 const float ACCELERATE_FACTOR = 2.0f;
 const float DECELERATE_FACTOR = 0.2f;
 const float NORMAL_FACTOR = 1.0f;
+
+// For Breakable Wall
+const float TIME_CONTROL_VICINITY_THRESHOLD = 150.f;
 
 // TODO: increase these for game...
 const float ACCELERATION_COOLDOWN_MS = 1500.0f;
@@ -55,25 +70,34 @@ const float ACCELERATION_EMERGE_MS = 150.0f;
 const float DECELERATION_EMERGE_MS = 150.0f;
 
 // Physics
-const float M_TO_PIXELS = 60.0f; // 50 px is 1m
+const float M_TO_PIXELS = 65.0f; // 50 px is 1m
 const float GRAVITY = 9.8f * M_TO_PIXELS;
 const float OBJECT_MAX_FALLING_SPEED = 1000.0f;
 
 const float STATIC_FRICTION = 0.15f;
 const float DYNAMIC_FRICTION = 0.015f;
+const float BOLT_FRICTION = 0.1f;
 const float AIR_RESISTANCE = 250.0f;
-const float JUMP_VELOCITY = 350.0f;
+const float JUMP_VELOCITY = 305.0f;
 
 const float PHYSICS_OBJECT_BOUNCE = 0.2f;
 const float DEFAULT_MASS = 1.0f;
 
 const float PLATFORM_SLIP_ANGLE = 45.0f;
-const float PLAYER_MAX_WALK_ANGLE = 45.0f;
+const float PLAYER_MAX_WALK_ANGLE = 80.0f;
 
+const float DISTANCE_TO_DROP_BOLT = 250.0f;
+
+// Player Statistics
+const vec2 PLAYER_SCALE = { 50.0f, 50.0f };
 const float PLAYER_MAX_FALLING_SPEED = 1000.0f;
-const float PLAYER_MAX_WALKING_SPEED = 300.0f;
+const float PLAYER_MAX_WALKING_SPEED = 305.0f;
 
 const float PLAYER_WALK_ACCELERATION = 900.0f;
+
+const float DEAD_REVIVE_TIME_MS = 500.0f;
+
+const float JUMPING_VALID_TIME_MS = 100.0f;
 
 // Fore, mid, background Depths; used for scaling only
 const float FOREGROUND_DEPTH = 0.5f;
@@ -95,6 +119,9 @@ const float PROJECTILE_SPEED = (float) WINDOW_WIDTH_PX / 5.f; // projectile shou
 const float BOSS_ATTACK_COOLDOWN_MS = 5000.0f;
 const float PLAYER_ATTACK_DAMAGE = 20.0f;
 
+// Level parsing constants
+const int TILE_TO_PIXELS = 16;
+
 // Boss 1 specific properties
 const float BOSS_ONE_MAX_HEALTH = 500.f;
 const float BOSS_ONE_X_VELOCITY = (float) WINDOW_WIDTH_PX / 10.f; // the boss should travel across the entire screen in 10 seconds
@@ -109,6 +136,21 @@ const float BOSS_ONE_GROUND_SLAM_COOLDOWN_MS = 5000.f;
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f
 #endif
+// Canon Tower
+const float CANON_TOWER_DETECTION_RANGE = 300.0f;
+const float CANON_TOWER_AIM_TIME_MS = 2750.0f;
+const float CANON_TOWER_LOAD_TIME_MS = 600.0f;
+const float CANON_TOWER_FIRE_TIME_MS = 1500.0f;
+
+const float CANON_TURN_SPEED = M_PI;
+
+const vec2 CANON_TOWER_SIZE = vec2{80, 120};
+
+// barrel lies horizontally to the right at angle = 0
+const vec2 CANON_BARREL_SIZE = vec2{ 80, 30 };
+const float CANON_PROJECTILE_SPEED = 600.0f;
+const vec2 CANON_PROJECTILE_SIZE = vec2 {30.0f, 30.0f};
+
 
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)

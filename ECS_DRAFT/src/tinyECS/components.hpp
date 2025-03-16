@@ -16,10 +16,28 @@ enum class TIME_CONTROL_STATE {
 	DECELERATED = ACCELERATED + 1
 };
 
+enum class SCENE_TRANSITION_STATE {
+	TRANSITION_OUT = 0,
+	TRANSITION_IN = TRANSITION_OUT + 1
+};
+
 enum class BOSS_ID {
 	FIRST = 0,
 	SECOND = FIRST + 1,
 	FINAL = SECOND + 1
+};
+
+enum class SPAWN_POINT_STATE {
+	UNVISITED = 0,
+	VISITED = UNVISITED + 1,
+	ACTIVE = VISITED + 1
+};
+
+enum class PLAYER_STATE {
+	// TODO: expand this to all possible states and transfer control to player system
+	RESPAWNED = 0,
+	ALIVE = RESPAWNED + 1,
+	DEAD = ALIVE + 1
 };
 
 enum class BOSS_STATE {
@@ -46,6 +64,37 @@ enum class BOSS_ATTACK_ID {
 // Player component
 struct Player
 {
+	vec2 spawn_point;
+	float timer = 0.0;
+	// Consider expanding the fields with a state variable (idle, walking, in air, dead, etc.)
+	PLAYER_STATE state = PLAYER_STATE::ALIVE;
+	// Potentially transfer acceleration/deceleration controls to Player as well
+
+	float jumping_valid_time = -1.0f;
+};
+
+struct SpawnPoint
+{
+	SPAWN_POINT_STATE state = SPAWN_POINT_STATE::UNVISITED;
+};
+
+// Canon Towers
+enum class CANON_TOWER_STATE {
+	IDLE = 0,
+	AIMING = IDLE + 1,
+	LOADING = AIMING + 1,
+	FIRING = LOADING + 1
+};
+
+struct CanonTower {
+	CANON_TOWER_STATE state = CANON_TOWER_STATE::IDLE;
+	float detection_range = CANON_TOWER_DETECTION_RANGE;
+	float timer = 0.0f;
+	Entity barrel_entity;
+};
+
+struct CanonBarrel {
+	float angle = 0.0f;
 };
 
 // Platform component
@@ -53,10 +102,10 @@ struct Platform
 {
 };
 
-struct OnPlatform
+struct onGround
 {
-	Entity platform;
-	OnPlatform(Entity e): platform(e) {}
+	unsigned int other_id;
+	onGround(unsigned int other_id) : other_id(other_id) {}
 };
 
 // Boundary component
@@ -96,6 +145,8 @@ struct Camera
 struct PhysicsObject
 {
 	float mass;
+	float friction = STATIC_FRICTION;
+	bool apply_gravity = true;
 };
 
 
@@ -107,12 +158,9 @@ struct Motion {
 	float frequency = 0.f;
 	float velocityModifier = 1.0f;
 	vec2  velocity = {0.0f, 0.0f};
-};
-
-
-// This is added to a player who is free-falling through the air.
-struct Falling
-{
+	std::vector<vec2> cached_vertices;
+	std::vector<vec2> cached_axes;
+	bool cache_invalidated = true;
 };
 
 // This is added to a player who is walking.
@@ -138,11 +186,11 @@ enum SIDE {
 struct Collision
 {
 	// Note, the first object is stored in the ECS container.entities
-	Entity other; // the second object involved in the collision
+	unsigned int other_id; // the second object involved in the collision
 	vec2 overlap;
-	vec2 normal;
-	Collision(Entity& other, vec2 overlap, vec2 normal) {
-		this->other = other;
+	vec2 normal;;
+	Collision(unsigned int other, vec2 overlap, vec2 normal) {
+		this->other_id = other;
 		this->overlap = overlap;
 		this->normal = normal;
 	};
@@ -160,12 +208,14 @@ struct ScreenState
 {
 	float acceleration_factor = -1.0;
 	float deceleration_factor = -1.0;
+	float scene_transition_factor = -1.0;
 };
 
 // A struct that includes the necessary properties of the current game state
 struct GameState {
 	GAME_RUNNING_STATE game_running_state = GAME_RUNNING_STATE::RUNNING;
 	TIME_CONTROL_STATE game_time_control_state = TIME_CONTROL_STATE::NORMAL;
+	SCENE_TRANSITION_STATE game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
 	float accelerate_cooldown_ms = 0.f;
 	float decelerate_cooldown_ms = 0.f;
 	float time_until_alarm_clock_ms = 300000.0f; // 5 minutes
@@ -227,6 +277,12 @@ struct Bolt
 {
 };
 
+// A struct indicating that an entity is a Text (for tutorial)
+struct Text
+{
+	Entity textEntity;
+};
+
 // A struct indicating that an entity is a swinging pendulum
 struct Pendulum
 {
@@ -251,7 +307,7 @@ struct Rock
 
 };
 
-// A struct indiciating that an entity is a water drop
+// A struct indicating that an entity is a water drop
 struct WaterDrop
 {
 
@@ -272,6 +328,20 @@ struct Delayed
 struct Tracking
 {
 
+};
+
+// A struct indicating that an entity is a spike
+struct Spike
+{
+
+};
+
+// A struct indicating that an entity is breakable
+struct Breakable
+{
+	float health;
+	float degrade_speed_per_ms; // should be negative
+	bool should_break_instantly; 
 };
 
 // A struct indicating that an entity is an enemy boss
@@ -305,6 +375,14 @@ struct BossAttackList
 	std::unordered_map<int,Entity*> boss_attack_table;
 };
 
+// A struct indicating that an entity is tile
+struct Tile
+{
+	int id;
+	unsigned int parent_id;
+	int offset;
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -333,18 +411,31 @@ enum class TEXTURE_ASSET_ID {
 	BLACK = 0,
 	GREY_CIRCLE = BLACK + 1,
 	SAMPLE_BACKGROUND = GREY_CIRCLE + 1,
-	SAMPLE_PLAYER_WALKING = SAMPLE_BACKGROUND + 1,
-	SAMPLE_PLAYER_STANDING = SAMPLE_PLAYER_WALKING + 1,
-	PLAYER_WALKING_V1 = SAMPLE_PLAYER_STANDING + 1,
+	PLAYER_WALKING_V1 = SAMPLE_BACKGROUND + 1,
 	PLAYER_STANDING_V1 = PLAYER_WALKING_V1 + 1,
-	SAMPLE_PROJECTILE = PLAYER_STANDING_V1 + 1,
+	PLAYER_KILL = PLAYER_STANDING_V1 + 1,
+	PLAYER_RESPAWN = PLAYER_KILL + 1,
+	SAMPLE_PROJECTILE = PLAYER_RESPAWN + 1,
 	OBJECT = SAMPLE_PROJECTILE + 1,
 	BOUNDARY = OBJECT + 1,
 	GEARS_BACKGROUND = BOUNDARY + 1,
 	METAL_BACKGROUND = GEARS_BACKGROUND + 1,
 	CHAIN_BACKGROUND = METAL_BACKGROUND + 1,
 	HEX = CHAIN_BACKGROUND + 1,
-	TEXTURE_COUNT = HEX + 1
+	SPAWNPOINT_UNVISITED = HEX + 1,
+	SPAWNPOINT_ACTIVATE = SPAWNPOINT_UNVISITED + 1,
+	SPAWNPOINT_DEACTIVATE = SPAWNPOINT_ACTIVATE + 1,
+	SPAWNPOINT_REACTIVATE = SPAWNPOINT_DEACTIVATE + 1,
+	CANON_TOWER = SPAWNPOINT_REACTIVATE + 1,
+	BARREL = CANON_TOWER + 1,
+	D_TUTORIAL_GROUND = BARREL + 1,
+	A_TUTORIAL_GROUND = D_TUTORIAL_GROUND + 1,
+	TILE = A_TUTORIAL_GROUND + 1,
+	WASD = TILE + 1,
+	DECEL = WASD + 1,
+	DECEL2 = DECEL + 1,
+	ACCEL = DECEL2 + 1,
+	TEXTURE_COUNT = ACCEL + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -354,7 +445,8 @@ enum class EFFECT_ASSET_ID {
   	LINE = TEXTURED + 1,
   	SCREEN = LINE + 1,
 	HEX = SCREEN + 1,
-	EFFECT_COUNT = HEX + 1
+	TILE = HEX + 1,
+	EFFECT_COUNT = TILE + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -370,7 +462,12 @@ const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 enum class ANIMATION_ID {
 	PLAYER_WALKING = 0,
 	PLAYER_STANDING = PLAYER_WALKING + 1,
-	ANIMATION_COUNT = PLAYER_STANDING + 1
+	PLAYER_KILL = PLAYER_STANDING + 1,
+	PLAYER_RESPAWN = PLAYER_KILL + 1,
+	SPAWNPOINT_ACTIVATE = PLAYER_RESPAWN + 1,
+	SPAWNPOINT_DEACTIVATE = SPAWNPOINT_ACTIVATE + 1,
+	SPAWNPOINT_REACTIVATE = SPAWNPOINT_DEACTIVATE + 1,
+	ANIMATION_COUNT = SPAWNPOINT_REACTIVATE + 1
 };
 const int animation_count = (int)ANIMATION_ID::ANIMATION_COUNT;
 
@@ -402,4 +499,10 @@ struct AnimateRequest {
 	ANIMATION_ID used_animation;
 	float timer = 0.0;
 	vec2 tex_u_range = { 0.0, 1.0 };
+};
+
+struct LevelState {
+	std::string curr_level_folder_name;
+	TEXTURE_ASSET_ID ground;
+	bool shouldLoad = false;
 };

@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "../physics/physics_system.hpp"
+#include "../player/player_system.hpp"
 
 // create the world
 WorldSystem::WorldSystem()
@@ -47,6 +48,15 @@ void WorldSystem::init(GLFWwindow* window) {
 
 	// Create a single GameState entity
 	registry.gameStates.emplace(game_state_entity);
+
+	// Create a single LevelState entity
+	LevelState& levelState = registry.levelStates.emplace(level_state_entity);
+
+	// This will be the first level we load when the game is started.
+	levelState.curr_level_folder_name = "Level_0";
+	levelState.ground = TEXTURE_ASSET_ID::D_TUTORIAL_GROUND;
+	levelState.shouldLoad = true;
+
 
 	if (this->play_sound && !start_and_load_sounds()) {
 		std::cerr << "ERROR: Failed to start or load sounds." << std::endl;
@@ -107,6 +117,10 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Update info on acceleration and deceleration duration and deactivate if needed
 	assert(registry.gameStates.components.size() <= 1);
+
+	check_player_killed();
+	check_scene_transition();
+
 	GameState& gameState = registry.gameStates.components[0];
 	auto now = std::chrono::high_resolution_clock::now();
 
@@ -141,10 +155,79 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 
 		lerpTimeState(start, tc.target_time_control_factor, motion, gameState.time_control_start_time);
+
+		// handles breakable wall degradation here
+		if (registry.breakables.has(entity)) {
+			Breakable& breakable = registry.breakables.get(entity);
+
+			Entity& player_entity = registry.players.entities[0];
+			Motion& player_motion = registry.motions.get(player_entity);
+			Motion& breakable_tc_entity_motion = registry.motions.get(entity);
+
+			if (getDistance(player_motion, breakable_tc_entity_motion) <= TIME_CONTROL_VICINITY_THRESHOLD) {
+				// speed up the degrade speed and decrement health
+
+				if (tc.can_be_accelerated && gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED) {
+					breakable.health += breakable.degrade_speed_per_ms * tc.target_time_control_factor * elapsed_ms_since_last_update;
+				}
+			}
+
+			if (breakable.health <= 0.f) {
+				registry.remove_all_components_of(entity);
+			}
+		}
+
+		// TODO: Below are copied from control_time; checks for harmful/harmless transitions should be coordinated by world system constantly
+		
+		// become harmful when activating acceleration and can become harmful or when deactivating deceleration (and became harmless when decellerating)
+		if ((gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED && tc.can_become_harmful) ||
+			(gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED && tc.can_become_harmless)) {
+			if (!registry.harmfuls.has(entity)) {
+				registry.harmfuls.emplace(entity);
+			}
+		}
+
+		// become harmless when activating deceleration and can become harmless or when deactivating acceleration (and became harmful during acceleration)
+		if ((gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED && tc.can_become_harmless) ||
+			(gameState.game_time_control_state != TIME_CONTROL_STATE::ACCELERATED && tc.can_become_harmful)) {
+			if (registry.harmfuls.has(entity)) {
+				registry.harmfuls.remove(entity);
+			}
+		}
 	}
 
+	// Can potentially remove
 	if (gameState.game_running_state == GAME_RUNNING_STATE::SHOULD_RESET) {
 		restart_game();
+	}
+}
+
+void WorldSystem::check_player_killed() {
+	const Player& player = registry.players.components[0];
+	GameState& gameState = registry.gameStates.components[0];
+
+	// Disable time control during dead & respawn
+	if (player.state == PLAYER_STATE::DEAD || player.state == PLAYER_STATE::RESPAWNED) {
+		if (gameState.game_time_control_state != TIME_CONTROL_STATE::NORMAL) {
+			control_time(false, false);
+		}
+	}
+}
+
+void WorldSystem::check_scene_transition() {
+	const Player& player = registry.players.components[0];
+	GameState& gameState = registry.gameStates.components[0];
+	ScreenState& screenState = registry.screenStates.components[0];
+
+	if ((player.state == PLAYER_STATE::DEAD && gameState.game_scene_transition_state != SCENE_TRANSITION_STATE::TRANSITION_OUT)) {
+		// Conditions for start transition out
+
+		gameState.game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_OUT;
+		screenState.scene_transition_factor = 0.0f;
+	}
+	else if ((player.state != PLAYER_STATE::DEAD && gameState.game_scene_transition_state == SCENE_TRANSITION_STATE::TRANSITION_OUT)) {
+		// Conditions for start transition in
+		gameState.game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
 	}
 }
 
@@ -198,13 +281,17 @@ void WorldSystem::restart_game() {
 	gameState.decelerate_cooldown_ms = 0.f;
 	gameState.game_time_control_state = TIME_CONTROL_STATE::NORMAL;
 	gameState.game_running_state = GAME_RUNNING_STATE::RUNNING;
+	gameState.game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
 	gameState.time_control_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
 	gameState.is_in_boss_fight = 0;
+
+	LevelState& levelState = registry.levelStates.components[0];
+	levelState.shouldLoad = true;
 
 	// TODO:
 	// Maybe the game state should also keep track of current level and player spawning position?
 
-	load_level("");
+	//load_level("");
 }
 
 // World initialization
@@ -237,6 +324,9 @@ bool WorldSystem::start_and_load_sounds() {
 	return true;
 }
 
+// TODO: setting harmful component in trigger-based control_time function can be redundant;
+// we have to configure newly summoned entities to obey their harmful/harmless rules anyways
+// (e.g., when summoning a projectile during decel, we have to ensure it does not have a harmful component)
 void WorldSystem::control_time(bool accelerate, bool activate) {
 	GameState& gameState = registry.gameStates.components[0];
 
@@ -281,73 +371,75 @@ void WorldSystem::control_time(bool accelerate, bool activate) {
 		// become harmful when activating acceleration and can become harmful or when deactivating deceleration (and became harmless when decellerating)
 		if ((activate && accelerate && tc.can_become_harmful) ||
 			(!activate && !accelerate && tc.can_become_harmless)) {
-			registry.harmfuls.emplace(entity);
+			if (!registry.harmfuls.has(entity)) {
+				registry.harmfuls.emplace(entity);
+			}
 		}
 
 		// become harmless when activating deceleration and can become harmless or when deactivating acceleration (and became harmful during acceleration)
 		if ((activate && !accelerate && tc.can_become_harmless) ||
 			(!activate && accelerate && tc.can_become_harmful)) {
-			registry.harmfuls.remove(entity);
+			if (registry.harmfuls.has(entity)) {
+				registry.harmfuls.remove(entity);
+			}
 		}
 	}
 }
 
 
 void WorldSystem::player_walking(bool walking, bool is_left) {
-	Entity& player = registry.players.entities[0];
+	if (registry.players.size() > 0) {
+		Entity& player = registry.players.entities[0];
 
-	if (walking) {
-		// if already walking, just update direction. Otherwise, add component.
-		if (registry.walking.has(player)) {
-			Walking& walking_component = registry.walking.get(player);
-			walking_component.is_left = is_left;
+		if (walking) {
+			// if already walking, just update direction. Otherwise, add component.
+			if (registry.walking.has(player)) {
+				Walking& walking_component = registry.walking.get(player);
+				walking_component.is_left = is_left;
+			} else {
+				Walking& walking_component = registry.walking.emplace(player);
+				walking_component.is_left = is_left;
+			}
+
+			PlayerSystem::set_walking(is_left);
 		} else {
-			Walking& walking_component = registry.walking.emplace(player);
-			walking_component.is_left = is_left;
-		}
-
-
-		// TODO: this might not be the best approach to flip Player sprite;
-		// Could potentially isolate all Player-related properties into Player component, and update Player system accordingly
-		if (registry.renderRequests.has(player)) {
-			registry.renderRequests.get(player).flipped = is_left;
-		}
-
-		if (registry.animateRequests.has(player)) {
-			registry.animateRequests.get(player).used_animation = ANIMATION_ID::PLAYER_WALKING;
-		}
-	} else {
-		if (registry.walking.has(player)) {
-			Walking& walking_component = registry.walking.get(player);
-			// if current walking component is in the direction of this player walk stop call, remove it and stop walking
-			if (walking_component.is_left == is_left) {
-				registry.walking.remove(player);
-				if (registry.animateRequests.has(player)) {
-					registry.animateRequests.get(player).used_animation = ANIMATION_ID::PLAYER_STANDING;
+			if (registry.walking.has(player)) {
+				Walking& walking_component = registry.walking.get(player);
+				// if current walking component is in the direction of this player walk stop call, remove it and stop walking
+				if (walking_component.is_left == is_left) {
+					registry.walking.remove(player);
+					PlayerSystem::set_standing(is_left);
 				}
 			}
 		}
 	}
+
 }
 
 // TODO: this should be handled by physics?
 void WorldSystem::player_jump() {
-	Entity& player = registry.players.entities[0];
+	if (registry.players.size() > 0) {
+		Entity& player = registry.players.entities[0];
 
-	if (!registry.falling.has(player)) {
-		if (registry.motions.has(player))
-		{
-			Motion& motion = registry.motions.get(player);
-			motion.velocity.y -= JUMP_VELOCITY;
-			registry.falling.emplace(player);
+		//if (registry.onGrounds.has(player)) {
+		if (PlayerSystem::can_jump()) {
+			if (registry.motions.has(player))
+			{
+				Motion& motion = registry.motions.get(player);
+				motion.velocity.y -= JUMP_VELOCITY;
+
+				PlayerSystem::set_jumping_validity(false);
+			}
+
 		}
-
 	}
-
 }
 
 // on key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
+
+	if (registry.players.size() == 0) { return; } // level not loaded. TODO: set flag in the registry once level loading is done
+
 
 	// exit game w/ ESC
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
@@ -360,6 +452,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		glfwGetWindowSize(window, &w, &h);
 
         restart_game();
+		return;
 	}
 
 	if (key == GLFW_KEY_D) {
@@ -373,10 +466,18 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
+
+	// The following actions only available when player is alive
+	// Could extend to case of game pause
+	const Player& player = registry.players.components[0];
+	if (player.state != PLAYER_STATE::ALIVE) {
+		return;
+	}
+
 	GameState& gameState = registry.gameStates.components[0];
 
 	// Activate acceleration
-	if (key == GLFW_KEY_Q && action == GLFW_RELEASE) {
+	if (key == GLFW_KEY_EQUAL && action == GLFW_RELEASE) {
 		if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED) {
 			control_time(true, false);
 		} else {
@@ -385,7 +486,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Activate deceleration
-	if (key == GLFW_KEY_W && action == GLFW_RELEASE)
+	if (key == GLFW_KEY_MINUS && action == GLFW_RELEASE)
 	{
 		if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED) {
 			control_time(false, false);
@@ -394,7 +495,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (key == GLFW_KEY_RIGHT) {
+	if (key == GLFW_KEY_D) {
 		if (action == GLFW_PRESS) {
 			player_walking(true, false);
 		} else if (action == GLFW_RELEASE) {
@@ -402,7 +503,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (key == GLFW_KEY_LEFT) {
+	if (key == GLFW_KEY_A) {
 		if (action == GLFW_PRESS) {
 			player_walking(true, true);
 		} else if (action == GLFW_RELEASE) {
@@ -410,8 +511,57 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (key == GLFW_KEY_UP) {
+	if (key == GLFW_KEY_W) {
 		player_jump();
+	}
+
+	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+		LevelState& levelState = registry.levelStates.components[0];
+		levelState.curr_level_folder_name = "Level_0";
+		levelState.ground = TEXTURE_ASSET_ID::D_TUTORIAL_GROUND;
+		levelState.shouldLoad = true;
+	}
+
+	if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+		LevelState& levelState = registry.levelStates.components[0];
+		levelState.curr_level_folder_name = "Level_1";
+		levelState.ground = TEXTURE_ASSET_ID::A_TUTORIAL_GROUND;
+		levelState.shouldLoad = true;
+	}
+
+	// Fly controls (run ./TIMELOCK --fly):
+	if (key == GLFW_KEY_RIGHT && fly) {
+		if (action == GLFW_PRESS) {
+			player_walking(true, false);
+		} else if (action == GLFW_RELEASE) {
+			player_walking(false, false);
+		}
+	}
+
+	if (key == GLFW_KEY_LEFT && fly) {
+		if (action == GLFW_PRESS) {
+			player_walking(true, true);
+		} else if (action == GLFW_RELEASE) {
+			player_walking(false, true);
+		}
+	}
+
+	if (key == GLFW_KEY_DOWN && fly) {
+		Motion& motion = registry.motions.get(registry.players.entities[0]);
+		if (action == GLFW_PRESS) {
+			motion.velocity.y = JUMP_VELOCITY;
+		} else if (action == GLFW_RELEASE) {
+			motion.velocity.y = 0;
+		}
+	}
+
+	if (key == GLFW_KEY_UP && fly) {
+		Motion& motion = registry.motions.get(registry.players.entities[0]);
+		if (action == GLFW_PRESS) {
+			motion.velocity.y = -JUMP_VELOCITY;
+		} else if (action == GLFW_RELEASE) {
+			motion.velocity.y = 0;
+		}
 	}
 }
 

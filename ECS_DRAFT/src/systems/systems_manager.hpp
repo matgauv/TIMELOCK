@@ -14,6 +14,7 @@ class SystemsManager
 
     void run_game_loop();
     void register_system(ISystem* system);
+    void register_fixed_system(ISystem* system);
 
     void create_window();
     void set_window(GLFWwindow* window) {this->window = window;};
@@ -22,5 +23,6 @@ class SystemsManager
     bool is_over() const;
   private:
     std::vector<ISystem*> systems;
+    std::vector<ISystem*> fixed_systems;
     GLFWwindow* window = nullptr;
 };

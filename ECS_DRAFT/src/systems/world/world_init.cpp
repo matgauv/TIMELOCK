@@ -337,8 +337,9 @@ Entity create_camera(vec2 position, vec2 scale) {
     registry.cameras.emplace(entity);
     Motion& motion = registry.motions.emplace(entity);
 
-    motion.position = position;
+    motion.position = CameraSystem::restricted_boundary_position(position, scale);;
     motion.scale = scale;
+
 
     return entity;
 }

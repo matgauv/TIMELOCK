@@ -30,6 +30,7 @@ void LevelParsingSystem::step(float elapsed_ms) {
     tile_id_array = json_data["layers"][0]["data"];
     stride = static_cast<int>(json_data["width"]) / TILE_TO_PIXELS;
 
+    level_state.dimensions = vec2{ json_data["width"], json_data["height"] };
     init_level_background();
     init_level_entities();
     init_player_and_camera();

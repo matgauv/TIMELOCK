@@ -8,6 +8,8 @@
 #include "../../tinyECS/component_container.hpp"
 #include "systems/ISystem.hpp"
 
+#include "systems/camera/camera_system.hpp"
+
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
 class RenderSystem : public ISystem {

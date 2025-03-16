@@ -531,6 +531,9 @@ void RenderSystem::draw()
 				break;
 			case LAYER_ID::MIDGROUND:
 				// Render Player last?
+				if (registry.players.has(entity)) {
+					continue;
+				}
 				// TODO: may need to adjust rendering order for spawn points and interactive objects as well?
 				if (registry.spawnPoints.has(entity)) {
 					midgrounds.insert(midgrounds.begin(), entity);
@@ -549,6 +552,7 @@ void RenderSystem::draw()
 				break;
 		}
 	}
+	midgrounds.push_back(registry.players.entities[0]);
 
 	for (Entity entity : parallaxbackgrounds)
 	{
@@ -615,14 +619,17 @@ mat3 RenderSystem::createProjectionMatrix()
 		{ tx,  ty, 1.f}
 		};
 	}
-	Entity camera_entity = registry.cameras.entities[0];
-	vec2 camera_pos = registry.motions.get(camera_entity).position;
 
-	
-	float left = camera_pos.x -0.35f * WINDOW_WIDTH_PX;
-	float top = camera_pos.y -0.35f * WINDOW_HEIGHT_PX;
-	float right = camera_pos.x + 0.35f * WINDOW_WIDTH_PX;
-	float bottom = camera_pos.y + 0.35f * WINDOW_HEIGHT_PX;
+	Entity camera_entity = registry.cameras.entities[0];
+	const vec2 camera_pos = registry.motions.get(camera_entity).position;
+	const vec2 camera_scale = registry.motions.get(camera_entity).scale;
+
+	const vec2 camera_offsets = CameraSystem::get_camera_offsets(camera_scale);
+
+	float left = camera_pos.x - camera_offsets[0];
+	float top = camera_pos.y - camera_offsets[1];
+	float right = camera_pos.x + camera_offsets[0];
+	float bottom = camera_pos.y + camera_offsets[1];
 	
 	float sx = 2.f / (right - left);
 	float sy = 2.f / (top - bottom);

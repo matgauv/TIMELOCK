@@ -516,8 +516,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (registry.climbing.has(player_entity)) {
 			Climbing& climbing = registry.climbing.get(player_entity);
 			climbing.is_up = true;
-
-			std::cout << "climbing up" <<std::endl;
 		} else {
 			player_jump();
 		}
@@ -529,7 +527,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (registry.climbing.has(player_entity)) {
 			Climbing& climbing = registry.climbing.get(player_entity);
 			climbing.is_up = false;
-			std::cout << "climbing down" <<std::endl;
 		}
 	}
 

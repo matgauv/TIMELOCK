@@ -485,6 +485,7 @@ Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity)
     object.mass = 25.0f;
     object.apply_gravity = default_gravity;
     object.friction = BOLT_FRICTION;
+    object.drag_coefficient = 0.01;
 
     registry.bolts.emplace(entity);
 

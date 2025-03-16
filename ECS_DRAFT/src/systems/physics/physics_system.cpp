@@ -377,11 +377,15 @@ void PhysicsSystem::apply_gravity(Entity& entity, Motion& motion, float step_sec
 	if (registry.climbing.has(entity)) return;
 
 	float max_fall_speed = OBJECT_MAX_FALLING_SPEED;
+	float gravity = GRAVITY;
+
 	if (registry.players.has(entity)) {
 		max_fall_speed = PLAYER_MAX_FALLING_SPEED;
+
+		if (motion.velocity.y < 0.0f) gravity = GRAVITY_JUMP_ASCENT;
 	}
 
-	motion.velocity.y = clampToTarget(motion.velocity.y, GRAVITY * step_seconds, max_fall_speed);
+	motion.velocity.y = clampToTarget(motion.velocity.y, gravity * step_seconds, max_fall_speed);
 }
 
 float lerp(float a, float b, float t) {
@@ -433,8 +437,15 @@ void PhysicsSystem::player_walk(Entity& entity, Motion& motion, float step_secon
 			platform_velocity = get_modified_velocity(platform_motion);
 		}
 
+
+
+
 		vec2 rel_velocity = motion.velocity - platform_velocity;
-		rel_velocity += accel * step_seconds;
+
+		// accelerate on a curve of x^2 instead of linear
+		float normalizedSpeed = fabs(rel_velocity.x) / PLAYER_MAX_WALKING_SPEED;
+		float interpFactor = 1.0f - (normalizedSpeed * normalizedSpeed);
+		rel_velocity += desired_direction * acceleration * interpFactor * step_seconds;
 
 		// clamp relative velocity instead of world velocity
 		rel_velocity.x = clamp(rel_velocity.x, -PLAYER_MAX_WALKING_SPEED, PLAYER_MAX_WALKING_SPEED);
@@ -813,13 +824,17 @@ void PhysicsSystem::apply_air_resistance(Entity entity, Motion& motion, float st
 
 	PhysicsObject& physics = registry.physicsObjects.get(entity);
 	vec2 velocity = motion.velocity;
-	float spped_squared = dot(velocity, velocity);
-	if (spped_squared <= 0.0f) return;
+	float speed_squared = dot(velocity, velocity);
+	if (speed_squared <= 0.0f) return;
 
 	float drag = physics.drag_coefficient;
-	float area = motion.scale.x * motion.scale.y;
+	float speed = sqrt(speed_squared);
 
-	float magnitude = 0.5 * AIR_DENSITY * spped_squared * drag * area;
+	// compute area relative to direciton we are moving (ie. falling down only care about y scale)
+	float effective_area = (fabs(velocity.x) / speed) * motion.scale.y +
+						   (fabs(velocity.y) / speed) * motion.scale.x;
+
+	float magnitude = 0.5 * AIR_DENSITY * speed_squared * drag * effective_area;
 
 	vec2 direction = -normalize(velocity);
 	vec2 acceleration = (direction * magnitude) / physics.mass; // divide by mass since F=ma

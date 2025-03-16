@@ -131,7 +131,7 @@ struct PhysicsObject
 {
 	float mass;
 	float friction = STATIC_FRICTION;
-	float drag_coefficient = 0.01f;
+	float drag_coefficient = 0.2f;
 	bool apply_gravity = true;
 };
 

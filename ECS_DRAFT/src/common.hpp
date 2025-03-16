@@ -112,7 +112,7 @@ const float PARALLAXBACKGROUND_DEPTH = 1.5f;
 // Camera motion properties
 const float CAMERA_MAX_SPEED = PLAYER_MAX_FALLING_SPEED * 1.2f;
 const float CAMERA_TRACE_RANGE = WINDOW_WIDTH_PX * 0.25f; // out of this range, camera will trace at max speed
-const float CAMERA_VEL_LERP_FACTOR = 0.3f;
+const float CAMERA_VEL_LERP_FACTOR = 0.05f;
 const float CAMERA_DEFAULT_SCALING = 0.7f;
 const float CAMERA_MIN_SCALING = 0.2f;
 const float CAMERA_MAX_SCALING = 5.0f;

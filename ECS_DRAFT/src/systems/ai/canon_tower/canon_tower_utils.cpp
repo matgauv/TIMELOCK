@@ -180,6 +180,7 @@ void canon_fire(Entity tower_entity, float angle) {
 
 	PhysicsObject& object = registry.physicsObjects.emplace(proj_entity);
 	object.mass = 10.0f;
+	object.drag_coefficient = 0.01f;
 
 	//registry.falling.emplace(entity);
 

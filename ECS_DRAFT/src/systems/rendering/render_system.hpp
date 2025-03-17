@@ -2,6 +2,7 @@
 
 #include <array>
 #include <utility>
+#include <glm/trigonometric.hpp>
 
 #include "../../common.hpp"
 #include "../../tinyECS/components.hpp"
@@ -113,13 +114,25 @@ public:
 private:
 	// Internal drawing functions for each entity type
 	void drawLayer(const std::vector<Entity>& entities);
-	void drawInstances();
+	void drawInstances(EFFECT_ASSET_ID effect_id, GEOMETRY_BUFFER_ID geo_id, TEXTURE_ASSET_ID tex_id, const std::vector<Entity>& entities);
 	void drawTexturedMesh(Entity entity, const mat3& projection);
 	void drawToScreen();
+
+	GLuint useShader(EFFECT_ASSET_ID shader_id);
+	void bindGeometryBuffers(GEOMETRY_BUFFER_ID geo_id);
+	void bindTexture(GLenum texture_unit, TEXTURE_ASSET_ID tex_id);
 
 	// Update Screen shader factors
 	void updateDecelerationFactor(GameState& gameState, ScreenState& screen, float elapsed_ms);
 	void updateAccelerationFactor(GameState& gameState, ScreenState& screen, float elapsed_ms);
+
+	// Helpers for setting up shader parameters
+	void setupTextured(const std::vector<Entity>& entities, GLuint program);
+
+	void setTransform(Entity entity, glm::mat3& transform);
+	void setFColor(Entity entity, vec3& fcolor);
+	void setURange(Entity entity, vec2 &uRange);
+	void setSilhouetteColor(Entity entity, vec4& silhouette_color);
 
 	// Window handle
 	GLFWwindow* window;
@@ -128,6 +141,11 @@ private:
 	GLuint frame_buffer;
 	GLuint off_screen_render_buffer_color;
 	GLuint off_screen_render_buffer_depth;
+
+	// This may not be a good practice; buffers for instanced rendering
+	GLuint instanced_vbo_static;
+	GLuint instanced_vbo_dynamic1;
+	//GLuint instanced_vob_static2;
 
 	Entity screen_state_entity;
 

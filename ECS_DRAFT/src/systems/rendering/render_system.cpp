@@ -1,6 +1,4 @@
-
 #include <SDL.h>
-#include <glm/trigonometric.hpp>
 #include <iostream>
 
 // internal
@@ -515,6 +513,7 @@ void RenderSystem::draw()
 			case LAYER_ID::MIDGROUND:
 				// Render Player last?
 				// TODO: may need to adjust rendering order for spawn points and interactive objects as well?
+				
 				if (registry.spawnPoints.has(entity)) {
 					midgrounds.insert(midgrounds.begin(), entity);
 				}
@@ -532,7 +531,7 @@ void RenderSystem::draw()
 				break;
 		}
 	}
-
+	/*
 	for (Entity entity : parallaxbackgrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
@@ -548,25 +547,18 @@ void RenderSystem::draw()
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
 	}
+	*/
 
 	drawLayer(midgrounds);
 
+	/*
 	for (Entity entity : foregrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
 	}
-
-	/*
-	for (Entity entity : registry.renderRequests.entities)
-	{
-		// filter to entities that have a motion component
-		if (registry.motions.has(entity)) {
-			// Note, its not very efficient to access elements indirectly via the entity
-			// albeit iterating through all Sprites in sequence. A good point to optimize
-			drawTexturedMesh(entity, this->projection_matrix );
-		}
-	}
 	*/
+
+	//drawLayer(foregrounds);
 
 	// draw framebuffer to screen
 	drawToScreen();
@@ -577,6 +569,17 @@ void RenderSystem::draw()
 }
 
 void RenderSystem::drawLayer(const std::vector<Entity> &entities) {
+	if (entities.size() <= 0) {
+		return;
+	}
+
+	LAYER_ID layer = registry.layers.get(entities[0]).layer;
+	float depth = (
+		layer == LAYER_ID::PARALLAXBACKGROUND ? PARALLAXBACKGROUND_DEPTH : (
+			layer == LAYER_ID::BACKGROUND ? BACKGROUND_DEPTH : (
+				layer == LAYER_ID::MIDGROUND ? MIDGROUND_DEPTH :
+				FOREGROUND_DEPTH)));
+
 	// Categorize all entities within layer by:
 	// 1. Shader;
 	// 2. Within each shader, geometry;
@@ -608,24 +611,132 @@ void RenderSystem::drawLayer(const std::vector<Entity> &entities) {
 	for (auto effect_group = grouped_entities.begin(); effect_group != grouped_entities.end(); effect_group++) {
 		EFFECT_ASSET_ID current_effect = effect_group->first;
 
+		// Set shader
+		GLint currProgram = useShader(current_effect);
+
+		// Setting general uniform values to the currently bound program
+		 
+		// Set Depth
+		GLint depth_uloc = glGetUniformLocation(currProgram, "depth");
+		if (depth_uloc >= 0) {
+			glUniform1fv(depth_uloc, 1, (float*)&depth);
+			gl_has_errors();
+		}
+
+		// Set Projection
+		GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
+		if (projection_loc >= 0) {
+			glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float*)&(this->projection_matrix));
+		}
+
 		for (auto geo_group = effect_group->second.begin(); geo_group != effect_group->second.end(); geo_group++) {
 			GEOMETRY_BUFFER_ID current_geo = geo_group->first;
 
 			for (auto tex_group = geo_group->second.begin(); tex_group != geo_group->second.end(); tex_group++) {
 				TEXTURE_ASSET_ID current_tex = tex_group->first;
 
+				bindTexture(GL_TEXTURE0, current_tex);
+				// Set geometry buffer
+				bindGeometryBuffers(current_geo);
 
+				drawInstances(current_effect, current_geo, current_tex, tex_group->second);
 			}
 		}
 	}
-
+	
 	// Add player
 	if (draw_player) {
+		const RenderRequest& render_request = registry.renderRequests.get(registry.players.entities[0]);
 
+		GLint currProgram = useShader(render_request.used_effect);
+
+		// Set Depth
+		GLint depth_uloc = glGetUniformLocation(currProgram, "depth");
+		if (depth_uloc >= 0) {
+			glUniform1fv(depth_uloc, 1, (float*)&depth);
+			gl_has_errors();
+		}
+
+		// Set Projection
+		GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
+		if (projection_loc >= 0) {
+			glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float*)&(this->projection_matrix));
+		}
+
+		bindTexture(GL_TEXTURE0, render_request.used_texture);
+		// Set geometry buffer
+		bindGeometryBuffers(render_request.used_geometry);
+
+		drawInstances(render_request.used_effect, render_request.used_geometry, render_request.used_texture, { registry.players.entities[0] });
 	}
 }
 
-void RenderSystem::drawInstances() {
+GLuint RenderSystem::useShader(EFFECT_ASSET_ID shader_id) {
+	assert(shader_id != EFFECT_ASSET_ID::EFFECT_COUNT);
+
+	const GLuint used_effect_enum = (GLuint)shader_id;
+	const GLuint program = (GLuint)effects[used_effect_enum];
+
+	glUseProgram(program);
+	gl_has_errors();
+
+	return program;
+}
+
+void RenderSystem::bindGeometryBuffers(GEOMETRY_BUFFER_ID geo_id) {
+	assert(geo_id != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
+	const GLuint vbo = vertex_buffers[(GLuint)geo_id];
+	const GLuint ibo = index_buffers[(GLuint)geo_id];
+
+	// Setting vertex and index buffers
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	gl_has_errors();
+}
+
+void RenderSystem::bindTexture(GLenum texture_unit, TEXTURE_ASSET_ID tex_id) {
+	glActiveTexture(texture_unit);
+	gl_has_errors();
+
+	GLuint texture_id = texture_gl_handles[(GLuint)tex_id];
+
+	glBindTexture(GL_TEXTURE_2D, texture_id);
+	gl_has_errors();
+}
+
+void RenderSystem::drawInstances(EFFECT_ASSET_ID effect_id, GEOMETRY_BUFFER_ID geo_id, TEXTURE_ASSET_ID tex_id, const std::vector<Entity> &entities) {
+	// Get number of indices from index buffer, which has elements uint16_t
+	GLint size = 0;
+	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+	gl_has_errors();
+
+	GLsizei num_indices = size / sizeof(uint16_t);
+	// GLsizei num_triangles = num_indices / 3;
+
+	GLint currProgram;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
+	
+	GLsizei instance_count = entities.size();
+
+	// Handle different cases
+	switch (effect_id) {
+		case EFFECT_ASSET_ID::COLOURED:
+			break;
+		case EFFECT_ASSET_ID::TEXTURED:
+			setupTextured(entities, currProgram);
+			break;
+		case EFFECT_ASSET_ID::LINE:
+			break;
+		case EFFECT_ASSET_ID::HEX:
+			break;
+		case EFFECT_ASSET_ID::TILE:
+			break;
+		default:
+			std::cout << "Invalid Shader for Instanced Rendering" << std::endl;
+			break;
+	}
+
+	glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, 0, instance_count);
 }
 
 mat3 RenderSystem::createProjectionMatrix()

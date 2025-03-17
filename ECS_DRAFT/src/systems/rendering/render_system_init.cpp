@@ -28,6 +28,18 @@ void RenderSystem::init(GLFWwindow* window_arg)
 	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
 	gl_has_errors();
 
+
+	glGenBuffers(1, &instanced_vbo_static);
+	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_static);
+	glBufferData(GL_ARRAY_BUFFER, MAX_INSTANCE_COUNT * (sizeof(float) * 20), nullptr, GL_STATIC_DRAW);
+	gl_has_errors();
+
+	glGenBuffers(1, &instanced_vbo_dynamic1);
+	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_dynamic1);
+	glBufferData(GL_ARRAY_BUFFER, MAX_INSTANCE_COUNT * (sizeof(float) * 20), nullptr, GL_DYNAMIC_DRAW);
+	gl_has_errors();
+
+
 	// For some high DPI displays (ex. Retina Display on Macbooks)
 	// https://stackoverflow.com/questions/36672935/why-retina-screen-coordinate-value-is-twice-the-value-of-pixel-value
 	int frame_buffer_width_px, frame_buffer_height_px;
@@ -60,7 +72,7 @@ void RenderSystem::init(GLFWwindow* window_arg)
 }
 
 void RenderSystem::initializeVAOs() {
-	glGenVertexArrays(effect_count, &vaos[0]);
+	//glGenVertexArrays(effect_count, &vaos[0]);
 	gl_has_errors();
 }
 
@@ -244,6 +256,9 @@ RenderSystem::~RenderSystem()
 	// but it's polite to clean after yourself.
 	glDeleteBuffers((GLsizei)vertex_buffers.size(), vertex_buffers.data());
 	glDeleteBuffers((GLsizei)index_buffers.size(), index_buffers.data());
+	glDeleteBuffers(1, &instanced_vbo_static);
+	glDeleteBuffers(1, &instanced_vbo_dynamic1);
+	//glDeleteBuffers(1, &instanced_vbo_dynamic1);
 	glDeleteTextures((GLsizei)texture_gl_handles.size(), texture_gl_handles.data());
 	glDeleteTextures(1, &off_screen_render_buffer_color);
 	glDeleteRenderbuffers(1, &off_screen_render_buffer_depth);

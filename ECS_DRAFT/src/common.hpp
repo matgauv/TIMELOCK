@@ -45,6 +45,9 @@ const int WINDOW_HEIGHT_PX = 720;
 // FPS Counter Update Period
 const float FPS_COUNTER_UPDATE_PERIOD_MS = 1000.0f;
 
+// Render Settings
+const int MAX_INSTANCE_COUNT = 10000;
+
 // Spawn Points
 const float SPAWNPOINT_DETECTION_RANGE = 80.0;
 const float SPAWNPOINT_CHARGE_TIME_MS = 500.0;

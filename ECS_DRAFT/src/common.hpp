@@ -123,15 +123,35 @@ const float PLAYER_ATTACK_DAMAGE = 20.0f;
 const int TILE_TO_PIXELS = 16;
 
 // Boss 1 specific properties
-const float BOSS_ONE_MAX_HEALTH = 500.f;
+const float BOSS_ONE_MAX_HEALTH = 100.f;
 const float BOSS_ONE_X_VELOCITY = (float) WINDOW_WIDTH_PX / 10.f; // the boss should travel across the entire screen in 10 seconds
 const float BOSS_ONE_BB_WIDTH_PX = 100.f; // TODO: placeholder, we should adjust this once the actual texture is ready
 const float BOSS_ONE_BB_HEIGHT_PX = 100.f; // TODO: placeholder, we should adjust this once the actual texture is ready
-const float BOSS_ONE_DASH_ATTACK_COOLDOWN_MS = 5000.f;
+
 const float BOSS_ONE_REGULAR_PROJECTILE_COOLDOWN_MS = 5000.f;
 const float BOSS_ONE_FAST_PROJECTILE_COOLDOWN_MS = 5000.f;
 const float BOSS_ONE_DELAYED_PROJECTILE_COOLDOWN_MS = 5000.f;
+const float BOSS_ONE_DASH_ATTACK_COOLDOWN_MS = 5000.f;
 const float BOSS_ONE_GROUND_SLAM_COOLDOWN_MS = 5000.f;
+
+const float BOSS_ONE_REGULAR_PROJECTILE_VELOCITY;
+
+const float BOSS_ONE_FAST_PROJECTILE_VELOCITY = BOSS_ONE_REGULAR_PROJECTILE_VELOCITY * 2.f;
+
+const float BOSS_ONE_FIRST_DELAYED_PROJECTILE_POSITION;
+const float BOSS_ONE_FIRST_DELAYED_PROJECTILE_TIMER_MS;
+const float BOSS_ONE_SECOND_DELAYED_PROJECTILE_POSITION;
+const float BOSS_ONE_SECOND_DELAYED_PROJECTILE_TIMER_MS;
+const float BOSS_ONE_THIRD_DELAYED_PROJECTILE_POSITION;
+const float BOSS_ONE_THIRD_DELAYED_PROJECTILE_TIMER_MS;
+
+const float BOSS_ONE_DASH_VELOCITY;
+
+const float BOSS_ONE_GROUND_SLAM_RISE_VELOCITY;
+const float BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY;
+const float BOSS_ONE_FIRST_GROUND_SLAM_FOLLOW_DURATION_MS;
+const float BOSS_ONE_SECOND_GROUND_SLAM_FOLLOW_DURATION_MS;
+const float BOSS_ONE_THIRD_GROUND_SLAM_FOLLOW_DURATION_MS;
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f

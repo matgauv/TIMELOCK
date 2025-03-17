@@ -25,6 +25,7 @@ void BossSystem::step(float elapsed_ms) {
 
         // call the appropriate helper function to handle the state changes
         if (boss.boss_id == BOSS_ID::FIRST) {
+
             handleBossOneState(boss_entity, elapsed_ms);
         }
         
@@ -55,8 +56,108 @@ void BossSystem::late_step(float elapsed_ms) {
 void BossSystem::handleBossOneState(Entity& boss_entity, float elapsed_ms) {
 
     Boss& boss = registry.bosses.get(boss_entity);
+    Motion& boss_motion = registry.motions.get(boss_entity);
 
+    // TODO: make phase two earlier?
+    // this depends on the 
     bool is_in_phase_two = (boss.health / BOSS_ONE_MAX_HEALTH) <= 0.5;
+
+    switch (boss.boss_state) {
+        case BOSS_STATE::BOSS1_IDLE_STATE:
+            boss_one_idle_step();
+            break;
+
+        case BOSS_STATE::BOSS1_MOVE_STATE:
+            boss_one_move_step();
+            break;
+
+        case BOSS_STATE::BOSS1_EXHAUSTED_STATE:
+            boss_one_exhausted_step();
+            break;
+
+        case BOSS_STATE::BOSS1_RECOVER_STATE:
+            boss_one_recover_step();
+            break;
+        
+        case BOSS_STATE::BOSS1_DAMAGED_STATE:
+            boss_one_damaged_step();
+            break;
+
+        case BOSS_STATE::BOSS1_DEAD_STATE:
+            boss_one_dead_step();
+            break;
+        
+        case BOSS_STATE::BOSS1_CHOOSE_ATTACK_STATE:
+            boss_one_choose_attack_step();
+            break;
+        
+        case BOSS_STATE::BOSS1_REGULAR_PROJECTILE_ATTACK_STATE:
+            boss_one_regular_projectile_step();
+            break;
+        
+        case BOSS_STATE::BOSS1_FAST_PROJECTILE_ATTACK_STATE:
+            boss_one_fast_projectile_step();
+            break;
+            
+        case BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE:
+            boss_one_delayed_projectile_step();
+            break;
+            
+        case BOSS_STATE::BOSS1_DASH_ATTACK_STATE:
+            boss_one_dash_step();
+            break;
+            
+        case BOSS_STATE::BOSS1_GROUND_SLAM_RISE_1_STATE:
+            boss_one_ground_slam_rise_1_step();
+            break;
+        
+        case BOSS_STATE::BOSS1_GROUND_SLAM_FOLLOW_1_STATE:
+            boss_one_ground_slam_follow_1_step();
+            break;
+        
+        case BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_1_STATE:
+            boss_one_ground_slam_slam_1_step();
+            break;
+            
+        case BOSS_STATE::BOSS1_GROUND_SLAM_LAND_1_STATE:
+            boss_one_ground_slam_land_1_step();
+            break;
+        
+        case BOSS_STATE::BOSS1_GROUND_SLAM_RISE_2_STATE:
+            boss_one_ground_slam_rise_2_step();
+            break;
+        
+        case BOSS_STATE::BOSS1_GROUND_SLAM_FOLLOW_2_STATE:
+            boss_one_ground_slam_follow_2_step();
+            break;
+        
+        case BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_2_STATE:
+            boss_one_ground_slam_slam_2_step();
+            break;
+            
+        case BOSS_STATE::BOSS1_GROUND_SLAM_LAND_2_STATE:
+            boss_one_ground_slam_land_2_step();
+            break;
+        
+        case BOSS_STATE::BOSS1_GROUND_SLAM_RISE_3_STATE:
+            boss_one_ground_slam_rise_3_step();
+            break;
+        
+        case BOSS_STATE::BOSS1_GROUND_SLAM_FOLLOW_3_STATE:
+            boss_one_ground_slam_follow_3_step();
+            break;
+        
+        case BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_3_STATE:
+            boss_one_ground_slam_slam_3_step();
+            break;
+            
+        case BOSS_STATE::BOSS1_GROUND_SLAM_LAND_3_STATE:
+            boss_one_ground_slam_land_3_step();
+            break;
+        
+        default:
+            break;
+    }
     
     if (boss.health <= 0.f) {
         // transition to dead state when health reaches 0

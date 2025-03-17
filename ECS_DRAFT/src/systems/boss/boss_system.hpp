@@ -6,6 +6,7 @@
 #include "../../tinyECS/registry.hpp"
 #include "systems/ISystem.hpp"
 #include <random>
+#include "boss_one/boss_one_utils.hpp"
 
 class BossSystem : public ISystem
 {

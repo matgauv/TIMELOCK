@@ -55,7 +55,13 @@ void RenderSystem::init(GLFWwindow* window_arg)
 	initScreenTexture();
     initializeGlTextures();
 	initializeGlEffects();
+	// initializeVAOs();
 	initializeGlGeometryBuffers();
+}
+
+void RenderSystem::initializeVAOs() {
+	glGenVertexArrays(effect_count, &vaos[0]);
+	gl_has_errors();
 }
 
 void RenderSystem::initializeGlTextures()

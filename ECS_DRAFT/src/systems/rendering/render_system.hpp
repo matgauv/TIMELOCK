@@ -60,6 +60,7 @@ class RenderSystem : public ISystem {
 	};
 
 	std::array<GLuint, effect_count> effects;
+	//std::array<GLuint, effect_count> vaos;
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, effect_count> effect_paths = {
 		shader_path("coloured"),
@@ -82,6 +83,8 @@ public:
 
 	template <class T>
 	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);
+
+	void initializeVAOs();
 
 	void initializeGlTextures();
 
@@ -109,6 +112,8 @@ public:
 
 private:
 	// Internal drawing functions for each entity type
+	void drawLayer(const std::vector<Entity>& entities);
+	void drawInstances();
 	void drawTexturedMesh(Entity entity, const mat3& projection);
 	void drawToScreen();
 

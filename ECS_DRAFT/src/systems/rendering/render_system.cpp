@@ -549,6 +549,8 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, this->projection_matrix);
 	}
 
+	drawLayer(midgrounds);
+
 	for (Entity entity : foregrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
@@ -572,6 +574,58 @@ void RenderSystem::draw()
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();
+}
+
+void RenderSystem::drawLayer(const std::vector<Entity> &entities) {
+	// Categorize all entities within layer by:
+	// 1. Shader;
+	// 2. Within each shader, geometry;
+	// 3. Within each geometry, texture (regardless if exists);
+
+	std::unordered_map<EFFECT_ASSET_ID, std::unordered_map<GEOMETRY_BUFFER_ID, std::unordered_map<TEXTURE_ASSET_ID, std::vector<Entity>>>> grouped_entities;
+	bool draw_player = false;
+	
+	for (const Entity e : entities) {
+		if (!registry.renderRequests.has(e)) {
+			continue;
+		}
+
+		if (registry.players.has(e)) {
+			draw_player = true;
+			continue;
+		}
+
+		const RenderRequest& render_request = registry.renderRequests.get(e);
+
+		// if (registry.spawnPoints.has(e)) // insert to front
+
+		// C++ automatically creates new object if key does not exist; beware of potential risks
+		grouped_entities[render_request.used_effect][render_request.used_geometry][render_request.used_texture].push_back(e);
+	}
+
+
+	// Handle each group to render
+	for (auto effect_group = grouped_entities.begin(); effect_group != grouped_entities.end(); effect_group++) {
+		EFFECT_ASSET_ID current_effect = effect_group->first;
+
+		for (auto geo_group = effect_group->second.begin(); geo_group != effect_group->second.end(); geo_group++) {
+			GEOMETRY_BUFFER_ID current_geo = geo_group->first;
+
+			for (auto tex_group = geo_group->second.begin(); tex_group != geo_group->second.end(); tex_group++) {
+				TEXTURE_ASSET_ID current_tex = tex_group->first;
+
+
+			}
+		}
+	}
+
+	// Add player
+	if (draw_player) {
+
+	}
+}
+
+void RenderSystem::drawInstances() {
 }
 
 mat3 RenderSystem::createProjectionMatrix()

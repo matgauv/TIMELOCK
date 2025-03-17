@@ -128,6 +128,7 @@ private:
 
 	// Helpers for setting up shader parameters
 	void setupTextured(const std::vector<Entity>& entities, GLuint program);
+	void setupTile(const std::vector<Entity>& entities, GLuint program);
 
 	void setTransform(Entity entity, glm::mat3& transform);
 	void setFColor(Entity entity, vec3& fcolor);

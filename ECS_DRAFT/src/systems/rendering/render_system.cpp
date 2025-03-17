@@ -462,7 +462,7 @@ void RenderSystem::draw()
 
 	// First render to the custom framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
-	gl_has_errors();
+	//gl_has_errors();
 	
 	// clear backbuffer
 	glViewport(0, 0, w, h);
@@ -478,7 +478,7 @@ void RenderSystem::draw()
 	glDisable(GL_DEPTH_TEST); // native OpenGL does not work with a depth buffer
 							  // and alpha blending, one would have to sort
 							  // sprites back to front
-	gl_has_errors();
+	//gl_has_errors();
 
 
 	// draw all entities with a render request to the frame buffer
@@ -513,13 +513,7 @@ void RenderSystem::draw()
 			case LAYER_ID::MIDGROUND:
 				// Render Player last?
 				// TODO: may need to adjust rendering order for spawn points and interactive objects as well?
-				
-				if (registry.spawnPoints.has(entity)) {
-					midgrounds.insert(midgrounds.begin(), entity);
-				}
-				else {
-					midgrounds.push_back(entity);
-				}
+				midgrounds.push_back(entity);
 				break;
 			case LAYER_ID::PARALLAXBACKGROUND:
 				parallaxbackgrounds.push_back(entity);
@@ -535,14 +529,18 @@ void RenderSystem::draw()
 	for (Entity entity : parallaxbackgrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
-	}
+	}*/
 
+	drawLayer(parallaxbackgrounds);
+
+	/*
 	for (Entity entity : backgrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
-	}
+	}*/
+	drawLayer(backgrounds);
 
-
+	/*
 	for (Entity entity : midgrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
@@ -558,14 +556,14 @@ void RenderSystem::draw()
 	}
 	*/
 
-	//drawLayer(foregrounds);
+	drawLayer(foregrounds);
 
 	// draw framebuffer to screen
 	drawToScreen();
 
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
-	gl_has_errors();
+	//gl_has_errors();
 }
 
 void RenderSystem::drawLayer(const std::vector<Entity> &entities) {
@@ -730,6 +728,7 @@ void RenderSystem::drawInstances(EFFECT_ASSET_ID effect_id, GEOMETRY_BUFFER_ID g
 		case EFFECT_ASSET_ID::HEX:
 			break;
 		case EFFECT_ASSET_ID::TILE:
+			setupTile(entities, currProgram);
 			break;
 		default:
 			std::cout << "Invalid Shader for Instanced Rendering" << std::endl;

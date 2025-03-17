@@ -28,6 +28,8 @@ float lerpToTarget(float current, float target, float time) {
 
 bool gl_has_errors()
 {
+	return true;
+/*
 	GLenum error = glGetError();
 
 	if (error == GL_NO_ERROR) return false;
@@ -60,4 +62,5 @@ bool gl_has_errors()
 	}
 
 	return true;
+*/
 }

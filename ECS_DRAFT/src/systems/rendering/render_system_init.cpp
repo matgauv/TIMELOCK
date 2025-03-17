@@ -31,12 +31,12 @@ void RenderSystem::init(GLFWwindow* window_arg)
 
 	glGenBuffers(1, &instanced_vbo_static);
 	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_static);
-	glBufferData(GL_ARRAY_BUFFER, MAX_INSTANCE_COUNT * (sizeof(float) * 20), nullptr, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, MAX_INSTANCE_COUNT * (sizeof(float) * 20), nullptr, GL_STREAM_DRAW);
 	gl_has_errors();
 
 	glGenBuffers(1, &instanced_vbo_dynamic1);
 	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_dynamic1);
-	glBufferData(GL_ARRAY_BUFFER, MAX_INSTANCE_COUNT * (sizeof(float) * 20), nullptr, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, MAX_INSTANCE_COUNT * (sizeof(float) * 20), nullptr, GL_STREAM_DRAW);
 	gl_has_errors();
 
 

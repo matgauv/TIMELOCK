@@ -19,7 +19,7 @@
    </td>
    <td><code>ai_system</code>
    </td>
-   <td>Canon tower automatically aims and fires at the player if player is in its detection range
+   <td>Cannon tower automatically aims and fires at the player if player is in its detection range
    </td>
   </tr>
   <tr>

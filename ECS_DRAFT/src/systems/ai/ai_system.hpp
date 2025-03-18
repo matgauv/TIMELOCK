@@ -6,7 +6,7 @@
 #include "../../tinyECS/registry.hpp"
 #include "systems/ISystem.hpp"
 
-#include "canon_tower/canon_tower_utils.hpp"
+#include "cannon_tower/cannon_tower_utils.hpp"
 
 class AISystem : public ISystem
 {

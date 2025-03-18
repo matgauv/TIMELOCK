@@ -16,44 +16,58 @@ bool SystemsManager::is_over() const {
 }
 
 void SystemsManager::run_game_loop() {
-    auto t = Clock::now();
+	auto t = Clock::now();
 
 	float physics_accumulator = 0.0f;
-	const float physics_step = 1000.0f / 120.0f;
+	const float physics_step = 1000.0f / 120.0f; // we step physics at 120 fps
+	const int substep_count = 4; // for each of these 120 fps, we step physics 8 times in small sub steps
 
-    while (!is_over()) {
-        // processes system messages, if this wasn't present the window would become unresponsive
-        glfwPollEvents();
-
-        // calculate elapsed times in milliseconds from the previous iteration
-        auto now = Clock::now();
-        float elapsed_ms =
-            (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
-        t = now;
-
-    	physics_accumulator += elapsed_ms;
+	// if the game is running really fast, we just step the physics system anyways..
+	// https://gafferongames.com/post/fix_your_timestep/
+	const float max_accumulator_ms = 250.0f;
 
 
+	while (!is_over()) {
+		glfwPollEvents();
 
-        for (ISystem* system : systems) {
-            system->step(elapsed_ms);
-        }
+		auto now = Clock::now();
+		float elapsed_ms = (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
+		t = now;
 
-    	while (physics_accumulator >= physics_step) {
-    		for (ISystem* system : fixed_systems)
-    		{
-    			system->step(physics_step);
-    			system->late_step(physics_step); // TODO: late step later...
-    		}
+		physics_accumulator += elapsed_ms;
+		physics_accumulator = std::min(physics_accumulator, max_accumulator_ms);
 
-    		physics_accumulator -= physics_step;
-    	}
+		// step regular systems with the frame time
+		for (ISystem* system : systems) {
+			system->step(elapsed_ms);
+		}
+
+		// step physics systems if enough time has elapsed with fixed frame time
+		while (physics_accumulator >= physics_step) {
+			float substep_dt = physics_step / substep_count;
+
+			// perform the physics step in sub steps for more consistent behaviour
+			for (int i = 0; i < substep_count; ++i) {
+				for (ISystem* system : fixed_systems) {
+					system->step(substep_dt);
+				}
+			}
 
 
-        for (ISystem* system : systems) {
-            system->late_step(elapsed_ms);
-        }
-    }
+
+			physics_accumulator -= physics_step;
+		}
+
+		// late step regular systems with frame time
+		for (ISystem* system : systems) {
+			system->late_step(elapsed_ms);
+		}
+
+		// late step once (NOT FIXED)
+		for (ISystem* system : fixed_systems) {
+			system->late_step(physics_step);
+		}
+	}
 }
 
 void SystemsManager::register_system(ISystem* system) {

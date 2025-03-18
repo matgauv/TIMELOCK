@@ -30,6 +30,7 @@ void LevelParsingSystem::step(float elapsed_ms) {
     tile_id_array = json_data["layers"][0]["data"];
     stride = static_cast<int>(json_data["width"]) / TILE_TO_PIXELS;
 
+    level_state.dimensions = vec2{ json_data["width"], json_data["height"] };
     init_level_background();
     init_level_entities();
     init_player_and_camera();
@@ -73,7 +74,7 @@ void LevelParsingSystem::init_level_background() {
 void LevelParsingSystem::init_player_and_camera() {
     json playerJson = json_data["entities"]["Player"][0];
     vec2 initPos = vec2(playerJson["x"], playerJson["y"]);
-    create_player(initPos, { int(playerJson["width"]) * 1.75, int(playerJson["height"]) * 1.75 });
+    create_player(initPos, { int(playerJson["width"]) * 1.5, int(playerJson["height"]) * 1.5});
     create_camera(initPos, { 1.0f, 1.0f });
 
     // TEMP: for now, tutorial text is always shown
@@ -114,6 +115,8 @@ void LevelParsingSystem::init_level_entities() {
             init_partof(entity_list);
         } else if (entity_type == "Cannon") {
             init_cannons(entity_list);
+        } else if (entity_type == "Ladder") {
+            init_ladders(entity_list);
         }
     }
 }
@@ -123,6 +126,15 @@ void LevelParsingSystem::init_cannons(json cannons) {
         // TODO: Hardcoded cannon positioning for cross-play demo -- need to fix later.
         vec2 position = {cannon["x"], static_cast<int>(cannon["y"]) - 50.0f};
         create_cannon_tower(position);
+    }
+}
+
+void LevelParsingSystem::init_ladders(json ladders) {
+    for (json ladder : ladders) {
+        vec2 position = {ladder["x"], ladder["y"]};
+        int height = ladder["customFields"]["height_tiles"];
+        vec2 dimensions = {ladder["width"], ladder["height"]};
+        create_ladder(position, dimensions, height, tile_id_array, stride);
     }
 }
 
@@ -181,13 +193,14 @@ void LevelParsingSystem::init_platforms(json platforms, bool moving) {
     for (json platform : platforms) {
         vec2 dimensions;
         vec2 startPos;
+        bool rounded;
         if (moving) {
             vector<Path> path;
-            extract_path_attributes(platform, path, startPos, dimensions);
-            create_moving_platform(dimensions, path, startPos, tile_id_array, stride);
+            extract_path_attributes(platform, path, startPos, dimensions, rounded);
+            create_moving_platform(dimensions, path, startPos, tile_id_array, stride, rounded);
         } else {
-            extract_platform_attributes(platform, dimensions, startPos);
-            create_static_platform(startPos, dimensions, tile_id_array, stride);
+            extract_platform_attributes(platform, dimensions, startPos, rounded);
+            create_static_platform(startPos, dimensions, tile_id_array, stride, rounded);
         }
     }
 }
@@ -244,15 +257,17 @@ void LevelParsingSystem::extract_full_platform_dimensions(json platform, vec2& d
     dimensions = {full_width, platform["height"]};
 }
 
-void LevelParsingSystem::extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos) {
+void LevelParsingSystem::extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos, bool& rounded) {
     extract_full_platform_dimensions(platform, dimensions);
 
     int left_x = static_cast<int>(platform["x"]) - (static_cast<int>(platform["width"]) / 2);
     int start_x = left_x + (static_cast<int>(dimensions[0]) / 2);
     startPos = {start_x, platform["y"]};
+
+    rounded = platform["customFields"]["rounded"];
 }
 
-void LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& paths, vec2& init_pos_in_path, vec2& dimensions) {
+void LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& paths, vec2& init_pos_in_path, vec2& dimensions, bool& rounded) {
     extract_full_platform_dimensions(platform, dimensions);
 
     // currently all position values in json are relative to leftmost tile in platform -- need to centralize position on x-axis.
@@ -278,6 +293,9 @@ void LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& pa
     Path backward = Path(end_pos, start_pos, duration);
     paths.push_back(forward);
     paths.push_back(backward);
+
+    rounded = platform["customFields"]["rounded"];
+
 }
 
 /*

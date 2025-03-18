@@ -31,10 +31,11 @@ private:
     void init_spikes(json spikes);
     void init_projectiles(json projectiles);
     void init_cannons(json cannons);
+    void init_ladders(json ladders);
 
     void extract_full_platform_dimensions(json platform, vec2& dimensions);
-    void extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos);
-    void extract_path_attributes(json platform, vector<Path>& paths, vec2& startPos, vec2& dimensions);
+    void extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos, bool& rounded);
+    void extract_path_attributes(json platform, vector<Path>& paths, vec2& startPos, vec2& dimensions, bool& rounded);
     void extract_boundary_attributes(json boundary, vec2& dimensions, vec2& position);
 
     vec2 convert_and_centralize_position(json pos, int conversion_factor);

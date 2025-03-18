@@ -511,9 +511,25 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
+	Entity& player_entity = registry.players.entities[0];
 	if (key == GLFW_KEY_W) {
-		player_jump();
+		if (registry.climbing.has(player_entity)) {
+			Climbing& climbing = registry.climbing.get(player_entity);
+			climbing.is_up = true;
+		} else {
+			player_jump();
+		}
+
+
 	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_W) {
+		if (registry.climbing.has(player_entity)) {
+			Climbing& climbing = registry.climbing.get(player_entity);
+			climbing.is_up = false;
+		}
+	}
+
 
 	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
 		LevelState& levelState = registry.levelStates.components[0];

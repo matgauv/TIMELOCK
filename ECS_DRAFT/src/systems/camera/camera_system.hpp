@@ -17,6 +17,8 @@ public:
 	CameraSystem()
 	{
 	}
+	static vec2 restricted_boundary_position(vec2 raw_target, vec2 camera_scale);
+	static vec2 get_camera_offsets(vec2 camera_scale);
 private:
 	GLFWwindow* window = nullptr;
 

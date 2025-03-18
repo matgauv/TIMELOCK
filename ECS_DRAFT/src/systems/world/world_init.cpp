@@ -170,7 +170,7 @@ Entity create_physics_object(vec2 position, vec2 scale, float mass) {
     return entity;
 }
 
-Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 initial_position, json& tile_id_array, int stride) {
+Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 initial_position, json& tile_id_array, int stride, bool rounded) {
     Entity entity = Entity();
 
     Motion& motion = registry.motions.emplace(entity);
@@ -197,7 +197,7 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 init
         int tile_arr_index = get_tile_index(starting_tile_pos, initial_position.y, i, 0, stride);
 
         Tile& tile_component = registry.tiles.emplace(tile_entity);
-        tile_component.offset = i;
+        tile_component.offset.x = i;
         tile_component.parent_id = entity.id();
         tile_component.id = tile_id_array[tile_arr_index];
 
@@ -210,10 +210,15 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 init
         registry.layers.insert(tile_entity, { LAYER_ID::MIDGROUND });
     }
 
+    if (rounded) {
+        PlatformGeometry &platform_geometry = registry.platformGeometries.emplace(entity);
+        platform_geometry.num_tiles = num_tiles;
+    }
+
     return entity;
 }
 
-Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, int stride) {
+Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, int stride, bool rounded) {
     Entity entity = Entity();
 
     registry.platforms.emplace(entity);
@@ -239,7 +244,7 @@ Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, in
 
 
         Tile& tile_component = registry.tiles.emplace(tile_entity);
-        tile_component.offset = i;
+        tile_component.offset.x = i;
         tile_component.parent_id = entity.id();
         tile_component.id = tile_id_array[tile_arr_index];
 
@@ -253,6 +258,45 @@ Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, in
         registry.layers.insert(tile_entity, { LAYER_ID::MIDGROUND });
     }
 
+    if (rounded) {
+        PlatformGeometry &platform_geometry = registry.platformGeometries.emplace(entity);
+        platform_geometry.num_tiles = num_tiles;
+    }
+
+
+    return entity;
+}
+
+Entity create_ladder(vec2 position, vec2 scale, int height, json tile_id_array, int stride) {
+    Entity entity = Entity();
+    registry.ladders.emplace(entity);
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = {position.x, position.y - ((height / 2.0f) * TILE_TO_PIXELS) + (TILE_TO_PIXELS)};
+
+    vec2 ladder_scale = {scale.x, scale.y * height};
+    motion.scale = ladder_scale;
+
+    motion.velocity = {0, 0};
+    motion.angle = 0.f;
+
+
+    for (int i = 0; i < height; i++) {
+        Entity tile_entity = Entity();
+        int tile_arr_index = get_tile_index(position.x, position.y, 0, -i, stride);
+
+        Tile& tile_component = registry.tiles.emplace(tile_entity);
+        tile_component.offset.y = -(height / 2.0f) + i;
+        tile_component.parent_id = entity.id();
+        tile_component.id = 31;
+
+        registry.renderRequests.insert(tile_entity, {
+            TEXTURE_ASSET_ID::TILE,
+            EFFECT_ASSET_ID::TILE,
+            GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+        registry.layers.insert(tile_entity, { LAYER_ID::MIDGROUND });
+    }
 
     return entity;
 }
@@ -293,8 +337,9 @@ Entity create_camera(vec2 position, vec2 scale) {
     registry.cameras.emplace(entity);
     Motion& motion = registry.motions.emplace(entity);
 
-    motion.position = position;
+    motion.position = CameraSystem::restricted_boundary_position(position, scale);;
     motion.scale = scale;
+
 
     return entity;
 }
@@ -441,6 +486,7 @@ Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity)
     object.mass = 25.0f;
     object.apply_gravity = default_gravity;
     object.friction = BOLT_FRICTION;
+    object.drag_coefficient = 0.01;
 
     registry.bolts.emplace(entity);
 
@@ -566,7 +612,7 @@ Entity create_spike(vec2 position, vec2 scale, json tile_id_array, int stride) {
     int tile_arr_index = get_tile_index(position.x, position.y, 0, 0, stride);
 
     Tile& tile_component = registry.tiles.emplace(entity);
-    tile_component.offset = 0;
+    tile_component.offset.x = 0;
     tile_component.parent_id = entity.id();
     tile_component.id = tile_id_array[tile_arr_index];
 
@@ -581,6 +627,9 @@ Entity create_spike(vec2 position, vec2 scale, json tile_id_array, int stride) {
     return entity;
 }
 
+
+
+
 Entity create_partof(vec2 position, vec2 scale, json tile_id_array, int stride) {
     Entity entity = Entity();
 
@@ -593,7 +642,7 @@ Entity create_partof(vec2 position, vec2 scale, json tile_id_array, int stride) 
     int tile_arr_index = get_tile_index(position.x, position.y, 0, 0, stride);
 
     Tile& tile_component = registry.tiles.emplace(entity);
-    tile_component.offset = 0;
+    tile_component.offset.x = 0;
     tile_component.parent_id = entity.id();
     tile_component.id = tile_id_array[tile_arr_index];
 
@@ -609,7 +658,7 @@ Entity create_partof(vec2 position, vec2 scale, json tile_id_array, int stride) 
 }
 
 Entity create_breakable_static_platform(vec2 position, vec2 scale, bool should_break_instantly, float degrade_speed, bool is_time_controllable, json& tile_id_array, int stride) {
-    Entity entity = create_static_platform(position, scale, tile_id_array, stride);
+    Entity entity = create_static_platform(position, scale, tile_id_array, stride, false);
     Breakable& breakable = registry.breakables.emplace(entity);
     breakable.health = 1000.f;
     breakable.degrade_speed_per_ms = degrade_speed;

@@ -81,6 +81,12 @@ struct Platform
 {
 };
 
+// this component indicates that the platform has a geometry, and we should consider the rounded corners when computing collisions
+// (all rigid objects are "platforms" but some have the visual appearance of rounded corners)
+struct PlatformGeometry {
+	int num_tiles;
+};
+
 struct onGround
 {
 	unsigned int other_id;
@@ -116,7 +122,7 @@ struct MovementPath
 // Camera
 struct Camera
 {
-
+	float horizontal_offset = 0.0f;
 };
 
 // PhysicsObject means that the component will obey physics
@@ -125,6 +131,7 @@ struct PhysicsObject
 {
 	float mass;
 	float friction = STATIC_FRICTION;
+	float drag_coefficient = 0.2f;
 	bool apply_gravity = true;
 };
 
@@ -145,6 +152,13 @@ struct Motion {
 // This is added to a player who is walking.
 struct Walking {
 	bool is_left = false;
+};
+
+// this struct is added to a player who is climbing
+struct Climbing {
+	bool is_moving = false;
+	bool is_up = false;
+	bool was_climbing = false; // climbing in previous frame
 };
 
 // This is added to a player entity when they collide with a wall to block them from walking through the wall.
@@ -298,6 +312,11 @@ struct Spike
 
 };
 
+// struct indicating that entity is a Ladder
+struct Ladder {
+
+};
+
 // A struct indicating that an entity is breakable
 struct Breakable
 {
@@ -319,7 +338,7 @@ struct Tile
 {
 	int id;
 	unsigned int parent_id;
-	int offset;
+	vec2 offset = vec2{0.0f,0.0f};
 };
 
 /**
@@ -394,7 +413,9 @@ enum class GEOMETRY_BUFFER_ID {
 	DEBUG_LINE = SPRITE + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
 	HEX = SCREEN_TRIANGLE + 1,
-	GEOMETRY_COUNT = HEX + 1
+	PLAYER = HEX + 1,
+	PLATFORM = PLAYER + 1,
+	GEOMETRY_COUNT = PLATFORM + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
@@ -444,4 +465,5 @@ struct LevelState {
 	std::string curr_level_folder_name;
 	TEXTURE_ASSET_ID ground;
 	bool shouldLoad = false;
+	vec2 dimensions;
 };

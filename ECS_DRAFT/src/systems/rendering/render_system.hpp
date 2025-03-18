@@ -8,6 +8,8 @@
 #include "../../tinyECS/component_container.hpp"
 #include "systems/ISystem.hpp"
 
+#include "systems/camera/camera_system.hpp"
+
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
 class RenderSystem : public ISystem {
@@ -25,6 +27,8 @@ class RenderSystem : public ISystem {
 	// Associated id with .obj path
 	const std::vector<std::pair<GEOMETRY_BUFFER_ID, std::string>> mesh_paths = {
 		std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::HEX, mesh_path("hex.obj")),
+		std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::PLAYER, mesh_path("still.obj")),
+		std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::PLATFORM, mesh_path("left-end.obj")),
 		// specify meshes of other assets here
 	};
 

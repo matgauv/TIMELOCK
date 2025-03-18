@@ -45,8 +45,8 @@ public:
 	ComponentContainer<Spike> spikes;
 	ComponentContainer<Tile> tiles;
 	ComponentContainer<Breakable> breakables;
-	ComponentContainer<CanonTower> canonTowers;
-	ComponentContainer<CanonBarrel> canonBarrels;
+	ComponentContainer<CannonTower> cannonTowers;
+	ComponentContainer<CannonBarrel> cannonBarrels;
 	ComponentContainer<Delayed> delayeds;
 	ComponentContainer<FirstBoss> firstBosses;
 	ComponentContainer<SnoozeButton> snoozeButtons;
@@ -88,8 +88,8 @@ public:
 		registry_list.push_back(&tiles);
 		registry_list.push_back(&spikes);
 		registry_list.push_back(&breakables);
-		registry_list.push_back(&canonTowers);
-		registry_list.push_back(&canonBarrels);
+		registry_list.push_back(&cannonTowers);
+		registry_list.push_back(&cannonBarrels);
 		registry_list.push_back(&delayeds);
 		registry_list.push_back(&firstBosses);
 		registry_list.push_back(&snoozeButtons);

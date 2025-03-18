@@ -56,6 +56,7 @@ class RenderSystem : public ISystem {
 		textures_path("cannontower/Barrel.png"),
 		level_ground_path("Level_0"),
 		level_ground_path("Level_1"),
+		level_ground_path("Level_2"),
 		textures_path("tileset.png"),
 		textures_path("tutorial-text/wasd.png"),
 		textures_path("tutorial-text/decel.png"),

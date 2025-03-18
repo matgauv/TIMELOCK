@@ -369,6 +369,12 @@ struct FirstBoss
 	unsigned int num_of_projectiles_created;
 };
 
+// a struct to represent the snooze button for the first boss
+struct SnoozeButton
+{
+
+};
+
 // struct BossAttack
 // {
 // 	BOSS_ATTACK_ID attack_id;

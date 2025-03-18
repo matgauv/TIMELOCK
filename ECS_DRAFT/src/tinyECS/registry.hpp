@@ -47,10 +47,9 @@ public:
 	ComponentContainer<Breakable> breakables;
 	ComponentContainer<CanonTower> canonTowers;
 	ComponentContainer<CanonBarrel> canonBarrels;
-	ComponentContainer<BossAttack> bossAttacks;
-	ComponentContainer<BossAttackList> bossAttackLists;
 	ComponentContainer<Delayed> delayeds;
-	ComponentContainer<Tracking> trackings;
+	ComponentContainer<FirstBoss> firstBosses;
+	ComponentContainer<SnoozeButton> snoozeButtons;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -91,9 +90,9 @@ public:
 		registry_list.push_back(&breakables);
 		registry_list.push_back(&canonTowers);
 		registry_list.push_back(&canonBarrels);
-		registry_list.push_back(&bossAttacks);
 		registry_list.push_back(&delayeds);
-		registry_list.push_back(&trackings);
+		registry_list.push_back(&firstBosses);
+		registry_list.push_back(&snoozeButtons);
 	}
 
 	void clear_all_components() {

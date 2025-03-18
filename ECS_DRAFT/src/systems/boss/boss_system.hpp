@@ -20,13 +20,6 @@ class BossSystem : public ISystem
 
     private:
         GLFWwindow* window = nullptr;
-        void handleBossOneState(Entity& boss_entity, float elapsed_ms);
-        void handleBossTwoState(Entity& boss_entity, float elpased_ms);
-        void handleFinalBossState(Entity& boss_entity, float elapsed_ms);
-
-        BOSS_STATE handleBossOneChooseAttackState(Entity& boss_entity, float elapsed_ms, bool is_in_phase_two);
-
-        bool isAttackOffCooldown(BossAttackList& table, BOSS_ATTACK_ID attack_id);
 
         std::default_random_engine rng;
 	    std::uniform_real_distribution<float> uniform_dist;

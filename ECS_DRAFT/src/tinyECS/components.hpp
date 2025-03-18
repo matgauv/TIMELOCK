@@ -330,12 +330,12 @@ struct WaterDrop
 // A struct indicating that an attack has some delay before being executed
 struct Delayed
 {
-	std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
-	float delay_timer_ms;
-	vec2 velocity;
+	// std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
+	float timer_ms; // timer until being fired
+	vec2 velocity; // velocity to use
 	// vec2 velocity_modifier;
-	Motion* motion_ptr;
-	uint order;
+	// Motion* motion_ptr;
+	// unsigned int order;
 };
 
 // A struct indicating that an entity is a spike
@@ -357,32 +357,33 @@ struct Boss
 {
 	BOSS_ID boss_id;
 	BOSS_STATE boss_state;
-	bool attack_completed; // a flag to indicate that the attack state is over
-	bool can_be_damaged; // a flag to indicate that the boss can take damage
+	bool can_be_damaged = false; // a flag to indicate that the boss can take damage
 	float health;
-	float attack_cooldown_ms = 5000.0f;
+	float timer_ms; // a general timer, set to different values based on the boss state
+	unsigned int num_of_attack_completed;
+	bool can_damage_player; // a flag to indicate that collision with the boss can damage the player
 };
 
-struct BossAttack
+struct FirstBoss
 {
-	BOSS_ATTACK_ID attack_id;
-	bool is_in_use; // a flag to indicate that the attack is currently in use
-	std::chrono::time_point<std::chrono::high_resolution_clock> attack_start_time;
-	float duration_ms; // the total duration of the attack (TODO: might remove this field)
-	float cooldown_ms;
-	std::vector<float> in_between_delay_ms; // the amount of delay between each part of the attack
-	float in_between_timer_ms; // the timer before the next attack, should directly come from the in_between_delay_ms
-	vec2 velocity_modifier;
-	uint num_of_attack_created;
-	uint num_of_attack_completed;
-	uint max_num_of_attacks;
+	unsigned int num_of_projectiles_created;
 };
 
-struct BossAttackList
-{
-	// maps the boss attack id to the id of the entity associated with each boss attack component
-	std::unordered_map<int,Entity*> boss_attack_table;
-};
+// struct BossAttack
+// {
+// 	BOSS_ATTACK_ID attack_id;
+// 	bool is_in_use; // a flag to indicate that the attack is currently in use
+// 	std::chrono::time_point<std::chrono::high_resolution_clock> attack_start_time;
+// 	float duration_ms; // the total duration of the attack (TODO: might remove this field)
+// 	float cooldown_ms;
+// 	std::vector<float> in_between_delay_ms; // the amount of delay between each part of the attack
+// 	float in_between_timer_ms; // the timer before the next attack, should directly come from the in_between_delay_ms
+// 	vec2 velocity_modifier;
+// 	unsigned int num_of_attack_created;
+// 	unsigned int num_of_attack_completed;
+// 	unsigned int max_num_of_attacks;
+// };
+
 
 // A struct indicating that an entity is tile
 struct Tile

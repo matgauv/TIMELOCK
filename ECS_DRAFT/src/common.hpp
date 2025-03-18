@@ -124,20 +124,20 @@ const int TILE_TO_PIXELS = 16;
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f
 #endif
-// Canon Tower
-const float CANON_TOWER_DETECTION_RANGE = 300.0f;
-const float CANON_TOWER_AIM_TIME_MS = 2750.0f;
-const float CANON_TOWER_LOAD_TIME_MS = 600.0f;
-const float CANON_TOWER_FIRE_TIME_MS = 1500.0f;
+// Cannon Tower
+const float CANNON_TOWER_DETECTION_RANGE = 300.0f;
+const float CANNON_TOWER_AIM_TIME_MS = 2750.0f;
+const float CANNON_TOWER_LOAD_TIME_MS = 600.0f;
+const float CANNON_TOWER_FIRE_TIME_MS = 1500.0f;
 
-const float CANON_TURN_SPEED = M_PI;
+const float CANNON_TURN_SPEED = M_PI;
 
-const vec2 CANON_TOWER_SIZE = vec2{80, 120};
+const vec2 CANNON_TOWER_SIZE = vec2{80, 120};
 
 // barrel lies horizontally to the right at angle = 0
-const vec2 CANON_BARREL_SIZE = vec2{ 80, 30 };
-const float CANON_PROJECTILE_SPEED = 600.0f;
-const vec2 CANON_PROJECTILE_SIZE = vec2 {30.0f, 30.0f};
+const vec2 CANNON_BARREL_SIZE = vec2{ 80, 30 };
+const float CANNON_PROJECTILE_SPEED = 600.0f;
+const vec2 CANNON_PROJECTILE_SIZE = vec2 {30.0f, 30.0f};
 
 
 // The 'Transform' component handles transformations passed to the Vertex shader

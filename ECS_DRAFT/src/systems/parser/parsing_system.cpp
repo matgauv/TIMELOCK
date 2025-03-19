@@ -134,7 +134,7 @@ void LevelParsingSystem::init_ladders(json ladders) {
         vec2 position = {ladder["x"], ladder["y"]};
 
         json json_length = ladder["customFields"]["length"];
-        if (!validate_custom_field(json_length, "length", "LADDER", {"cx", "cy"})) {
+        if (!validate_custom_field(json_length, "length", ladder["iid"], {"cx", "cy"})) {
             continue;
         }
         int height = abs(static_cast<int>(json_length["cy"]) - (position.y / TILE_TO_PIXELS)) + 1;
@@ -170,13 +170,13 @@ void LevelParsingSystem::init_boundaries(json boundaries) {
 void LevelParsingSystem::init_spikes(json spikes) {
     for (json spike : spikes) {
         json json_end_pos = spike["customFields"]["length"];
-        if (!validate_custom_field(json_end_pos, "length", "SPIKE", {"cx", "cy"})) {
+        if (!validate_custom_field(json_end_pos, "length", spike["iid"], {"cx", "cy"})) {
             continue;
         }
         vec2 end_pos = {static_cast<int>(json_end_pos["cx"]) * TILE_TO_PIXELS, static_cast<int>(json_end_pos["cy"]) * TILE_TO_PIXELS};
 
         json json_direction = spike["customFields"]["direction"];
-        if (!validate_custom_field(json_direction, "direction", "SPIKE")) {
+        if (!validate_custom_field(json_direction, "direction", spike["iid"])) {
             continue;
         }
         string direction = json_direction;
@@ -237,14 +237,14 @@ bool LevelParsingSystem::extract_boundary_attributes(json boundary, vec2& dimens
     vec2 start_pos = vec2{x / TILE_TO_PIXELS, y / TILE_TO_PIXELS};
 
     json end_pos_json = boundary["customFields"]["length"];
-    if (!validate_custom_field(end_pos_json, "length", "BOUNDARY")) {
+    if (!validate_custom_field(end_pos_json, "length", boundary["iid"])) {
         return false;
     }
     vec2 end_pos = {end_pos_json["cx"], end_pos_json["cy"]};
 
     int size;
     json json_direction = boundary["customFields"]["direction"];
-    if (!validate_custom_field(json_direction, "direction", "BOUNDARY")) {
+    if (!validate_custom_field(json_direction, "direction", boundary["iid"])) {
         return false;
     }
     string direction = json_direction;
@@ -283,7 +283,7 @@ bool LevelParsingSystem::extract_boundary_attributes(json boundary, vec2& dimens
 
 bool LevelParsingSystem::extract_full_platform_dimensions(json platform, vec2& dimensions) {
     json json_size = platform["customFields"]["size"];
-    if (!validate_custom_field(json_size, "size", "PLATFORM")) {
+    if (!validate_custom_field(json_size, "size", platform["iid"])) {
         return false;
     }
     int full_size = json_size;
@@ -303,7 +303,7 @@ bool LevelParsingSystem::extract_platform_attributes(json platform, vec2& dimens
     startPos = {start_x, platform["y"]};
 
     json json_rounded = platform["customFields"]["rounded"];
-    if (!validate_custom_field(json_rounded, "rounded", "PLATFORM")) {
+    if (!validate_custom_field(json_rounded, "rounded", platform["iid"])) {
         return false;
     }
     rounded = json_rounded;
@@ -318,13 +318,13 @@ bool LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& pa
     int conversion_factor = (static_cast<int>(dimensions.x) / 2) - (static_cast<int>(platform["width"]) / 2);
 
     json start_pos_json = platform["customFields"]["start"];
-    if (!validate_custom_field(start_pos_json, "start", "MOVING PLATFORM", {"cx", "cy"})) {
+    if (!validate_custom_field(start_pos_json, "start", platform["iid"], {"cx", "cy"})) {
         return false;
     }
     vec2 start_pos = convert_and_centralize_position(start_pos_json, conversion_factor);
 
     json end_pos_json = platform["customFields"]["end"];
-    if (!validate_custom_field(end_pos_json, "start", "MOVING PLATFORM", {"cx", "cy"})) {
+    if (!validate_custom_field(end_pos_json, "start", platform["iid"], {"cx", "cy"})) {
         return false;
     }
     vec2 end_pos = convert_and_centralize_position(end_pos_json, conversion_factor);
@@ -335,7 +335,7 @@ bool LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& pa
 
     // set duration to default value of 0.5 if no duration is set.
     json json_duration = platform["customFields"]["duration"];
-    if (!validate_custom_field(json_duration, "duration", "MOVING PLATFORM")) {
+    if (!validate_custom_field(json_duration, "duration", platform["iid"])) {
         return false;
     }
     float duration = json_duration;
@@ -349,7 +349,7 @@ bool LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& pa
     paths.push_back(backward);
 
     json json_rounded = platform["customFields"]["rounded"];
-    if (!validate_custom_field(json_rounded, "rounded", "MOVING PLATFORM")) {
+    if (!validate_custom_field(json_rounded, "rounded", platform["iid"])) {
         return false;
     }
     rounded = json_rounded;
@@ -389,16 +389,16 @@ vec2 LevelParsingSystem::centralize_position(vec2 pos, int conversion_factor, bo
     });
 }
 
-bool LevelParsingSystem::validate_custom_field(json attribute, string attribute_name, string entity, vector<string> sub_attributes) {
+bool LevelParsingSystem::validate_custom_field(json attribute, string attribute_name, string entity_id, vector<string> sub_attributes) {
     if (attribute.is_null()) {
         string error = "NULL value for customField: " + attribute_name;
-        print_parsing_error(error, entity);
+        print_parsing_error(error, entity_id);
         return false;
     }
 
     if (!sub_attributes.empty()) {
         for (const string& sub : sub_attributes) {
-            if (!validate_custom_field(attribute[sub], sub, entity)) {
+            if (!validate_custom_field(attribute[sub], sub, entity_id)) {
                 return false;
             }
         }
@@ -407,11 +407,11 @@ bool LevelParsingSystem::validate_custom_field(json attribute, string attribute_
     return true;
 }
 
-void LevelParsingSystem::print_parsing_error(string& error, string entity) {
+void LevelParsingSystem::print_parsing_error(string& error, string entity_id) {
     LevelState& ls = registry.levelStates.components[0];
     cout << "\033[96m" << ls.curr_level_folder_name << ": ";
 
-    cout << "\033[91m" << "Error when parsing " << entity << ": " << error << endl;
+    cout << "\033[91m" << "Error when parsing entity " << "\033[93m" << entity_id << ": " << "\033[91m" << error << endl;
 
     // set the line color back to normal in console
     cout << "\033[0m";

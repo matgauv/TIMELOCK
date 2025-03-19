@@ -408,10 +408,10 @@ bool LevelParsingSystem::validate_custom_field(json attribute, string attribute_
 }
 
 void LevelParsingSystem::print_parsing_error(string& error, string entity) {
-    // set the line color to red in console
-    cout << "\033[91m";
+    LevelState& ls = registry.levelStates.components[0];
+    cout << "\033[96m" << ls.curr_level_folder_name << ": ";
 
-    cout << "Error when parsing " << entity << ": " << error << endl;
+    cout << "\033[91m" << "Error when parsing " << entity << ": " << error << endl;
 
     // set the line color back to normal in console
     cout << "\033[0m";

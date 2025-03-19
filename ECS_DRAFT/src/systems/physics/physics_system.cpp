@@ -413,7 +413,7 @@ void PhysicsSystem::update_pendulum(Entity& entity, float step_seconds) {
 // after updating all of the pendulum bobs, also update their rods
 void PhysicsSystem::update_pendulum_rods() {
 	for (uint i = 0; i < registry.pendulumRods.size(); i++) {
-        Entity rod_entity = registry.pendulumRods.entities[i];
+		Entity rod_entity = registry.pendulumRods.entities[i];
 		PendulumRod& rod = registry.pendulumRods.components[i];
 
 		Entity bob_entity = Entity(rod.bob_id);
@@ -424,10 +424,17 @@ void PhysicsSystem::update_pendulum_rods() {
 		Motion& bob_motion = registry.motions.get(bob_entity);
 		Motion& rod_motion = registry.motions.get(rod_entity);
 
-		rod_motion.position = (pendulum.pivot_point + bob_motion.position) * 0.5f;
-		rod_motion.scale.x = glm::length(bob_motion.position - pendulum.pivot_point);
-		rod_motion.angle = atan2(bob_motion.position.y - pendulum.pivot_point.y,
-								bob_motion.position.x - pendulum.pivot_point.x);
+		//rod_motion.position = pendulum.pivot_point;
+
+		float length = glm::length(bob_motion.position - pendulum.pivot_point);
+		rod_motion.scale.y = length;
+
+		float angle = atan2(bob_motion.position.y - pendulum.pivot_point.y,
+						   bob_motion.position.x - pendulum.pivot_point.x);
+
+		rod_motion.angle = angle * (180 / M_PI) - 90.0f;
+
+		rod_motion.cache_invalidated = true;
 
 	}
 }
@@ -666,11 +673,11 @@ void PhysicsSystem::handle_player_ladder_collision(Entity& player_entity, Entity
 void PhysicsSystem::handle_object_rigid_collision(Entity& object_entity, Entity& platform_entity, Collision collision, float step_seconds, std::vector<unsigned int>& groundedEntities)
 {
 
-	Blocked& blocked = registry.blocked.get(object_entity);
+	// Blocked& blocked = registry.blocked.get(object_entity);
 	Motion& obj_motion = registry.motions.get(object_entity);
 
 	vec2 normal = collision.normal;
-	blocked.normal = normal;
+	// blocked.normal = normal;
 
 	resolve_collision_position(object_entity, platform_entity, collision);
 

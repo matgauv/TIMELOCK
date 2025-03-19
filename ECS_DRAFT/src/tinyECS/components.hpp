@@ -162,6 +162,10 @@ struct Motion {
 	bool cache_invalidated = true;
 };
 
+struct PivotPoint {
+	vec2 offset = { 0, 0 };
+};
+
 // This is added to a player who is walking.
 struct Walking {
 	bool is_left = false;
@@ -401,7 +405,8 @@ enum class TEXTURE_ASSET_ID {
 	DECEL = WASD + 1,
 	DECEL2 = DECEL + 1,
 	ACCEL = DECEL2 + 1,
-	TEXTURE_COUNT = ACCEL + 1,
+	PENDULUM = ACCEL + 1,
+	TEXTURE_COUNT = PENDULUM + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

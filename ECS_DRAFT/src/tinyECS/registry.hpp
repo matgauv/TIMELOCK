@@ -12,6 +12,7 @@ class ECSRegistry
 public:
 	// Manually created list of all components this game has
 	ComponentContainer<Motion> motions;
+	ComponentContainer<PivotPoint> pivotPoints;
 	ComponentContainer<Collision> collisions;
 	ComponentContainer<Player> players;
 	ComponentContainer<Platform> platforms;
@@ -56,6 +57,7 @@ public:
 	ECSRegistry()
 	{
 		registry_list.push_back(&motions);
+		registry_list.push_back(&pivotPoints);
 		registry_list.push_back(&collisions);
 		registry_list.push_back(&players);
 		registry_list.push_back(&platforms);

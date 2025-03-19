@@ -2305,6 +2305,23 @@
 					"height_tiles": 10
 				}
 			}
+		],
+		"Pendulum": [
+			{
+				"id": "Pendulum",
+				"iid": "ddefe4a0-e920-11ef-a2ff-493cb3e9670a",
+				"layer": "Components",
+				"x": 224,
+				"y": 288,
+				"width": 16,
+				"height": 16,
+				"color": 39387,
+				"customFields": {
+					"length": 12,
+					"initial_angle": 45,
+					"bob_radius": 30
+				}
+			}
 		]
 	}
 }

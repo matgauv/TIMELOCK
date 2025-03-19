@@ -117,6 +117,8 @@ void LevelParsingSystem::init_level_entities() {
             init_cannons(entity_list);
         } else if (entity_type == "Ladder") {
             init_ladders(entity_list);
+        } else if (entity_type == "Pendulum") {
+            init_pendulums(entity_list);
         }
     }
 }
@@ -135,6 +137,20 @@ void LevelParsingSystem::init_ladders(json ladders) {
         int height = ladder["customFields"]["height_tiles"];
         vec2 dimensions = {ladder["width"], ladder["height"]};
         create_ladder(position, dimensions, height, tile_id_array, stride);
+    }
+}
+
+void LevelParsingSystem::init_pendulums(json pendulum) {
+    for (json pendulum : pendulum) {
+        vec2 pivot_position = {pendulum["x"], pendulum["y"]};
+        int length_tiles = pendulum["customFields"]["length"];
+        int length = length_tiles * TILE_TO_PIXELS;
+
+        float initial_angle = pendulum["customFields"]["initial_angle"];
+        float bob_radius = pendulum["customFields"]["bob_radius"];
+
+        create_pendulum(pivot_position, length, initial_angle, bob_radius);
+
     }
 }
 

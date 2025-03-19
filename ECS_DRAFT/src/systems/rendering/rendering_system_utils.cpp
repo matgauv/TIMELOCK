@@ -52,6 +52,9 @@ void RenderSystem::setSilhouetteColor(Entity entity, vec4& silhouette_color) {
 	}
 }
 
+/*
+// The following are abandoned due to the inefficiency of instanced rendering for every object
+
 // Textured
 struct TexturedInstancedNode {
 	glm::mat3 transform;
@@ -101,14 +104,8 @@ void RenderSystem::setupTextured(const std::vector<Entity>& entities, GLuint pro
 
 	glm::size_t NODE_SIZE = sizeof(TexturedInstancedNode);
 
-	/*
-	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_dynamic1);
-	glBufferData(GL_ARRAY_BUFFER, instance_count * sizeof(TexturedInstancedNode), nullptr, GL_STREAM_DRAW);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, instance_count * sizeof(TexturedInstancedNode), nodes);
-	*/
-
 	glm::size_t new_size = instance_count * NODE_SIZE;
-	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_static);
+	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_static_tiles);
 	void* ptr = glMapBufferRange(GL_ARRAY_BUFFER, 0, new_size,
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
 	if (ptr) {
@@ -204,14 +201,9 @@ void RenderSystem::setupTile(const std::vector<Entity>& entities, GLuint program
 
 	glm::size_t NODE_SIZE = sizeof(TileInstancedNode);
 
-	/*
-	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_static);
-	glBufferData(GL_ARRAY_BUFFER, instance_count * sizeof(TileInstancedNode), nullptr, GL_STREAM_DRAW);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, instance_count * sizeof(TileInstancedNode), nodes);
-	*/
 
 	glm::size_t new_size = instance_count * NODE_SIZE;
-	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_dynamic1);
+	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_particles);
 	void* ptr = glMapBufferRange(GL_ARRAY_BUFFER, 0, new_size,
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
 	if (ptr) {
@@ -247,3 +239,4 @@ void RenderSystem::setupTile(const std::vector<Entity>& entities, GLuint program
 
 	delete[] nodes;
 }
+*/

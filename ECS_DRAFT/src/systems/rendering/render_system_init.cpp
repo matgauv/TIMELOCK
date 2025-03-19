@@ -28,15 +28,16 @@ void RenderSystem::init(GLFWwindow* window_arg)
 	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
 	gl_has_errors();
 
-
-	glGenBuffers(1, &instanced_vbo_static);
-	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_static);
+	/*
+	glGenBuffers(1, &instanced_vbo_static_tiles);
+	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_static_tiles);
 	glBufferData(GL_ARRAY_BUFFER, MAX_INSTANCE_COUNT * (sizeof(float) * 20), nullptr, GL_STREAM_DRAW);
 	gl_has_errors();
+	*/
 
-	glGenBuffers(1, &instanced_vbo_dynamic1);
-	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_dynamic1);
-	glBufferData(GL_ARRAY_BUFFER, MAX_INSTANCE_COUNT * (sizeof(float) * 20), nullptr, GL_STREAM_DRAW);
+	glGenBuffers(1, &instanced_vbo_particles);
+	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_particles);
+	//glBufferData(GL_ARRAY_BUFFER, MAX_INSTANCE_COUNT * (sizeof(float) * 20), nullptr, GL_STREAM_DRAW);
 	gl_has_errors();
 
 
@@ -256,9 +257,8 @@ RenderSystem::~RenderSystem()
 	// but it's polite to clean after yourself.
 	glDeleteBuffers((GLsizei)vertex_buffers.size(), vertex_buffers.data());
 	glDeleteBuffers((GLsizei)index_buffers.size(), index_buffers.data());
-	glDeleteBuffers(1, &instanced_vbo_static);
-	glDeleteBuffers(1, &instanced_vbo_dynamic1);
-	//glDeleteBuffers(1, &instanced_vbo_dynamic1);
+	//glDeleteBuffers(1, &instanced_vbo_static_tiles);
+	glDeleteBuffers(1, &instanced_vbo_particles);
 	glDeleteTextures((GLsizei)texture_gl_handles.size(), texture_gl_handles.data());
 	glDeleteTextures(1, &off_screen_render_buffer_color);
 	glDeleteRenderbuffers(1, &off_screen_render_buffer_depth);

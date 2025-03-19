@@ -127,8 +127,8 @@ private:
 	void updateAccelerationFactor(GameState& gameState, ScreenState& screen, float elapsed_ms);
 
 	// Helpers for setting up shader parameters
-	void setupTextured(const std::vector<Entity>& entities, GLuint program);
-	void setupTile(const std::vector<Entity>& entities, GLuint program);
+	//void setupTextured(const std::vector<Entity>& entities, GLuint program);
+	//void setupTile(const std::vector<Entity>& entities, GLuint program);
 
 	void setTransform(Entity entity, glm::mat3& transform);
 	void setFColor(Entity entity, vec3& fcolor);
@@ -144,9 +144,8 @@ private:
 	GLuint off_screen_render_buffer_depth;
 
 	// This may not be a good practice; buffers for instanced rendering
-	GLuint instanced_vbo_static;
-	GLuint instanced_vbo_dynamic1;
-	//GLuint instanced_vob_static2;
+	//GLuint instanced_vbo_static_tiles;
+	GLuint instanced_vbo_particles;
 
 	Entity screen_state_entity;
 

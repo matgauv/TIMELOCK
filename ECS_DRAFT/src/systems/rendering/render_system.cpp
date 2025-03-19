@@ -525,38 +525,31 @@ void RenderSystem::draw()
 				break;
 		}
 	}
-	/*
+
 	for (Entity entity : parallaxbackgrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
-	}*/
+	}
 
-	drawLayer(parallaxbackgrounds);
 
-	/*
 	for (Entity entity : backgrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
-	}*/
-	drawLayer(backgrounds);
+	}
 
-	/*
+
 	for (Entity entity : midgrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
 	}
-	*/
 
-	drawLayer(midgrounds);
 
-	/*
+
 	for (Entity entity : foregrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
 	}
-	*/
 
-	drawLayer(foregrounds);
 
 	// draw framebuffer to screen
 	drawToScreen();
@@ -584,15 +577,9 @@ void RenderSystem::drawLayer(const std::vector<Entity> &entities) {
 	// 3. Within each geometry, texture (regardless if exists);
 
 	std::unordered_map<EFFECT_ASSET_ID, std::unordered_map<GEOMETRY_BUFFER_ID, std::unordered_map<TEXTURE_ASSET_ID, std::vector<Entity>>>> grouped_entities;
-	bool draw_player = false;
 	
 	for (const Entity e : entities) {
 		if (!registry.renderRequests.has(e)) {
-			continue;
-		}
-
-		if (registry.players.has(e)) {
-			draw_player = true;
 			continue;
 		}
 
@@ -640,32 +627,6 @@ void RenderSystem::drawLayer(const std::vector<Entity> &entities) {
 				drawInstances(current_effect, current_geo, current_tex, tex_group->second);
 			}
 		}
-	}
-	
-	// Add player
-	if (draw_player) {
-		const RenderRequest& render_request = registry.renderRequests.get(registry.players.entities[0]);
-
-		GLint currProgram = useShader(render_request.used_effect);
-
-		// Set Depth
-		GLint depth_uloc = glGetUniformLocation(currProgram, "depth");
-		if (depth_uloc >= 0) {
-			glUniform1fv(depth_uloc, 1, (float*)&depth);
-			gl_has_errors();
-		}
-
-		// Set Projection
-		GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
-		if (projection_loc >= 0) {
-			glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float*)&(this->projection_matrix));
-		}
-
-		bindTexture(GL_TEXTURE0, render_request.used_texture);
-		// Set geometry buffer
-		bindGeometryBuffers(render_request.used_geometry);
-
-		drawInstances(render_request.used_effect, render_request.used_geometry, render_request.used_texture, { registry.players.entities[0] });
 	}
 }
 
@@ -718,18 +679,6 @@ void RenderSystem::drawInstances(EFFECT_ASSET_ID effect_id, GEOMETRY_BUFFER_ID g
 
 	// Handle different cases
 	switch (effect_id) {
-		case EFFECT_ASSET_ID::COLOURED:
-			break;
-		case EFFECT_ASSET_ID::TEXTURED:
-			setupTextured(entities, currProgram);
-			break;
-		case EFFECT_ASSET_ID::LINE:
-			break;
-		case EFFECT_ASSET_ID::HEX:
-			break;
-		case EFFECT_ASSET_ID::TILE:
-			setupTile(entities, currProgram);
-			break;
 		default:
 			std::cout << "Invalid Shader for Instanced Rendering" << std::endl;
 			break;

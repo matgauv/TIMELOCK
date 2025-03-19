@@ -32,6 +32,10 @@ bool ParticleSystem::spawn_particle(
 		return false;
 	}
 
+	if (fade_in_out[0] < 0 || fade_in_out[1] < 0 || (fade_in_out[0] + fade_in_out[1] > life)) {
+		return false;
+	}
+
 	Entity entity = set_basic_particle(
 		particle_id,
 		pos, angle, scale, velocity,
@@ -49,6 +53,10 @@ bool ParticleSystem::spawn_particle(
 	float alpha, vec2 fade_in_out) {
 
 	if (registry.particles.size() > PARTICLE_COUNT_LIMIT) {
+		return false;
+	}
+
+	if (fade_in_out[0] < 0 || fade_in_out[1] < 0 || (fade_in_out[0] + fade_in_out[1] > life)) {
 		return false;
 	}
 
@@ -76,6 +84,7 @@ Entity ParticleSystem::set_basic_particle(
 	particle.alpha = alpha;
 	particle.life = life;
 	particle.timer = 0;
+	particle.fade_in_out = fade_in_out;
 
 	Motion& motion = registry.motions.emplace(entity);
 	motion.angle = angle;

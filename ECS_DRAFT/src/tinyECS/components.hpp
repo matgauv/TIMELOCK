@@ -462,4 +462,5 @@ struct Particle {
 	float life;
 	float timer = 0.0;
 	float alpha = 1.0;
+	vec2 fade_in_out = { 0.0, 0.0 };
 };

@@ -140,15 +140,25 @@ void RenderSystem::instancedRenderParticles(const std::vector<Entity> & particle
 		nodes[i].rotation = motion.angle * M_PI / 180.0;
 		nodes[i].scale = motion.scale;
 
+		float fade_factor = 1.0f;
+		if (particle.fade_in_out[0] > 1e-4 && particle.timer <= particle.fade_in_out[0]) {
+			// Fade in
+			fade_factor = particle.timer / particle.fade_in_out[0];
+		}
+		else if (particle.fade_in_out[1] > 1e-4 && (particle.life - particle.timer) <= particle.fade_in_out[1]) {
+			// Fade out
+			fade_factor = (particle.life - particle.timer) / particle.fade_in_out[1];
+		}
+
 		// Color info
 		if (particle.particle_id == PARTICLE_ID::COLORED) {
 			assert(registry.colors.has(entity));
-			nodes[i].color_info = vec4(registry.colors.get(entity), particle.alpha);
+			nodes[i].color_info = vec4(registry.colors.get(entity), cubic_interpolation(0.0, particle.alpha, fade_factor));
 		}
 		else {
 			vec2 tex_u;
 			setURange(entity, tex_u);
-			nodes[i].color_info = vec4(tex_u, particle.alpha, - (int)particle.particle_id);
+			nodes[i].color_info = vec4(tex_u, cubic_interpolation(0.0, particle.alpha, fade_factor), - (int)particle.particle_id);
 		}
 	}
 

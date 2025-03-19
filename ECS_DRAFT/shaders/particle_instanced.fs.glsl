@@ -34,6 +34,6 @@ void main()
                 break;
         }
 
-        color.a *= alpha;
+        color.a = color.a * alpha;
     }
 }

@@ -43,11 +43,13 @@ void PlayerSystem::step(float elapsed_ms) {
 
 		if (rand() % 2 == 0) {
 			ParticleSystem::spawn_particle(vec3{ 0.0, 0.8, 0.8 },
-				registry.motions.get(registry.players.entities[0]).position + offset, 0.0f, { 2.0f, 2.0f }, vec2{ 0.0f, -50.0f } + offset, 1000.0, 0.5f);
+				random_sample_ellipse(registry.motions.get(registry.players.entities[0]).position, {75.0f, 150.0f}),
+				0.0f, { 2.0f, 2.0f }, vec2{ 0.0f, -50.0f } + offset, 1000.0, 0.5f, {200.0, 300.0});
 		}
 		else {
 			ParticleSystem::spawn_particle(PARTICLE_ID::SAMPLED_TEXTURE,
-				registry.motions.get(registry.players.entities[0]).position + offset, 0.0f, { 5.0f, 5.0f }, vec2{ 0.0f, -50.0f } + 0.5f*offset, 500.0, 0.8f);
+				random_sample_rectangle(registry.motions.get(registry.players.entities[0]).position, { 100.0f, 200.0f }),
+				0.0f, { 5.0f, 5.0f }, vec2{ 0.0f, -50.0f } + 0.5f*offset, 500.0, 0.8f, { 0.0, 400.0 });
 		}
 	}
 

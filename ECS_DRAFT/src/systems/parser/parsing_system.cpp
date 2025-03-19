@@ -125,7 +125,7 @@ void LevelParsingSystem::init_cannons(json cannons) {
     for (json cannon : cannons) {
         // TODO: Hardcoded cannon positioning for cross-play demo -- need to fix later.
         vec2 position = {cannon["x"], static_cast<int>(cannon["y"]) - 50.0f};
-        create_canon_tower(position);
+        create_cannon_tower(position);
     }
 }
 

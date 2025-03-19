@@ -49,8 +49,8 @@ public:
 	ComponentContainer<Ladder> ladders;
 	ComponentContainer<Tile> tiles;
 	ComponentContainer<Breakable> breakables;
-	ComponentContainer<CanonTower> canonTowers;
-	ComponentContainer<CanonBarrel> canonBarrels;
+	ComponentContainer<CannonTower> cannonTowers;
+	ComponentContainer<CannonBarrel> cannonBarrels;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -93,8 +93,8 @@ public:
 		registry_list.push_back(&spikes);
 		registry_list.push_back(&ladders);
 		registry_list.push_back(&breakables);
-		registry_list.push_back(&canonTowers);
-		registry_list.push_back(&canonBarrels);
+		registry_list.push_back(&cannonTowers);
+		registry_list.push_back(&cannonBarrels);
 	}
 
 	void clear_all_components() {

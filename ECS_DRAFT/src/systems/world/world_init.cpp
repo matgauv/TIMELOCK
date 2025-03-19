@@ -62,7 +62,7 @@ void demo_level() {
     // create_spawnpoint({ xStart - 200, sceneHeight - 110 }, SPAWNPOINT_SCALE);
     // create_spawnpoint({ xStart + 200, sceneHeight - 110}, SPAWNPOINT_SCALE);
     // create_spawnpoint({ xStart + 1500.0f, sceneHeight - 110 }, SPAWNPOINT_SCALE);
-    // create_canon_tower({ xStart + 200.0f, sceneHeight - 185 });
+    // create_cannon_tower({ xStart + 200.0f, sceneHeight - 185 });
     //
     //
     // // lil roof to test vertical collisions
@@ -554,18 +554,18 @@ Entity create_spawnpoint(vec2 pos, vec2 size) {
     return entity;
 }
 
-Entity create_canon_tower(vec2 pos) {
+Entity create_cannon_tower(vec2 pos) {
     Entity entity = Entity();
 
-    CanonTower& tower = registry.canonTowers.emplace(entity);
+    CannonTower& tower = registry.cannonTowers.emplace(entity);
     Motion& motion = registry.motions.emplace(entity);
     motion.position = pos;
-    motion.scale = CANON_TOWER_SIZE;
+    motion.scale = CANNON_TOWER_SIZE;
 
     registry.renderRequests.insert(
         entity,
         {
-            TEXTURE_ASSET_ID::CANON_TOWER,
+            TEXTURE_ASSET_ID::CANNON_TOWER,
             EFFECT_ASSET_ID::TEXTURED,
             GEOMETRY_BUFFER_ID::SPRITE
         }
@@ -577,11 +577,11 @@ Entity create_canon_tower(vec2 pos) {
 
     Entity barrel_entity = Entity();
     tower.barrel_entity = barrel_entity;
-    registry.canonBarrels.emplace(barrel_entity);
+    registry.cannonBarrels.emplace(barrel_entity);
 
     Motion& barrel_motion = registry.motions.emplace(barrel_entity);
-    barrel_motion.position = pos + vec2{CANON_BARREL_SIZE[0] * 0.5f, 0};
-    barrel_motion.scale = CANON_BARREL_SIZE;
+    barrel_motion.position = pos + vec2{CANNON_BARREL_SIZE[0] * 0.5f, 0};
+    barrel_motion.scale = CANNON_BARREL_SIZE;
 
     registry.renderRequests.insert(
         barrel_entity,

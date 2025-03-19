@@ -117,14 +117,23 @@ void LevelParsingSystem::init_level_entities() {
             init_cannons(entity_list);
         } else if (entity_type == "Ladder") {
             init_ladders(entity_list);
+        } else if (entity_type == "Checkpoint") {
+            init_checkpoints(entity_list);
         }
     }
 }
 
+void LevelParsingSystem::init_checkpoints(json checkpoints) {
+    for (json checkpoint : checkpoints) {
+        vec2 position = {checkpoint["x"], static_cast<float>(checkpoint["y"]) + PARSING_CHECKPOINT_Y_POS_DIFF};
+        create_spawnpoint(position, SPAWNPOINT_SCALE);
+    }
+}
+
+
 void LevelParsingSystem::init_cannons(json cannons) {
     for (json cannon : cannons) {
-        // TODO: Hardcoded cannon positioning for cross-play demo -- need to fix later.
-        vec2 position = {cannon["x"], static_cast<int>(cannon["y"]) - 50.0f};
+        vec2 position = {cannon["x"], static_cast<float>(cannon["y"]) + PARSING_CANNON_Y_POS_DIFF};
         create_cannon_tower(position);
     }
 }

@@ -48,7 +48,7 @@ const float FPS_COUNTER_UPDATE_PERIOD_MS = 1000.0f;
 // Spawn Points
 const float SPAWNPOINT_DETECTION_RANGE = 80.0;
 const float SPAWNPOINT_CHARGE_TIME_MS = 500.0;
-const vec2 SPAWNPOINT_SCALE = { 60, 120 };
+const vec2 SPAWNPOINT_SCALE = { 25, 60 };
 
 // TIME CONTROL
 const float ACCELERATE_FACTOR = 2.0f;
@@ -147,6 +147,10 @@ const vec2 CANNON_TOWER_SIZE = vec2{80, 120};
 const vec2 CANNON_BARREL_SIZE = vec2{ 80, 30 };
 const float CANNON_PROJECTILE_SPEED = 600.0f;
 const vec2 CANNON_PROJECTILE_SIZE = vec2 {30.0f, 30.0f};
+
+// Parsing constants
+const float PARSING_CANNON_Y_POS_DIFF = (0.5f * TILE_TO_PIXELS) - (CANNON_TOWER_SIZE.y / 2);
+const float PARSING_CHECKPOINT_Y_POS_DIFF = (0.5f * TILE_TO_PIXELS) - (SPAWNPOINT_SCALE.y / 2);
 
 
 // The 'Transform' component handles transformations passed to the Vertex shader

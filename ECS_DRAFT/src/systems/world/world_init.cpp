@@ -287,7 +287,7 @@ Entity create_ladder(vec2 position, vec2 scale, int height, json tile_id_array, 
         Tile& tile_component = registry.tiles.emplace(tile_entity);
         tile_component.offset.y = -(height / 2.0f) + i;
         tile_component.parent_id = entity.id();
-        tile_component.id = 31;
+        tile_component.id = tile_id_array[tile_arr_index];
 
         registry.renderRequests.insert(tile_entity, {
             TEXTURE_ASSET_ID::TILE,

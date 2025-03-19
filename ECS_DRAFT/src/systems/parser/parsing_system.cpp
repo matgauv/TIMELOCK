@@ -133,11 +133,11 @@ void LevelParsingSystem::init_ladders(json ladders) {
     for (json ladder : ladders) {
         vec2 position = {ladder["x"], ladder["y"]};
 
-        json json_height_tiles = ladder["customFields"]["height_tiles"];
-        if (!validate_custom_field(json_height_tiles, "height_tiles", "LADDER")) {
+        json json_length = ladder["customFields"]["length"];
+        if (!validate_custom_field(json_length, "length", "LADDER", {"cx", "cy"})) {
             continue;
         }
-        int height = json_height_tiles;
+        int height = abs(static_cast<int>(json_length["cy"]) - (position.y / TILE_TO_PIXELS)) + 1;
 
         vec2 dimensions = {ladder["width"], ladder["height"]};
         create_ladder(position, dimensions, height, tile_id_array, stride);
@@ -187,7 +187,7 @@ void LevelParsingSystem::init_spikes(json spikes) {
         vec2 start_pos = {spike["x"], spike["y"]};
         int num_spikes = is_x_axis ? abs(end_pos.x - start_pos.x) / dimensions.x : abs(end_pos.y - start_pos.y) / dimensions.y;
 
-        for (int i = 0; i < num_spikes; i++) {
+        for (int i = 0; i <= num_spikes; i++) {
             vec2 position;
             if (is_x_axis) {
                 position = {start_pos.x + (i * pos_stride), start_pos.y};

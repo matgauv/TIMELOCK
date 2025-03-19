@@ -683,13 +683,13 @@ Entity create_time_controllable_breakable_static_platform(vec2 position, vec2 sc
     return entity;
 }
 
-void createCircleMesh(Entity e, float radius, int segments) {
-    Mesh* mesh = new Mesh();
+void createCircleMesh(Entity e, int segments) {
+    Mesh *mesh = new Mesh();
 
     for (int i = 0; i < segments; i++) {
         float theta = 2.0f * M_PI * float(i) / float(segments);
-        float x = radius * cosf(theta);
-        float y = radius * sinf(theta);
+        float x = 0.5f * cosf(theta);
+        float y = 0.5f * sinf(theta);
 
         ColoredVertex vertex;
         vertex.position.x = x;
@@ -701,26 +701,29 @@ void createCircleMesh(Entity e, float radius, int segments) {
     registry.meshPtrs.emplace(e, mesh);
 }
 
-Entity createLine(vec2 start_pos, vec2 end_pos) {
+Entity create_pendulum_string(vec2 start, vec2 end) {
     Entity entity = Entity();
 
-    vec2 middle = (start_pos + end_pos) * 0.5f;
+    float angle = atan2(end.y - start.y, end.x - start.x);
+    float length = glm::length(end - start);
 
-    float len = length(end_pos - start_pos);
-    float angle = atan2(end_pos.y - start_pos.y, end_pos.x - start_pos.x);
 
-    Motion& motion = registry.motions.emplace(entity);
-    motion.position = {middle.x, middle.y};
-    motion.scale = {len, 1.0f};
-    motion.angle = angle;
-    motion.velocity = {0.0f, 0.0f};
+    Motion &motion = registry.motions.emplace(entity);
+    motion.scale = {1.0f, length};
+    motion.angle = angle - 90.0f;
+    motion.velocity = {0, 0};
+
+    motion.position.x = start.x;
+    motion.position.y = start.y + cos(angle - 90.0f) * (length / 2);
+
+    PivotPoint &pivot_point = registry.pivotPoints.emplace(entity);
+    pivot_point.offset = {0.0f, -length / 2.0f};
 
     registry.renderRequests.insert(entity, {
-        TEXTURE_ASSET_ID::BLACK,
-        EFFECT_ASSET_ID::TEXTURED,
-        GEOMETRY_BUFFER_ID::SPRITE
-    });
-
+                                       TEXTURE_ASSET_ID::BLACK,
+                                       EFFECT_ASSET_ID::TEXTURED,
+                                       GEOMETRY_BUFFER_ID::SPRITE
+                                   });
 
     registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
 
@@ -728,19 +731,19 @@ Entity createLine(vec2 start_pos, vec2 end_pos) {
 }
 
 
-
 Entity create_pendulum(vec2 pivot_position, float length, float initial_angle, float bob_radius) {
     Entity entity = Entity();
 
-    float bob_x = pivot_position.x + length * sin(initial_angle);
-    float bob_y = pivot_position.y + length * cos(initial_angle);
+    float bob_x = pivot_position.x + length * sin(initial_angle - 90.0f);
+    float bob_y = pivot_position.y + length * cos(initial_angle - 90.0f);
 
-    Motion& motion = registry.motions.emplace(entity);
+    Motion &motion = registry.motions.emplace(entity);
     motion.position = {bob_x, bob_y};
-    motion.angle = initial_angle + M_PI/2;
+    motion.angle = initial_angle - 90.0f;
     motion.velocity = {0.0f, 0.0f};
+    motion.scale = {bob_radius * 2, bob_radius * 2};
 
-    Pendulum& pendulum = registry.pendulums.emplace(entity);
+    Pendulum &pendulum = registry.pendulums.emplace(entity);
     pendulum.pivot_point = pivot_position;
     pendulum.length = length;
     pendulum.current_angle = initial_angle;
@@ -748,25 +751,28 @@ Entity create_pendulum(vec2 pivot_position, float length, float initial_angle, f
     pendulum.damping = 0.0f;
 
     // these properties don't actually determine how the pendulum swings, they do determine how collisions behave
-    PhysicsObject& physics_object = registry.physicsObjects.emplace(entity);
+    PhysicsObject &physics_object = registry.physicsObjects.emplace(entity);
     physics_object.apply_gravity = false;
     physics_object.drag_coefficient = 0.0f;
     physics_object.mass = 10.0f;
 
-    createCircleMesh(entity, bob_radius, 16);
+    TimeControllable& tc = registry.timeControllables.emplace(entity);
+    tc.can_be_accelerated = true;
+    tc.can_be_decelerated = true;
 
-    registry.renderRequests.insert(entity, {
-        TEXTURE_ASSET_ID::GREY_CIRCLE,
-        EFFECT_ASSET_ID::TEXTURED,
-        GEOMETRY_BUFFER_ID::SPRITE
-    });
+    createCircleMesh(entity, 16);
 
-    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
 
-    Entity rod = createLine(pivot_position, motion.position);
-    PendulumRod& rod_component = registry.pendulumRods.emplace(rod);
+    Entity rod = create_pendulum_string(pivot_position, motion.position);
+    PendulumRod &rod_component = registry.pendulumRods.emplace(rod);
     rod_component.bob_id = entity.id();
 
+    registry.renderRequests.insert(entity, {
+                                       TEXTURE_ASSET_ID::GREY_CIRCLE,
+                                       EFFECT_ASSET_ID::TEXTURED,
+                                       GEOMETRY_BUFFER_ID::SPRITE
+                                   });
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
     return entity;
 }
 

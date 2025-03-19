@@ -390,11 +390,13 @@ void PhysicsSystem::update_pendulum(Entity& entity, float step_seconds) {
 	Pendulum& pendulum = registry.pendulums.get(entity);
 	Motion& motion = registry.motions.get(entity);
 
-	float g = GRAVITY / pendulum.length;
+	float g = (GRAVITY) / pendulum.length;
 	float angular_accel = -g * sin(pendulum.current_angle);
 
-	pendulum.angular_velocity += angular_accel * step_seconds;
-	pendulum.angular_velocity *= (1.0f - pendulum.damping * step_seconds); // will slow the pendulum down
+	float modified_step_seconds = step_seconds * motion.velocityModifier;
+
+	pendulum.angular_velocity += angular_accel * modified_step_seconds;
+	pendulum.angular_velocity *= (1.0f - pendulum.damping * modified_step_seconds); // will slow the pendulum down
 
 	pendulum.current_angle += pendulum.angular_velocity * step_seconds;
 

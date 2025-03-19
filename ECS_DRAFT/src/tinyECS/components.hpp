@@ -385,7 +385,8 @@ enum class EFFECT_ASSET_ID {
   	SCREEN = LINE + 1,
 	HEX = SCREEN + 1,
 	TILE = HEX + 1,
-	EFFECT_COUNT = TILE + 1
+	PARTICLE_INSTANCED = TILE + 1,
+	EFFECT_COUNT = PARTICLE_INSTANCED + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -444,4 +445,21 @@ struct LevelState {
 	std::string curr_level_folder_name;
 	TEXTURE_ASSET_ID ground;
 	bool shouldLoad = false;
+};
+
+// Particles
+
+enum class PARTICLE_ID {
+	COLORED = 0,
+	SAMPLED_TEXTURE = COLORED + 1,
+	PARTICLE_TYPE_COUNT = SAMPLED_TEXTURE + 1
+};
+
+const int particle_type_count = (int)PARTICLE_ID::PARTICLE_TYPE_COUNT;
+
+struct Particle {
+	PARTICLE_ID particle_id;
+	float life;
+	float timer = 0.0;
+	float alpha = 1.0;
 };

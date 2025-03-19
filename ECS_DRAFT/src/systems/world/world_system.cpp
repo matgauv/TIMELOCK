@@ -194,6 +194,13 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.harmfuls.remove(entity);
 			}
 		}
+
+		if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED) {
+			tc.target_time_control_factor = DECELERATE_FACTOR;
+		}
+		else if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED) {
+			tc.target_time_control_factor = ACCELERATE_FACTOR;
+		}
 	}
 
 	// Can potentially remove

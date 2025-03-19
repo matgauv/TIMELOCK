@@ -70,6 +70,7 @@ class RenderSystem : public ISystem {
         shader_path("screen"),
 		shader_path("hex"),
 		shader_path("tile"),
+		shader_path("particle_instanced"),
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -127,6 +128,7 @@ private:
 	void updateAccelerationFactor(GameState& gameState, ScreenState& screen, float elapsed_ms);
 
 	// Helpers for setting up shader parameters
+	void instancedRenderParticles(const std::vector<Entity>& particles, float depth);
 	//void setupTextured(const std::vector<Entity>& entities, GLuint program);
 	//void setupTile(const std::vector<Entity>& entities, GLuint program);
 

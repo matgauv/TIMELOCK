@@ -1,4 +1,5 @@
 #include "player_system.hpp"
+#include "../particle/particle_system.hpp"
 #include <iostream>
 
 void PlayerSystem::init(GLFWwindow* window) {
@@ -34,6 +35,19 @@ void PlayerSystem::step(float elapsed_ms) {
 
 		if (player.jumping_valid_time <= 0) {
 			player.jumping_valid_time = -1.0f;
+		}
+	}
+
+	for (int i = 0; i < 10; i++) {
+		vec2 offset = 100.0f * vec2{((float)rand() / RAND_MAX) - 0.5f, ((float)rand() / RAND_MAX) - 0.5f};
+
+		if (rand() % 2 == 0) {
+			ParticleSystem::spawn_particle(vec3{ 0.0, 0.8, 0.8 },
+				registry.motions.get(registry.players.entities[0]).position + offset, 0.0f, { 2.0f, 2.0f }, vec2{ 0.0f, -50.0f } + offset, 1000.0, 0.5f);
+		}
+		else {
+			ParticleSystem::spawn_particle(PARTICLE_ID::SAMPLED_TEXTURE,
+				registry.motions.get(registry.players.entities[0]).position + offset, 0.0f, { 5.0f, 5.0f }, vec2{ 0.0f, -50.0f } + 0.5f*offset, 500.0, 0.8f);
 		}
 	}
 

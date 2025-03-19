@@ -103,28 +103,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
 
-
-
-		GLint color_uloc = glGetUniformLocation(program, "silhouette_color");
-		vec4 color = vec4(-1.0f);
-		const GameState& gameState = registry.gameStates.components[0];
-
-		if (registry.timeControllables.has(entity)) {
-			const TimeControllable& tc = registry.timeControllables.get(entity);
-			if (
-				(gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED && tc.can_become_harmless) ||
-				(gameState.game_time_control_state != TIME_CONTROL_STATE::ACCELERATED && tc.can_become_harmful)) {
-				// Green silhouette if (become harmless + decel) OR (become harmful + !accel)
-				color = vec4(0.0f, 1.0f, 0.0f, 1.0f);
-			}
-			else if (
-				(gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED && tc.can_become_harmful) ||
-				(gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED && tc.can_become_harmless)) {
-				// Red silhouette if (become harmful + accel) OR (become harmless + !decel)
-				color = vec4(1.0f, 0.0f, 0.0f, 1.0f);
-			}
-		}
-		glUniform4fv(color_uloc, 1, (float*)&color);
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::HEX)
@@ -485,9 +463,16 @@ void RenderSystem::draw()
 	// Assort rendering tasks according to layers
 	
 	std::vector<Entity> parallaxbackgrounds;
+	//std::vector<Entity> parallaxbackgrounds_particles;
+
 	std::vector<Entity> backgrounds;
+	//std::vector<Entity> backgrounds_particles;
+
 	std::vector<Entity> midgrounds;
+	//std::vector<Entity> midgrounds_particles;
+
 	std::vector<Entity> foregrounds;
+	//std::vector<Entity> foregrounds_particles;
 
 	for (Entity entity : registry.layers.entities)
 	{
@@ -513,6 +498,9 @@ void RenderSystem::draw()
 			case LAYER_ID::MIDGROUND:
 				// Render Player last?
 				// TODO: may need to adjust rendering order for spawn points and interactive objects as well?
+				if (registry.players.entities[0].id() == entity.id()) {
+					continue;
+				}
 				midgrounds.push_back(entity);
 				break;
 			case LAYER_ID::PARALLAXBACKGROUND:
@@ -538,11 +526,13 @@ void RenderSystem::draw()
 	}
 
 
+	midgrounds.push_back(registry.players.entities[0]);
 	for (Entity entity : midgrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
 	}
-
+	// Potentially aim for multi-layers
+	instancedRenderParticles(registry.particles.entities, MIDGROUND_DEPTH);
 
 
 	for (Entity entity : foregrounds)
@@ -559,133 +549,6 @@ void RenderSystem::draw()
 	//gl_has_errors();
 }
 
-void RenderSystem::drawLayer(const std::vector<Entity> &entities) {
-	if (entities.size() <= 0) {
-		return;
-	}
-
-	LAYER_ID layer = registry.layers.get(entities[0]).layer;
-	float depth = (
-		layer == LAYER_ID::PARALLAXBACKGROUND ? PARALLAXBACKGROUND_DEPTH : (
-			layer == LAYER_ID::BACKGROUND ? BACKGROUND_DEPTH : (
-				layer == LAYER_ID::MIDGROUND ? MIDGROUND_DEPTH :
-				FOREGROUND_DEPTH)));
-
-	// Categorize all entities within layer by:
-	// 1. Shader;
-	// 2. Within each shader, geometry;
-	// 3. Within each geometry, texture (regardless if exists);
-
-	std::unordered_map<EFFECT_ASSET_ID, std::unordered_map<GEOMETRY_BUFFER_ID, std::unordered_map<TEXTURE_ASSET_ID, std::vector<Entity>>>> grouped_entities;
-	
-	for (const Entity e : entities) {
-		if (!registry.renderRequests.has(e)) {
-			continue;
-		}
-
-		const RenderRequest& render_request = registry.renderRequests.get(e);
-
-		// if (registry.spawnPoints.has(e)) // insert to front
-
-		// C++ automatically creates new object if key does not exist; beware of potential risks
-		grouped_entities[render_request.used_effect][render_request.used_geometry][render_request.used_texture].push_back(e);
-	}
-
-
-	// Handle each group to render
-	for (auto effect_group = grouped_entities.begin(); effect_group != grouped_entities.end(); effect_group++) {
-		EFFECT_ASSET_ID current_effect = effect_group->first;
-
-		// Set shader
-		GLint currProgram = useShader(current_effect);
-
-		// Setting general uniform values to the currently bound program
-		 
-		// Set Depth
-		GLint depth_uloc = glGetUniformLocation(currProgram, "depth");
-		if (depth_uloc >= 0) {
-			glUniform1fv(depth_uloc, 1, (float*)&depth);
-			gl_has_errors();
-		}
-
-		// Set Projection
-		GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
-		if (projection_loc >= 0) {
-			glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float*)&(this->projection_matrix));
-		}
-
-		for (auto geo_group = effect_group->second.begin(); geo_group != effect_group->second.end(); geo_group++) {
-			GEOMETRY_BUFFER_ID current_geo = geo_group->first;
-
-			for (auto tex_group = geo_group->second.begin(); tex_group != geo_group->second.end(); tex_group++) {
-				TEXTURE_ASSET_ID current_tex = tex_group->first;
-
-				bindTexture(GL_TEXTURE0, current_tex);
-				// Set geometry buffer
-				bindGeometryBuffers(current_geo);
-
-				drawInstances(current_effect, current_geo, current_tex, tex_group->second);
-			}
-		}
-	}
-}
-
-GLuint RenderSystem::useShader(EFFECT_ASSET_ID shader_id) {
-	assert(shader_id != EFFECT_ASSET_ID::EFFECT_COUNT);
-
-	const GLuint used_effect_enum = (GLuint)shader_id;
-	const GLuint program = (GLuint)effects[used_effect_enum];
-
-	glUseProgram(program);
-	gl_has_errors();
-
-	return program;
-}
-
-void RenderSystem::bindGeometryBuffers(GEOMETRY_BUFFER_ID geo_id) {
-	assert(geo_id != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
-	const GLuint vbo = vertex_buffers[(GLuint)geo_id];
-	const GLuint ibo = index_buffers[(GLuint)geo_id];
-
-	// Setting vertex and index buffers
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	gl_has_errors();
-}
-
-void RenderSystem::bindTexture(GLenum texture_unit, TEXTURE_ASSET_ID tex_id) {
-	glActiveTexture(texture_unit);
-	gl_has_errors();
-
-	GLuint texture_id = texture_gl_handles[(GLuint)tex_id];
-
-	glBindTexture(GL_TEXTURE_2D, texture_id);
-	gl_has_errors();
-}
-
-void RenderSystem::drawInstances(EFFECT_ASSET_ID effect_id, GEOMETRY_BUFFER_ID geo_id, TEXTURE_ASSET_ID tex_id, const std::vector<Entity> &entities) {
-	// Get number of indices from index buffer, which has elements uint16_t
-	GLint size = 0;
-	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
-	gl_has_errors();
-
-	GLsizei num_indices = size / sizeof(uint16_t);
-	// GLsizei num_triangles = num_indices / 3;
-
-	GLint currProgram;
-	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
-	
-	GLsizei instance_count = entities.size();
-
-	// Handle different cases
-	switch (effect_id) {
-		default:
-			std::cout << "Invalid Shader for Instanced Rendering" << std::endl;
-			break;
-	}
-
-	glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, 0, instance_count);
-}
 
 mat3 RenderSystem::createProjectionMatrix()
 {

@@ -683,7 +683,9 @@ Entity create_time_controllable_breakable_static_platform(vec2 position, vec2 sc
     return entity;
 }
 
-void createCircleMesh(Entity e, int segments) {
+
+// TODO memory leak with the mesh allocation...
+Mesh* createCircleMesh(Entity e, int segments) {
     Mesh *mesh = new Mesh();
 
     for (int i = 0; i < segments; i++) {
@@ -698,7 +700,7 @@ void createCircleMesh(Entity e, int segments) {
         mesh->vertices.push_back(vertex);
     }
 
-    registry.meshPtrs.emplace(e, mesh);
+    return mesh;
 }
 
 Entity create_pendulum_string(vec2 start, vec2 end) {
@@ -760,7 +762,9 @@ Entity create_pendulum(vec2 pivot_position, float length, float initial_angle, f
     tc.can_be_accelerated = true;
     tc.can_be_decelerated = true;
 
-    createCircleMesh(entity, 16);
+    // TODO: performance, share mesh!! no need to have the same mesh over and over again...
+    Mesh* mesh = createCircleMesh(entity, 16);
+    registry.meshPtrs.emplace(entity, mesh);
 
 
     Entity rod = create_pendulum_string(pivot_position, motion.position);
@@ -773,6 +777,54 @@ Entity create_pendulum(vec2 pivot_position, float length, float initial_angle, f
                                        GEOMETRY_BUFFER_ID::SPRITE
                                    });
     registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+    return entity;
+}
+
+
+Mesh* get_mesh_from_file(std::string filename) {
+    Mesh* mesh = new Mesh();
+    Mesh::loadFromOBJFile(filename, mesh->vertices, mesh->vertex_indices, mesh->original_size);
+}
+
+Entity create_gear(vec2 position, vec2 size) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = size;
+    motion.angle = 0.0f;
+    motion.velocity = {0.0f, 0.0f};
+    motion.cache_invalidated = true;
+
+    PhysicsObject& physics_object = registry.physicsObjects.emplace(entity);
+    physics_object.apply_gravity = true;
+    physics_object.mass = 20.0f;
+
+    CompositeMesh& compositeMesh = registry.compositeMeshes.emplace(entity);
+
+    float inner_radius = (size.x / 2.0f) * GEAR_CENTER_RATIO;
+
+    Mesh* mesh = createCircleMesh(entity, 16);
+    SubMesh sub_mesh = SubMesh{};
+    sub_mesh.original_mesh = mesh;
+
+    compositeMesh.meshes.push_back(sub_mesh);
+
+    // TODO: this is bad, only should do once total (not per gear)...
+    Mesh* nesw_tooth = get_mesh_from_file("step-jagged-ne-sw.obj");
+    Mesh* nwse_tooth = get_mesh_from_file("step-jagged-nw-se.obj");
+    Mesh* ew_tooth = get_mesh_from_file("step-teeth.obj");
+
+    SubMesh ne_tooth = SubMesh{};
+    ne_tooth.original_mesh = mesh;
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::GEAR,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
     return entity;
 }
 

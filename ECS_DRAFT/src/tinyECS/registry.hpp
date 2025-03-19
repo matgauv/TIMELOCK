@@ -19,6 +19,7 @@ public:
 	ComponentContainer<PlatformGeometry> platformGeometries;
 	ComponentContainer<onGround> onGrounds;
 	ComponentContainer<Mesh*> meshPtrs;
+	ComponentContainer<CompositeMesh> compositeMeshes;
 	ComponentContainer<RenderRequest> renderRequests;
 	ComponentContainer<ScreenState> screenStates;
 	ComponentContainer<DebugComponent> debugComponents;
@@ -64,6 +65,7 @@ public:
 		registry_list.push_back(&platformGeometries);
 		registry_list.push_back(&onGrounds);
 		registry_list.push_back(&meshPtrs);
+		registry_list.push_back(&compositeMeshes);
 		registry_list.push_back(&renderRequests);
 		registry_list.push_back(&screenStates);
 		registry_list.push_back(&debugComponents);

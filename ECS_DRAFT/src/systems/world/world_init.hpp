@@ -32,6 +32,7 @@ Entity create_partof(vec2 position, vec2 scale, json tile_id_array, int stride);
 Entity create_breakable_static_platform(vec2 position, vec2 scale, bool should_break_instantly, float degrade_speed, bool is_time_controllable, json& tile_id_array, int stride);
 Entity create_time_controllable_breakable_static_platform(vec2 position, vec2 scale, bool should_break_instantly, float degrade_speed, json& tile_id_array, int stride);
 Entity create_pendulum(vec2 pivot_position, float length, float initial_angle, float bob_radius);
+Entity create_gear(vec2 position, vec2 size);
 float getDistance(const Motion& one, const Motion& other);
 Entity create_cannon_tower(vec2 pos);
 int get_tile_index(int pos_x, int pos_y, int offset_x, int offset_y, int stride);

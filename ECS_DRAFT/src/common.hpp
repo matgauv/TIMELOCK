@@ -130,6 +130,14 @@ const float PLAYER_ATTACK_DAMAGE = 20.0f;
 // Level parsing constants
 const int TILE_TO_PIXELS = 16;
 
+// APPROX gear measurements
+const int GEAR_CENTER_PX = 108;
+const int GEAR_TOOTH_PX = 19;
+const int GEAR_TOTAL_WIDTH = 124;
+
+const int GEAR_CENTER_RATIO = GEAR_CENTER_PX / GEAR_TOTAL_WIDTH;
+const int GEAR_TOOTH_RATIO = GEAR_TOOTH_PX / GEAR_TOTAL_WIDTH;
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f
 #endif

@@ -264,6 +264,21 @@ struct Mesh
 	std::vector<uint16_t> vertex_indices;
 };
 
+struct SubMesh {
+	Mesh* original_mesh;
+	std::vector<vec2> cached_vertices;
+	std::vector<vec2> cached_axes;
+	vec2 offset;
+	float rotation = 0.0f;
+	vec2 world_pos = { 0, 0 };
+	bool cache_invalidated = true;
+};
+
+struct CompositeMesh {
+	std::vector<SubMesh> meshes;
+};
+
+
 // Marks an entity as responsive to time control
 // will accelerate/decelerate when time control is used
 struct TimeControllable
@@ -406,7 +421,8 @@ enum class TEXTURE_ASSET_ID {
 	DECEL2 = DECEL + 1,
 	ACCEL = DECEL2 + 1,
 	PENDULUM = ACCEL + 1,
-	TEXTURE_COUNT = PENDULUM + 1,
+	GEAR = PENDULUM + 1,
+	TEXTURE_COUNT = GEAR + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

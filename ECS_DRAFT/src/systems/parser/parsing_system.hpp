@@ -33,6 +33,7 @@ private:
     void init_cannons(json cannons);
     void init_ladders(json ladders);
     void init_pendulums(json pendulums);
+    void init_gears(json gears);
 
     void extract_full_platform_dimensions(json platform, vec2& dimensions);
     void extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos, bool& rounded);

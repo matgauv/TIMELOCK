@@ -119,6 +119,8 @@ void LevelParsingSystem::init_level_entities() {
             init_ladders(entity_list);
         } else if (entity_type == "Pendulum") {
             init_pendulums(entity_list);
+        } else if (entity_type == "Gear") {
+            init_gears(entity_list);
         }
     }
 }
@@ -151,6 +153,14 @@ void LevelParsingSystem::init_pendulums(json pendulum) {
 
         create_pendulum(pivot_position, length, initial_angle, bob_radius);
 
+    }
+}
+
+void LevelParsingSystem::init_gears(json gears) {
+    for (json gear : gears) {
+        vec2 position = {gear["x"], gear["y"]};
+        vec2 size_px = {gear["customFields"]["width"], gear["customFields"]["height"]};
+        create_gear(position, size_px);
     }
 }
 

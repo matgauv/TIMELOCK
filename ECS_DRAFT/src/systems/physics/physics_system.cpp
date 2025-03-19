@@ -56,11 +56,56 @@ void compute_platform_verticies(Motion& motion, Entity& e, float& angle_cos, flo
 	}
 }
 
+void compute_composite_mesh_vertices(Motion& motion, Entity& e) {
+	CompositeMesh& compositeMesh = registry.compositeMeshes.get(e);
+
+	for (SubMesh& sub_mesh : compositeMesh.meshes) {
+		if (motion.cache_invalidated || sub_mesh.cache_invalidated) {
+			sub_mesh.cached_vertices.clear();
+			sub_mesh.cached_axes.clear();
+
+			float angle = motion.angle + sub_mesh.rotation;
+			float cos_angle = cos(angle);
+			float sin_angle = sin(angle);
+
+			vec2 rotated_offset = {
+				sub_mesh.offset.x * cos_angle - sub_mesh.offset.y * sin_angle,
+				sub_mesh.offset.x * sin_angle + sub_mesh.offset.y * cos_angle,
+			};
+
+			sub_mesh.world_pos = rotated_offset + motion.position;
+
+			for (const auto& vertex : sub_mesh.original_mesh->vertices) {
+				vec2 scaled = {vertex.position.x *  motion.scale.x, vertex.position.y *  motion.scale.y};
+				vec2 rotated = {
+					scaled.x * cos_angle - scaled.y * sin_angle,
+					scaled.x * sin_angle + scaled.y * cos_angle,
+				};
+
+				vec2 vertex_pos = rotated + sub_mesh.world_pos;
+				sub_mesh.cached_vertices.push_back(vertex_pos);
+			}
+
+			// TODO put this in a different place?
+			for (size_t i = 0; i < sub_mesh.cached_vertices.size(); i++) {
+				vec2 edge = sub_mesh.cached_vertices[(i +1) % sub_mesh.cached_vertices.size()] - sub_mesh.cached_vertices[i];
+				vec2 normal = normalize(vec2{-edge.y, edge.x});
+				sub_mesh.cached_axes.push_back(normal);
+			}
+
+			sub_mesh.cache_invalidated = false;
+		}
+	}
+}
+
 
 void compute_vertices(Motion& motion, Entity& e) {
 	motion.cached_vertices.clear();
 	float angle_cos = cos(motion.angle);
 	float angle_sin = sin(motion.angle);
+
+	// compute the verticies for each of the sub meshes...
+	if (registry.compositeMeshes.has(e)) return compute_composite_mesh_vertices(motion, e);
 
 
 	if (registry.meshPtrs.has(e))
@@ -258,16 +303,9 @@ std::pair<float, float> project(const std::vector<vec2>& verts, const vec2& axis
 	return {min_proj, max_proj};
 }
 
-
 // see here for details https://dyn4j.org/2010/01/sat/
-// computes collision between any two convex shapes (MUST be convex)
-Collision compute_sat_collision(Motion& a_motion, Motion& b_motion, Entity a, Entity b) {
-	std::vector<vec2>& a_verts = a_motion.cached_vertices;
-	std::vector<vec2>& b_verts = b_motion.cached_vertices;
-	std::vector<vec2>& a_axes = a_motion.cached_axes;
-	std::vector<vec2>& b_axes = b_motion.cached_axes;
-
-
+// computes collision between any two shapes, must be convex!
+Collision compute_convex_collision(const std::vector<vec2>& a_verts, const std::vector<vec2>& a_axes, const std::vector<vec2>& b_verts, const std::vector<vec2>& b_axes, const vec2& a_position, const vec2& b_position, Entity a, Entity b) {
 	float min_overlap = FLT_MAX;
 	vec2 smallest_axis;
 
@@ -321,7 +359,7 @@ Collision compute_sat_collision(Motion& a_motion, Motion& b_motion, Entity a, En
 	}
 
 	// make sure that the normal points from A -> B
-	vec2 direction = a_motion.position - b_motion.position;
+	vec2 direction = a_position - b_position;
 	if (dot(direction, smallest_axis) < 0) {
 		smallest_axis *= -1;
 	}
@@ -329,7 +367,83 @@ Collision compute_sat_collision(Motion& a_motion, Motion& b_motion, Entity a, En
 	// the smallest axis is where the shapes overlap the least ->
 	// the minimal amount we need to move one shape to resolve the collision
 	// (the axis are represented by the normals)
-    return Collision{ b.id(), min_overlap * smallest_axis, smallest_axis };
+	return Collision{ b.id(), min_overlap * smallest_axis, smallest_axis };
+}
+
+// convex decomposition for SAT -> basically just check collision between each submesh
+Collision compute_sat_collision(Motion& a_motion, Motion& b_motion, Entity a, Entity b) {
+	Collision strongest_collision{b.id(), vec2{0,0}, vec2{0,0}};
+	float max_overlap_length = 0.0f;
+
+	// small helper method that
+	auto check_submesh_collision = [&](
+		const std::vector<vec2>& verts_a, const std::vector<vec2>& axes_a, vec2 pos_a,
+		const std::vector<vec2>& verts_b, const std::vector<vec2>& axes_b, vec2 pos_b
+	) {
+		Collision collision = compute_convex_collision(verts_a, axes_a, verts_b, axes_b, pos_a, pos_b, a, b);
+
+		if (collision.normal != vec2{0, 0}) {
+			float overlap = length(collision.overlap);
+			if (overlap > max_overlap_length) {
+				max_overlap_length = overlap;
+				strongest_collision = collision;
+			}
+		}
+	};
+
+	bool a_is_composite = registry.compositeMeshes.has(a);
+	bool b_is_composite = registry.compositeMeshes.has(b);
+
+	// Both are composite meshes
+	if (a_is_composite && b_is_composite) {
+		CompositeMesh& a_composite = registry.compositeMeshes.get(a);
+		CompositeMesh& b_composite = registry.compositeMeshes.get(b);
+
+		// here we must loop through each submesh of A and check for collision between each submesh of B
+		for (const SubMesh& a_sub_mesh : a_composite.meshes) {
+			for (const SubMesh& b_sub_mesh : b_composite.meshes) {
+				check_submesh_collision(
+					a_sub_mesh.cached_vertices, a_sub_mesh.cached_axes, a_sub_mesh.world_pos,
+					b_sub_mesh.cached_vertices, b_sub_mesh.cached_axes, b_sub_mesh.world_pos);
+			}
+		}
+	}
+
+	// A is composite, B is not
+	else if (a_is_composite) {
+		CompositeMesh& a_composite = registry.compositeMeshes.get(a);
+
+		// now we just have to check all of the submeshes of A against B
+		for (const SubMesh& a_submesh : a_composite.meshes) {
+			check_submesh_collision(
+				a_submesh.cached_vertices, a_submesh.cached_axes, a_submesh.world_pos,
+				b_motion.cached_vertices, b_motion.cached_axes, b_motion.position
+			);
+		}
+	}
+
+	// B is composite, A is not
+	else if (b_is_composite) {
+		CompositeMesh& b_composite = registry.compositeMeshes.get(b);
+
+		// check sub meshes of B against A
+		for (const SubMesh& b_submesh : b_composite.meshes) {
+			check_submesh_collision(
+				a_motion.cached_vertices, a_motion.cached_axes, a_motion.position,
+				b_submesh.cached_vertices, b_submesh.cached_axes, b_submesh.world_pos
+			);
+		}
+	}
+
+	// otheriwse, just a normal convex collision
+	else {
+		check_submesh_collision(
+		 a_motion.cached_vertices, a_motion.cached_axes, a_motion.position,
+		 b_motion.cached_vertices, b_motion.cached_axes, b_motion.position
+		 );
+	}
+
+	return strongest_collision;
 }
 
 // detect collisions between all moving entities.

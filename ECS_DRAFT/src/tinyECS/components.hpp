@@ -270,6 +270,7 @@ struct SubMesh {
 	std::vector<vec2> cached_axes;
 	vec2 offset;
 	float rotation = 0.0f;
+	float scale_ratio = 1.0f;
 	vec2 world_pos = { 0, 0 };
 	bool cache_invalidated = true;
 };

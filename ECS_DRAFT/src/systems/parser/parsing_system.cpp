@@ -118,7 +118,7 @@ void LevelParsingSystem::init_level_entities() {
         } else if (entity_type == "Ladder") {
             init_ladders(entity_list);
         } else if (entity_type == "Pendulum") {
-            init_pendulums(entity_list);
+       //     init_pendulums(entity_list);
         } else if (entity_type == "Gear") {
             init_gears(entity_list);
         }

@@ -1,4 +1,8 @@
 #include "world_init.hpp"
+
+#include <cfloat>
+#include <iostream>
+
 #include "../../tinyECS/registry.hpp"
 #include "systems/rendering/render_system.hpp"
 
@@ -784,7 +788,9 @@ Entity create_pendulum(vec2 pivot_position, float length, float initial_angle, f
 Mesh* get_mesh_from_file(std::string filename) {
     Mesh* mesh = new Mesh();
     Mesh::loadFromOBJFile(filename, mesh->vertices, mesh->vertex_indices, mesh->original_size);
+    return mesh;
 }
+
 
 Entity create_gear(vec2 position, vec2 size) {
     Entity entity = Entity();
@@ -804,19 +810,52 @@ Entity create_gear(vec2 position, vec2 size) {
 
     float inner_radius = (size.x / 2.0f) * GEAR_CENTER_RATIO;
 
+    float tooth_length = (size.x / 2.0f) * GEAR_TOOTH_RATIO;
+
+    std::cout << GEAR_CENTER_RATIO << std::endl;
+
     Mesh* mesh = createCircleMesh(entity, 16);
     SubMesh sub_mesh = SubMesh{};
     sub_mesh.original_mesh = mesh;
+    sub_mesh.scale_ratio = GEAR_CENTER_RATIO;
 
     compositeMesh.meshes.push_back(sub_mesh);
 
-    // TODO: this is bad, only should do once total (not per gear)...
-    Mesh* nesw_tooth = get_mesh_from_file("step-jagged-ne-sw.obj");
-    Mesh* nwse_tooth = get_mesh_from_file("step-jagged-nw-se.obj");
-    Mesh* ew_tooth = get_mesh_from_file("step-teeth.obj");
+    // TODO: this is real bad, only should do once total (not per gear)...
+    Mesh* nesw_tooth = get_mesh_from_file(data_path() + "/meshes/step-jagged-ne-sw.obj");
+    Mesh* nwse_tooth = get_mesh_from_file(data_path() + "/meshes/step-jagged-nw-se.obj");
+    Mesh* ew_tooth = get_mesh_from_file(data_path() + "/meshes/step-teeth.obj");
 
-    SubMesh ne_tooth = SubMesh{};
-    ne_tooth.original_mesh = mesh;
+    // lil helper to add the tooth
+    auto add_tooth = [&](Mesh* tooth_mesh, float angle_rad, float scale_ratio, bool flip = false) {
+        SubMesh tooth = SubMesh{};
+        tooth.original_mesh = tooth_mesh;
+        tooth.scale_ratio = scale_ratio;
+
+
+        tooth.offset = {
+            (inner_radius + tooth_length) * cos(angle_rad),
+            (inner_radius + tooth_length) * sin(angle_rad)
+        };
+
+        compositeMesh.meshes.push_back(tooth);
+    };
+
+    // angles, TODO put these in header?
+    float west_angle = 0.0f;
+    float southwest_angle = M_PI * 0.33f;
+    float southeast_angle = M_PI * 0.66f;
+    float east_angle = M_PI;
+    float northwest_angle = M_PI * 1.33f;
+    float northeast_angle = M_PI * 1.66f;
+
+     add_tooth(ew_tooth, east_angle, GEAR_TOOTH_RATIO, false);
+     add_tooth(nesw_tooth, northeast_angle, GEAR_TOOTH_RATIO, false);
+     add_tooth(nwse_tooth, southeast_angle, GEAR_TOOTH_RATIO, false);
+
+     add_tooth(ew_tooth, west_angle, GEAR_TOOTH_RATIO, true);
+     add_tooth(nesw_tooth, southwest_angle, GEAR_TOOTH_RATIO, true);
+     add_tooth(nwse_tooth, northwest_angle, GEAR_TOOTH_RATIO, true);
 
     registry.renderRequests.insert(entity, {
         TEXTURE_ASSET_ID::GEAR,

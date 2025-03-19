@@ -75,8 +75,10 @@ void compute_composite_mesh_vertices(Motion& motion, Entity& e) {
 
 			sub_mesh.world_pos = rotated_offset + motion.position;
 
-			for (const auto& vertex : sub_mesh.original_mesh->vertices) {
-				vec2 scaled = {vertex.position.x *  motion.scale.x, vertex.position.y *  motion.scale.y};
+			for (auto& vertex : sub_mesh.original_mesh->vertices) {
+
+				vec2 scaled = {vertex.position.x *  motion.scale.x * sub_mesh.scale_ratio, vertex.position.y *  motion.scale.y * sub_mesh.scale_ratio};
+
 				vec2 rotated = {
 					scaled.x * cos_angle - scaled.y * sin_angle,
 					scaled.x * sin_angle + scaled.y * cos_angle,
@@ -86,7 +88,7 @@ void compute_composite_mesh_vertices(Motion& motion, Entity& e) {
 				sub_mesh.cached_vertices.push_back(vertex_pos);
 			}
 
-			// TODO put this in a different place?
+			// TODO put this in a different place? can probable generalize this logic...
 			for (size_t i = 0; i < sub_mesh.cached_vertices.size(); i++) {
 				vec2 edge = sub_mesh.cached_vertices[(i +1) % sub_mesh.cached_vertices.size()] - sub_mesh.cached_vertices[i];
 				vec2 normal = normalize(vec2{-edge.y, edge.x});

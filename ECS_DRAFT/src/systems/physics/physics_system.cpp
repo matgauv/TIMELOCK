@@ -148,11 +148,23 @@ void PhysicsSystem::step(float elapsed_ms) {
 
 	drop_bolt_when_player_near(DISTANCE_TO_DROP_BOLT);
 
+	for (uint i = 0; i < registry.pendulums.size(); i++) {
+		Entity entity = registry.pendulums.entities[i];
+		update_pendulum(entity, step_seconds);
+	}
+
+	update_pendulum_rods();
+
 	for(uint i = 0; i< motion_registry.size(); i++)
 	{
+
 		Motion& motion = motion_registry.components[i];
 		Entity& entity = motion_registry.entities[i];
 
+		// we handle the pendulum motion separately
+		if (registry.pendulums.has(entity)) {
+			continue;
+		}
 
 		if (registry.physicsObjects.has(entity)) {
 			if (registry.physicsObjects.get(entity).apply_gravity) apply_gravity(entity, motion, step_seconds);
@@ -369,6 +381,55 @@ void PhysicsSystem::rotate_projectile(Entity& entity, Motion& motion, float step
 	float angularSpeed = 40.0f;
 	motion.angle -= angularSpeed * step_seconds;
 	motion.cache_invalidated = true;
+}
+
+// pendulum physics based off of this https://www.acs.psu.edu/drussell/Demos/Pendulum/Pendulum.html
+//									  https://stackoverflow.com/questions/34819949/modelling-a-pendulum-in-c
+// basically, just the equation: d²θ/dt² = -(g/L)sin(θ))
+void PhysicsSystem::update_pendulum(Entity& entity, float step_seconds) {
+	Pendulum& pendulum = registry.pendulums.get(entity);
+	Motion& motion = registry.motions.get(entity);
+
+	float g = GRAVITY / pendulum.length;
+	float angular_accel = -g * sin(pendulum.current_angle);
+
+	pendulum.angular_velocity += angular_accel * step_seconds;
+	pendulum.angular_velocity *= (1.0f - pendulum.damping * step_seconds); // will slow the pendulum down
+
+	pendulum.current_angle += pendulum.angular_velocity * step_seconds;
+
+	motion.position.x = pendulum.pivot_point.x + pendulum.length * sin(pendulum.current_angle);
+	motion.position.y = pendulum.pivot_point.y + pendulum.length * cos(pendulum.current_angle);
+
+	// TODO: do we need this? is it okay to handle angle separately?
+	motion.angle = pendulum.current_angle + M_PI/2;
+
+	// need the x and y velocity for collision handling
+	motion.velocity.x = pendulum.angular_velocity * pendulum.length * cos(pendulum.current_angle);
+	motion.velocity.y = -pendulum.angular_velocity * pendulum.length * sin(pendulum.current_angle);
+	motion.cache_invalidated = true;
+}
+
+// after updating all of the pendulum bobs, also update their rods
+void PhysicsSystem::update_pendulum_rods() {
+	for (uint i = 0; i < registry.pendulumRods.size(); i++) {
+        Entity rod_entity = registry.pendulumRods.entities[i];
+		PendulumRod& rod = registry.pendulumRods.components[i];
+
+		Entity bob_entity = Entity(rod.bob_id);
+		if (!registry.pendulums.has(bob_entity))
+			continue;
+
+		Pendulum& pendulum = registry.pendulums.get(bob_entity);
+		Motion& bob_motion = registry.motions.get(bob_entity);
+		Motion& rod_motion = registry.motions.get(rod_entity);
+
+		rod_motion.position = (pendulum.pivot_point + bob_motion.position) * 0.5f;
+		rod_motion.scale.x = glm::length(bob_motion.position - pendulum.pivot_point);
+		rod_motion.angle = atan2(bob_motion.position.y - pendulum.pivot_point.y,
+								bob_motion.position.x - pendulum.pivot_point.x);
+
+	}
 }
 
 // accelerates the entity by GRAVITY until it reaches the max_speed (terminal velocity)

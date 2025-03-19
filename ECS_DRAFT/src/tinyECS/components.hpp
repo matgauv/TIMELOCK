@@ -98,6 +98,19 @@ struct Boundary
 {
 };
 
+// Swinging Pendulum
+struct Pendulum {
+	vec2 pivot_point;
+	float length;
+	float current_angle;
+	float angular_velocity;
+	float damping = 0.0f; // optional, 0-1
+};
+
+struct PendulumRod {
+	unsigned int bob_id;
+};
+
 // Path for moving sprite
 struct Path {
 	vec2 start;
@@ -276,11 +289,6 @@ struct Text
 	Entity textEntity;
 };
 
-// A struct indicating that an entity is a swinging pendulum
-struct Pendulum
-{
-
-};
 
 // A struct indicating that an entity is a clock gear
 struct Gear

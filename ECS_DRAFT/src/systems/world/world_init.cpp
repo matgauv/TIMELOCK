@@ -683,6 +683,94 @@ Entity create_time_controllable_breakable_static_platform(vec2 position, vec2 sc
     return entity;
 }
 
+void createCircleMesh(Entity e, float radius, int segments) {
+    Mesh* mesh = new Mesh();
+
+    for (int i = 0; i < segments; i++) {
+        float theta = 2.0f * M_PI * float(i) / float(segments);
+        float x = radius * cosf(theta);
+        float y = radius * sinf(theta);
+
+        ColoredVertex vertex;
+        vertex.position.x = x;
+        vertex.position.y = y;
+        vertex.color = {1.0f, 1.0f, 1.0f};
+        mesh->vertices.push_back(vertex);
+    }
+
+    registry.meshPtrs.emplace(e, mesh);
+}
+
+Entity createLine(vec2 start_pos, vec2 end_pos) {
+    Entity entity = Entity();
+
+    vec2 middle = (start_pos + end_pos) * 0.5f;
+
+    float len = length(end_pos - start_pos);
+    float angle = atan2(end_pos.y - start_pos.y, end_pos.x - start_pos.x);
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = {middle.x, middle.y};
+    motion.scale = {len, 1.0f};
+    motion.angle = angle;
+    motion.velocity = {0.0f, 0.0f};
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::BLACK,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+
+
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    return entity;
+}
+
+
+
+Entity create_pendulum(vec2 pivot_position, float length, float initial_angle, float bob_radius) {
+    Entity entity = Entity();
+
+    float bob_x = pivot_position.x + length * sin(initial_angle);
+    float bob_y = pivot_position.y + length * cos(initial_angle);
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = {bob_x, bob_y};
+    motion.angle = initial_angle + M_PI/2;
+    motion.velocity = {0.0f, 0.0f};
+
+    Pendulum& pendulum = registry.pendulums.emplace(entity);
+    pendulum.pivot_point = pivot_position;
+    pendulum.length = length;
+    pendulum.current_angle = initial_angle;
+    pendulum.angular_velocity = 0.0f;
+    pendulum.damping = 0.0f;
+
+    // these properties don't actually determine how the pendulum swings, they do determine how collisions behave
+    PhysicsObject& physics_object = registry.physicsObjects.emplace(entity);
+    physics_object.apply_gravity = false;
+    physics_object.drag_coefficient = 0.0f;
+    physics_object.mass = 10.0f;
+
+    createCircleMesh(entity, bob_radius, 16);
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::GREY_CIRCLE,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    Entity rod = createLine(pivot_position, motion.position);
+    PendulumRod& rod_component = registry.pendulumRods.emplace(rod);
+    rod_component.bob_id = entity.id();
+
+    return entity;
+}
+
+
 float getDistance(const Motion& one, const Motion& other) {
     return glm::length(one.position - other.position);
 }

@@ -44,6 +44,8 @@ private:
 	void player_climb(Entity& entity, Motion& motion, float step_seconds);
 	void move_object_along_path(Entity& entity, Motion& motion, float step_seconds);
 	void rotate_projectile(Entity& entity, Motion& motion, float step_seconds);
+	void update_pendulum(Entity& entity, float step_seconds);
+	void update_pendulum_rods();
 	void move_text(Entity& entity, Motion& motion, float step_seconds);
 	float clampToTarget(float value, float change, float target);
 	bool in(std::vector<unsigned int>& vec, unsigned int in);

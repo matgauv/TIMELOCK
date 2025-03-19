@@ -29,6 +29,7 @@ public:
 	ComponentContainer<Bolt> bolts;
 	ComponentContainer<Text> texts;
 	ComponentContainer<Pendulum> pendulums;
+	ComponentContainer<PendulumRod> pendulumRods;
 	ComponentContainer<Gear> gears;
 	ComponentContainer<Projectile> projectiles;
 	ComponentContainer<Rock> rocks;
@@ -72,6 +73,7 @@ public:
 		registry_list.push_back(&bolts);
 		registry_list.push_back(&texts);
 		registry_list.push_back(&pendulums);
+		registry_list.push_back(&pendulumRods);
 		registry_list.push_back(&gears);
 		registry_list.push_back(&projectiles);
 		registry_list.push_back(&rocks);

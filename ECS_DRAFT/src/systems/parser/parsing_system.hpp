@@ -33,11 +33,13 @@ private:
     void init_cannons(json cannons);
     void init_ladders(json ladders);
 
-    void extract_full_platform_dimensions(json platform, vec2& dimensions);
-    void extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos, bool& rounded);
-    void extract_path_attributes(json platform, vector<Path>& paths, vec2& startPos, vec2& dimensions, bool& rounded);
-    void extract_boundary_attributes(json boundary, vec2& dimensions, vec2& position);
+    bool extract_full_platform_dimensions(json platform, vec2& dimensions);
+    bool extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos, bool& rounded);
+    bool extract_path_attributes(json platform, vector<Path>& paths, vec2& startPos, vec2& dimensions, bool& rounded);
+    bool extract_boundary_attributes(json boundary, vec2& dimensions, vec2& position);
 
     vec2 convert_and_centralize_position(json pos, int conversion_factor);
     vec2 centralize_position(vec2 pos, int conversion_factor, bool is_x_axis);
+    bool validate_custom_field(json attribute, string attribute_name, string entity, vector<string> sub_attributes = {});
+    void print_parsing_error(string& error, string entity);
 };

@@ -132,7 +132,13 @@ void LevelParsingSystem::init_cannons(json cannons) {
 void LevelParsingSystem::init_ladders(json ladders) {
     for (json ladder : ladders) {
         vec2 position = {ladder["x"], ladder["y"]};
-        int height = ladder["customFields"]["height_tiles"];
+
+        json json_height_tiles = ladder["customFields"]["height_tiles"];
+        if (!validate_custom_field(json_height_tiles, "height_tiles", "LADDER")) {
+            continue;
+        }
+        int height = json_height_tiles;
+
         vec2 dimensions = {ladder["width"], ladder["height"]};
         create_ladder(position, dimensions, height, tile_id_array, stride);
     }
@@ -154,15 +160,26 @@ void LevelParsingSystem::init_boundaries(json boundaries) {
     for (json boundary : boundaries) {
         vec2 dimensions;
         vec2 position;
-        extract_boundary_attributes(boundary, dimensions, position);
+        if (!extract_boundary_attributes(boundary, dimensions, position)) {
+            continue;
+        }
         create_level_boundary(position, dimensions);
     }
 }
 
 void LevelParsingSystem::init_spikes(json spikes) {
     for (json spike : spikes) {
-        int num_spikes = spike["customFields"]["size"];
-        string direction = spike["customFields"]["direction"];
+        json json_num_spikes = spike["customFields"]["size"];
+        if (!validate_custom_field(json_num_spikes, "size", "SPIKE")) {
+            continue;
+        }
+        int num_spikes = json_num_spikes;
+
+        json json_direction = spike["customFields"]["direction"];
+        if (!validate_custom_field(json_direction, "direction", "SPIKE")) {
+            continue;
+        }
+        string direction = json_direction;
         bool is_x_axis = direction == "left" || direction == "right";
         int pos_stride = TILE_TO_PIXELS * (direction == "left" || direction == "up" ? -1 : 1);
 
@@ -196,10 +213,14 @@ void LevelParsingSystem::init_platforms(json platforms, bool moving) {
         bool rounded;
         if (moving) {
             vector<Path> path;
-            extract_path_attributes(platform, path, startPos, dimensions, rounded);
+            if (!extract_path_attributes(platform, path, startPos, dimensions, rounded)) {
+                continue;
+            }
             create_moving_platform(dimensions, path, startPos, tile_id_array, stride, rounded);
         } else {
-            extract_platform_attributes(platform, dimensions, startPos, rounded);
+            if (!extract_platform_attributes(platform, dimensions, startPos, rounded)) {
+                continue;
+            }
             create_static_platform(startPos, dimensions, tile_id_array, stride, rounded);
         }
     }
@@ -209,16 +230,23 @@ void LevelParsingSystem::init_platforms(json platforms, bool moving) {
  * HELPERS FOR EXTRACTING INFORMATION FROM JSON
  */
 
-void LevelParsingSystem::extract_boundary_attributes(json boundary, vec2& dimensions, vec2& position) {
+bool LevelParsingSystem::extract_boundary_attributes(json boundary, vec2& dimensions, vec2& position) {
     int x = boundary["x"];
     int y = boundary["y"];
     vec2 start_pos = vec2{x / TILE_TO_PIXELS, y / TILE_TO_PIXELS};
 
     json end_pos_json = boundary["customFields"]["length"];
+    if (!validate_custom_field(end_pos_json, "length", "BOUNDARY")) {
+        return false;
+    }
     vec2 end_pos = {end_pos_json["cx"], end_pos_json["cy"]};
 
     int size;
-    string direction = boundary["customFields"]["direction"];
+    json json_direction = boundary["customFields"]["direction"];
+    if (!validate_custom_field(json_direction, "direction", "BOUNDARY")) {
+        return false;
+    }
+    string direction = json_direction;
 
     int conversion_factor;
     bool is_x_axis;
@@ -248,35 +276,56 @@ void LevelParsingSystem::extract_boundary_attributes(json boundary, vec2& dimens
     }
 
     position = centralize_position(start_pos, conversion_factor, is_x_axis);
+    return true;
 }
 
 
-void LevelParsingSystem::extract_full_platform_dimensions(json platform, vec2& dimensions) {
-    int full_size = platform["customFields"]["size"];
+bool LevelParsingSystem::extract_full_platform_dimensions(json platform, vec2& dimensions) {
+    json json_size = platform["customFields"]["size"];
+    if (!validate_custom_field(json_size, "size", "PLATFORM")) {
+        return false;
+    }
+    int full_size = json_size;
     int full_width = full_size * static_cast<int>(platform["width"]);
     dimensions = {full_width, platform["height"]};
+
+    return true;
 }
 
-void LevelParsingSystem::extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos, bool& rounded) {
-    extract_full_platform_dimensions(platform, dimensions);
+bool LevelParsingSystem::extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos, bool& rounded) {
+    if (!extract_full_platform_dimensions(platform, dimensions)) {
+        return false;
+    }
 
     int left_x = static_cast<int>(platform["x"]) - (static_cast<int>(platform["width"]) / 2);
     int start_x = left_x + (static_cast<int>(dimensions[0]) / 2);
     startPos = {start_x, platform["y"]};
 
-    rounded = platform["customFields"]["rounded"];
+    json json_rounded = platform["customFields"]["rounded"];
+    if (!validate_custom_field(json_rounded, "rounded", "PLATFORM")) {
+        return false;
+    }
+    rounded = json_rounded;
+
+    return true;
 }
 
-void LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& paths, vec2& init_pos_in_path, vec2& dimensions, bool& rounded) {
+bool LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& paths, vec2& init_pos_in_path, vec2& dimensions, bool& rounded) {
     extract_full_platform_dimensions(platform, dimensions);
 
     // currently all position values in json are relative to leftmost tile in platform -- need to centralize position on x-axis.
     int conversion_factor = (static_cast<int>(dimensions.x) / 2) - (static_cast<int>(platform["width"]) / 2);
 
     json start_pos_json = platform["customFields"]["start"];
+    if (!validate_custom_field(start_pos_json, "start", "MOVING PLATFORM", {"cx", "cy"})) {
+        return false;
+    }
     vec2 start_pos = convert_and_centralize_position(start_pos_json, conversion_factor);
 
     json end_pos_json = platform["customFields"]["end"];
+    if (!validate_custom_field(end_pos_json, "start", "MOVING PLATFORM", {"cx", "cy"})) {
+        return false;
+    }
     vec2 end_pos = convert_and_centralize_position(end_pos_json, conversion_factor);
 
     int left_x = static_cast<int>(platform["x"]) - (static_cast<int>(platform["width"]) / 2);
@@ -284,7 +333,11 @@ void LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& pa
     init_pos_in_path = {start_x, platform["y"]};
 
     // set duration to default value of 0.5 if no duration is set.
-    float duration = platform["customFields"]["duration"];
+    json json_duration = platform["customFields"]["duration"];
+    if (!validate_custom_field(json_duration, "duration", "MOVING PLATFORM")) {
+        return false;
+    }
+    float duration = json_duration;
     if (duration == 0.0) {
         duration = 0.5;
     }
@@ -294,8 +347,13 @@ void LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& pa
     paths.push_back(forward);
     paths.push_back(backward);
 
-    rounded = platform["customFields"]["rounded"];
+    json json_rounded = platform["customFields"]["rounded"];
+    if (!validate_custom_field(json_rounded, "rounded", "MOVING PLATFORM")) {
+        return false;
+    }
+    rounded = json_rounded;
 
+    return true;
 }
 
 /*
@@ -328,4 +386,32 @@ vec2 LevelParsingSystem::centralize_position(vec2 pos, int conversion_factor, bo
         pos.x * TILE_TO_PIXELS + (is_x_axis ? conversion_factor : 0),
         pos.y * TILE_TO_PIXELS + (!is_x_axis ? conversion_factor : 0)
     });
+}
+
+bool LevelParsingSystem::validate_custom_field(json attribute, string attribute_name, string entity, vector<string> sub_attributes) {
+    if (attribute.is_null()) {
+        string error = "NULL value for customField: " + attribute_name;
+        print_parsing_error(error, entity);
+        return false;
+    }
+
+    if (!sub_attributes.empty()) {
+        for (const string& sub : sub_attributes) {
+            if (!validate_custom_field(attribute[sub], sub, entity)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+void LevelParsingSystem::print_parsing_error(string& error, string entity) {
+    // set the line color to red in console
+    cout << "\033[91m";
+
+    cout << "Error when parsing " << entity << ": " << error << endl;
+
+    // set the line color back to normal in console
+    cout << "\033[0m";
 }

@@ -169,11 +169,11 @@ void LevelParsingSystem::init_boundaries(json boundaries) {
 
 void LevelParsingSystem::init_spikes(json spikes) {
     for (json spike : spikes) {
-        json json_num_spikes = spike["customFields"]["size"];
-        if (!validate_custom_field(json_num_spikes, "size", "SPIKE")) {
+        json json_end_pos = spike["customFields"]["length"];
+        if (!validate_custom_field(json_end_pos, "length", "SPIKE", {"cx", "cy"})) {
             continue;
         }
-        int num_spikes = json_num_spikes;
+        vec2 end_pos = {static_cast<int>(json_end_pos["cx"]) * TILE_TO_PIXELS, static_cast<int>(json_end_pos["cy"]) * TILE_TO_PIXELS};
 
         json json_direction = spike["customFields"]["direction"];
         if (!validate_custom_field(json_direction, "direction", "SPIKE")) {
@@ -185,6 +185,8 @@ void LevelParsingSystem::init_spikes(json spikes) {
 
         vec2 dimensions = {spike["width"], spike["height"]};
         vec2 start_pos = {spike["x"], spike["y"]};
+        int num_spikes = is_x_axis ? abs(end_pos.x - start_pos.x) / dimensions.x : abs(end_pos.y - start_pos.y) / dimensions.y;
+
         for (int i = 0; i < num_spikes; i++) {
             vec2 position;
             if (is_x_axis) {
@@ -192,7 +194,6 @@ void LevelParsingSystem::init_spikes(json spikes) {
             } else {
                 position = {start_pos.x, start_pos.y + (i * pos_stride)};
             }
-
             create_spike(position, dimensions, tile_id_array, stride);
         }
     }

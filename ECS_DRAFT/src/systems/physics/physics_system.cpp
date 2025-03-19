@@ -398,7 +398,7 @@ void PhysicsSystem::update_pendulum(Entity& entity, float step_seconds) {
 	pendulum.angular_velocity += angular_accel * modified_step_seconds;
 	pendulum.angular_velocity *= (1.0f - pendulum.damping * modified_step_seconds); // will slow the pendulum down
 
-	pendulum.current_angle += pendulum.angular_velocity * step_seconds;
+	pendulum.current_angle += pendulum.angular_velocity * modified_step_seconds;
 
 	motion.position.x = pendulum.pivot_point.x + pendulum.length * sin(pendulum.current_angle);
 	motion.position.y = pendulum.pivot_point.y + pendulum.length * cos(pendulum.current_angle);

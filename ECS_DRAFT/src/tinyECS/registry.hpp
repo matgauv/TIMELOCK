@@ -50,6 +50,7 @@ public:
 	ComponentContainer<Breakable> breakables;
 	ComponentContainer<CannonTower> cannonTowers;
 	ComponentContainer<CannonBarrel> cannonBarrels;
+	ComponentContainer<Door> doors;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -93,6 +94,7 @@ public:
 		registry_list.push_back(&breakables);
 		registry_list.push_back(&cannonTowers);
 		registry_list.push_back(&cannonBarrels);
+		registry_list.push_back(&doors);
 	}
 
 	void clear_all_components() {

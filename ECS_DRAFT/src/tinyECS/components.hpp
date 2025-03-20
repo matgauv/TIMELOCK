@@ -341,6 +341,12 @@ struct Tile
 	vec2 offset = vec2{0.0f,0.0f};
 };
 
+// exit door to go to next level.
+struct Door
+{
+	bool opened = false;
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -464,6 +470,7 @@ struct AnimateRequest {
 
 struct LevelState {
 	std::string curr_level_folder_name;
+	std::string next_level_folder_name;
 	TEXTURE_ASSET_ID ground;
 	bool shouldLoad = false;
 	vec2 dimensions;

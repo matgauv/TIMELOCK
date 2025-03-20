@@ -27,6 +27,13 @@ void LevelParsingSystem::step(float elapsed_ms) {
         return;
     }
 
+    json next_levels = json_data["neighbourLevels"];
+    if (!next_levels.empty()) {
+        level_state.next_level_folder_name = next_levels[0];
+    }
+
+    level_state.ground = level_ground_map.at(level_state.curr_level_folder_name);
+
     tile_id_array = json_data["layers"][0]["data"];
     stride = static_cast<int>(json_data["width"]) / TILE_TO_PIXELS;
 
@@ -104,7 +111,7 @@ void LevelParsingSystem::init_level_entities() {
         } else if (entity_type == "Spike") {
             init_spikes(entity_list);
         } else if (entity_type == "Door") {
-
+            init_doors(entity_list);
         } else if (entity_type == "Projectile") {
             init_projectiles(entity_list);
         } else if (entity_type == "Pipe") {
@@ -120,6 +127,20 @@ void LevelParsingSystem::init_level_entities() {
         } else if (entity_type == "Checkpoint") {
             init_checkpoints(entity_list);
         }
+    }
+}
+
+void LevelParsingSystem::init_doors(json doors) {
+    for (json door : doors) {
+        json json_open = door["customFields"]["open"];
+        if (!validate_custom_field(json_open, "open", door["iid"])) {
+            continue;
+        }
+        bool open = json_open;
+
+        vec2 position;
+        extract_door_position(door, position);
+        create_door(position, open, this->tile_id_array, this->stride);
     }
 }
 
@@ -239,6 +260,17 @@ void LevelParsingSystem::init_platforms(json platforms, bool moving) {
 /*
  * HELPERS FOR EXTRACTING INFORMATION FROM JSON
  */
+
+bool LevelParsingSystem::extract_door_position(json door, vec2& position) {
+    int x_start = static_cast<float>(door["x"]) - (0.5 * TILE_TO_PIXELS);
+    int y_start = static_cast<float>(door["y"]) + (0.5 * TILE_TO_PIXELS);
+
+    int x = x_start + (0.5 * DOOR_SIZE.x);
+    int y = y_start - (0.5 * DOOR_SIZE.y);
+
+    position = {x, y};
+    return true;
+}
 
 bool LevelParsingSystem::extract_boundary_attributes(json boundary, vec2& dimensions, vec2& position) {
     int x = boundary["x"];

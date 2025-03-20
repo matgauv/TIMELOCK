@@ -54,7 +54,6 @@ void WorldSystem::init(GLFWwindow* window) {
 
 	// This will be the first level we load when the game is started.
 	levelState.curr_level_folder_name = "Level_0";
-	levelState.ground = TEXTURE_ASSET_ID::D_TUTORIAL_GROUND;
 	levelState.shouldLoad = true;
 
 

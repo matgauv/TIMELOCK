@@ -488,6 +488,12 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			handle_object_rigid_collision(other, one, collision, step_seconds, groundedEntities);
 		}
 
+		if (registry.players.has(one) && registry.doors.has(other)) {
+			handle_player_door_collision();
+		} else if (registry.players.has(other) && registry.doors.has(other)) {
+			handle_player_door_collision();
+		}
+
 
 		if (registry.players.has(one) && registry.projectiles.has(other)) {
 			// TODO: should handle_player_projectile_collision() be handle_player_attack_collision() ?
@@ -572,6 +578,16 @@ void PhysicsSystem::handle_projectile_collision(Entity proj_entity, Entity other
 		registry.remove_all_components_of(proj_entity);
 	}
 }
+
+void PhysicsSystem::handle_player_door_collision() {
+	LevelState& ls = registry.levelStates.components[0];
+
+	if (ls.curr_level_folder_name == ls.next_level_folder_name) return;
+
+	ls.curr_level_folder_name = ls.next_level_folder_name;
+	ls.shouldLoad = true;
+}
+
 
 void PhysicsSystem::handle_player_ladder_collision(Entity& player_entity, Entity& ladder_entity, int step_seconds) {
 	Motion& player_motion = registry.motions.get(player_entity);

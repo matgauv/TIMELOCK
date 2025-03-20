@@ -1,4 +1,7 @@
 #include "world_init.hpp"
+
+#include <iostream>
+
 #include "../../tinyECS/registry.hpp"
 #include "systems/rendering/render_system.hpp"
 
@@ -271,21 +274,19 @@ Entity create_ladder(vec2 position, vec2 scale, int height, json tile_id_array, 
     Entity entity = Entity();
     registry.ladders.emplace(entity);
     Motion& motion = registry.motions.emplace(entity);
-    motion.position = {position.x, position.y - ((height / 2.0f) * TILE_TO_PIXELS) + (TILE_TO_PIXELS)};
-
     vec2 ladder_scale = {scale.x, scale.y * height};
     motion.scale = ladder_scale;
-
+    motion.position = {position.x, position.y + (0.5 * TILE_TO_PIXELS) - (0.5 * ladder_scale.y)};
     motion.velocity = {0, 0};
     motion.angle = 0.f;
 
-
+    int start_tile_y = motion.position.y - (0.5 * ladder_scale.y) + (0.5 * TILE_TO_PIXELS);
     for (int i = 0; i < height; i++) {
         Entity tile_entity = Entity();
-        int tile_arr_index = get_tile_index(position.x, position.y, 0, -i, stride);
+        int tile_arr_index = get_tile_index(position.x, start_tile_y, 0, i, stride);
 
         Tile& tile_component = registry.tiles.emplace(tile_entity);
-        tile_component.offset.y = -(height / 2.0f) + i;
+        tile_component.offset.y = i;
         tile_component.parent_id = entity.id();
         tile_component.id = tile_id_array[tile_arr_index];
 
@@ -683,12 +684,56 @@ Entity create_time_controllable_breakable_static_platform(vec2 position, vec2 sc
     return entity;
 }
 
+Entity create_door(vec2 position, bool open, json& tile_id_array, int stride) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = DOOR_SIZE;
+    motion.velocity = {0, 0};
+    motion.angle = 0.0f;
+
+    Door& door = registry.doors.emplace(entity);
+    door.opened = open;
+
+    int width_in_tiles = DOOR_SIZE.x / TILE_TO_PIXELS;
+    int height_in_tiles = DOOR_SIZE.y / TILE_TO_PIXELS;
+    vec2 first_tile_pos =
+    {
+        position.x - (0.5 * DOOR_SIZE.x) + (0.5 * TILE_TO_PIXELS),
+        position.y - (0.5 * DOOR_SIZE.y) + (0.5 * TILE_TO_PIXELS)
+    };
+
+    for (int i = 0; i < width_in_tiles; i++) {
+        for (int j = 0; j < height_in_tiles; j++) {
+            Entity tile_entity = Entity();
+
+            int tile_arr_index = get_tile_index(first_tile_pos.x, first_tile_pos.y, i, j, stride);
+
+            Tile& tile_component = registry.tiles.emplace(tile_entity);
+            tile_component.offset = {i, j};
+            tile_component.parent_id = entity.id();
+            tile_component.id = tile_id_array[tile_arr_index];
+
+            registry.renderRequests.insert(tile_entity, {
+                TEXTURE_ASSET_ID::TILE,
+                EFFECT_ASSET_ID::TILE,
+                GEOMETRY_BUFFER_ID::SPRITE
+            });
+
+            registry.layers.insert(tile_entity, { LAYER_ID::MIDGROUND });
+        }
+    }
+
+    return entity;
+}
+
 float getDistance(const Motion& one, const Motion& other) {
     return glm::length(one.position - other.position);
 }
 
 int get_tile_index(int pos_x, int pos_y, int offset_x, int offset_y, int stride) {
-    int tile_coord_y = pos_y / TILE_TO_PIXELS + offset_y;
+    int tile_coord_y = (pos_y / TILE_TO_PIXELS) + offset_y;
     int tile_coord_x = (pos_x / TILE_TO_PIXELS) + offset_x;
     return tile_coord_x + tile_coord_y * stride;
 }

@@ -264,11 +264,14 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		Tile& tile_info = registry.tiles.get(entity);
 		Motion& motion = registry.motions.get(tile_info.parent_id);
+
+		// starts from the top left tile of an object.
 		int tile_start_x = motion.position.x - (motion.scale.x / 2) + (0.5 * TILE_TO_PIXELS);
+		int tile_start_y = motion.position.y - (motion.scale.y / 2) + (0.5 * TILE_TO_PIXELS);
 
 		glUniform1i(tile_id_uloc, tile_info.id);
-		glUniform2f(tile_pos_uloc, (float)tile_start_x, motion.position.y);
-		glUniform2f(tile_offset_uloc, (float)(tile_info.offset.x * TILE_TO_PIXELS), (tile_info.offset.y * TILE_TO_PIXELS));
+		glUniform2f(tile_pos_uloc, (float)tile_start_x, (float)tile_start_y);
+		glUniform2f(tile_offset_uloc, (float)(tile_info.offset.x * TILE_TO_PIXELS), (float)(tile_info.offset.y * TILE_TO_PIXELS));
 		gl_has_errors();
 	}
 

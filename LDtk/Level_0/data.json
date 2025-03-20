@@ -6,7 +6,7 @@
 	"width": 5024,
 	"height": 1488,
 	"bgColor": "#696A79",
-	"neighbourLevels": [],
+	"neighbourLevels": ["Level_1"],
 	"customFields" : {},
 	"layers": [
 		{

@@ -148,10 +148,12 @@ const vec2 CANNON_BARREL_SIZE = vec2{ 80, 30 };
 const float CANNON_PROJECTILE_SPEED = 600.0f;
 const vec2 CANNON_PROJECTILE_SIZE = vec2 {30.0f, 30.0f};
 
+// door
+const vec2 DOOR_SIZE = vec2 { 2.0f * TILE_TO_PIXELS, 3.0f * TILE_TO_PIXELS };
+
 // Parsing constants
 const float PARSING_CANNON_Y_POS_DIFF = (0.5f * TILE_TO_PIXELS) - (CANNON_TOWER_SIZE.y / 2);
 const float PARSING_CHECKPOINT_Y_POS_DIFF = (0.5f * TILE_TO_PIXELS) - (SPAWNPOINT_SCALE.y / 2);
-
 
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)

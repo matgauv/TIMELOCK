@@ -247,17 +247,17 @@ Entity create_static_platform(vec2 position, vec2 scale, json &tile_id_array, in
         int tile_arr_index = get_tile_index(starting_tile_pos, position.y, i, 0, stride);
 
 
-        Tile &tile_component = registry.tiles.emplace(tile_entity);
+        Tile& tile_component = registry.tiles.emplace(tile_entity);
         tile_component.offset.x = i;
         tile_component.parent_id = entity.id();
         tile_component.id = tile_id_array[tile_arr_index];
 
 
         registry.renderRequests.insert(tile_entity, {
-                                           TEXTURE_ASSET_ID::TILE,
-                                           EFFECT_ASSET_ID::TILE,
-                                           GEOMETRY_BUFFER_ID::SPRITE
-                                       });
+           TEXTURE_ASSET_ID::TILE,
+           EFFECT_ASSET_ID::TILE,
+           GEOMETRY_BUFFER_ID::SPRITE
+       });
 
         registry.layers.insert(tile_entity, {LAYER_ID::MIDGROUND});
     }
@@ -804,6 +804,7 @@ Entity create_gear(vec2 position, vec2 size) {
 
     PhysicsObject& physics_object = registry.physicsObjects.emplace(entity);
     physics_object.apply_gravity = true;
+    physics_object.allow_physcis_rotation = true;
     physics_object.mass = 20.0f;
 
     CompositeMesh& compositeMesh = registry.compositeMeshes.emplace(entity);

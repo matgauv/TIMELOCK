@@ -145,6 +145,12 @@ struct PhysicsObject
 	float mass;
 	float friction = STATIC_FRICTION;
 	float drag_coefficient = 0.2f;
+	float moment_of_inertia = 0.0f;
+	vec2 center_of_mass = vec2{0.0f, 0.0f};
+	float rotational_damping = 0.1f; // slow rotation force
+	std::vector<vec2> support_points;
+
+	bool allow_physcis_rotation = false;
 	bool apply_gravity = true;
 };
 
@@ -157,6 +163,10 @@ struct Motion {
 	float frequency = 0.f;
 	float velocityModifier = 1.0f;
 	vec2  velocity = {0.0f, 0.0f};
+
+	float angular_velocity = 0.f;
+	float angular_acceleration = 0.f; // TODO: do we need to store accel here?
+
 	std::vector<vec2> cached_vertices;
 	std::vector<vec2> cached_axes;
 	bool cache_invalidated = true;

@@ -46,6 +46,14 @@ private:
 	void rotate_projectile(Entity& entity, Motion& motion, float step_seconds);
 	void update_pendulum(Entity& entity, float step_seconds);
 	void update_pendulum_rods();
+
+	void calculate_moment_of_inertia(Entity& entity);
+	std::vector<vec2> detect_support_points(Entity& entity);
+	bool is_stable(Entity& entity, std::vector<vec2>& support_points);
+
+	void apply_rotational_gravity(Entity& entity, float step_seconds);
+	void apply_torque_from_collision(Entity& entity, Collision& collision, vec2 contact_point);
+
 	void move_text(Entity& entity, Motion& motion, float step_seconds);
 	float clampToTarget(float value, float change, float target);
 	bool in(std::vector<unsigned int>& vec, unsigned int in);

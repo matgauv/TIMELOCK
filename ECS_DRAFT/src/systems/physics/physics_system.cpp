@@ -193,6 +193,11 @@ void PhysicsSystem::step(float elapsed_ms) {
 	auto& motion_registry = registry.motions;
 	float step_seconds = elapsed_ms / 1000.f;
 
+	for (uint i = 0; i < registry.physicsObjects.size(); i++) {
+		PhysicsObject& physics = registry.physicsObjects.components[i];
+		physics.support_points.clear();
+	}
+
 	drop_bolt_when_player_near(DISTANCE_TO_DROP_BOLT);
 
 	for (uint i = 0; i < registry.pendulums.size(); i++) {
@@ -200,8 +205,21 @@ void PhysicsSystem::step(float elapsed_ms) {
 		update_pendulum(entity, step_seconds);
 	}
 
+
+	// compute moments of inertia for everything...
+	// TODO: can we cache this?
+	for (uint i = 0; i < registry.physicsObjects.size(); i++) {
+		Entity entity = registry.physicsObjects.entities[i];
+		PhysicsObject& physics = registry.physicsObjects.components[i];
+
+		if (physics.moment_of_inertia <= 0 && physics.allow_physcis_rotation) {
+			calculate_moment_of_inertia(entity);
+		}
+	}
+
 	update_pendulum_rods();
 
+	// positional based physics updates
 	for(uint i = 0; i< motion_registry.size(); i++)
 	{
 
@@ -235,14 +253,6 @@ void PhysicsSystem::step(float elapsed_ms) {
 		}
 	}
 
-	// clear blocked...
-	for (Entity& entity : registry.physicsObjects.entities) {
-		if (registry.blocked.has(entity)) {
-			Blocked& blocked = registry.blocked.get(entity);
-			blocked.normal = vec2{0, 0};
-		}
-	}
-
 	for (Entity entity : registry.motions.entities) {
 		Motion& motion = registry.motions.get(entity);
 		if (motion.cache_invalidated) {
@@ -253,7 +263,42 @@ void PhysicsSystem::step(float elapsed_ms) {
 	}
 
 	detect_collisions();
+
+	// rotational based physics updates
+	for (uint i = 0; i < registry.physicsObjects.size(); i++)
+	{
+		Entity entity = registry.physicsObjects.entities[i];
+		PhysicsObject& physics = registry.physicsObjects.components[i];
+		Motion& motion = registry.motions.get(entity);
+
+		if (physics.allow_physcis_rotation)
+		{
+			apply_rotational_gravity(entity, step_seconds);
+
+			// update angular velocity and position
+			motion.angular_velocity += motion.angular_acceleration * step_seconds;
+			motion.angle += motion.angular_velocity * step_seconds;
+
+			// damp the velocity (TODO use air resistance??)
+			motion.angular_velocity *= (1.0f - physics.rotational_damping * step_seconds);
+
+			motion.angular_acceleration = 0;
+			motion.cache_invalidated = true;
+		}
+	}
+
 	handle_collisions(elapsed_ms);
+
+
+	// clear blocked...
+	for (Entity& entity : registry.physicsObjects.entities) {
+		if (registry.blocked.has(entity)) {
+			Blocked& blocked = registry.blocked.get(entity);
+			blocked.normal = vec2{0, 0};
+		}
+	}
+
+
 }
 
 // Handles all collisions detected in PhysicsSystem::step
@@ -556,6 +601,202 @@ void PhysicsSystem::update_pendulum_rods() {
 
 	}
 }
+
+
+void mesh_moment_of_inertia(Motion& motion, PhysicsObject& physics, Mesh* mesh, float width, float height, vec2 offset)
+{
+	float submesh_width = mesh->original_size.x * motion.scale.x;
+	float submesh_height = mesh->original_size.y * motion.scale.y;
+	float submesh_mass = physics.mass * (submesh_width * submesh_height) / (width * height);
+
+	float local_inertia = (submesh_mass / 12.0f) * (submesh_width * submesh_width + submesh_height * submesh_height);
+
+	// parallel axis theorem https://engineeringstatics.org/parallel-axis-theorem-section.html
+	float distance_squared = pow(length(offset - physics.center_of_mass), 2);
+	physics.moment_of_inertia += local_inertia + submesh_mass * distance_squared;
+}
+
+
+void PhysicsSystem::calculate_moment_of_inertia(Entity& entity)
+{
+	PhysicsObject& physics = registry.physicsObjects.get(entity);
+	Motion& motion = registry.motions.get(entity);
+
+	bool hasCompositeMesh = registry.compositeMeshes.has(entity);
+	bool hasMesh = registry.meshPtrs.has(entity) || hasCompositeMesh;
+
+	float width = motion.scale.x;
+	float height = motion.scale.y;
+
+	// if no mesh, compute with bounding box
+	if (!hasMesh)
+	{
+		// = (1/12 * mass * (width^2 + height^2))
+		// https://www.engineeringtoolbox.com/moment-inertia-torque-d_913.html
+		physics.moment_of_inertia = (physics.mass / 12.0f) * (width*width + height*height);
+	} else if (hasCompositeMesh)
+	{
+		CompositeMesh& composite = registry.compositeMeshes.get(entity);
+		physics.moment_of_inertia = 0.0f;
+
+		for (const SubMesh& submesh : composite.meshes)
+		{
+			mesh_moment_of_inertia(motion, physics, submesh.original_mesh, width, height, submesh.offset);
+		}
+	} else
+	{
+		Mesh* mesh = registry.meshPtrs.get(entity);
+		mesh_moment_of_inertia(motion, physics, mesh, width, height, physics.center_of_mass);
+	}
+}
+
+std::vector<vec2> PhysicsSystem::detect_support_points(Entity& entity)
+{
+	std::vector<vec2> support_points;
+
+	// not supported!
+	if (!registry.onGrounds.has(entity)) {
+		return support_points;
+	}
+
+	Motion& motion = registry.motions.get(entity);
+	Entity ground = Entity(registry.onGrounds.get(entity).other_id);
+
+	for (uint i = 0; i < registry.collisions.size(); i++)
+	{
+		Entity& e1 = registry.collisions.entities[i];
+		Collision& collision = registry.collisions.components[i];
+		Entity e2 = Entity(collision.other_id);
+
+		if ((e1.id() == entity.id() && e2.id() == ground.id()) || (e2.id() == entity.id() && e1.id() == ground.id())) {
+			// simple contact point detection
+			// TODO: can we use the actual collision points here?
+
+			std::cout << "ground collision detected" << std::endl;
+			vec2 contact_point = motion.position + collision.overlap * 0.5f;
+			support_points.push_back(contact_point);
+		}
+	}
+
+	return support_points;
+}
+
+// returns true if the center of mass projected onto the x axis is within the support points
+bool PhysicsSystem::is_stable(Entity& entity, std::vector<vec2>& support_points)
+{
+	if (support_points.size() <= 1)
+	{
+		return false;
+	}
+
+	Motion& motion = registry.motions.get(entity);
+	PhysicsObject& physics = registry.physicsObjects.get(entity);
+
+	// center of mass in world position
+	vec2 angle_cos_sin = {cos(motion.angle), sin(motion.angle)};
+	vec2 rotated_com = {
+		physics.center_of_mass.x * angle_cos_sin.x - physics.center_of_mass.y * angle_cos_sin.y,
+		physics.center_of_mass.x * angle_cos_sin.y + physics.center_of_mass.y * angle_cos_sin.x
+	};
+	vec2 world_center_of_mass = motion.position + rotated_com;
+
+	// check if center of mass projected lies within the support points
+	// since we are in 2d this can just be done with min/max
+	float min_x = FLT_MAX;
+	float max_x = -FLT_MAX;
+
+	for (const vec2& point : support_points)
+	{
+		max_x = std::max(max_x, point.x);
+		min_x = std::min(min_x, point.x);
+	}
+
+	bool is_stable = (world_center_of_mass.x >= min_x && world_center_of_mass.x <= max_x);
+	return is_stable;
+}
+
+
+void PhysicsSystem::apply_rotational_gravity(Entity& entity, float step_seconds)
+{
+	if (!registry.physicsObjects.has(entity)) return;
+
+	PhysicsObject& physics = registry.physicsObjects.get(entity);
+	if (!physics.allow_physcis_rotation) return;
+
+	Motion& motion = registry.motions.get(entity);
+
+	std::vector<vec2> support_points = detect_support_points(entity);
+
+	if (!is_stable(entity, support_points))
+	{
+		// center of mass in world space
+		vec2 angle_cos_sin = {cos(motion.angle), sin(motion.angle)};
+		vec2 rotated_com = {
+			physics.center_of_mass.x * angle_cos_sin.x - physics.center_of_mass.y * angle_cos_sin.y,
+			physics.center_of_mass.x * angle_cos_sin.y + physics.center_of_mass.y * angle_cos_sin.x
+		};
+		vec2 world_center_of_mass = motion.position + rotated_com;
+
+		// simulate as a lever nearest support point -> com
+		vec2 nearest_support = {0,0};
+		float min_dist = FLT_MAX;
+
+		if (!support_points.empty()) {
+			for (const vec2& point : support_points)
+			{
+				float dist = length(point - world_center_of_mass);
+				if (dist < min_dist)
+				{
+					min_dist = dist;
+					nearest_support = point;
+				}
+			}
+
+			vec2 lever_arm = world_center_of_mass - nearest_support;
+
+			// calculate torque -> in 2D, just a scalar
+			// = lever_arm x force
+			float force_mag = physics.mass * GRAVITY;
+			float torque = lever_arm.x * force_mag;
+
+			motion.angular_acceleration = torque / physics.moment_of_inertia;
+
+		//	std::cout << "appling rotational gravity: " << motion.angular_acceleration << std::endl;
+		} else {
+			// TODO: no support points...
+			// if no support points, randomly apply a
+			// motion.angular_acceleration += ((rand() % 100) / 100.0f - 0.5f) * 0.1f;
+		}
+	} else {
+		// otherwise, damp the rotation to slow down...
+		motion.angular_velocity *= (1.0f - physics.rotational_damping * step_seconds);
+	}
+}
+
+void PhysicsSystem::apply_torque_from_collision(Entity& entity, Collision& collision, vec2 contact_point)
+{
+	PhysicsObject& physics = registry.physicsObjects.get(entity);
+	Motion& motion = registry.motions.get(entity);
+
+	if (!physics.allow_physcis_rotation) return;
+
+	// center of mass in world space TODO make helper
+	vec2 angle_cos_sin = {cos(motion.angle), sin(motion.angle)};
+	vec2 rotated_com = {
+		physics.center_of_mass.x * angle_cos_sin.x - physics.center_of_mass.y * angle_cos_sin.y,
+		physics.center_of_mass.x * angle_cos_sin.y + physics.center_of_mass.y * angle_cos_sin.x
+	};
+	vec2 world_center_of_mass = motion.position + rotated_com;
+
+	vec2 lever_arm = contact_point - world_center_of_mass;
+	float force_magnitude = length(collision.overlap) * 100.0f;
+
+	vec2 force = collision.normal * force_magnitude;
+	float torque = lever_arm.x * force.y - lever_arm.y * force.x;
+	motion.angular_acceleration += torque / physics.moment_of_inertia;
+}
+
+
 
 // accelerates the entity by GRAVITY until it reaches the max_speed (terminal velocity)
 // TODO:: more terminal velocities
@@ -971,6 +1212,12 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
         motionA.velocity -= a_inv_mass * friction_impulse;
         motionB.velocity += b_inv_mass * friction_impulse;
     }
+
+	vec2 contact_point = motionA.position + collision.overlap * 0.5f;
+	apply_torque_from_collision(entityA, collision, contact_point);
+	Collision reversed_collision = collision;
+	reversed_collision.normal *= -1;
+	apply_torque_from_collision(entityB, reversed_collision, contact_point);
 
 }
 

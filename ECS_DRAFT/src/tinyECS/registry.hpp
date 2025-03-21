@@ -48,6 +48,7 @@ public:
 	ComponentContainer<CanonTower> canonTowers;
 	ComponentContainer<CanonBarrel> canonBarrels;
 	ComponentContainer<Particle> particles;
+	ComponentContainer<ParticleSystemState> particleSystemStates;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -89,6 +90,7 @@ public:
 		registry_list.push_back(&canonTowers);
 		registry_list.push_back(&canonBarrels);
 		registry_list.push_back(&particles);
+		registry_list.push_back(&particleSystemStates);
 	}
 
 	void clear_all_components() {

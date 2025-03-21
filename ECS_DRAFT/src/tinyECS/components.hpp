@@ -473,7 +473,19 @@ struct Particle {
 	float alpha = 1.0;
 	vec2 fade_in_out = { 0.0, 0.0 };
 	vec2 shrink_in_out = { 0.0, 0.0 };
+
+	// Wind -> constant addition to velocity
+	// Gravity -> contant acceleration
+	// Turbulence -> randomized acceleration
 	float wind_influence = 0.0;
 	float gravity_influence = 0.0;
 	float turbulence_influence = 0.0;
+};
+
+struct ParticleSystemState {
+	vec2 wind_field = { 0.0, 0.0 };
+	vec2 gravity_field = {0.0, GRAVITY};
+
+	float turbulence_strength = 0.0;
+	float turbulence_scale = 1.0;
 };

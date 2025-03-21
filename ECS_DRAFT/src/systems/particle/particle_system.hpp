@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chrono>
+
 #include "../../common.hpp"
 #include "../../tinyECS/component_container.hpp"
 #include "../../tinyECS/components.hpp"
@@ -40,4 +42,8 @@ private:
 		float wind_influence = 0.0, float gravity_influence = 0.0, float turbulence_influence = 0.0);
 
 	static bool handle_particle_type(Entity entity, PARTICLE_ID particle_id);
+
+	static vec3 seeded_pseudo_random(vec3 input);
+	static float sample_from_gradient_noise(vec3 input);
+	static float sample_from_turbulence(vec3 coord);
 };

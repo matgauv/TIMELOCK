@@ -41,15 +41,16 @@ void PlayerSystem::step(float elapsed_ms) {
 	for (int i = 0; i < 10; i++) {
 		vec2 offset = 100.0f * vec2{((float)rand() / RAND_MAX) - 0.5f, ((float)rand() / RAND_MAX) - 0.5f};
 
-		if (rand() % 2 == 0) {
+		if (rand() % 10 == 0) {
+			/*
 			ParticleSystem::spawn_particle(vec3{ 0.0, 0.8, 0.8 },
 				random_sample_ellipse(registry.motions.get(registry.players.entities[0]).position, {75.0f, 150.0f}),
-				0.0f, { 2.0f, 2.0f }, vec2{ 0.0f, -50.0f } + offset, 1000.0, 0.5f, {200.0, 300.0});
-		}
-		else {
+				0.0f, { 2.0f, 2.0f }, vec2{ 0.0f, 0.0f }, 1000.0, 0.5f, { 200.0, 300.0 }, {0.0, 0.0}, 0.0f, 0.0f, 0.5f);
+				*/
+
 			ParticleSystem::spawn_particle(PARTICLE_ID::SAMPLED_TEXTURE,
 				random_sample_rectangle(registry.motions.get(registry.players.entities[0]).position, { 100.0f, 200.0f }),
-				0.0f, { 10.0f, 10.0f }, vec2{ 0.0f, -50.0f } + 0.5f*offset, 500.0, 0.8f, { 0.0, 400.0 }, { 200.0, 0.0});
+				0.0f, { 10.0f, 10.0f }, vec2{ 0.0f, -50.0f }, 1500.0f, 0.8f, { 0.0, 400.0 }, { 200.0, 0.0 }, 0.0f, 0.0f, 1.0f);
 		}
 	}
 

@@ -145,6 +145,9 @@ const vec2 CANON_PROJECTILE_SIZE = vec2 {30.0f, 30.0f};
 // Particles
 const int PARTICLE_COUNT_LIMIT = 1000;
 const float MAX_CAMERA_DISTANCE = 2000.0;
+const float TURBULENCE_GRID_SIZE = MAX_CAMERA_DISTANCE / 32.0f;
+const float TURBULENCE_EVOLUTION_SPEED = 1e-12;
+const int TURBULENCE_OCTAVES = 1;
 
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)
@@ -160,7 +163,8 @@ float lerpToTarget(float current, float target, float time);
 float cubic_interpolation(float source, float target, float t);
 float rand_float(float min = 0.0f, float max = 1.0f);
 vec2 rand_direction();
-vec2 rotate_2D(vec2 v, float angle);
+vec2 rotate_2D(vec2 v, float angle_rad);
+vec2 angle_to_direction(float angle_rad);
 
 vec2 random_sample_rectangle(vec2 center, vec2 dimensions, float angle_radians = 0.0);
 vec2 random_sample_ellipse(vec2 center, vec2 dimensions, float angle_radians = 0.0);

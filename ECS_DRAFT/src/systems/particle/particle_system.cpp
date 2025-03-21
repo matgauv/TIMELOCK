@@ -1,7 +1,14 @@
+#include <iostream>
 #include "particle_system.hpp"
 
 void ParticleSystem::init(GLFWwindow* window) {
 	this->window = window;
+
+	Entity entity = Entity();
+	ParticleSystemState &state = registry.particleSystemStates.emplace(entity);
+	//state.wind_field = {350.0, -50.0};
+	state.turbulence_strength = 150.0f;
+	state.turbulence_scale = TURBULENCE_GRID_SIZE;
 }
 
 void ParticleSystem::step(float elapsed_ms) {
@@ -10,6 +17,13 @@ void ParticleSystem::step(float elapsed_ms) {
 	float time_factor =
 		((current_state == TIME_CONTROL_STATE::DECELERATED) ? DECELERATE_FACTOR :
 			current_state == TIME_CONTROL_STATE::ACCELERATED ? ACCELERATE_FACTOR : NORMAL_FACTOR);
+
+	const ParticleSystemState& system_state = registry.particleSystemStates.components[0];
+
+
+	// Get current system time: https://www.geeksforgeeks.org/how-to-get-time-in-milliseconds-in-cpp/
+	auto time_passage = std::chrono::system_clock::now().time_since_epoch();
+	float system_time = (float)std::chrono::duration_cast<std::chrono::milliseconds>(time_passage).count() * TURBULENCE_EVOLUTION_SPEED;
 
 	for (int i = registry.particles.size() - 1; i >= 0; i--) {
 		const Entity entity = registry.particles.entities[i];
@@ -20,8 +34,10 @@ void ParticleSystem::step(float elapsed_ms) {
 		if (glm::length(particle.position - camera_pos) > MAX_CAMERA_DISTANCE) {
 			registry.remove_all_components_of(entity);
 		}
+
+		const float time_change_s = time_factor * elapsed_ms * 0.001f;
 		
-		particle.timer += (time_factor * elapsed_ms);
+		particle.timer += time_change_s * 1000.0f;
 
 		// Eliminate if dead
 		if (particle.timer > particle.life) {
@@ -29,9 +45,23 @@ void ParticleSystem::step(float elapsed_ms) {
 		}
 
 		// Update motion
-		particle.position += (time_factor * elapsed_ms * particle.velocity * 0.001f);
-		particle.angle += (time_factor * elapsed_ms * particle.ang_velocity * 0.001f);
+		particle.position += (time_change_s * particle.velocity);
+		particle.angle += (time_change_s * particle.ang_velocity);
 		particle.angle = fmod(fmod(particle.angle, 360.0f) + 360.0f, 360.0f);
+
+		if (particle.wind_influence > 1e-4) {
+			particle.position += (time_change_s * system_state.wind_field * particle.wind_influence);
+		}
+
+		if (particle.gravity_influence > 1e-4) {
+			particle.velocity += (time_change_s * system_state.gravity_field * particle.gravity_influence);
+		}
+
+		if (particle.turbulence_influence > 1e-4 && system_state.turbulence_strength > 1e-4 && system_state.turbulence_scale > 1e-2) {
+			particle.velocity += 
+				(time_change_s * system_state.turbulence_strength * angle_to_direction(
+					M_PI * 2.0f * sample_from_turbulence(vec3(particle.position / system_state.turbulence_scale, system_time))));
+		}
 	}
 }
 
@@ -147,4 +177,51 @@ bool ParticleSystem::handle_particle_type(Entity entity, PARTICLE_ID particle_id
 	}
 
 	return success;
+}
+
+// GPU-styled turbulence generation
+vec3 ParticleSystem::seeded_pseudo_random(vec3 input) {
+	// If you sense magical numbers here, we do exactly need them
+	vec3 raw_result = 11.464f * vec3{ 
+		abs(sinf(glm::dot(input, vec3{63.36f, -95.52f, 12.41f}))),
+		abs(sinf(glm::dot(input, vec3{84.14f, 18.63f, 84.48f}))),
+		abs(sinf(glm::dot(input, vec3{98.61f, 36.813f, 48.351f})))};
+
+	return glm::fract(raw_result) * 2.0f - 1.0f;
+}
+
+float ParticleSystem::sample_from_gradient_noise(vec3 input) {
+	vec3 grid_int = glm::floor(input);
+	vec3 grid_frac = input - grid_int;
+
+	// 8 grid points
+	float grid_000 = glm::dot(seeded_pseudo_random(grid_int), grid_frac);
+	float grid_100 = glm::dot(seeded_pseudo_random(grid_int + vec3{ 1.0f, 0.0f, 0.0f }), grid_frac - vec3{ 1.0f, 0.0f, 0.0f });
+	float grid_010 = glm::dot(seeded_pseudo_random(grid_int + vec3{ 0.0f, 1.0f, 0.0f }), grid_frac - vec3{ 0.0f, 1.0f, 0.0f });
+	float grid_110 = glm::dot(seeded_pseudo_random(grid_int + vec3{ 1.0f, 1.0f, 0.0f }), grid_frac - vec3{ 1.0f, 1.0f, 0.0f });
+	float grid_001 = glm::dot(seeded_pseudo_random(grid_int + vec3{ 0.0f, 0.0f, 0.1f }), grid_frac - vec3{ 0.0f, 0.0f, 0.1f });
+	float grid_101 = glm::dot(seeded_pseudo_random(grid_int + vec3{ 1.0f, 0.0f, 0.1f }), grid_frac - vec3{ 1.0f, 0.0f, 0.1f });
+	float grid_011 = glm::dot(seeded_pseudo_random(grid_int + vec3{ 0.0f, 1.0f, 0.1f }), grid_frac - vec3{ 0.0f, 1.0f, 0.1f });
+	float grid_111 = glm::dot(seeded_pseudo_random(grid_int + vec3{ 1.0f, 1.0f, 0.1f }), grid_frac - vec3{ 1.0f, 1.0f, 0.1f });
+
+	// The GLSL smoothstep function: https://registry.khronos.org/OpenGL-Refpages/gl4/html/smoothstep.xhtml
+	vec3 factor = grid_frac * grid_frac * (3.0f - 2.0f * grid_frac);
+
+	return lerpToTarget(
+		lerpToTarget(lerpToTarget(grid_000, grid_100, factor.x), lerpToTarget(grid_010, grid_110, factor.x), factor.y),
+		lerpToTarget(lerpToTarget(grid_001, grid_101, factor.x), lerpToTarget(grid_011, grid_111, factor.x), factor.y), factor.z);
+}
+
+float ParticleSystem::sample_from_turbulence(vec3 coord) {
+	float result = 0.0;
+	float amplitude = 4.0;
+
+	for (int i = 0; i < TURBULENCE_OCTAVES; i++) {
+		// absolute ensures turbulencer behavior: https://thebookofshaders.com/13/
+		result += (amplitude * abs(sample_from_gradient_noise(coord)));
+		coord *= 0.5f;
+		amplitude *= 2.0f;
+	}
+
+	return result;
 }

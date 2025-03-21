@@ -46,14 +46,18 @@ vec2 rand_direction() {
 	return vec2{cosf(angle), sinf(angle)};
 }
 
-vec2 rotate_2D(vec2 v, float angle) {
-	float c = cosf(angle);
-	float s = sinf(angle);
+vec2 rotate_2D(vec2 v, float angle_rad) {
+	float c = cosf(angle_rad);
+	float s = sinf(angle_rad);
 
 	return {
 		c * v[0] - s * v[1],
 		s * v[0] + c * v[1]
 	};
+}
+
+vec2 angle_to_direction(float angle_rad) {
+	return vec2{ cosf(angle_rad), sinf(angle_rad) };
 }
 
 vec2 random_sample_rectangle(vec2 center, vec2 dimensions, float angle_radians) {

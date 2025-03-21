@@ -396,6 +396,7 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			handle_object_rigid_collision(other, one, collision, step_seconds, groundedEntities);
 		}
 
+		// handle player and boss projectile collision
 		if (registry.players.has(one) && registry.projectiles.has(other)) {
 			// TODO: should handle_player_projectile_collision() be handle_player_attack_collision() ?
 			// TODO: should leave all events that kill player to collision with harmful entities
@@ -403,6 +404,35 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			handle_player_attack_collision(one, other, collision);
 		} else if (registry.players.has(other) && registry.projectiles.has(one)) {
 			handle_player_attack_collision(other, one, collision);
+		}
+
+		// TODO: handle player and boss collision
+		if (registry.players.has(one) && registry.bosses.has(other)) {
+			
+			// kill the player if the boss is harmful (during dash attack)
+			Entity& boss_entity = registry.bosses.entities[0];
+			if (registry.harmfuls.has(boss_entity)) {
+				PlayerSystem::kill();
+			}
+		} else if (registry.players.has(other) && registry.bosses.has(one)) {
+			
+			// kill the player if the boss is harmful (during dash attack)
+			Entity& boss_entity = registry.bosses.entities[0];
+			if (registry.harmfuls.has(boss_entity)) {
+				PlayerSystem::kill();
+			}
+		}
+
+		// TODO: handle player and snooze button collision
+		if (registry.players.has(one) && registry.snoozeButtons.has(other)) {
+
+			FirstBoss& firstBoss = registry.firstBosses.components[0];
+			firstBoss.player_collided_with_snooze_button = true;
+
+		} else if (registry.players.has(other) && registry.snoozeButtons.has(one)) {
+
+			FirstBoss& firstBoss = registry.firstBosses.components[0];
+			firstBoss.player_collided_with_snooze_button = true;
 		}
 
 		GameState& gameState = registry.gameStates.components[0];

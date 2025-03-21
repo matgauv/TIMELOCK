@@ -57,6 +57,19 @@ class RenderSystem : public ISystem {
 		textures_path("tutorial-text/decel.png"),
 		textures_path("tutorial-text/decel2.png"),
 		textures_path("tutorial-text/accel.png"),
+		textures_path("boss/lookleft.png"),
+		textures_path("boss/lookright.png"),
+		textures_path("boss/exhausted.png"),
+		textures_path("boss/damaged.png"),
+		textures_path("boss/recovered.png"),
+		textures_path("boss/projectile-left.png"),
+		textures_path("boss/projectile-right.png"),
+		textures_path("boss/delayed-projectile.png"),
+		textures_path("boss/snooze-button.png"),
+		textures_path("boss/move-left-right.png"),
+		textures_path("boss/dash-attack.png"),
+		textures_path("boss/dash-left-right.png"),
+		textures_path("boss/ground-slam.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

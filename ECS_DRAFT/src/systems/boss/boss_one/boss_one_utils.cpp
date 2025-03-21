@@ -1,7 +1,43 @@
 #include "boss_one_utils.hpp"
-// #include <glm/trigonometric.hpp>
+#include "../../world/world_init.hpp"
 #include <iostream>
 #include <cmath>
+
+
+Entity create_first_boss() {
+    auto entity = Entity();
+
+    Boss& boss = registry.bosses.emplace(entity);
+    registry.firstBosses.emplace(entity);
+    Motion& motion = registry.motions.emplace(entity);
+
+    // initially idle
+    motion.velocity = vec2(0.f, 0.f);
+
+    // initial position
+    motion.position = vec2(BOSS_ONE_SPAWN_POINT_X, BOSS_ONE_SPAWN_POINT_Y);
+
+    // not physical object to avoid unnecessary collision
+
+    // render request
+
+    return entity;
+}
+
+Entity create_snooze_button() {
+    auto entity = Entity();
+
+    registry.snoozeButtons.emplace(entity);
+    Motion& motion = registry.motions.emplace(entity);
+
+    motion.velocity = vec2(0.f, 0.f);
+    
+    // snooze button position should be based on the clock's position
+    
+    // render request
+
+    return entity;
+}
 
 // Handles the state transition logic by checking the current boss state and then calling the corresponding helper
 void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_num) {
@@ -163,16 +199,24 @@ void boss_one_move_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, fl
 // Handles the transition logic to RECOVER and DAMAGED states
 void boss_one_exhausted_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
     
-    // Update the 
+    // create the snooze button if it is not there
+    if (registry.snoozeButtons.components.size() == 0) {
+        // TODO: finish the snooze button function
+        create_snooze_button();
+    }
 
     // Decrement timer
     boss.timer_ms -= elapsed_ms;
 
-    // TODO: Check if there is a collision between a specific part of the boss and the player...
-    // Should this be done here or let Physics system handle it?
-    // If the player can land on the snooze button, then the player should be able to bounce off it
+    // Check for collision between snooze button and player
+    assert(registry.firstBosses.components.size() <= 1);
+    FirstBoss& firstBoss = registry.firstBosses.get(boss_entity);
     
-    // TODO: need to be able to check if this collision has happened
+    if (firstBoss.player_collided_with_snooze_button) {
+        boss.boss_state = BOSS_STATE::BOSS1_DAMAGED_STATE;
+        boss.health -= PLAYER_ATTACK_DAMAGE;
+        firstBoss.player_collided_with_snooze_button = false;
+    }
 
     // Otherwise, if the timer is up, then the boss enters RECOVER STATE
     if (boss.timer_ms <= 0.f) {
@@ -188,11 +232,14 @@ void boss_one_recover_step(Entity& boss_entity, Boss& boss, Motion& boss_motion,
     // Decrement the timer
     boss.timer_ms -= elapsed_ms;
 
+    // Remove the snooze button
+    if (registry.snoozeButtons.components.size() == 1) {
+        Entity& button_entity = registry.snoozeButtons.entities[0];
+        registry.remove_all_components_of(button_entity);
+    }
+
     if (boss.timer_ms <= 0.f) {
         boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
-        Entity& player_entity = registry.players.entities[0];
-        Motion& player_motion = registry.motions.get(player_entity);
-        boss_motion.velocity.x = calculate_boss_one_x_velocity(boss_motion.position.x, player_motion.position.x);
         boss.timer_ms = BOSS_ONE_MAX_WALK_DURATION_MS;
     }
 }
@@ -203,8 +250,11 @@ void boss_one_damaged_step(Entity& boss_entity, Boss& boss, Motion& boss_motion,
     // Decrement timer
     boss.timer_ms -= elapsed_ms;
 
-    // Decrement boss health
-    boss.health -= PLAYER_ATTACK_DAMAGE;
+    // Remove the snooze button
+    if (registry.snoozeButtons.components.size() == 1) {
+        Entity& button_entity = registry.snoozeButtons.entities[0];
+        registry.remove_all_components_of(button_entity);
+    }
 
     // If boss health has reached 0, transition to DEAD state
     if (boss.health <= 0.f) {
@@ -248,18 +298,33 @@ void boss_one_choose_attack_step(Entity& boss_entity, Boss& boss, Motion& boss_m
 
 // Creates 4 projectiles and transitions to MOVE state
 void boss_one_regular_projectile_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
-    boss.num_of_attack_completed++;
-    boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
+    assert(registry.firstBosses.components.size() <= 1);
+    FirstBoss& firstBoss = registry.firstBosses.get(boss_entity);
+
+    if (firstBoss.num_of_projectiles_created == BOSS_ONE_MAX_NUM_OF_NON_DELAYED_PROJECTILE) {
+        boss.num_of_attack_completed++;
+        boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
+    } else {
+        boss_one_regular_projectile_attack(boss_entity, boss, boss_motion, elapsed_ms);
+    }
 }
 
 // Creates 4 fast projectiles and transitions to MOVE state
 void boss_one_fast_projectile_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
-    boss.num_of_attack_completed++;
-    boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
+    assert(registry.firstBosses.components.size() <= 1);
+    FirstBoss& firstBoss = registry.firstBosses.get(boss_entity);
+
+    if (firstBoss.num_of_projectiles_created == BOSS_ONE_MAX_NUM_OF_NON_DELAYED_PROJECTILE) {
+        boss.num_of_attack_completed++;
+        boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
+    } else {
+        boss_one_fast_projectile_attack(boss_entity, boss, boss_motion, elapsed_ms);
+    }
 }
 
 // Creates 3 delayed projectiles and transitions to MOVE state
 void boss_one_delayed_projectile_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
+    boss_one_delayed_projectile_attack(boss_entity, boss, boss_motion, elapsed_ms);
     boss.num_of_attack_completed++;
     boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
 }
@@ -270,12 +335,19 @@ void boss_one_dash_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, fl
     // Decrement the timer
     boss.timer_ms -= elapsed_ms;
 
+    // TODO: the boss needs to have harmful component and is time controllable?
+    TimeControllable& tc = registry.timeControllables.emplace(boss_entity);
+    tc.can_be_decelerated = true;
+    tc.can_become_harmless = true;
+    registry.harmfuls.emplace(boss_entity);
+
     // Transitions to MOVE state if timer is up
     if (boss.timer_ms <= 0.f) {
         boss.num_of_attack_completed++;
 
         // boss becomes harmless
-        boss.can_damage_player = false;
+        // boss.can_damage_player = false;
+        registry.harmfuls.remove(boss_entity);
 
         boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
         boss.timer_ms = BOSS_ONE_MAX_WALK_DURATION_MS;
@@ -509,7 +581,7 @@ void chooseLongRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion
         boss.timer_ms = BOSS_ONE_DASH_DURATION_MS;
 
         // boss becomes harmful during dash attack
-        boss.can_damage_player = true;
+        // boss.can_damage_player = true;
 
     } else if (random_num <= 50) {
         boss.boss_state = BOSS_STATE::BOSS1_FAST_PROJECTILE_ATTACK_STATE;
@@ -554,4 +626,105 @@ void chooseShortRangedAttack(Boss& boss, Motion& boss_motion, bool is_in_phase_t
     } else {
         boss.boss_state = BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE;
     }
+}
+
+void boss_one_regular_projectile_attack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
+    assert(registry.firstBosses.components.size() <= 1);
+    FirstBoss& firstBoss = registry.firstBosses.get(boss_entity);
+
+    firstBoss.projectile_timer_ms -= elapsed_ms;
+
+    if (firstBoss.num_of_projectiles_created < BOSS_ONE_MAX_NUM_OF_NON_DELAYED_PROJECTILE &&
+        firstBoss.projectile_timer_ms <= 0.f) {
+
+            Entity& player_entity = registry.players.entities[0];
+            Motion& player_motion = registry.motions.get(player_entity);
+
+            int direction = (player_motion.position.x <= boss_motion.position.x) ? -1 : 1;
+            
+            // create a projectile
+            vec2 pos = vec2(boss_motion.position.x + direction * BOSS_ONE_BB_WIDTH_PX, BOSS_ONE_BB_HEIGHT_PX);
+            vec2 size = vec2(PROJECTILE_WIDTH_PX, PROJECTILE_HEIGHT_PX);
+            vec2 velocity = vec2(BOSS_ONE_REGULAR_PROJECTILE_VELOCITY, 0.f);
+
+            firstBoss.num_of_projectiles_created++;
+            firstBoss.projectile_timer_ms = BOSS_ONE_INTER_PROJECTILE_TIMER_MS;
+    }
+}
+
+void boss_one_fast_projectile_attack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
+    assert(registry.firstBosses.components.size() <= 1);
+    FirstBoss& firstBoss = registry.firstBosses.get(boss_entity);
+
+    assert(registry.firstBosses.components.size() <= 1);
+    FirstBoss& firstBoss = registry.firstBosses.get(boss_entity);
+
+    firstBoss.projectile_timer_ms -= elapsed_ms;
+
+    if (firstBoss.num_of_projectiles_created < BOSS_ONE_MAX_NUM_OF_NON_DELAYED_PROJECTILE &&
+        firstBoss.projectile_timer_ms <= 0.f) {
+
+            Entity& player_entity = registry.players.entities[0];
+            Motion& player_motion = registry.motions.get(player_entity);
+
+            int direction = (player_motion.position.x <= boss_motion.position.x) ? -1 : 1;
+
+            // create a projectile
+            vec2 pos = vec2(boss_motion.position.x + direction * BOSS_ONE_BB_WIDTH_PX, BOSS_ONE_BB_HEIGHT_PX);
+            vec2 size = vec2(PROJECTILE_WIDTH_PX, PROJECTILE_HEIGHT_PX);
+            vec2 velocity = vec2(BOSS_ONE_FAST_PROJECTILE_VELOCITY, 0.f);
+            create_projectile(pos, size, velocity);
+
+            firstBoss.num_of_projectiles_created++;
+            firstBoss.projectile_timer_ms = BOSS_ONE_INTER_PROJECTILE_TIMER_MS;
+    }
+}
+
+void boss_one_delayed_projectile_attack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
+    assert(registry.firstBosses.components.size() <= 1);
+    FirstBoss& firstBoss = registry.firstBosses.get(boss_entity);
+
+    // TODO: create three delayed projectiles
+    vec2 pos_1 = vec2(BOSS_ONE_FIRST_DELAYED_PROJECTILE_X_POSITION, BOSS_ONE_DELAYED_PROJECTILE_Y_POSITION);
+    vec2 pos_2 = vec2(BOSS_ONE_SECOND_DELAYED_PROJECTILE_X_POSITION, BOSS_ONE_DELAYED_PROJECTILE_Y_POSITION);
+    vec2 pos_3 = vec2(BOSS_ONE_THIRD_DELAYED_PROJECTILE_X_POSITION, BOSS_ONE_DELAYED_PROJECTILE_Y_POSITION);
+    vec2 size = vec2(PROJECTILE_WIDTH_PX, PROJECTILE_HEIGHT_PX);
+    vec2 velocity = vec2();
+    create_delayed_projectile(pos_1, size, velocity, BOSS_ONE_FIRST_DELAYED_PROJECTILE_TIMER_MS);
+    create_delayed_projectile(pos_2, size, velocity, BOSS_ONE_SECOND_DELAYED_PROJECTILE_TIMER_MS);
+    create_delayed_projectile(pos_3, size, velocity, BOSS_ONE_THIRD_DELAYED_PROJECTILE_TIMER_MS);
+}
+
+void boss_one_dash_attack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
+    // likely don't need this?
+}
+
+void boss_one_ground_slam_rise_attack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
+
+}
+
+void boss_one_ground_slam_slam_attack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
+
+}
+
+void boss_one_ground_slam_land_attack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
+
+}
+
+void boss_one_ground_slam_follow_1_attack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
+
+}
+
+void boss_one_ground_slam_follow_2_attack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
+
+}
+
+void boss_one_ground_slam_follow_3_attack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
+
+}
+
+void create_delayed_projectile(vec2 pos, vec2 size, vec2 velocity, float timer_ms) {
+    Entity entity = create_projectile(pos, size, vec2(0.f, 0.f));
+
+    // TODO: finish this helper
 }

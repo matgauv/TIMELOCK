@@ -330,12 +330,8 @@ struct WaterDrop
 // A struct indicating that an attack has some delay before being executed
 struct Delayed
 {
-	// std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
 	float timer_ms; // timer until being fired
 	vec2 velocity; // velocity to use
-	// vec2 velocity_modifier;
-	// Motion* motion_ptr;
-	// unsigned int order;
 };
 
 // A struct indicating that an entity is a spike
@@ -366,7 +362,9 @@ struct Boss
 
 struct FirstBoss
 {
-	unsigned int num_of_projectiles_created;
+	unsigned int num_of_projectiles_created = 0;
+	float projectile_timer_ms = BOSS_ONE_INTER_PROJECTILE_TIMER_MS;
+	bool player_collided_with_snooze_button = false;
 };
 
 // a struct to represent the snooze button for the first boss

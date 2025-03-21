@@ -413,7 +413,8 @@ const int animation_count = (int)ANIMATION_ID::ANIMATION_COUNT;
 
 enum class ANIMATION_TYPE_ID {
 	CYCLE = 0,
-	FREEZE_ON_LAST = CYCLE + 1,
+	FREEZE_ON_RANDOM = CYCLE + 1,
+	FREEZE_ON_LAST = FREEZE_ON_RANDOM + 1,
 	ANIMATION_TYPE_COUNT = FREEZE_ON_LAST + 1
 };
 
@@ -459,8 +460,20 @@ const int particle_type_count = (int)PARTICLE_ID::PARTICLE_TYPE_COUNT;
 
 struct Particle {
 	PARTICLE_ID particle_id;
+
+	// Motion properties are isolated from Physics system to avoid sub-stepping particles
+	vec2 position;
+	float angle;
+	vec2 scale;
+	vec2 velocity;
+	float ang_velocity = 0.0;
+
 	float life;
 	float timer = 0.0;
 	float alpha = 1.0;
 	vec2 fade_in_out = { 0.0, 0.0 };
+	vec2 shrink_in_out = { 0.0, 0.0 };
+	float wind_influence = 0.0;
+	float gravity_influence = 0.0;
+	float turbulence_influence = 0.0;
 };

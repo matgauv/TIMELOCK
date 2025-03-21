@@ -33,7 +33,9 @@ void AnimationSystem::step(float elapsed_ms) {
 		// Update Render Request
 		if (renderRequest_registry.has(entity)) {
 			RenderRequest& renderRequest = renderRequest_registry.get(entity);
-			renderRequest.used_texture = animationConfig.sprite_texture;
+			if (renderRequest.used_texture != animationConfig.sprite_texture) {
+				renderRequest.used_texture = animationConfig.sprite_texture;
+			}
 
 			// Calculate Frame
 			int frame = min((int)(animateRequest.timer / animationConfig.ms_per_frame), animationConfig.frame_count - 1);

@@ -49,7 +49,7 @@ void PlayerSystem::step(float elapsed_ms) {
 		else {
 			ParticleSystem::spawn_particle(PARTICLE_ID::SAMPLED_TEXTURE,
 				random_sample_rectangle(registry.motions.get(registry.players.entities[0]).position, { 100.0f, 200.0f }),
-				0.0f, { 5.0f, 5.0f }, vec2{ 0.0f, -50.0f } + 0.5f*offset, 500.0, 0.8f, { 0.0, 400.0 });
+				0.0f, { 10.0f, 10.0f }, vec2{ 0.0f, -50.0f } + 0.5f*offset, 500.0, 0.8f, { 0.0, 400.0 }, { 200.0, 0.0});
 		}
 	}
 

@@ -144,7 +144,7 @@ const vec2 CANON_PROJECTILE_SIZE = vec2 {30.0f, 30.0f};
 
 // Particles
 const int PARTICLE_COUNT_LIMIT = 1000;
-
+const float MAX_CAMERA_DISTANCE = 2000.0;
 
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)

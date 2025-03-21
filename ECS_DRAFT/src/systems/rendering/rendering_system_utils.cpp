@@ -133,13 +133,12 @@ void RenderSystem::instancedRenderParticles(const std::vector<Entity> & particle
 		const Particle &particle = particles_reg.get(entity);
 
 		// Transform info
-		assert(registry.motions.has(entity));
-		const Motion& motion = registry.motions.get(entity);
 
-		nodes[i].global_pos = motion.position;
-		nodes[i].rotation = motion.angle * M_PI / 180.0;
-		nodes[i].scale = motion.scale;
+		nodes[i].global_pos = particle.position;
+		nodes[i].rotation = particle.angle * M_PI / 180.0;
+		nodes[i].scale = particle.scale;
 
+		// Fade in/out
 		float fade_factor = 1.0f;
 		if (particle.fade_in_out[0] > 1e-4 && particle.timer <= particle.fade_in_out[0]) {
 			// Fade in
@@ -149,6 +148,19 @@ void RenderSystem::instancedRenderParticles(const std::vector<Entity> & particle
 			// Fade out
 			fade_factor = (particle.life - particle.timer) / particle.fade_in_out[1];
 		}
+
+		// Shrink in/out
+		float shrink_factor = 1.0f;
+		if (particle.shrink_in_out[0] > 1e-4 && particle.timer <= particle.shrink_in_out[0]) {
+			// Shrink in
+			shrink_factor = particle.timer / particle.shrink_in_out[0];
+		}
+		else if (particle.shrink_in_out[1] > 1e-4 && (particle.life - particle.timer) <= particle.shrink_in_out[1]) {
+			// Shrink out
+			shrink_factor = (particle.life - particle.timer) / particle.shrink_in_out[1];
+		}
+
+		nodes[i].scale *= shrink_factor;
 
 		// Color info
 		if (particle.particle_id == PARTICLE_ID::COLORED) {

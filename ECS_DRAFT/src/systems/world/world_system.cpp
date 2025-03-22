@@ -295,6 +295,14 @@ void WorldSystem::restart_game() {
 	LevelState& levelState = registry.levelStates.components[0];
 	levelState.shouldLoad = true;
 
+	// Check if particle system initialized
+	if (registry.particleSystemStates.size() >= 1) {
+		ParticleSystemState& particleState = registry.particleSystemStates.components[0];
+		particleState.wind_field = { 0.0f, 0.0f };
+		particleState.gravity_field = { 0.0f, GRAVITY };
+		particleState.turbulence_scale = 1.0f;
+		particleState.turbulence_strength = 0.0f;
+	}
 	// TODO:
 	// Maybe the game state should also keep track of current level and player spawning position?
 

@@ -72,7 +72,7 @@ vec2 random_sample_rectangle(vec2 center, vec2 dimensions, float angle_radians) 
 
 vec2 random_sample_ellipse(vec2 center, vec2 dimensions, float angle_radians) {
 	vec2 direction = rand_direction();
-	float distance = sqrt(rand_float(1e-4, 1.0f));
+	float distance = sqrt(rand_float(1e-4f, 1.0f));
 
 	vec2 offset = direction * distance;
 	offset[0] *= (dimensions[0] * 0.5f);

@@ -519,7 +519,7 @@ Entity create_canon_tower(vec2 pos) {
     registry.renderRequests.insert(
         entity,
         {
-            TEXTURE_ASSET_ID::CANON_TOWER,
+            TEXTURE_ASSET_ID::CANNON_TOWER,
             EFFECT_ASSET_ID::TEXTURED,
             GEOMETRY_BUFFER_ID::SPRITE
         }

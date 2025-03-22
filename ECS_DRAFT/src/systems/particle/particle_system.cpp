@@ -225,3 +225,16 @@ float ParticleSystem::sample_from_turbulence(vec3 coord) {
 
 	return result;
 }
+
+void ParticleSystem::set_wind(float strength, vec2 direction) {
+	registry.particleSystemStates.components[0].wind_field = strength * direction;
+}
+
+void ParticleSystem::set_gravity(float strength, vec2 direction) {
+	registry.particleSystemStates.components[0].gravity_field = strength * direction;
+}
+
+void ParticleSystem::set_turbulence(float strength, float scale) {
+	registry.particleSystemStates.components[0].turbulence_scale = scale;
+	registry.particleSystemStates.components[0].turbulence_strength = strength;
+}

@@ -146,7 +146,7 @@ const vec2 CANON_PROJECTILE_SIZE = vec2 {30.0f, 30.0f};
 const int PARTICLE_COUNT_LIMIT = 1000;
 const float MAX_CAMERA_DISTANCE = 2000.0;
 const float TURBULENCE_GRID_SIZE = MAX_CAMERA_DISTANCE / 32.0f;
-const float TURBULENCE_EVOLUTION_SPEED = 1e-12;
+const float TURBULENCE_EVOLUTION_SPEED = 1e-12f;
 const int TURBULENCE_OCTAVES = 1;
 
 // The 'Transform' component handles transformations passed to the Vertex shader

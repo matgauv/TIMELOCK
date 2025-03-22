@@ -28,6 +28,10 @@ public:
 		float alpha = 1.0, vec2 fade_in_out = vec2{ 0.0, 0.0 }, vec2 shrink_in_out = vec2{ 0.0, 0.0 },
 		float wind_influence = 0.0, float gravity_influence = 0.0, float turbulence_influence = 0.0);
 
+	static void set_wind(float strength, vec2 direction);
+	static void set_gravity(float strength, vec2 direction);
+	static void set_turbulence(float strength, float scale);
+
 	ParticleSystem()
 	{
 	}

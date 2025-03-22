@@ -612,6 +612,21 @@ void PhysicsSystem::handle_player_boss_collision(Entity& player_entity, Entity& 
 	}
 }
 
+void PhysicsSystem::handle_boss_platform_collision(Entity& boss_entity, Entity& platform_entity, Collision collision) {
+	Motion& boss_motion = registry.motions.get(boss_entity);
+	Motion& platform_motion = registry.motions.get(platform_entity);
+
+	if (boss_motion.position.x <= platform_motion.position.x && boss_motion.velocity.x < 0) {
+		boss_motion.position.x = platform_motion.position.x + 5;
+		boss_motion.velocity.x *= -1;
+	}
+
+	if (boss_motion.position.x >= platform_motion.position.x && boss_motion.velocity.x > 0) {
+		boss_motion.position.x = platform_motion.position.x - 5;
+		boss_motion.velocity.x *= -1;
+	}
+}
+
 // Handles collision between two PhysicsObject entities.
 void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA, Entity& entityB, Collision collision, std::vector<unsigned int>& grounded)
 {

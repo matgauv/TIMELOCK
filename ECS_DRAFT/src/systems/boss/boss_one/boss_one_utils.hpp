@@ -9,7 +9,7 @@
 Entity create_first_boss();
 
 // Creates the snooze button for the boss in EXHAUSTED state
-Entity create_snooze_button();
+Entity create_snooze_button(vec2 boss_position);
 
 // the main step function
 void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_num);
@@ -84,10 +84,10 @@ float calculate_boss_one_x_velocity(float boss_x, float player_x);
 
 void chooseAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elpased_ms, unsigned int random_num);
 
-void chooseLongRangedAttack(Entity& boss_entity, Boss& boss, Motion& moss_motion, bool is_in_phase_two, unsigned int random_num);
+void chooseLongRangedAttack(Entity& boss_entity, Boss& boss, Motion& moss_motion, bool is_in_phase_two, bool is_player_to_boss_left, unsigned int random_num);
 
-void chooseMediumRangedAttack(Boss& boss, Motion& boss_motion, bool is_in_phase_two, unsigned int random_num);
+void chooseMediumRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_in_phase_two, bool is_player_to_boss_left, unsigned int random_num);
 
-void chooseShortRangedAttack(Boss& boss, Motion& boss_motion, bool is_in_phase_two, unsigned int random_num);
+void chooseShortRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_in_phase_two, bool is_player_to_boss_left, unsigned int random_num);
 
-void create_delayed_projectile(vec2 pos, vec2 size, vec2 velocity, float timer_ms);
+void create_delayed_projectile(vec2 pos, float timer_ms);

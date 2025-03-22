@@ -411,6 +411,8 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
     tc.can_become_harmless = true;
     tc.can_be_accelerated = false;
 
+    Harmful& harmful = registry.harmfuls.emplace(entity);
+
     registry.renderRequests.insert(
 		entity,
 		{
@@ -469,7 +471,6 @@ Entity create_first_boss() {
     Boss& boss = registry.bosses.emplace(entity);
     boss.boss_id = BOSS_ID::FIRST;
     boss.health = 1000.0f;
-    boss.attack_cooldown_ms = 500.0f;
 
     Motion& motion = registry.motions.emplace(entity);
     motion.position = vec2(WINDOW_WIDTH_PX / 4 * 3, WINDOW_HEIGHT_PX / 4 * 3);

@@ -260,6 +260,19 @@
         
 	],
 	"entities": {
+		"Player": [
+			{
+				"id": "Player",
+				"iid": "2d920780-e920-11ef-943c-07e5c2733574",
+				"layer": "Components",
+				"x": 6928,
+				"y": 3664,
+				"width": 16,
+				"height": 16,
+				"color": 4073265,
+				"customFields" : {}
+			}
+		],
 		"Checkpoint": [
 			{
 				"id": "Checkpoint",

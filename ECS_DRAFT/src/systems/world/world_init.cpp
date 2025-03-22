@@ -1,107 +1,9 @@
 #include "world_init.hpp"
+
+#include <iostream>
+
 #include "../../tinyECS/registry.hpp"
 #include "systems/rendering/render_system.hpp"
-
-// TODO parse file descriptor to create level with render requests
-// For now, hard coded to just put a platform on the screen...
-void load_level(std::string descriptor_path) {
-    (void)descriptor_path;
-
-    // demo level for M1 video
-    demo_level();
-}
-
-void demo_level() {
-    // float sceneHeight = WINDOW_HEIGHT_PX * 2.0f;
-    // float xStart = 250.0f;
-    // vec2 initial_pos = {xStart, sceneHeight/2.0f + 300.0f};
-    //
-    //
-    // float boundaryWidth = WINDOW_WIDTH_PX * 3.0f;
-    // float boundaryHeight = WINDOW_HEIGHT_PX * 3.0f;
-    // create_parallaxbackground({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::GEARS_BACKGROUND);
-    // create_background({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::METAL_BACKGROUND);
-    // create_foreground({ boundaryWidth, boundaryHeight }, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
-    //
-    // // float boltsize = 75.f;
-    // // create_bolt({ 325.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
-    // // create_bolt({ 325.0f, sceneHeight / 2.0f + 300.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
-    // // create_bolt({ 325.0f, sceneHeight / 2.0f + 150.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
-    //
-    // // create a spike component to test the logic
-    // float spike_size = 25.0f;
-    // create_spike({ 325.0f, sceneHeight / 2.0f + 600.0f }, { spike_size, spike_size });
-    //
-    //
-    // // initial_pos = {0,0};
-    // create_player(initial_pos, PLAYER_SCALE);
-    // create_camera(initial_pos, { 1.0f, 1.0f }); // TODO: potential open-scene zoom in
-    //
-    // // float boltsize = 75.f;
-    // // create_bolt({ 325.0f, sceneHeight / 2.0f + 500.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
-    // // create_bolt({ 325.0f, sceneHeight / 2.0f + 300.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
-    // // create_bolt({ 325.0f, sceneHeight / 2.0f + 150.0f }, { boltsize, boltsize }, { 0.0f, 0.0f });
-    //
-    // // create one non-time-controllable breakable platform
-    // float breakable_size = 75.f;
-    // create_breakable_static_platform({ 325.0f, sceneHeight / 2.0f + 625.0f }, {breakable_size, breakable_size}, true, 0.0f);
-    //
-    // // create one time-controllable breakable platform
-    // create_time_controllable_breakable_static_platform({ 1800.0f, sceneHeight - 100 }, {100.0f, 20.0f}, false, -0.05f);
-    //
-    //
-    //
-    // // level boundaries
-    // create_static_platform({boundaryWidth/2.0f, 0.0f}, {boundaryWidth, 1.0f}, true);
-    // create_static_platform({boundaryWidth/2.0f, boundaryHeight}, {boundaryWidth, 1.0f}, true);
-    // create_static_platform({0.0f,boundaryHeight/2.0f}, {1.0f, boundaryHeight}, true);
-    // create_static_platform({boundaryWidth, boundaryHeight/2.0f}, {1.0f, boundaryHeight}, true);
-    //
-    // // starting platform
-    // create_static_platform({ xStart, sceneHeight}, {500.0f, 100.0f}, false);
-    // create_spawnpoint({ xStart - 200, sceneHeight - 110 }, SPAWNPOINT_SCALE);
-    // create_spawnpoint({ xStart + 200, sceneHeight - 110}, SPAWNPOINT_SCALE);
-    // create_spawnpoint({ xStart + 1500.0f, sceneHeight - 110 }, SPAWNPOINT_SCALE);
-    // create_cannon_tower({ xStart + 200.0f, sceneHeight - 185 });
-    //
-    //
-    // // lil roof to test vertical collisions
-    // create_static_platform({xStart - 100.0f, sceneHeight - 125.0f}, {100.0f, 20.0f}, false);
-    //
-    // vec2 moving_plat_size = {200.0f, 20.0f};
-    //
-    // Path moving_plat_1_forwards = Path({xStart +  400.0f, sceneHeight}, {xStart + 600.0f, sceneHeight}, 2.0f);
-    // Path moving_plat_1_backwards = Path({xStart +  600.0f, sceneHeight}, {xStart + 400.0f, sceneHeight}, 2.0f);
-    // std::vector<Path> moving_plat_1_movements = {moving_plat_1_forwards, moving_plat_1_backwards};
-    // create_moving_platform(moving_plat_size, moving_plat_1_movements);
-    //
-    // Path moving_plat_2_forwards = Path({xStart +  850.0f, sceneHeight}, {xStart + 1050.0f, sceneHeight}, 0.2f);
-    // Path moving_plat_2_backwards = Path({xStart +  1050.0f, sceneHeight}, {xStart + 850.0f, sceneHeight}, 0.2f);
-    // std::vector<Path> moving_plat_2_movements = {moving_plat_2_backwards, moving_plat_2_forwards};
-    // create_moving_platform(moving_plat_size, moving_plat_2_movements);
-    //
-    // create_static_platform({ xStart + 1500.0f, sceneHeight}, {500.0f, 100.0f}, false);
-    //
-    // Path moving_plat_3_up = Path({xStart +  1900.0f, sceneHeight}, {xStart + 1900.0f, sceneHeight - 500.0f}, 1.5f);
-    // Path moving_plat_3_down = Path({xStart +  1900.0f, sceneHeight - 500.0f}, {xStart + 1900.0f, sceneHeight}, 1.5f);
-    // std::vector<Path> moving_plat_3_movements = {moving_plat_3_up, moving_plat_3_down};
-    // create_moving_platform(moving_plat_size, moving_plat_3_movements);
-    //
-    // create_static_platform({ xStart + 2500.0f, sceneHeight - 900.0f}, {500.0f, 100.0f}, false);
-    //
-    // Path moving_plat_4_forwards = Path({xStart + 2750.0f, sceneHeight - 800.0f}, {xStart + 2850.0f, sceneHeight - 800.0f}, 0.1f);
-    // Path moving_plat_4_backwards = Path({xStart + 2850.0f, sceneHeight - 800.0f}, {xStart + 2750.0f, sceneHeight - 800.0f}, 0.1f);
-    // std::vector<Path> moving_plat_4_movements = {moving_plat_4_forwards, moving_plat_4_backwards};
-    // create_moving_platform(moving_plat_size, moving_plat_4_movements);
-    //
-    // Path moving_plat_5_forwards = Path({xStart + 3050.0f, sceneHeight - 800.0f}, {xStart + 3150.0f, sceneHeight - 800.0f}, 0.1f);
-    // Path moving_plat_5_backwards = Path({xStart +  3150.0f, sceneHeight - 800.0f}, {xStart + 3050.0f, sceneHeight - 800.0f}, 0.1f);
-    // std::vector<Path> moving_plat_5_movements = {moving_plat_5_backwards, moving_plat_5_forwards};
-    // create_moving_platform(moving_plat_size, moving_plat_5_movements);
-    //
-    // create_static_platform({ xStart + 2950.0f, sceneHeight - 600.0f}, {500.0f, 100.0f}, false);
-    // create_static_platform({ xStart + 2950.0f - 250.0f - 125.0f, sceneHeight - 600.0f - 50.0f + 5.0f}, {250.0f, 10.0f}, false);
-}
 
 Entity create_player(vec2 position, vec2 scale) {
     Entity entity = Entity();
@@ -170,7 +72,7 @@ Entity create_physics_object(vec2 position, vec2 scale, float mass) {
     return entity;
 }
 
-Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 initial_position, json& tile_id_array, int stride) {
+Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 initial_position, json& tile_id_array, int stride, bool rounded) {
     Entity entity = Entity();
 
     Motion& motion = registry.motions.emplace(entity);
@@ -197,7 +99,7 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 init
         int tile_arr_index = get_tile_index(starting_tile_pos, initial_position.y, i, 0, stride);
 
         Tile& tile_component = registry.tiles.emplace(tile_entity);
-        tile_component.offset = i;
+        tile_component.offset.x = i;
         tile_component.parent_id = entity.id();
         tile_component.id = tile_id_array[tile_arr_index];
 
@@ -210,10 +112,15 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 init
         registry.layers.insert(tile_entity, { LAYER_ID::MIDGROUND });
     }
 
+    if (rounded) {
+        PlatformGeometry &platform_geometry = registry.platformGeometries.emplace(entity);
+        platform_geometry.num_tiles = num_tiles;
+    }
+
     return entity;
 }
 
-Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, int stride) {
+Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, int stride, bool rounded) {
     Entity entity = Entity();
 
     registry.platforms.emplace(entity);
@@ -239,7 +146,7 @@ Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, in
 
 
         Tile& tile_component = registry.tiles.emplace(tile_entity);
-        tile_component.offset = i;
+        tile_component.offset.x = i;
         tile_component.parent_id = entity.id();
         tile_component.id = tile_id_array[tile_arr_index];
 
@@ -253,6 +160,43 @@ Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, in
         registry.layers.insert(tile_entity, { LAYER_ID::MIDGROUND });
     }
 
+    if (rounded) {
+        PlatformGeometry &platform_geometry = registry.platformGeometries.emplace(entity);
+        platform_geometry.num_tiles = num_tiles;
+    }
+
+
+    return entity;
+}
+
+Entity create_ladder(vec2 position, vec2 scale, int height, json tile_id_array, int stride) {
+    Entity entity = Entity();
+    registry.ladders.emplace(entity);
+    Motion& motion = registry.motions.emplace(entity);
+    vec2 ladder_scale = {scale.x, scale.y * height};
+    motion.scale = ladder_scale;
+    motion.position = {position.x, position.y + (0.5 * TILE_TO_PIXELS) - (0.5 * ladder_scale.y)};
+    motion.velocity = {0, 0};
+    motion.angle = 0.f;
+
+    int start_tile_y = motion.position.y - (0.5 * ladder_scale.y) + (0.5 * TILE_TO_PIXELS);
+    for (int i = 0; i < height; i++) {
+        Entity tile_entity = Entity();
+        int tile_arr_index = get_tile_index(position.x, start_tile_y, 0, i, stride);
+
+        Tile& tile_component = registry.tiles.emplace(tile_entity);
+        tile_component.offset.y = i;
+        tile_component.parent_id = entity.id();
+        tile_component.id = tile_id_array[tile_arr_index];
+
+        registry.renderRequests.insert(tile_entity, {
+            TEXTURE_ASSET_ID::TILE,
+            EFFECT_ASSET_ID::TILE,
+            GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+        registry.layers.insert(tile_entity, { LAYER_ID::MIDGROUND });
+    }
 
     return entity;
 }
@@ -293,8 +237,9 @@ Entity create_camera(vec2 position, vec2 scale) {
     registry.cameras.emplace(entity);
     Motion& motion = registry.motions.emplace(entity);
 
-    motion.position = position;
+    motion.position = CameraSystem::restricted_boundary_position(position, scale);;
     motion.scale = scale;
+
 
     return entity;
 }
@@ -443,6 +388,7 @@ Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity)
     object.mass = 25.0f;
     object.apply_gravity = default_gravity;
     object.friction = BOLT_FRICTION;
+    object.drag_coefficient = 0.01;
 
     registry.bolts.emplace(entity);
 
@@ -567,7 +513,7 @@ Entity create_spike(vec2 position, vec2 scale, json tile_id_array, int stride) {
     int tile_arr_index = get_tile_index(position.x, position.y, 0, 0, stride);
 
     Tile& tile_component = registry.tiles.emplace(entity);
-    tile_component.offset = 0;
+    tile_component.offset.x = 0;
     tile_component.parent_id = entity.id();
     tile_component.id = tile_id_array[tile_arr_index];
 
@@ -582,6 +528,9 @@ Entity create_spike(vec2 position, vec2 scale, json tile_id_array, int stride) {
     return entity;
 }
 
+
+
+
 Entity create_partof(vec2 position, vec2 scale, json tile_id_array, int stride) {
     Entity entity = Entity();
 
@@ -594,7 +543,7 @@ Entity create_partof(vec2 position, vec2 scale, json tile_id_array, int stride) 
     int tile_arr_index = get_tile_index(position.x, position.y, 0, 0, stride);
 
     Tile& tile_component = registry.tiles.emplace(entity);
-    tile_component.offset = 0;
+    tile_component.offset.x = 0;
     tile_component.parent_id = entity.id();
     tile_component.id = tile_id_array[tile_arr_index];
 
@@ -610,7 +559,7 @@ Entity create_partof(vec2 position, vec2 scale, json tile_id_array, int stride) 
 }
 
 Entity create_breakable_static_platform(vec2 position, vec2 scale, bool should_break_instantly, float degrade_speed, bool is_time_controllable, json& tile_id_array, int stride) {
-    Entity entity = create_static_platform(position, scale, tile_id_array, stride);
+    Entity entity = create_static_platform(position, scale, tile_id_array, stride, false);
     Breakable& breakable = registry.breakables.emplace(entity);
     breakable.health = 1000.f;
     breakable.degrade_speed_per_ms = degrade_speed;
@@ -635,12 +584,56 @@ Entity create_time_controllable_breakable_static_platform(vec2 position, vec2 sc
     return entity;
 }
 
+Entity create_door(vec2 position, bool open, json& tile_id_array, int stride) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = DOOR_SIZE;
+    motion.velocity = {0, 0};
+    motion.angle = 0.0f;
+
+    Door& door = registry.doors.emplace(entity);
+    door.opened = open;
+
+    int width_in_tiles = DOOR_SIZE.x / TILE_TO_PIXELS;
+    int height_in_tiles = DOOR_SIZE.y / TILE_TO_PIXELS;
+    vec2 first_tile_pos =
+    {
+        position.x - (0.5 * DOOR_SIZE.x) + (0.5 * TILE_TO_PIXELS),
+        position.y - (0.5 * DOOR_SIZE.y) + (0.5 * TILE_TO_PIXELS)
+    };
+
+    for (int i = 0; i < width_in_tiles; i++) {
+        for (int j = 0; j < height_in_tiles; j++) {
+            Entity tile_entity = Entity();
+
+            int tile_arr_index = get_tile_index(first_tile_pos.x, first_tile_pos.y, i, j, stride);
+
+            Tile& tile_component = registry.tiles.emplace(tile_entity);
+            tile_component.offset = {i, j};
+            tile_component.parent_id = entity.id();
+            tile_component.id = tile_id_array[tile_arr_index];
+
+            registry.renderRequests.insert(tile_entity, {
+                TEXTURE_ASSET_ID::TILE,
+                EFFECT_ASSET_ID::TILE,
+                GEOMETRY_BUFFER_ID::SPRITE
+            });
+
+            registry.layers.insert(tile_entity, { LAYER_ID::MIDGROUND });
+        }
+    }
+
+    return entity;
+}
+
 float getDistance(const Motion& one, const Motion& other) {
     return glm::length(one.position - other.position);
 }
 
 int get_tile_index(int pos_x, int pos_y, int offset_x, int offset_y, int stride) {
-    int tile_coord_y = pos_y / TILE_TO_PIXELS + offset_y;
+    int tile_coord_y = (pos_y / TILE_TO_PIXELS) + offset_y;
     int tile_coord_x = (pos_x / TILE_TO_PIXELS) + offset_x;
     return tile_coord_x + tile_coord_y * stride;
 }

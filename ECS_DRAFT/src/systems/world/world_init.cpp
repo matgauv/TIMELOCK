@@ -465,7 +465,7 @@ Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity)
 	return entity;
 }
 
-Entity create_first_boss() {
+Entity create_first_boss_demo_level() {
     auto entity = Entity();
 
     Boss& boss = registry.bosses.emplace(entity);

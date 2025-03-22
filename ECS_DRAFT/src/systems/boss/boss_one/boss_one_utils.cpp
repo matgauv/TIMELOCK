@@ -918,9 +918,6 @@ void boss_one_fast_projectile_attack(Entity& boss_entity, Boss& boss, Motion& bo
     assert(registry.firstBosses.components.size() <= 1);
     FirstBoss& firstBoss = registry.firstBosses.get(boss_entity);
 
-    assert(registry.firstBosses.components.size() <= 1);
-    FirstBoss& firstBoss = registry.firstBosses.get(boss_entity);
-
     firstBoss.projectile_timer_ms -= elapsed_ms;
 
     if (firstBoss.num_of_projectiles_created < BOSS_ONE_MAX_NUM_OF_NON_DELAYED_PROJECTILE &&

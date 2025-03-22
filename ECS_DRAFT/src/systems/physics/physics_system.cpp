@@ -6,6 +6,7 @@
 #include "../world/world_init.hpp"
 #include "../player/player_system.hpp"
 #include <iostream>
+#include <glm/detail/func_trigonometric.inl>
 
 void compute_platform_verticies(Motion& motion, Entity& e, float& angle_cos, float& angle_sin) {
 	PlatformGeometry& geo = registry.platformGeometries.get(e);
@@ -64,7 +65,7 @@ void compute_composite_mesh_vertices(Motion& motion, Entity& e) {
 			sub_mesh.cached_vertices.clear();
 			sub_mesh.cached_axes.clear();
 
-			float angle = motion.angle + sub_mesh.rotation;
+			float angle = radians(motion.angle + sub_mesh.rotation);
 			float cos_angle = cos(angle);
 			float sin_angle = sin(angle);
 
@@ -103,8 +104,8 @@ void compute_composite_mesh_vertices(Motion& motion, Entity& e) {
 
 void compute_vertices(Motion& motion, Entity& e) {
 	motion.cached_vertices.clear();
-	float angle_cos = cos(motion.angle);
-	float angle_sin = sin(motion.angle);
+	float angle_cos = cos(radians(motion.angle));
+	float angle_sin = sin(radians(motion.angle));
 
 	// compute the verticies for each of the sub meshes...
 	if (registry.compositeMeshes.has(e)) return compute_composite_mesh_vertices(motion, e);
@@ -214,8 +215,24 @@ void PhysicsSystem::step(float elapsed_ms) {
 		}
 
 		if (registry.physicsObjects.has(entity)) {
-			if (registry.physicsObjects.get(entity).apply_gravity) apply_gravity(entity, motion, step_seconds);
+
+			PhysicsObject& phys = registry.physicsObjects.get(entity);
+			if (phys.apply_gravity) apply_gravity(entity, motion, step_seconds);
+
+			if (phys.apply_rotation) {
+                // Update angle
+                motion.angle += degrees(phys.angular_velocity * step_seconds);
+                motion.cache_invalidated = true;
+				vec2 tangent = { -sin(motion.angle), cos(motion.angle) };
+				float rotationFrictionFactor = 1.0f;
+				vec2 angular_push = tangent * fabs(phys.angular_velocity) * rotationFrictionFactor;
+				motion.position += angular_push * step_seconds;
+                phys.angular_velocity *= (1.0f - 0.2f * step_seconds); // Damping factor
+			}
+
 		}
+
+
 
 		if (registry.players.has(entity)	) {
 			player_walk(entity, motion, step_seconds);
@@ -377,7 +394,7 @@ Collision compute_sat_collision(Motion& a_motion, Motion& b_motion, Entity a, En
 	Collision strongest_collision{b.id(), vec2{0,0}, vec2{0,0}};
 	float max_overlap_length = 0.0f;
 
-	// small helper method that
+	// small helper method that just checks the collision between two meshes
 	auto check_submesh_collision = [&](
 		const std::vector<vec2>& verts_a, const std::vector<vec2>& axes_a, vec2 pos_a,
 		const std::vector<vec2>& verts_b, const std::vector<vec2>& axes_b, vec2 pos_b
@@ -520,7 +537,7 @@ void PhysicsSystem::update_pendulum(Entity& entity, float step_seconds) {
 	motion.position.y = pendulum.pivot_point.y + pendulum.length * cos(pendulum.current_angle);
 
 	// TODO: do we need this? is it okay to handle angle separately?
-	motion.angle = pendulum.current_angle + M_PI/2;
+	motion.angle = degrees(pendulum.current_angle + M_PI/2);
 
 	// need the x and y velocity for collision handling
 	motion.velocity.x = pendulum.angular_velocity * pendulum.length * cos(pendulum.current_angle);
@@ -798,6 +815,7 @@ void PhysicsSystem::handle_object_rigid_collision(Entity& object_entity, Entity&
 	// blocked.normal = normal;
 
 	resolve_collision_position(object_entity, platform_entity, collision);
+	handle_rotational_dynamics(object_entity, platform_entity, collision.normal, step_seconds);
 
 	adjust_velocity_along_normal(obj_motion, normal);
 
@@ -808,7 +826,6 @@ void PhysicsSystem::handle_object_rigid_collision(Entity& object_entity, Entity&
 
 	Motion& platform_motion = registry.motions.get(platform_entity);
 	vec2 platform_velocity = get_modified_velocity(platform_motion);
-//	platform_velocity.y = 0.0f;
 
 
 	if (should_slip(-normal.y)) {
@@ -857,6 +874,143 @@ void PhysicsSystem::handle_object_rigid_collision(Entity& object_entity, Entity&
 		if (registry.players.has(object_entity)) {
 			PlayerSystem::set_jumping_validity(true);
 		}
+
+
+	} else {
+
+	}
+}
+
+// TODO: prob should invest in a more robust method here, currently just approximating everything as a rectangle.
+float calculate_moment_of_inertia(Entity entity) {
+	Motion& motion = registry.motions.get(entity);
+	PhysicsObject& phys = registry.physicsObjects.get(entity);
+
+	if (phys.moment_of_inertia == 0.0f) {
+		if (registry.compositeMeshes.has(entity)) {
+			float total = 0.0f;
+			CompositeMesh& composite = registry.compositeMeshes.get(entity);
+			for (SubMesh& submesh : composite.meshes) {
+				vec2 size = motion.scale * submesh.scale_ratio;
+				// Distance from submesh's center to composite's center of mass
+				vec2 offset = submesh.world_pos - motion.position;
+				float distance_sq = dot(offset, offset);
+				// Moment of inertia for this submesh (rectangle) + parallel axis term
+				float submesh_mass = phys.mass;
+				total += (1.0f/12.0f) * submesh_mass * (size.x*size.x + size.y*size.y)
+					   + submesh_mass * distance_sq;
+			}
+			return total;
+		} else {
+			vec2 size = motion.scale;
+			return (1.0f/12.0f) * phys.mass * (size.x*size.x + size.y*size.y);
+		}
+	}
+	return phys.moment_of_inertia;
+}
+
+// helper function that returns the closest point to p along the segment a<->b
+vec2 closest_point_on_segment(const vec2& p, const vec2& a, const vec2& b) {
+	vec2 ab = b - a;
+	float t = dot(p - a, ab) / dot(ab, ab);
+	t = clamp(t, 0.0f, 1.0f);
+	return a + t * ab;
+}
+
+// process rotational dynamics!
+void PhysicsSystem::handle_rotational_dynamics(Entity& object_entity, Entity& platform_entity, const vec2& collision_normal, float step_seconds) {
+	Motion& obj_motion = registry.motions.get(object_entity);
+	PhysicsObject& phys = registry.physicsObjects.get(object_entity);
+
+	if (!phys.apply_rotation) return;
+
+	Motion& platform_motion = registry.motions.get(platform_entity);
+	vec2 platform_normal = collision_normal;
+	vec2 tangent = normalize(vec2(platform_normal.y, -platform_normal.x));
+	vec2 platform_pos = platform_motion.position;
+
+	// get all the verticies (including for composite meshes)
+	std::vector<vec2> object_vertices;
+	if (registry.compositeMeshes.has(object_entity)) {
+		CompositeMesh& composite = registry.compositeMeshes.get(object_entity);
+		for (SubMesh& submesh : composite.meshes) {
+			for (const vec2& v : submesh.cached_vertices) {
+				object_vertices.push_back(v);
+			}
+		}
+	} else {
+		object_vertices = obj_motion.cached_vertices;
+	}
+
+
+	// determine candidate contact points
+	const float contact_threshold = 3.0f;
+	std::vector<vec2> contact_points;
+	for (const vec2& obj_v : object_vertices) {
+		float min_dist = FLT_MAX;
+		const std::vector<vec2>& platform_verts = platform_motion.cached_vertices;
+		platform_motion.cache_invalidated = true;
+		for (size_t i = 0; i < platform_verts.size(); i++) {
+			vec2 edge_start = platform_verts[i];
+			vec2 edge_end = platform_verts[(i+1)%platform_verts.size()];
+			vec2 edge_closest = closest_point_on_segment(obj_v, edge_start, edge_end);
+			float dist = distance(obj_v, edge_closest);
+			if (dist < min_dist) min_dist = dist;
+		}
+		if (min_dist < contact_threshold) contact_points.push_back(obj_v);
+	}
+
+	if (contact_points.empty()) return;
+
+	// select the deepest two contact points
+	std::vector<std::pair<float, vec2>> projected_contacts;
+	for (const vec2& p : contact_points) {
+		float proj = dot(p - platform_pos, platform_normal);
+		projected_contacts.emplace_back(proj, p);
+	}
+	std::sort(projected_contacts.begin(), projected_contacts.end(),
+			  [](const auto& a, const auto& b) { return a.first < b.first; });
+
+	std::vector<vec2> selected_contacts;
+	for (size_t i = 0; i < std::min(projected_contacts.size(), size_t(2)); i++) {
+		selected_contacts.push_back(projected_contacts[i].second);
+	}
+
+	// determine pivot based on COM position relative to selected contacts
+	float min_t_proj = FLT_MAX, max_t_proj = -FLT_MAX;
+	vec2 pivot_min_t, pivot_max_t;
+	for (const vec2& p : selected_contacts) {
+		vec2 rel_p = p - platform_pos;
+		float t_proj = dot(rel_p, tangent);
+		if (t_proj < min_t_proj) { min_t_proj = t_proj; pivot_min_t = p; }
+		if (t_proj > max_t_proj) { max_t_proj = t_proj; pivot_max_t = p; }
+	}
+
+
+	vec2 com = obj_motion.position;
+	vec2 rel_com = com - platform_pos;
+	float com_t_proj = dot(rel_com, tangent);
+	vec2 pivot;
+
+	if (com_t_proj > min_t_proj && com_t_proj < max_t_proj) {
+		// damp motion if stable
+		phys.angular_velocity *= 0.2;
+		return;
+	} else if (com_t_proj >= max_t_proj) {
+		pivot = pivot_max_t;
+	} else {
+		pivot = pivot_min_t;
+	}
+
+	// otherwise, if unstable, compute torque based on lever arm defined by pivot and center of mass
+	vec2 lever_arm_vec = com - pivot;
+	vec2 gravity_force = vec2(0, phys.mass * GRAVITY);
+	float torque = (lever_arm_vec.x * gravity_force.y - lever_arm_vec.y * gravity_force.x);
+	float moment_of_inertia = calculate_moment_of_inertia(object_entity);
+
+	if (moment_of_inertia > 0) {
+		float angular_acceleration = torque / moment_of_inertia;
+		phys.angular_velocity += angular_acceleration * step_seconds;
 	}
 }
 
@@ -907,19 +1061,6 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 	float total_inv_mass = a_inv_mass + b_inv_mass;
 	resolve_collision_position(entityA, entityB, collision);
 
-	// const float velocity_bias = 0.1f; // Small separation velocity
-	// vec2 bias_velocity = normal * velocity_bias;
-	//
-	// motionA.velocity -= bias_velocity * a_inv_mass;
-	// motionB.velocity += bias_velocity * b_inv_mass;
-
-	// now get the relative velocities
-	vec2 vel_relative = motionB.velocity - motionA.velocity;
-	float vel_along_normal = dot(vel_relative, normal);
-
-
-
-
 	// finally, detect if they are on the ground! (or an angled platform)
 	if (is_on_ground(normal.y))
 	{
@@ -945,33 +1086,63 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 		}
 	}
 
+	// approximate as midpoint between two motions TODO: more robust
+	vec2 contact_point = 0.5f * (motionA.position + motionB.position);
+	vec2 relative_A = contact_point - motionA.position;
+	vec2 relative_B = contact_point - motionB.position;
+
+	float rA_perp = relative_A.x * normal.y - relative_A.y * normal.x;
+	float rB_perp = relative_B.x * normal.y - relative_B.y * normal.x;
+
+	float total_velocity_a = dot(motionA.velocity, normal) + physA.angular_velocity * rA_perp;
+	float total_velocity_b = dot(motionB.velocity, normal) + physB.angular_velocity * rB_perp;
+	float vel_along_normal = total_velocity_b - total_velocity_a;
+
 	if (vel_along_normal > 0.0f) return;
 
-	// compute the impulse
+	// IMPULSE
 	float impulse_scalar = -(1.0f + PHYSICS_OBJECT_BOUNCE) * vel_along_normal;
-	impulse_scalar /= (total_inv_mass);
+	float a_inv_inertia = (physA.moment_of_inertia > 0) ? 1.0f / calculate_moment_of_inertia(entityA) : 0.0f;
+	float b_inv_inertia = (physB.moment_of_inertia > 0) ? 1.0f / calculate_moment_of_inertia(entityB) : 0.0f;
+
+	float denom = total_inv_mass + (rA_perp * rA_perp) * a_inv_inertia + (rB_perp * rB_perp) * b_inv_inertia;
+
+	if (denom == 0.0f) return;
+
+	impulse_scalar /= denom;
 
 	vec2 impulse = impulse_scalar * normal;
 	motionA.velocity -= impulse * a_inv_mass; // because normal points A->B but A is moving towards B
 	motionB.velocity += impulse * b_inv_mass;
 
-    vec2 tangent = vel_relative - dot(vel_relative, normal) * normal;
+	physA.angular_velocity -= impulse_scalar * rA_perp * a_inv_inertia;
+	physB.angular_velocity += impulse_scalar * rB_perp * b_inv_inertia;
 
-    if (length(tangent) > 0.01f) {
-        tangent = normalize(tangent);
+	// friction
+	vec2 tangent = normalize(motionB.velocity - motionA.velocity - normal * dot(motionB.velocity - motionA.velocity, normal));
+	if (length(tangent) < 0.001f) return;
+
+	float tangent_vel_A = dot(motionA.velocity, tangent) + physA.angular_velocity * (relative_A.x * tangent.y - relative_A.y * tangent.x);
+	float tangent_vel_B = dot(motionB.velocity, tangent) + physB.angular_velocity * (relative_B.x * tangent.y - relative_B.y * tangent.x);
+	float rel_tan_velocity = tangent_vel_B - tangent_vel_A;
+
+	float friction = sqrt(physA.friction * physB.friction);
+	float tangent_impulse_scalar = -rel_tan_velocity / denom;
+	tangent_impulse_scalar = clamp(tangent_impulse_scalar, -impulse_scalar * friction, impulse_scalar * friction); // clamp to coloumb's law
+
+	vec2 tangent_impulse = tangent * tangent_impulse_scalar;
+	motionA.velocity -= tangent_impulse * a_inv_mass;
+	motionB.velocity += tangent_impulse * b_inv_mass;
 
 
-        float friction_impulse_magnitude = (-dot(vel_relative, tangent) / total_inv_mass) * (BOLT_FRICTION / 2.0f);
+	// angular friction
+	float ra_tan_perp = relative_A.x * tangent.y - relative_A.y * tangent.x;
+	float rb_tan_perp = relative_B.x * tangent.y - relative_B.y * tangent.x;
+	physA.angular_velocity -= tangent_impulse_scalar * ra_tan_perp * a_inv_inertia;
+	physB.angular_velocity += tangent_impulse_scalar * rb_tan_perp * b_inv_inertia;
 
-		// TODO: bit hacky
-		vec2 friction_impulse = friction_impulse_magnitude * tangent;
-		float vertical_scale = 0.33f;
-		friction_impulse.y *= vertical_scale;
-
-        motionA.velocity -= a_inv_mass * friction_impulse;
-        motionB.velocity += b_inv_mass * friction_impulse;
-    }
-
+	handle_rotational_dynamics(entityA, entityB, collision.normal, step_seconds);
+	handle_rotational_dynamics(entityB, entityA, -collision.normal, step_seconds);
 }
 
 // proper friction using coulomb's law
@@ -993,7 +1164,7 @@ vec2 PhysicsSystem::get_friction(Entity& e, vec2& velocity, vec2& normal, float 
 	}
 
 	if (is_moving_platform) {
-		friction *= 2.0f;
+		friction *= 3.0f;
 	}
 
 	// friction normal force is determined by mass * gravity

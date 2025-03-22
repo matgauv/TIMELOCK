@@ -146,6 +146,9 @@ struct PhysicsObject
 	float friction = STATIC_FRICTION;
 	float drag_coefficient = 0.2f;
 	bool apply_gravity = true;
+	bool apply_rotation = false;
+	float moment_of_inertia = 0.0f;
+	float angular_velocity = 0.0f;
 };
 
 

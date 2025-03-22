@@ -798,13 +798,15 @@ Entity create_gear(vec2 position, vec2 size) {
     Motion& motion = registry.motions.emplace(entity);
     motion.position = position;
     motion.scale = size;
-    motion.angle = 0.0f;
+    motion.angle = M_PI;
     motion.velocity = {0.0f, 0.0f};
     motion.cache_invalidated = true;
 
     PhysicsObject& physics_object = registry.physicsObjects.emplace(entity);
     physics_object.apply_gravity = true;
-    physics_object.mass = 20.0f;
+    physics_object.mass = 60.0f;
+    physics_object.friction = 0.02f;
+    physics_object.apply_rotation = true;
 
     CompositeMesh& compositeMesh = registry.compositeMeshes.emplace(entity);
 

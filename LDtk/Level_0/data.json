@@ -2328,14 +2328,14 @@
 				"id": "Gear",
 				"iid": "ceb92fd0-e920-11ef-8ab5-a996b8257b55",
 				"layer": "Components",
-				"x": 192,
+				"x": 190,
 				"y": 432,
 				"width": 16,
 				"height": 16,
 				"color": 2943221,
 				"customFields": {
-					"height": 50,
-					"width": 50
+					"height": 100,
+					"width": 100
 				}
 			}
 		]

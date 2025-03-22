@@ -227,7 +227,7 @@ void PhysicsSystem::step(float elapsed_ms) {
 				float rotationFrictionFactor = 1.0f;
 				vec2 angular_push = tangent * fabs(phys.angular_velocity) * rotationFrictionFactor;
 				motion.position += angular_push * step_seconds;
-                phys.angular_velocity *= (1.0f - 0.2f * step_seconds); // Damping factor
+                phys.angular_velocity *= (1.0f - 0.8f * step_seconds); // Damping factor
 			}
 
 		}
@@ -944,12 +944,14 @@ void PhysicsSystem::handle_rotational_dynamics(Entity& object_entity, Entity& pl
 
 
 	// determine candidate contact points
-	const float contact_threshold = 3.0f;
+	const float contact_threshold = 3.0f; // pixel threshold to find more ontacts
 	std::vector<vec2> contact_points;
 	for (const vec2& obj_v : object_vertices) {
 		float min_dist = FLT_MAX;
 		const std::vector<vec2>& platform_verts = platform_motion.cached_vertices;
 		platform_motion.cache_invalidated = true;
+
+		// finding the closest platform edge to the vertex
 		for (size_t i = 0; i < platform_verts.size(); i++) {
 			vec2 edge_start = platform_verts[i];
 			vec2 edge_end = platform_verts[(i+1)%platform_verts.size()];
@@ -957,12 +959,17 @@ void PhysicsSystem::handle_rotational_dynamics(Entity& object_entity, Entity& pl
 			float dist = distance(obj_v, edge_closest);
 			if (dist < min_dist) min_dist = dist;
 		}
+
+
 		if (min_dist < contact_threshold) contact_points.push_back(obj_v);
 	}
 
 	if (contact_points.empty()) return;
 
-	// select the deepest two contact points
+	// since we used a generous threshold, we often end up with too many contact points
+	// so we filter for the deepest two contact points
+
+	// project the contacts onto the platform's normal to find the deepest points
 	std::vector<std::pair<float, vec2>> projected_contacts;
 	for (const vec2& p : contact_points) {
 		float proj = dot(p - platform_pos, platform_normal);
@@ -972,42 +979,50 @@ void PhysicsSystem::handle_rotational_dynamics(Entity& object_entity, Entity& pl
 			  [](const auto& a, const auto& b) { return a.first < b.first; });
 
 	std::vector<vec2> selected_contacts;
+
+	// take up to two deepest contact points
 	for (size_t i = 0; i < std::min(projected_contacts.size(), size_t(2)); i++) {
 		selected_contacts.push_back(projected_contacts[i].second);
 	}
 
-	// determine pivot based on COM position relative to selected contacts
-	float min_t_proj = FLT_MAX, max_t_proj = -FLT_MAX;
-	vec2 pivot_min_t, pivot_max_t;
+	// project the contact points to determine the support area of the object
+	float min_contact_x = FLT_MAX, max_contact_x = -FLT_MAX;
+	vec2 min_pivot_point, max_pivot_point;
+
 	for (const vec2& p : selected_contacts) {
-		vec2 rel_p = p - platform_pos;
-		float t_proj = dot(rel_p, tangent);
-		if (t_proj < min_t_proj) { min_t_proj = t_proj; pivot_min_t = p; }
-		if (t_proj > max_t_proj) { max_t_proj = t_proj; pivot_max_t = p; }
+		vec2 relative_point = p - platform_pos;
+		float projected = dot(relative_point, tangent);
+
+		// find the min and max of the pivot points
+		if (projected < min_contact_x) { min_contact_x = projected; min_pivot_point = p; }
+		if (projected > max_contact_x) { max_contact_x = projected; max_pivot_point = p; }
 	}
 
 
 	vec2 com = obj_motion.position;
 	vec2 rel_com = com - platform_pos;
-	float com_t_proj = dot(rel_com, tangent);
+	float projected_com = dot(rel_com, tangent);
 	vec2 pivot;
 
-	if (com_t_proj > min_t_proj && com_t_proj < max_t_proj) {
+	// check if the com falls within the support pivot points
+	if (projected_com > min_contact_x && projected_com < max_contact_x) {
 		// damp motion if stable
-		phys.angular_velocity *= 0.2;
+		phys.angular_velocity *= 0.1;
 		return;
-	} else if (com_t_proj >= max_t_proj) {
-		pivot = pivot_max_t;
+	} else if (projected_com >= max_contact_x) {
+		pivot = max_pivot_point;
 	} else {
-		pivot = pivot_min_t;
+		pivot = min_pivot_point;
 	}
 
 	// otherwise, if unstable, compute torque based on lever arm defined by pivot and center of mass
 	vec2 lever_arm_vec = com - pivot;
-	vec2 gravity_force = vec2(0, phys.mass * GRAVITY);
-	float torque = (lever_arm_vec.x * gravity_force.y - lever_arm_vec.y * gravity_force.x);
-	float moment_of_inertia = calculate_moment_of_inertia(object_entity);
+	vec2 gravity_force = vec2(0, phys.mass * -GRAVITY);
 
+	// (cross product can be simplified in 2D) torque = r x F, since Fx = 0 we can ignore that term
+	float torque = -(lever_arm_vec.x * gravity_force.y);
+
+	float moment_of_inertia = calculate_moment_of_inertia(object_entity);
 	if (moment_of_inertia > 0) {
 		float angular_acceleration = torque / moment_of_inertia;
 		phys.angular_velocity += angular_acceleration * step_seconds;
@@ -1056,12 +1071,14 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 		normal = -normal;
 	}
 
+
+	// prepare inverse masses
 	float a_inv_mass = (1.0f / physA.mass);
 	float b_inv_mass = (1.0f / physB.mass);
 	float total_inv_mass = a_inv_mass + b_inv_mass;
 	resolve_collision_position(entityA, entityB, collision);
 
-	// finally, detect if they are on the ground! (or an angled platform)
+	// detect if they are on the ground! (or an angled platform)
 	if (is_on_ground(normal.y))
 	{
 		grounded.push_back(entityA.id());
@@ -1086,60 +1103,64 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 		}
 	}
 
-	// approximate as midpoint between two motions TODO: more robust
+	// approximate contact as midpoint between two motions TODO: more robust?
 	vec2 contact_point = 0.5f * (motionA.position + motionB.position);
-	vec2 relative_A = contact_point - motionA.position;
-	vec2 relative_B = contact_point - motionB.position;
 
-	float rA_perp = relative_A.x * normal.y - relative_A.y * normal.x;
-	float rB_perp = relative_B.x * normal.y - relative_B.y * normal.x;
+	// vectors from center of mass (assuming center for all objects)
+	vec2 contact_offset_a = contact_point - motionA.position;
+	vec2 contact_offset_b = contact_point - motionB.position;
 
-	float total_velocity_a = dot(motionA.velocity, normal) + physA.angular_velocity * rA_perp;
-	float total_velocity_b = dot(motionB.velocity, normal) + physB.angular_velocity * rB_perp;
-	float vel_along_normal = total_velocity_b - total_velocity_a;
+	//
+	float lever_arm_A_perp = contact_offset_a.x * normal.y - contact_offset_a.y * normal.x;
+	float lever_arm_B_perp = contact_offset_b.x * normal.y - contact_offset_b.y * normal.x;
+
+	float A_vel_towards_collision = dot(motionA.velocity, normal) + physA.angular_velocity * lever_arm_A_perp;
+	float B_vel_towards_collision = dot(motionB.velocity, normal) + physB.angular_velocity * lever_arm_B_perp;
+	float vel_along_normal = B_vel_towards_collision - A_vel_towards_collision;
 
 	if (vel_along_normal > 0.0f) return;
 
-	// IMPULSE
-	float impulse_scalar = -(1.0f + PHYSICS_OBJECT_BOUNCE) * vel_along_normal;
+	// compute the impulse from the collision (relative to center of mass)
+	float impulse_magnitude = -(1.0f + PHYSICS_OBJECT_BOUNCE) * vel_along_normal;
 	float a_inv_inertia = (physA.moment_of_inertia > 0) ? 1.0f / calculate_moment_of_inertia(entityA) : 0.0f;
 	float b_inv_inertia = (physB.moment_of_inertia > 0) ? 1.0f / calculate_moment_of_inertia(entityB) : 0.0f;
 
-	float denom = total_inv_mass + (rA_perp * rA_perp) * a_inv_inertia + (rB_perp * rB_perp) * b_inv_inertia;
+	float impulse_denom = total_inv_mass + (lever_arm_A_perp * lever_arm_A_perp) * a_inv_inertia + (lever_arm_B_perp * lever_arm_B_perp) * b_inv_inertia;
 
-	if (denom == 0.0f) return;
+	if (impulse_denom == 0.0f) return;
 
-	impulse_scalar /= denom;
+	impulse_magnitude /= impulse_denom;
+	vec2 impulse = impulse_magnitude * normal;
 
-	vec2 impulse = impulse_scalar * normal;
+	// update velocity with the impulse and angular velocities
 	motionA.velocity -= impulse * a_inv_mass; // because normal points A->B but A is moving towards B
 	motionB.velocity += impulse * b_inv_mass;
 
-	physA.angular_velocity -= impulse_scalar * rA_perp * a_inv_inertia;
-	physB.angular_velocity += impulse_scalar * rB_perp * b_inv_inertia;
+	physA.angular_velocity -= impulse_magnitude * lever_arm_A_perp * a_inv_inertia;
+	physB.angular_velocity += impulse_magnitude * lever_arm_B_perp * b_inv_inertia;
 
 	// friction
-	vec2 tangent = normalize(motionB.velocity - motionA.velocity - normal * dot(motionB.velocity - motionA.velocity, normal));
-	if (length(tangent) < 0.001f) return;
+	vec2 friction_dir = normalize(motionB.velocity - motionA.velocity - normal * dot(motionB.velocity - motionA.velocity, normal));
+	if (length(friction_dir) < 0.001f) return;
 
-	float tangent_vel_A = dot(motionA.velocity, tangent) + physA.angular_velocity * (relative_A.x * tangent.y - relative_A.y * tangent.x);
-	float tangent_vel_B = dot(motionB.velocity, tangent) + physB.angular_velocity * (relative_B.x * tangent.y - relative_B.y * tangent.x);
+	float tangent_vel_A = dot(motionA.velocity, friction_dir) + physA.angular_velocity * (contact_offset_a.x * friction_dir.y - contact_offset_a.y * friction_dir.x);
+	float tangent_vel_B = dot(motionB.velocity, friction_dir) + physB.angular_velocity * (contact_offset_b.x * friction_dir.y - contact_offset_b.y * friction_dir.x);
 	float rel_tan_velocity = tangent_vel_B - tangent_vel_A;
 
 	float friction = sqrt(physA.friction * physB.friction);
-	float tangent_impulse_scalar = -rel_tan_velocity / denom;
-	tangent_impulse_scalar = clamp(tangent_impulse_scalar, -impulse_scalar * friction, impulse_scalar * friction); // clamp to coloumb's law
+	float tangent_impulse_scalar = -rel_tan_velocity / impulse_denom;
+	tangent_impulse_scalar = clamp(tangent_impulse_scalar, -impulse_magnitude * friction, impulse_magnitude * friction); // clamp to coloumb's law
 
-	vec2 tangent_impulse = tangent * tangent_impulse_scalar;
+	vec2 tangent_impulse = friction_dir * tangent_impulse_scalar;
 	motionA.velocity -= tangent_impulse * a_inv_mass;
 	motionB.velocity += tangent_impulse * b_inv_mass;
 
 
 	// angular friction
-	float ra_tan_perp = relative_A.x * tangent.y - relative_A.y * tangent.x;
-	float rb_tan_perp = relative_B.x * tangent.y - relative_B.y * tangent.x;
-	physA.angular_velocity -= tangent_impulse_scalar * ra_tan_perp * a_inv_inertia;
-	physB.angular_velocity += tangent_impulse_scalar * rb_tan_perp * b_inv_inertia;
+	float tangential_lever_a = contact_offset_a.x * friction_dir.y - contact_offset_a.y * friction_dir.x;
+	float tangential_lever_b = contact_offset_b.x * friction_dir.y - contact_offset_b.y * friction_dir.x;
+	physA.angular_velocity -= tangent_impulse_scalar * tangential_lever_a * a_inv_inertia;
+	physB.angular_velocity += tangent_impulse_scalar * tangential_lever_b * b_inv_inertia;
 
 	handle_rotational_dynamics(entityA, entityB, collision.normal, step_seconds);
 	handle_rotational_dynamics(entityB, entityA, -collision.normal, step_seconds);
@@ -1168,7 +1189,7 @@ vec2 PhysicsSystem::get_friction(Entity& e, vec2& velocity, vec2& normal, float 
 	}
 
 	// friction normal force is determined by mass * gravity
-	float impulse = friction * (mass * GRAVITY) * step_seconds;
+	float impulse = friction * (GRAVITY * 10.0f) * step_seconds;
 	impulse = std::min(impulse, tangent_speed);
 
 	vec2 tangent_dir = normalize(velocity_tangent);
@@ -1222,7 +1243,7 @@ void PhysicsSystem::resolve_collision_position(Entity& entityA, Entity& entityB,
 
 
 	// leave the objects slightly colliding so that the collision is still triggered
-	const float epsilon = 0.01f * sign(collision.normal.y);
+	const float epsilon = 0.0001f * sign(collision.normal.y);
 	vec2 resolution = collision.normal * (length(collision.overlap) - epsilon);
 	motionA.position += resolution * (inv_mass_a / total_inv_mass);
 	motionB.position -= resolution * (inv_mass_b / total_inv_mass);

@@ -804,8 +804,8 @@ Entity create_gear(vec2 position, vec2 size) {
 
     PhysicsObject& physics_object = registry.physicsObjects.emplace(entity);
     physics_object.apply_gravity = true;
-    physics_object.mass = 60.0f;
-    physics_object.friction = 0.02f;
+    physics_object.mass = 90.0f;
+    physics_object.friction = 0.01f;
     physics_object.apply_rotation = true;
 
     CompositeMesh& compositeMesh = registry.compositeMeshes.emplace(entity);
@@ -834,6 +834,7 @@ Entity create_gear(vec2 position, vec2 size) {
         tooth.original_mesh = tooth_mesh;
         tooth.scale_ratio = scale_ratio;
 
+        tooth.rotation = (flip ? 180.0 : 0.0f);
 
         tooth.offset = {
             (inner_radius + tooth_length) * cos(angle_rad),

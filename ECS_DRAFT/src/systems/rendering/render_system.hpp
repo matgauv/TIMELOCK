@@ -152,6 +152,8 @@ private:
 
 	// This may not be a good practice; buffers for instanced rendering
 	//GLuint instanced_vbo_static_tiles;
+	GLuint vao_particles;
+	GLuint vao_general;
 	GLuint instanced_vbo_particles;
 
 	Entity screen_state_entity;

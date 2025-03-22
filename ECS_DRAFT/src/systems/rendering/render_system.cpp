@@ -538,6 +538,7 @@ void RenderSystem::draw()
 	}
 	midgrounds.push_back(registry.players.entities[0]);
 
+	glBindVertexArray(vao_general);
 	for (Entity entity : parallaxbackgrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
@@ -555,10 +556,15 @@ void RenderSystem::draw()
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
 	}
+	glBindVertexArray(0);
+
+	glBindVertexArray(vao_particles);
 	// Potentially aim for multi-layers
 	instancedRenderParticles(registry.particles.entities, MIDGROUND_DEPTH);
 
+	glBindVertexArray(0);
 
+	glBindVertexArray(vao_general);
 	for (Entity entity : foregrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);

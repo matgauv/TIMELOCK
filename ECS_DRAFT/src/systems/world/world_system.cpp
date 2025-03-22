@@ -54,7 +54,6 @@ void WorldSystem::init(GLFWwindow* window) {
 
 	// This will be the first level we load when the game is started.
 	levelState.curr_level_folder_name = "Level_0";
-	levelState.ground = TEXTURE_ASSET_ID::D_TUTORIAL_GROUND;
 	levelState.shouldLoad = true;
 
 
@@ -511,9 +510,25 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
+	Entity& player_entity = registry.players.entities[0];
 	if (key == GLFW_KEY_W) {
-		player_jump();
+		if (registry.climbing.has(player_entity)) {
+			Climbing& climbing = registry.climbing.get(player_entity);
+			climbing.is_up = true;
+		} else {
+			player_jump();
+		}
+
+
 	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_W) {
+		if (registry.climbing.has(player_entity)) {
+			Climbing& climbing = registry.climbing.get(player_entity);
+			climbing.is_up = false;
+		}
+	}
+
 
 	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
 		LevelState& levelState = registry.levelStates.components[0];
@@ -526,6 +541,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		LevelState& levelState = registry.levelStates.components[0];
 		levelState.curr_level_folder_name = "Level_1";
 		levelState.ground = TEXTURE_ASSET_ID::A_TUTORIAL_GROUND;
+		levelState.shouldLoad = true;
+	}
+
+	if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
+		LevelState& levelState = registry.levelStates.components[0];
+		levelState.curr_level_folder_name = "Level_2";
+		levelState.ground = TEXTURE_ASSET_ID::DECEL_LEVEL_GROUND;
 		levelState.shouldLoad = true;
 	}
 

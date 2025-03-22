@@ -15,6 +15,7 @@ public:
 	ComponentContainer<Collision> collisions;
 	ComponentContainer<Player> players;
 	ComponentContainer<Platform> platforms;
+	ComponentContainer<PlatformGeometry> platformGeometries;
 	ComponentContainer<onGround> onGrounds;
 	ComponentContainer<Mesh*> meshPtrs;
 	ComponentContainer<RenderRequest> renderRequests;
@@ -33,6 +34,7 @@ public:
 	ComponentContainer<Rock> rocks;
 	ComponentContainer<WaterDrop> waterdrops;
 	ComponentContainer<Walking> walking;
+	ComponentContainer<Climbing> climbing;
 	ComponentContainer<Blocked> blocked;
 	ComponentContainer<Camera> cameras;
 	ComponentContainer<Layer> layers;
@@ -43,10 +45,12 @@ public:
 	ComponentContainer<Boundary> boundaries;
 	ComponentContainer<SpawnPoint> spawnPoints;
 	ComponentContainer<Spike> spikes;
+	ComponentContainer<Ladder> ladders;
 	ComponentContainer<Tile> tiles;
 	ComponentContainer<Breakable> breakables;
 	ComponentContainer<CannonTower> cannonTowers;
 	ComponentContainer<CannonBarrel> cannonBarrels;
+	ComponentContainer<Door> doors;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -55,6 +59,7 @@ public:
 		registry_list.push_back(&collisions);
 		registry_list.push_back(&players);
 		registry_list.push_back(&platforms);
+		registry_list.push_back(&platformGeometries);
 		registry_list.push_back(&onGrounds);
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);
@@ -73,6 +78,7 @@ public:
 		registry_list.push_back(&rocks);
 		registry_list.push_back(&waterdrops);
 		registry_list.push_back(&walking);
+		registry_list.push_back(&climbing);
 		registry_list.push_back(&blocked);
 		registry_list.push_back(&cameras);
 		registry_list.push_back(&layers);
@@ -84,9 +90,11 @@ public:
 		registry_list.push_back(&spawnPoints);
 		registry_list.push_back(&tiles);
 		registry_list.push_back(&spikes);
+		registry_list.push_back(&ladders);
 		registry_list.push_back(&breakables);
 		registry_list.push_back(&cannonTowers);
 		registry_list.push_back(&cannonBarrels);
+		registry_list.push_back(&doors);
 	}
 
 	void clear_all_components() {

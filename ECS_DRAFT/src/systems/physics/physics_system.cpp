@@ -7,13 +7,66 @@
 #include "../player/player_system.hpp"
 #include <iostream>
 
+void compute_platform_verticies(Motion& motion, Entity& e, float& angle_cos, float& angle_sin) {
+	PlatformGeometry& geo = registry.platformGeometries.get(e);
+	Mesh* edge_mesh = registry.meshPtrs.get(e);
+
+	const float total_tiles = geo.num_tiles;
+	const float platform_center_offset = total_tiles * 0.5f * TILE_TO_PIXELS;
+
+	std::vector<vec2> platform_vertices;
+
+	// left edge
+	for (auto& v : edge_mesh->vertices) {
+		vec2 pos = v.position;
+		platform_vertices.emplace_back(pos / 3.75f);
+	}
+
+	// middle flat seciton of the platform
+	const float middle_start = 1.0f;
+	const float middle_end = total_tiles - 1.0f;
+	platform_vertices.insert(platform_vertices.end(), {
+		{middle_start, -0.5f},
+		{middle_end, -0.5f},
+		{middle_end, 0.5f},
+		{middle_start, 0.5f}
+	});
+
+	// right edge (mirrored left edge)
+	for (auto& v : edge_mesh->vertices) {
+		v.position /= 3.75;
+		platform_vertices.emplace_back(
+						(geo.num_tiles) - v.position.x,
+						v.position.y
+		);
+	}
+
+	vec2 pos = motion.position;
+	pos.x -= (platform_center_offset);
+
+	for (auto& vert : platform_vertices) {
+		vec2 scaled = vert * (float)TILE_TO_PIXELS;
+		// Apply rotation
+		vec2 rotated = {
+			scaled.x * angle_cos - scaled.y * angle_sin,
+			scaled.x * angle_sin + scaled.y * angle_cos
+		};
+		// Apply position
+		motion.cached_vertices.push_back(rotated + pos);
+	}
+}
+
+
 void compute_vertices(Motion& motion, Entity& e) {
 	motion.cached_vertices.clear();
 	float angle_cos = cos(motion.angle);
 	float angle_sin = sin(motion.angle);
 
+
 	if (registry.meshPtrs.has(e))
 	{
+		if (registry.platformGeometries.has(e)) return compute_platform_verticies(motion, e, angle_cos, angle_sin);
+
 		Mesh* mesh = registry.meshPtrs.get(e);
 		motion.cached_vertices.reserve( mesh->vertices.size() );
 
@@ -107,6 +160,7 @@ void PhysicsSystem::step(float elapsed_ms) {
 
 		if (registry.players.has(entity)	) {
 			player_walk(entity, motion, step_seconds);
+			player_climb(entity, motion, step_seconds);
 		}
 
 		if (registry.movementPaths.has(entity)) {
@@ -320,12 +374,43 @@ void PhysicsSystem::rotate_projectile(Entity& entity, Motion& motion, float step
 // accelerates the entity by GRAVITY until it reaches the max_speed (terminal velocity)
 // TODO:: more terminal velocities
 void PhysicsSystem::apply_gravity(Entity& entity, Motion& motion, float step_seconds) {
+	if (registry.climbing.has(entity)) return;
+
 	float max_fall_speed = OBJECT_MAX_FALLING_SPEED;
+	float gravity = GRAVITY;
+
 	if (registry.players.has(entity)) {
 		max_fall_speed = PLAYER_MAX_FALLING_SPEED;
+
+		if (motion.velocity.y < 0.0f) gravity = GRAVITY_JUMP_ASCENT;
 	}
 
-	motion.velocity.y = clampToTarget(motion.velocity.y, GRAVITY * step_seconds, max_fall_speed);
+	motion.velocity.y = clampToTarget(motion.velocity.y, gravity * step_seconds, max_fall_speed);
+}
+
+float lerp(float a, float b, float t) {
+	return a + t * (b - a);
+}
+
+void PhysicsSystem::player_climb(Entity& entity, Motion& motion, float step_seconds) {
+	if (!registry.climbing.has(entity)) return;
+
+	Climbing& climbing = registry.climbing.get(entity);
+
+	if (climbing.is_up) {
+		motion.velocity.y = lerp(motion.velocity.y, -PLAYER_CLIMBING_SPEED, step_seconds * 1.5f);
+
+		if (motion.velocity.y < -PLAYER_CLIMBING_SPEED) {
+			motion.velocity.y = -PLAYER_CLIMBING_SPEED;
+		}
+
+	} else {
+		motion.velocity.y = lerp(motion.velocity.y, PLAYER_CLIMBING_SPEED, step_seconds * 1.5f);
+
+		if (motion.velocity.y > PLAYER_CLIMBING_SPEED) {
+			motion.velocity.y = PLAYER_CLIMBING_SPEED;
+		}
+	}
 }
 
 // Moves the player left or right depending on the direction specified in the walking component
@@ -334,9 +419,16 @@ void PhysicsSystem::player_walk(Entity& entity, Motion& motion, float step_secon
 {
 	if (registry.walking.has(entity))
 	{
+
+		float acceleration = PLAYER_WALK_ACCELERATION;
+		if (registry.climbing.has(entity)) {
+			acceleration = PLAYER_WALK_LADDER_ACCELERATION;
+		}
+
+
 		Walking& walking = registry.walking.get(entity);
 		vec2 desired_direction = {walking.is_left ? -1.0f : 1.0f, 0.0f};
-		vec2 accel = desired_direction * PLAYER_WALK_ACCELERATION;
+		vec2 accel = desired_direction * acceleration;
 
 		vec2 platform_velocity = {0.0f, 0.0f};
 		if (registry.onGrounds.has(entity)) {
@@ -345,8 +437,15 @@ void PhysicsSystem::player_walk(Entity& entity, Motion& motion, float step_secon
 			platform_velocity = get_modified_velocity(platform_motion);
 		}
 
+
+
+
 		vec2 rel_velocity = motion.velocity - platform_velocity;
-		rel_velocity += accel * step_seconds;
+
+		// accelerate on a curve of x^2 instead of linear
+		float normalizedSpeed = fabs(rel_velocity.x) / PLAYER_MAX_WALKING_SPEED;
+		float interpFactor = 1.0f - (normalizedSpeed * normalizedSpeed);
+		rel_velocity += desired_direction * acceleration * interpFactor * step_seconds;
 
 		// clamp relative velocity instead of world velocity
 		rel_velocity.x = clamp(rel_velocity.x, -PLAYER_MAX_WALKING_SPEED, PLAYER_MAX_WALKING_SPEED);
@@ -366,17 +465,13 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 	std::vector<unsigned int> groundedEntities = {};
 	float step_seconds = elapsed_ms / 1000.0f;
 
+	bool player_ladder_collision = false;
+
+
 	for (uint i = 0; i < collision_container.components.size(); i++) {
 		Entity& one = collision_container.entities[i];
 		Collision& collision = collision_container.components[i];
 		Entity other = Entity(collision.other_id);
-
-
-		// if (!registry.blocked.has(one))
-		// {
-		// 	Blocked& blocked = registry.blocked.emplace(one);
-		// 	blocked.normal = collision.normal;
-		// }
 
 		// if player hits a breakable platform
 		if (registry.players.has(one) && registry.breakables.has(other)) {
@@ -387,14 +482,18 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 
 		// order here is important so handle both cases sep
 		if (registry.physicsObjects.has(one) && registry.platforms.has(other)) {
-			//	std::cout << "  colliding with platform: " << registry.platforms.has(other) << std::endl;
 			handle_object_rigid_collision(one, other, collision, step_seconds, groundedEntities);
 		} else if (registry.physicsObjects.has(other) && registry.platforms.has(one)) {
-		//	std::cout << "  colliding with platform: " << registry.platforms.has(one) << std::endl;
-		//	collision.overlap *= -1; //swap sides since coll is from perspective of one (left<->right) (top <-> bottom);
 			collision.normal *= -1;
 			handle_object_rigid_collision(other, one, collision, step_seconds, groundedEntities);
 		}
+
+		if (registry.players.has(one) && registry.doors.has(other)) {
+			handle_player_door_collision();
+		} else if (registry.players.has(other) && registry.doors.has(other)) {
+			handle_player_door_collision();
+		}
+
 
 		if (registry.players.has(one) && registry.projectiles.has(other)) {
 			// TODO: should handle_player_projectile_collision() be handle_player_attack_collision() ?
@@ -435,36 +534,32 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 		// 	registry.remove_all_components_of(other);
 		// }
 
-	}
-
-	for (uint i = 0; i < collision_container.components.size(); i++) {
-		Entity& one = collision_container.entities[i];
-		Collision& collision = collision_container.components[i];
-		Entity other = Entity(collision.other_id);
+		if (registry.players.has(one) && registry.ladders.has(other)) {
+			handle_player_ladder_collision(one, other, step_seconds);
+			player_ladder_collision = true;
+		} else if (registry.players.has(other) && registry.ladders.has(one)) {
+			handle_player_ladder_collision(other, one, step_seconds);
+			player_ladder_collision = true;
+		}
 
 		if (registry.physicsObjects.has(one) && registry.physicsObjects.has(other)) {
 			handle_physics_collision(step_seconds, one, other, collision, groundedEntities);
-        }
-	}
+		}
 
+	}
 	for (int i = 0; i < registry.physicsObjects.entities.size(); i++){
 		Entity& entity = registry.physicsObjects.entities[i];
 
 
 		if(!in(groundedEntities, entity.id())) {
 			registry.onGrounds.remove(entity);
-
 			Motion& motion = registry.motions.get(entity);
-			float diff = AIR_RESISTANCE * step_seconds;
-			motion.velocity.x = clampToTarget(motion.velocity.x, diff, 0);
-		//	motion.velocity.y = clampToTarget(motion.velocity.y, diff, 0);
-
-		//	if (registry.players.has(entity)) std::cout << "adding falling" << std::endl;
-
-		} else {
-		//	if (registry.players.has(entity))
-			//	std::cout << "removing falling" << std::endl;
+			apply_air_resistance(entity, motion, step_seconds);
 		}
+	}
+
+	if (!player_ladder_collision) {
+		registry.climbing.remove(registry.players.entities[0]);
 	}
 
 	// Remove all collisions from this simulation step
@@ -484,9 +579,48 @@ void PhysicsSystem::handle_projectile_collision(Entity proj_entity, Entity other
 	}
 }
 
+void PhysicsSystem::handle_player_door_collision() {
+	LevelState& ls = registry.levelStates.components[0];
+
+	if (ls.curr_level_folder_name == ls.next_level_folder_name) return;
+
+	ls.curr_level_folder_name = ls.next_level_folder_name;
+	ls.shouldLoad = true;
+}
+
+
+void PhysicsSystem::handle_player_ladder_collision(Entity& player_entity, Entity& ladder_entity, int step_seconds) {
+	Motion& player_motion = registry.motions.get(player_entity);
+	Motion& ladder_motion = registry.motions.get(ladder_entity);
+
+	float ladder_top = ladder_motion.position.y - ladder_motion.scale.y/2;
+	float player_bottom = player_motion.position.y + player_motion.scale.y/2;
+
+	if (player_bottom > ladder_top) {
+		if (!registry.climbing.has(player_entity)) {
+			registry.climbing.emplace(player_entity);
+		}
+
+		player_motion.velocity.x *= 0.99f;
+
+		if (player_bottom < ladder_top + TILE_TO_PIXELS/2.0f) {
+			player_motion.velocity.y = std::max(player_motion.velocity.y, 0.0f);
+		}
+
+	} else {
+		if (registry.climbing.has(player_entity)) {
+			if (player_motion.velocity.y < 0) {
+				player_motion.velocity.y = 0;
+			}
+			registry.climbing.remove(player_entity);
+		}
+	}
+}
+
 // Handles collision between a PhysicsObject entity and a Platform entity.
 void PhysicsSystem::handle_object_rigid_collision(Entity& object_entity, Entity& platform_entity, Collision collision, float step_seconds, std::vector<unsigned int>& groundedEntities)
 {
+
 	Blocked& blocked = registry.blocked.get(object_entity);
 	Motion& obj_motion = registry.motions.get(object_entity);
 
@@ -629,7 +763,7 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 		}
 	}
 
-	if (is_on_ground(normal.y))
+	if (is_on_ground(-normal.y))
 	{
 		grounded.push_back(entityB.id());
 		if (!registry.onGrounds.has(entityB)) {
@@ -661,7 +795,7 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 
 		// TODO: bit hacky
 		vec2 friction_impulse = friction_impulse_magnitude * tangent;
-		float vertical_scale = 0.5f;
+		float vertical_scale = 0.33f;
 		friction_impulse.y *= vertical_scale;
 
         motionA.velocity -= a_inv_mass * friction_impulse;
@@ -699,6 +833,31 @@ vec2 PhysicsSystem::get_friction(Entity& e, vec2& velocity, vec2& normal, float 
 	vec2 tangent_dir = normalize(velocity_tangent);
 	return velocity - tangent_dir * impulse;
 }
+
+void PhysicsSystem::apply_air_resistance(Entity entity, Motion& motion, float step_seconds)
+{
+	if (!registry.physicsObjects.has(entity)) return;
+
+	PhysicsObject& physics = registry.physicsObjects.get(entity);
+	vec2 velocity = motion.velocity;
+	float speed_squared = dot(velocity, velocity);
+	if (speed_squared <= 0.0f) return;
+
+	float drag = physics.drag_coefficient;
+	float speed = sqrt(speed_squared);
+
+	// compute area relative to direciton we are moving (ie. falling down only care about y scale)
+	float effective_area = (fabs(velocity.x) / speed) * motion.scale.y +
+						   (fabs(velocity.y) / speed) * motion.scale.x;
+
+	float magnitude = 0.5 * AIR_DENSITY * speed_squared * drag * effective_area;
+
+	vec2 direction = -normalize(velocity);
+	vec2 acceleration = (direction * magnitude) / physics.mass; // divide by mass since F=ma
+
+	motion.velocity += acceleration * step_seconds;
+}
+
 
 void PhysicsSystem::resolve_collision_position(Entity& entityA, Entity& entityB, Collision& collision)
 {

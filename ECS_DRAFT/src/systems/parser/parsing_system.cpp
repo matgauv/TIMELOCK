@@ -27,9 +27,17 @@ void LevelParsingSystem::step(float elapsed_ms) {
         return;
     }
 
+    json next_levels = json_data["neighbourLevels"];
+    if (!next_levels.empty()) {
+        level_state.next_level_folder_name = next_levels[0];
+    }
+
+    level_state.ground = level_ground_map.at(level_state.curr_level_folder_name);
+
     tile_id_array = json_data["layers"][0]["data"];
     stride = static_cast<int>(json_data["width"]) / TILE_TO_PIXELS;
 
+    level_state.dimensions = vec2{ json_data["width"], json_data["height"] };
     init_level_background();
     init_level_entities();
     init_player_and_camera();
@@ -49,8 +57,8 @@ void LevelParsingSystem::late_step(float elapsed_ms) {
 void LevelParsingSystem::init_level_background() {
     // TODO: static w, h values -- should change (maybe parse from level file).
     LevelState& levelState = registry.levelStates.components[0];
-    float background_w = WINDOW_WIDTH_PX * 3.0;
-    float background_h = WINDOW_HEIGHT_PX * 3.0;
+    float background_w = static_cast<int>(json_data["width"]);
+    float background_h = static_cast<int>(json_data["height"]);
     create_parallaxbackground({background_w, background_h}, TEXTURE_ASSET_ID::GEARS_BACKGROUND);
     create_background({background_w, background_h}, TEXTURE_ASSET_ID::METAL_BACKGROUND);
     create_foreground({ background_w, background_h}, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
@@ -73,7 +81,7 @@ void LevelParsingSystem::init_level_background() {
 void LevelParsingSystem::init_player_and_camera() {
     json playerJson = json_data["entities"]["Player"][0];
     vec2 initPos = vec2(playerJson["x"], playerJson["y"]);
-    create_player(initPos, { int(playerJson["width"]) * 1.75, int(playerJson["height"]) * 1.75 });
+    create_player(initPos, { int(playerJson["width"]) * 1.5, int(playerJson["height"]) * 1.5});
     create_camera(initPos, { 1.0f, 1.0f });
 
     // TEMP: for now, tutorial text is always shown
@@ -103,7 +111,7 @@ void LevelParsingSystem::init_level_entities() {
         } else if (entity_type == "Spike") {
             init_spikes(entity_list);
         } else if (entity_type == "Door") {
-
+            init_doors(entity_list);
         } else if (entity_type == "Projectile") {
             init_projectiles(entity_list);
         } else if (entity_type == "Pipe") {
@@ -114,15 +122,55 @@ void LevelParsingSystem::init_level_entities() {
             init_partof(entity_list);
         } else if (entity_type == "Cannon") {
             init_cannons(entity_list);
+        } else if (entity_type == "Ladder") {
+            init_ladders(entity_list);
+        } else if (entity_type == "Checkpoint") {
+            init_checkpoints(entity_list);
         }
     }
 }
 
+void LevelParsingSystem::init_doors(json doors) {
+    for (json door : doors) {
+        json json_open = door["customFields"]["open"];
+        if (!validate_custom_field(json_open, "open", door["iid"])) {
+            continue;
+        }
+        bool open = json_open;
+
+        vec2 position;
+        extract_door_position(door, position);
+        create_door(position, open, this->tile_id_array, this->stride);
+    }
+}
+
+void LevelParsingSystem::init_checkpoints(json checkpoints) {
+    for (json checkpoint : checkpoints) {
+        vec2 position = {checkpoint["x"], static_cast<float>(checkpoint["y"]) + PARSING_CHECKPOINT_Y_POS_DIFF};
+        create_spawnpoint(position, SPAWNPOINT_SCALE);
+    }
+}
+
+
 void LevelParsingSystem::init_cannons(json cannons) {
     for (json cannon : cannons) {
-        // TODO: Hardcoded cannon positioning for cross-play demo -- need to fix later.
-        vec2 position = {cannon["x"], static_cast<int>(cannon["y"]) - 50.0f};
-        create_canon_tower(position);
+        vec2 position = {cannon["x"], static_cast<float>(cannon["y"]) + PARSING_CANNON_Y_POS_DIFF};
+        create_cannon_tower(position);
+    }
+}
+
+void LevelParsingSystem::init_ladders(json ladders) {
+    for (json ladder : ladders) {
+        vec2 position = {ladder["x"], ladder["y"]};
+
+        json json_length = ladder["customFields"]["length"];
+        if (!validate_custom_field(json_length, "length", ladder["iid"], {"cx", "cy"})) {
+            continue;
+        }
+        int height = abs(static_cast<int>(json_length["cy"]) - (position.y / TILE_TO_PIXELS)) + 1;
+
+        vec2 dimensions = {ladder["width"], ladder["height"]};
+        create_ladder(position, dimensions, height, tile_id_array, stride);
     }
 }
 
@@ -142,28 +190,40 @@ void LevelParsingSystem::init_boundaries(json boundaries) {
     for (json boundary : boundaries) {
         vec2 dimensions;
         vec2 position;
-        extract_boundary_attributes(boundary, dimensions, position);
+        if (!extract_boundary_attributes(boundary, dimensions, position)) {
+            continue;
+        }
         create_level_boundary(position, dimensions);
     }
 }
 
 void LevelParsingSystem::init_spikes(json spikes) {
     for (json spike : spikes) {
-        int num_spikes = spike["customFields"]["size"];
-        string direction = spike["customFields"]["direction"];
+        json json_end_pos = spike["customFields"]["length"];
+        if (!validate_custom_field(json_end_pos, "length", spike["iid"], {"cx", "cy"})) {
+            continue;
+        }
+        vec2 end_pos = {static_cast<int>(json_end_pos["cx"]) * TILE_TO_PIXELS, static_cast<int>(json_end_pos["cy"]) * TILE_TO_PIXELS};
+
+        json json_direction = spike["customFields"]["direction"];
+        if (!validate_custom_field(json_direction, "direction", spike["iid"])) {
+            continue;
+        }
+        string direction = json_direction;
         bool is_x_axis = direction == "left" || direction == "right";
         int pos_stride = TILE_TO_PIXELS * (direction == "left" || direction == "up" ? -1 : 1);
 
         vec2 dimensions = {spike["width"], spike["height"]};
         vec2 start_pos = {spike["x"], spike["y"]};
-        for (int i = 0; i < num_spikes; i++) {
+        int num_spikes = is_x_axis ? abs(end_pos.x - start_pos.x) / dimensions.x : abs(end_pos.y - start_pos.y) / dimensions.y;
+
+        for (int i = 0; i <= num_spikes; i++) {
             vec2 position;
             if (is_x_axis) {
                 position = {start_pos.x + (i * pos_stride), start_pos.y};
             } else {
                 position = {start_pos.x, start_pos.y + (i * pos_stride)};
             }
-
             create_spike(position, dimensions, tile_id_array, stride);
         }
     }
@@ -181,13 +241,18 @@ void LevelParsingSystem::init_platforms(json platforms, bool moving) {
     for (json platform : platforms) {
         vec2 dimensions;
         vec2 startPos;
+        bool rounded;
         if (moving) {
             vector<Path> path;
-            extract_path_attributes(platform, path, startPos, dimensions);
-            create_moving_platform(dimensions, path, startPos, tile_id_array, stride);
+            if (!extract_path_attributes(platform, path, startPos, dimensions, rounded)) {
+                continue;
+            }
+            create_moving_platform(dimensions, path, startPos, tile_id_array, stride, rounded);
         } else {
-            extract_platform_attributes(platform, dimensions, startPos);
-            create_static_platform(startPos, dimensions, tile_id_array, stride);
+            if (!extract_platform_attributes(platform, dimensions, startPos, rounded)) {
+                continue;
+            }
+            create_static_platform(startPos, dimensions, tile_id_array, stride, rounded);
         }
     }
 }
@@ -196,16 +261,34 @@ void LevelParsingSystem::init_platforms(json platforms, bool moving) {
  * HELPERS FOR EXTRACTING INFORMATION FROM JSON
  */
 
-void LevelParsingSystem::extract_boundary_attributes(json boundary, vec2& dimensions, vec2& position) {
+bool LevelParsingSystem::extract_door_position(json door, vec2& position) {
+    int x_start = static_cast<float>(door["x"]) - (0.5 * TILE_TO_PIXELS);
+    int y_start = static_cast<float>(door["y"]) + (0.5 * TILE_TO_PIXELS);
+
+    int x = x_start + (0.5 * DOOR_SIZE.x);
+    int y = y_start - (0.5 * DOOR_SIZE.y);
+
+    position = {x, y};
+    return true;
+}
+
+bool LevelParsingSystem::extract_boundary_attributes(json boundary, vec2& dimensions, vec2& position) {
     int x = boundary["x"];
     int y = boundary["y"];
     vec2 start_pos = vec2{x / TILE_TO_PIXELS, y / TILE_TO_PIXELS};
 
     json end_pos_json = boundary["customFields"]["length"];
+    if (!validate_custom_field(end_pos_json, "length", boundary["iid"])) {
+        return false;
+    }
     vec2 end_pos = {end_pos_json["cx"], end_pos_json["cy"]};
 
     int size;
-    string direction = boundary["customFields"]["direction"];
+    json json_direction = boundary["customFields"]["direction"];
+    if (!validate_custom_field(json_direction, "direction", boundary["iid"])) {
+        return false;
+    }
+    string direction = json_direction;
 
     int conversion_factor;
     bool is_x_axis;
@@ -235,33 +318,56 @@ void LevelParsingSystem::extract_boundary_attributes(json boundary, vec2& dimens
     }
 
     position = centralize_position(start_pos, conversion_factor, is_x_axis);
+    return true;
 }
 
 
-void LevelParsingSystem::extract_full_platform_dimensions(json platform, vec2& dimensions) {
-    int full_size = platform["customFields"]["size"];
+bool LevelParsingSystem::extract_full_platform_dimensions(json platform, vec2& dimensions) {
+    json json_size = platform["customFields"]["size"];
+    if (!validate_custom_field(json_size, "size", platform["iid"])) {
+        return false;
+    }
+    int full_size = json_size;
     int full_width = full_size * static_cast<int>(platform["width"]);
     dimensions = {full_width, platform["height"]};
+
+    return true;
 }
 
-void LevelParsingSystem::extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos) {
-    extract_full_platform_dimensions(platform, dimensions);
+bool LevelParsingSystem::extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos, bool& rounded) {
+    if (!extract_full_platform_dimensions(platform, dimensions)) {
+        return false;
+    }
 
     int left_x = static_cast<int>(platform["x"]) - (static_cast<int>(platform["width"]) / 2);
     int start_x = left_x + (static_cast<int>(dimensions[0]) / 2);
     startPos = {start_x, platform["y"]};
+
+    json json_rounded = platform["customFields"]["rounded"];
+    if (!validate_custom_field(json_rounded, "rounded", platform["iid"])) {
+        return false;
+    }
+    rounded = json_rounded;
+
+    return true;
 }
 
-void LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& paths, vec2& init_pos_in_path, vec2& dimensions) {
+bool LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& paths, vec2& init_pos_in_path, vec2& dimensions, bool& rounded) {
     extract_full_platform_dimensions(platform, dimensions);
 
     // currently all position values in json are relative to leftmost tile in platform -- need to centralize position on x-axis.
     int conversion_factor = (static_cast<int>(dimensions.x) / 2) - (static_cast<int>(platform["width"]) / 2);
 
     json start_pos_json = platform["customFields"]["start"];
+    if (!validate_custom_field(start_pos_json, "start", platform["iid"], {"cx", "cy"})) {
+        return false;
+    }
     vec2 start_pos = convert_and_centralize_position(start_pos_json, conversion_factor);
 
     json end_pos_json = platform["customFields"]["end"];
+    if (!validate_custom_field(end_pos_json, "start", platform["iid"], {"cx", "cy"})) {
+        return false;
+    }
     vec2 end_pos = convert_and_centralize_position(end_pos_json, conversion_factor);
 
     int left_x = static_cast<int>(platform["x"]) - (static_cast<int>(platform["width"]) / 2);
@@ -269,7 +375,11 @@ void LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& pa
     init_pos_in_path = {start_x, platform["y"]};
 
     // set duration to default value of 0.5 if no duration is set.
-    float duration = platform["customFields"]["duration"];
+    json json_duration = platform["customFields"]["duration"];
+    if (!validate_custom_field(json_duration, "duration", platform["iid"])) {
+        return false;
+    }
+    float duration = json_duration;
     if (duration == 0.0) {
         duration = 0.5;
     }
@@ -278,6 +388,14 @@ void LevelParsingSystem::extract_path_attributes(json platform, vector<Path>& pa
     Path backward = Path(end_pos, start_pos, duration);
     paths.push_back(forward);
     paths.push_back(backward);
+
+    json json_rounded = platform["customFields"]["rounded"];
+    if (!validate_custom_field(json_rounded, "rounded", platform["iid"])) {
+        return false;
+    }
+    rounded = json_rounded;
+
+    return true;
 }
 
 /*
@@ -310,4 +428,32 @@ vec2 LevelParsingSystem::centralize_position(vec2 pos, int conversion_factor, bo
         pos.x * TILE_TO_PIXELS + (is_x_axis ? conversion_factor : 0),
         pos.y * TILE_TO_PIXELS + (!is_x_axis ? conversion_factor : 0)
     });
+}
+
+bool LevelParsingSystem::validate_custom_field(json attribute, string attribute_name, string entity_id, vector<string> sub_attributes) {
+    if (attribute.is_null()) {
+        string error = "NULL value for customField: " + attribute_name;
+        print_parsing_error(error, entity_id);
+        return false;
+    }
+
+    if (!sub_attributes.empty()) {
+        for (const string& sub : sub_attributes) {
+            if (!validate_custom_field(attribute[sub], sub, entity_id)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+void LevelParsingSystem::print_parsing_error(string& error, string entity_id) {
+    LevelState& ls = registry.levelStates.components[0];
+    cout << "\033[96m" << ls.curr_level_folder_name << ": ";
+
+    cout << "\033[91m" << "Error when parsing entity " << "\033[93m" << entity_id << ": " << "\033[91m" << error << endl;
+
+    // set the line color back to normal in console
+    cout << "\033[0m";
 }

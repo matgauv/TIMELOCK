@@ -240,11 +240,14 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		Tile& tile_info = registry.tiles.get(entity);
 		Motion& motion = registry.motions.get(tile_info.parent_id);
+
+		// starts from the top left tile of an object.
 		int tile_start_x = motion.position.x - (motion.scale.x / 2) + (0.5 * TILE_TO_PIXELS);
+		int tile_start_y = motion.position.y - (motion.scale.y / 2) + (0.5 * TILE_TO_PIXELS);
 
 		glUniform1i(tile_id_uloc, tile_info.id);
-		glUniform2f(tile_pos_uloc, (float)tile_start_x, motion.position.y);
-		glUniform2f(tile_offset_uloc, (float)(tile_info.offset * TILE_TO_PIXELS),0.0f);
+		glUniform2f(tile_pos_uloc, (float)tile_start_x, (float)tile_start_y);
+		glUniform2f(tile_offset_uloc, (float)(tile_info.offset.x * TILE_TO_PIXELS), (float)(tile_info.offset.y * TILE_TO_PIXELS));
 		gl_has_errors();
 	}
 
@@ -459,6 +462,23 @@ void RenderSystem::draw()
 	//gl_has_errors();
 
 
+	// handle meshes
+	// TODO prob handle this somewhere better...
+	for (Entity entity : registry.players.entities) {
+		if (!registry.meshPtrs.has(entity)) {
+			Mesh& player = getMesh(GEOMETRY_BUFFER_ID::PLAYER);
+			registry.meshPtrs.emplace(entity, &player);
+		}
+	}
+
+	for (Entity entity : registry.platformGeometries.entities) {
+		if (!registry.meshPtrs.has(entity)) {
+			Mesh& platform = getMesh(GEOMETRY_BUFFER_ID::PLATFORM);
+			registry.meshPtrs.emplace(entity, &platform);
+		}
+	}
+
+
 	// draw all entities with a render request to the frame buffer
 	// Assort rendering tasks according to layers
 	
@@ -484,7 +504,7 @@ void RenderSystem::draw()
 		// Keep track of pointer to any custom mesh in the registry for use in other systems
 		if (!registry.meshPtrs.has(entity)) {
 			RenderRequest request = registry.renderRequests.get(entity);
-			if (request.used_geometry >= GEOMETRY_BUFFER_ID::HEX) {
+			if (request.used_geometry == GEOMETRY_BUFFER_ID::HEX) {
 				Mesh& mesh = getMesh(request.used_geometry);
 				registry.meshPtrs.emplace(entity, &mesh);
 			}
@@ -497,6 +517,9 @@ void RenderSystem::draw()
 				break;
 			case LAYER_ID::MIDGROUND:
 				// Render Player last?
+				if (registry.players.has(entity)) {
+					continue;
+				}
 				// TODO: may need to adjust rendering order for spawn points and interactive objects as well?
 				if (registry.players.entities[0].id() == entity.id()) {
 					continue;
@@ -513,6 +536,7 @@ void RenderSystem::draw()
 				break;
 		}
 	}
+	midgrounds.push_back(registry.players.entities[0]);
 
 	for (Entity entity : parallaxbackgrounds)
 	{
@@ -574,14 +598,17 @@ mat3 RenderSystem::createProjectionMatrix()
 		{ tx,  ty, 1.f}
 		};
 	}
-	Entity camera_entity = registry.cameras.entities[0];
-	vec2 camera_pos = registry.motions.get(camera_entity).position;
 
-	
-	float left = camera_pos.x -0.35f * WINDOW_WIDTH_PX;
-	float top = camera_pos.y -0.35f * WINDOW_HEIGHT_PX;
-	float right = camera_pos.x + 0.35f * WINDOW_WIDTH_PX;
-	float bottom = camera_pos.y + 0.35f * WINDOW_HEIGHT_PX;
+	Entity camera_entity = registry.cameras.entities[0];
+	const vec2 camera_pos = registry.motions.get(camera_entity).position;
+	const vec2 camera_scale = registry.motions.get(camera_entity).scale;
+
+	const vec2 camera_offsets = CameraSystem::get_camera_offsets(camera_scale);
+
+	float left = camera_pos.x - camera_offsets[0];
+	float top = camera_pos.y - camera_offsets[1];
+	float right = camera_pos.x + camera_offsets[0];
+	float bottom = camera_pos.y + camera_offsets[1];
 	
 	float sx = 2.f / (right - left);
 	float sy = 2.f / (top - bottom);

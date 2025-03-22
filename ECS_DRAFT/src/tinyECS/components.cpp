@@ -80,14 +80,18 @@ bool Mesh::loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex>& out
 				}
 			}
 
-			for (int i = 0; i < 3; i++) {
-				int vIdx = vertexIndex[i] - 1;
-				int uvIdx = uvIndex[i] - 1;
 
-				if (vIdx >= 0 && uvIdx >= 0) {
-					out_vertices[vIdx].uv = out_uvs[uvIdx]; // Assign UV to the correct vertex
+			if (out_uvs.size() > 0) {
+				for (int i = 0; i < 3; i++) {
+					int vIdx = vertexIndex[i] - 1;
+					int uvIdx = uvIndex[i] - 1;
+
+					if (vIdx >= 0 && uvIdx >= 0) {
+						out_vertices[vIdx].uv = out_uvs[uvIdx]; // Assign UV to the correct vertex
+					}
 				}
 			}
+
 
 			// -1 since .obj starts counting at 1 and OpenGL starts at 0
 			out_vertex_indices.push_back((uint16_t)vertexIndex[0] - 1);

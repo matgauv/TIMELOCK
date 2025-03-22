@@ -9,6 +9,8 @@
 #include "../../tinyECS/component_container.hpp"
 #include "systems/ISystem.hpp"
 
+#include "systems/camera/camera_system.hpp"
+
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
 class RenderSystem : public ISystem {
@@ -26,6 +28,8 @@ class RenderSystem : public ISystem {
 	// Associated id with .obj path
 	const std::vector<std::pair<GEOMETRY_BUFFER_ID, std::string>> mesh_paths = {
 		std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::HEX, mesh_path("hex.obj")),
+		std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::PLAYER, mesh_path("still.obj")),
+		std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::PLATFORM, mesh_path("left-end.obj")),
 		// specify meshes of other assets here
 	};
 
@@ -49,10 +53,11 @@ class RenderSystem : public ISystem {
 		textures_path("spawnpoint/SpawnPoint_activate.png"),
 		textures_path("spawnpoint/SpawnPoint_deactivate.png"),
 		textures_path("spawnpoint/SpawnPoint_reactivate.png"),
-		textures_path("canontower/CanonTower.png"),
-		textures_path("canontower/Barrel.png"),
+		textures_path("cannontower/CannonTower.png"),
+		textures_path("cannontower/Barrel.png"),
 		level_ground_path("Level_0"),
 		level_ground_path("Level_1"),
+		level_ground_path("Level_2"),
 		textures_path("tileset.png"),
 		textures_path("tutorial-text/wasd.png"),
 		textures_path("tutorial-text/decel.png"),

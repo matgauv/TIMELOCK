@@ -74,7 +74,10 @@ class RenderSystem : public ISystem {
 		textures_path("boss/move-left-right.png"),
 		textures_path("boss/dash-attack.png"),
 		textures_path("boss/dash-left-right.png"),
-		textures_path("boss/ground-slam.png"),
+		textures_path("boss/ground-slam-rise.png"),
+		textures_path("boss/ground-slam-follow.png"),
+		textures_path("boss/ground-slam-fall.png"),
+		textures_path("boss/ground-slam-land.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

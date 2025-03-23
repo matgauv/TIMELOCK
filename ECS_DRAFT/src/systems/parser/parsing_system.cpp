@@ -41,7 +41,11 @@ void LevelParsingSystem::step(float elapsed_ms) {
     init_level_background();
     init_level_entities();
     init_player_and_camera();
+    create_first_boss_test();
 
+    assert(registry.gameStates.components.size() <= 1);
+    GameState& gameState = registry.gameStates.components[0];
+    gameState.is_in_boss_fight = true;
 
     level_state.shouldLoad = false;
 }

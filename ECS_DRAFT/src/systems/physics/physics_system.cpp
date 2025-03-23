@@ -168,8 +168,25 @@ void PhysicsSystem::step(float elapsed_ms) {
 		}
 
 		vec2 oldMotion = motion.position;
-		motion.position += (motion.velocity * motion.velocityModifier) * step_seconds;
 
+		// TODO: handle boss and wall collisions
+		if (registry.bosses.has(entity)) {
+			vec2 next_pos = motion.position + (motion.velocity * motion.velocityModifier) * step_seconds;
+			if (next_pos.x < 290.f) {
+				motion.position.x = 290.f;
+				motion.position.y += (motion.velocity.y * motion.velocityModifier) * step_seconds;
+				// next_pos.x = 290.f;
+			} else if (next_pos.x > 425.f) {
+				motion.position.x = 425.f;
+				motion.position.y += (motion.velocity.y * motion.velocityModifier) * step_seconds;
+			} else {
+				motion.position += (motion.velocity * motion.velocityModifier) * step_seconds;
+			}
+
+		} else {
+			motion.position += (motion.velocity * motion.velocityModifier) * step_seconds;
+		}
+		
 		// invalidate the cached vertices of the motion moved
 		if (oldMotion != motion.position) {
 			motion.cache_invalidated = true;
@@ -546,11 +563,11 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			handle_projectile_collision(other, one);
 		}
 
-		if (registry.players.has(one) && registry.bosses.has(other)) {
-			handle_player_boss_collision(one, other, collision);
-		} else if (registry.players.has(other) && registry.bosses.has(one)) {
-			handle_player_boss_collision(other, one, collision);
-		}
+		// if (registry.players.has(one) && registry.bosses.has(other)) {
+		// 	handle_player_boss_collision(one, other, collision);
+		// } else if (registry.players.has(other) && registry.bosses.has(one)) {
+		// 	handle_player_boss_collision(other, one, collision);
+		// }
 
 		// if player touches boundary or spike, reset the game
 		if (is_collision_between_player_and_boundary(one, other) || is_collision_between_player_and_spike(one, other)) {
@@ -573,7 +590,10 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 		}
 
 		if (registry.physicsObjects.has(one) && registry.physicsObjects.has(other)) {
-			handle_physics_collision(step_seconds, one, other, collision, groundedEntities);
+			// ignore boss and player case
+			// if (!(registry.players.has(one) && registry.bosses.has(other)) && !(registry.players.has(other) && registry.bosses.has(one))) {
+				handle_physics_collision(step_seconds, one, other, collision, groundedEntities);
+			// }
 		}
 
 	}
@@ -738,12 +758,12 @@ void PhysicsSystem::handle_player_boss_collision(Entity& player_entity, Entity& 
 
 	boss.health -= PLAYER_ATTACK_DAMAGE;
 
-	if (boss.health <= 0.f) {
-		assert(registry.gameStates.components.size() <= 1);
-		GameState& gameState = registry.gameStates.components[0];
-		gameState.is_in_boss_fight = 0;
-		registry.bosses.remove(boss_entity);
-	}
+	// if (boss.health <= 0.f) {
+	// 	assert(registry.gameStates.components.size() <= 1);
+	// 	GameState& gameState = registry.gameStates.components[0];
+	// 	gameState.is_in_boss_fight = 0;
+	// 	registry.bosses.remove(boss_entity);
+	// }
 }
 
 void PhysicsSystem::handle_boss_platform_collision(Entity& boss_entity, Entity& platform_entity, Collision collision) {

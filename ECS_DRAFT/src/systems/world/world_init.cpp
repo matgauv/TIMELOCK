@@ -411,24 +411,47 @@ Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity)
 	return entity;
 }
 
-Entity create_first_boss_demo_level() {
+Entity create_first_boss_test() {
     auto entity = Entity();
 
     Boss& boss = registry.bosses.emplace(entity);
     boss.boss_id = BOSS_ID::FIRST;
-    boss.health = 1000.0f;
+    boss.boss_state = BOSS_STATE::BOSS1_IDLE_STATE;
+    boss.can_be_damaged = false;
 
+    FirstBoss& firstBoss = registry.firstBosses.emplace(entity);
     Motion& motion = registry.motions.emplace(entity);
-    motion.position = vec2(WINDOW_WIDTH_PX / 4 * 3, WINDOW_HEIGHT_PX / 4 * 3);
 
+    // initially idle for testing purposes
+    motion.velocity = vec2(0.f, 0.f);
+    motion.scale = vec2(BOSS_ONE_BB_WIDTH_PX, BOSS_ONE_BB_HEIGHT_PX);
+
+    // grab player position and use that as the spawning point
+    Entity& player_entity = registry.players.entities[0];
+    Motion& player_motion = registry.motions.get(player_entity);
+
+    // initial position
+    motion.position = vec2(player_motion.position.x + 100, player_motion.position.y - BOSS_ONE_BB_HEIGHT_PX / 2);
+
+    // add physical object to boss
+    // PhysicsObject& po = registry.physicsObjects.emplace(entity);
+    // po.mass = 40.f;
+    // po.apply_gravity = false;
+
+    // render request
     registry.renderRequests.insert(
-        entity,
-        {
-            TEXTURE_ASSET_ID::TEXTURE_COUNT,
-            EFFECT_ASSET_ID::TEXTURED,
-            GEOMETRY_BUFFER_ID::SPRITE
-        }
-    );
+		entity,
+		{
+			TEXTURE_ASSET_ID::GREY_CIRCLE,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE
+		}
+	);
+
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    AnimateRequest& animateRequest = registry.animateRequests.emplace(entity);
+    animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_IDLE;
 
     return entity;
 }

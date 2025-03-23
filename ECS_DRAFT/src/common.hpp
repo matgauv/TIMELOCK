@@ -125,7 +125,6 @@ const float PROJECTILE_HEIGHT_PX = 40.0f;
 const float PROJECTILE_SPEED = (float) WINDOW_WIDTH_PX / 5.f; // projectile should travel across the entire screen in 5 seconds
 
 // General boss battle related properties
-const float BOSS_ATTACK_COOLDOWN_MS = 5000.0f;
 const float PLAYER_ATTACK_DAMAGE = 20.0f;
 
 // Level parsing constants
@@ -136,13 +135,13 @@ const float BOSS_ONE_SPAWN_POINT_X = WINDOW_WIDTH_PX - 100.f;
 const float BOSS_ONE_SPAWN_POINT_Y = WINDOW_HEIGHT_PX - 200.f;
 const float BOSS_ONE_ON_GROUND_Y_POSITION = WINDOW_HEIGHT_PX - 200.f; // TODO: need to verify this
 const float BOSS_ONE_MAX_HEALTH = 100.f;
-const float BOSS_ONE_X_VELOCITY_MULTIPLIER = 1.f;
+const float BOSS_ONE_X_VELOCITY_MULTIPLIER = 0.5f;
 const float BOSS_ONE_MAX_X_VELOCITY = PLAYER_MAX_WALKING_SPEED;
-const float BOSS_ONE_MIN_X_VELOCITY = BOSS_ONE_MAX_X_VELOCITY / 10.f;
+const float BOSS_ONE_MIN_X_VELOCITY = BOSS_ONE_MAX_X_VELOCITY / 20.f;
 const float BOSS_ONE_BB_WIDTH_PX = 100.f; // TODO: placeholder, we should adjust this once the actual texture is ready
 const float BOSS_ONE_BB_HEIGHT_PX = 100.f; // TODO: placeholder, we should adjust this once the actual texture is ready
 
-const float BOSS_ONE_MAX_WALK_DURATION_MS = 5000.f;
+const float BOSS_ONE_MAX_WALK_DURATION_MS = 1000.f; // use 1000.f for testing purposes, otherwise use 5000.f
 const float BOSS_ONE_MAX_EXHAUSTED_DURATION_MS = 10000.f;
 const float BOSS_ONE_MAX_RECOVER_DURATION_MS = 2000.f;
 const float BOSS_ONE_MAX_DAMAGED_DURATION_MS = 2000.f;

@@ -16,6 +16,7 @@ Entity create_first_boss() {
 
     // initial position
     motion.position = vec2(BOSS_ONE_SPAWN_POINT_X, BOSS_ONE_SPAWN_POINT_Y);
+    motion.scale = vec2(BOSS_ONE_BB_WIDTH_PX, BOSS_ONE_BB_HEIGHT_PX);
 
     // not physical object to avoid unnecessary collision
 
@@ -29,6 +30,8 @@ Entity create_first_boss() {
 		}
 	);
 
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
     return entity;
 }
 
@@ -40,7 +43,7 @@ Entity create_snooze_button(vec2 boss_position) {
     motion.velocity = vec2(0.f, 0.f);
     
     // snooze button position should be based on the clock's position
-    motion.position = boss_position - vec2(0.f, BOSS_ONE_BB_HEIGHT_PX); // TODO: fine tune this
+    motion.position = boss_position - vec2(0.f, BOSS_ONE_BB_HEIGHT_PX / 2); // TODO: fine tune this
     
     // render request
     registry.renderRequests.insert(
@@ -51,6 +54,8 @@ Entity create_snooze_button(vec2 boss_position) {
 			GEOMETRY_BUFFER_ID::SPRITE
 		}
 	);
+
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
 
     return entity;
 }
@@ -65,98 +70,122 @@ void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_nu
     // state transition logic
     switch (boss.boss_state) {
         case BOSS_STATE::BOSS1_IDLE_STATE:
+            std::cout << "Idle state..." << std::endl;
             boss_one_idle_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
 
         case BOSS_STATE::BOSS1_MOVE_STATE:
+            std::cout << "Move state..." << std::endl;
             boss_one_move_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
 
         case BOSS_STATE::BOSS1_EXHAUSTED_STATE:
+            std::cout << "Exhausted state..." << std::endl;
             boss_one_exhausted_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
 
         case BOSS_STATE::BOSS1_RECOVER_STATE:
+            std::cout << "Recovered state..." << std::endl;
             boss_one_recover_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_DAMAGED_STATE:
+            std::cout << "Damaged state..." << std::endl;
             boss_one_damaged_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
 
         case BOSS_STATE::BOSS1_DEAD_STATE:
+            std::cout << "Dead state..." << std::endl;
             boss_one_dead_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_CHOOSE_ATTACK_STATE:
+            std::cout << "Choose attack state..." << std::endl;
             boss_one_choose_attack_step(boss_entity, boss, boss_motion, elapsed_ms, random_num);
             break;
         
         case BOSS_STATE::BOSS1_REGULAR_PROJECTILE_ATTACK_STATE:
+            std::cout << "Regular projectile state..." << std::endl;
             boss_one_regular_projectile_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_FAST_PROJECTILE_ATTACK_STATE:
+            std::cout << "Fast projectile state..." << std::endl;
             boss_one_fast_projectile_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
             
         case BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE:
+            std::cout << "Delayed state..." << std::endl;
             boss_one_delayed_projectile_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
             
         case BOSS_STATE::BOSS1_DASH_ATTACK_STATE:
+            std::cout << "Dash state..." << std::endl;
             boss_one_dash_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
             
         case BOSS_STATE::BOSS1_GROUND_SLAM_RISE_1_STATE:
+            std::cout << "Rise 1 state..." << std::endl;
             boss_one_ground_slam_rise_1_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_GROUND_SLAM_FOLLOW_1_STATE:
+            std::cout << "Follow 1 state..." << std::endl;
             boss_one_ground_slam_follow_1_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_1_STATE:
+            std::cout << "Slam 1 state..." << std::endl;
             boss_one_ground_slam_slam_1_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
             
         case BOSS_STATE::BOSS1_GROUND_SLAM_LAND_1_STATE:
+            std::cout << "Land 1 state..." << std::endl;
             boss_one_ground_slam_land_1_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_GROUND_SLAM_RISE_2_STATE:
+            std::cout << "Rise 2 state..." << std::endl;
             boss_one_ground_slam_rise_2_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_GROUND_SLAM_FOLLOW_2_STATE:
+            std::cout << "Follow 2 state..." << std::endl;
             boss_one_ground_slam_follow_2_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_2_STATE:
+            std::cout << "Slam 2 state..." << std::endl;
             boss_one_ground_slam_slam_2_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
             
         case BOSS_STATE::BOSS1_GROUND_SLAM_LAND_2_STATE:
+            std::cout << "Land 2 state..." << std::endl;
             boss_one_ground_slam_land_2_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_GROUND_SLAM_RISE_3_STATE:
+            std::cout << "Rise 3 state..." << std::endl;
             boss_one_ground_slam_rise_3_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_GROUND_SLAM_FOLLOW_3_STATE:
+            std::cout << "Follow 3 state..." << std::endl;
             boss_one_ground_slam_follow_3_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_3_STATE:
+            std::cout << "Slam 3 state..." << std::endl;
             boss_one_ground_slam_slam_3_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
             
         case BOSS_STATE::BOSS1_GROUND_SLAM_LAND_3_STATE:
+            std::cout << "Land 3 state..." << std::endl;
             boss_one_ground_slam_land_3_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         default:
+            std::cout << "Default state" << std::endl;
             break;
     }
 
@@ -178,13 +207,11 @@ void boss_one_idle_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, fl
 
     // transition to move if both are in screen
     if (dist <= WINDOW_WIDTH_PX) {
+        std::cout << "Transitioning to MOVE state" << std::endl;
         boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
-        boss.timer_ms = BOSS_ATTACK_COOLDOWN_MS; // walk for 5 seconds before attacking
-
-        // remove render request
-        registry.renderRequests.remove(boss_entity);
+        boss.timer_ms = BOSS_ONE_MAX_WALK_DURATION_MS; // walk for 5 seconds before attacking
         
-        // add animate request
+        // update animate request
         AnimateRequest& animateRequest = registry.animateRequests.emplace(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_WALK;
     }
@@ -208,27 +235,23 @@ void boss_one_move_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, fl
         boss.timer_ms = BOSS_ONE_MAX_EXHAUSTED_DURATION_MS;
         boss_motion.velocity.x = 0.f;
 
-        // remove animate request
-        registry.animateRequests.remove(boss_entity);
+        // update animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_EXHAUSTED;
 
-        // add render request
-        registry.renderRequests.insert(
-            boss_entity,
-            {
-                TEXTURE_ASSET_ID::BOSS_ONE_EXHAUSTED,
-                EFFECT_ASSET_ID::TEXTURED,
-                GEOMETRY_BUFFER_ID::SPRITE
-            }
-        );
         return;
     }
 
     // Otherwise, decrement the cooldown
     boss.timer_ms -= elapsed_ms;
+    std::cout << "Remaining timer in MOVE state is:" << boss.timer_ms << std::endl;
 
     // If the boss has walked for 5 seconds, then enter CHOOSE ATTACK state
+    bool flag = boss.timer_ms <= 0.f;
+    std::cout << "Timer is up?: " << flag << std::endl;
     if (boss.timer_ms <= 0.f) {
         boss.boss_state = BOSS_STATE::BOSS1_CHOOSE_ATTACK_STATE;
+        std::cout << "Change to choose attack state" << std::endl;
     }
 }
 
@@ -253,9 +276,9 @@ void boss_one_exhausted_step(Entity& boss_entity, Boss& boss, Motion& boss_motio
         boss.health -= PLAYER_ATTACK_DAMAGE;
         firstBoss.player_collided_with_snooze_button = false;
 
-        // update the render request
-        RenderRequest& renderRequest = registry.renderRequests.get(boss_entity);
-        renderRequest.used_texture = TEXTURE_ASSET_ID::BOSS_ONE_DAMAGED;
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_DAMAGED;
     }
 
     // Otherwise, if the timer is up, then the boss enters RECOVER STATE
@@ -264,9 +287,9 @@ void boss_one_exhausted_step(Entity& boss_entity, Boss& boss, Motion& boss_motio
         boss.can_be_damaged = false;
         boss.timer_ms = BOSS_ONE_MAX_RECOVER_DURATION_MS;
 
-        // update the render request
-        RenderRequest& renderRequest = registry.renderRequests.get(boss_entity);
-        renderRequest.used_texture = TEXTURE_ASSET_ID::BOSS_ONE_RECOVERED;
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_RECOVERED;
     }
 }
 
@@ -285,9 +308,9 @@ void boss_one_recover_step(Entity& boss_entity, Boss& boss, Motion& boss_motion,
     if (boss.timer_ms <= 0.f) {
         boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
         boss.timer_ms = BOSS_ONE_MAX_WALK_DURATION_MS;
-
-        // remove the render request and add animate request
-        AnimateRequest& animateRequest = registry.animateRequests.emplace(boss_entity);
+        
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_WALK;
     }
 }
@@ -315,9 +338,9 @@ void boss_one_damaged_step(Entity& boss_entity, Boss& boss, Motion& boss_motion,
         boss.boss_state = BOSS_STATE::BOSS1_RECOVER_STATE;
         boss.timer_ms = BOSS_ONE_MAX_RECOVER_DURATION_MS;
 
-        // update render request
-        RenderRequest& renderRequest = registry.renderRequests.get(boss_entity);
-        renderRequest.used_texture = TEXTURE_ASSET_ID::BOSS_ONE_RECOVERED;
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_RECOVERED;
     }
 }
 
@@ -356,12 +379,9 @@ void boss_one_regular_projectile_step(Entity& boss_entity, Boss& boss, Motion& b
     if (firstBoss.num_of_projectiles_created == BOSS_ONE_MAX_NUM_OF_NON_DELAYED_PROJECTILE) {
         boss.num_of_attack_completed++;
         boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
-        
-        // remove render request
-        registry.renderRequests.remove(boss_entity);
 
-        // add animate request
-        AnimateRequest& animateRequest = registry.animateRequests.emplace(boss_entity);
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_WALK;
 
     } else {
@@ -378,11 +398,9 @@ void boss_one_fast_projectile_step(Entity& boss_entity, Boss& boss, Motion& boss
         boss.num_of_attack_completed++;
         boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
 
-        // remove render request
-        registry.renderRequests.remove(boss_entity);
 
-        // add animate request
-        AnimateRequest& animateRequest = registry.animateRequests.emplace(boss_entity);
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_WALK;
 
     } else {
@@ -396,11 +414,8 @@ void boss_one_delayed_projectile_step(Entity& boss_entity, Boss& boss, Motion& b
     boss.num_of_attack_completed++;
     boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
 
-    // remove render request
-    registry.renderRequests.remove(boss_entity);
-
-    // add animate request
-    AnimateRequest& animateRequest = registry.animateRequests.emplace(boss_entity);
+    // update the animate request
+    AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
     animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_WALK;
 }
 
@@ -442,18 +457,9 @@ void boss_one_ground_slam_rise_1_step(Entity& boss_entity, Boss& boss, Motion& b
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_FOLLOW_1_STATE;
         boss.timer_ms = BOSS_ONE_FIRST_GROUND_SLAM_FOLLOW_DURATION_MS;
 
-        // remove animate request
-        registry.animateRequests.remove(boss_entity);
-
-        // TODO: add render request
-        RenderRequest& renderRequest = registry.renderRequests.insert(
-            boss_entity,
-            {
-                TEXTURE_ASSET_ID::BLACK,
-                EFFECT_ASSET_ID::TEXTURED,
-                GEOMETRY_BUFFER_ID::SPRITE
-            }
-        );
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_FOLLOW;
     }
 }
 
@@ -468,12 +474,9 @@ void boss_one_ground_slam_follow_1_step(Entity& boss_entity, Boss& boss, Motion&
         boss_motion.velocity.y = BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY;
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_1_STATE;
 
-        // remove render request
-        registry.renderRequests.remove(boss_entity);
-
-        // TODO: add animate request
+        // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
-        animateRequest.used_animation = ANIMATION_ID::ANIMATION_COUNT;
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_LAND;
 
     } else {
         Entity& player_entity = registry.players.entities[0];
@@ -492,9 +495,9 @@ void boss_one_ground_slam_slam_1_step(Entity& boss_entity, Boss& boss, Motion& b
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_LAND_1_STATE;
         boss.timer_ms = BOSS_ONE_GROUND_SLAM_LAND_DURATION_MS;
 
-        // TODO: update animate request
+        // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
-        animateRequest.used_animation = ANIMATION_ID::ANIMATION_COUNT;
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_LAND;
     }
 }
 
@@ -509,9 +512,9 @@ void boss_one_ground_slam_land_1_step(Entity& boss_entity, Boss& boss, Motion& b
         boss_motion.velocity.x = 0;
         boss_motion.velocity.y = BOSS_ONE_GROUND_SLAM_RISE_VELOCITY;
 
-        // TODO: update render request
+        // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
-        animateRequest.used_animation = ANIMATION_ID::ANIMATION_COUNT;
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_RISE;
     }
 }
 
@@ -524,18 +527,9 @@ void boss_one_ground_slam_rise_2_step(Entity& boss_entity, Boss& boss, Motion& b
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_FOLLOW_2_STATE;
         boss.timer_ms = BOSS_ONE_SECOND_GROUND_SLAM_FOLLOW_DURATION_MS;
 
-        // remove animate request
-        registry.animateRequests.remove(boss_entity);
-
-        // TODO: add render request
-        RenderRequest& renderRequest = registry.renderRequests.insert(
-            boss_entity,
-            {
-                TEXTURE_ASSET_ID::BLACK,
-                EFFECT_ASSET_ID::TEXTURED,
-                GEOMETRY_BUFFER_ID::SPRITE
-            }
-        );
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_FOLLOW;
     }
 }
 
@@ -550,12 +544,9 @@ void boss_one_ground_slam_follow_2_step(Entity& boss_entity, Boss& boss, Motion&
         boss_motion.velocity.y = BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY;
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_2_STATE;
 
-        // remove render request
-        registry.renderRequests.remove(boss_entity);
-
-        // TODO: add animate request
+        // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
-        animateRequest.used_animation = ANIMATION_ID::ANIMATION_COUNT;
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_FALL;
 
     } else {
         Entity& player_entity = registry.players.entities[0];
@@ -574,9 +565,9 @@ void boss_one_ground_slam_slam_2_step(Entity& boss_entity, Boss& boss, Motion& b
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_LAND_2_STATE;
         boss.timer_ms = BOSS_ONE_GROUND_SLAM_LAND_DURATION_MS;
 
-        // TODO: update animate request
+        // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
-        animateRequest.used_animation = ANIMATION_ID::ANIMATION_COUNT;
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_LAND;
     }
 }
 
@@ -591,9 +582,9 @@ void boss_one_ground_slam_land_2_step(Entity& boss_entity, Boss& boss, Motion& b
         boss_motion.velocity.x = 0;
         boss_motion.velocity.y = BOSS_ONE_GROUND_SLAM_RISE_VELOCITY;
 
-        // TODO: update animate request
+        // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
-        animateRequest.used_animation = ANIMATION_ID::ANIMATION_COUNT;
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_RISE;
     }
 }
 
@@ -606,18 +597,9 @@ void boss_one_ground_slam_rise_3_step(Entity& boss_entity, Boss& boss, Motion& b
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_FOLLOW_3_STATE;
         boss.timer_ms = BOSS_ONE_THIRD_GROUND_SLAM_FOLLOW_DURATION_MS;
 
-        // remove animate request
-        registry.animateRequests.remove(boss_entity);
-
-        // TODO: add render request
-        RenderRequest& renderRequest = registry.renderRequests.insert(
-            boss_entity,
-            {
-                TEXTURE_ASSET_ID::BLACK,
-                EFFECT_ASSET_ID::TEXTURED,
-                GEOMETRY_BUFFER_ID::SPRITE
-            }
-        );
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_FOLLOW;
     }
 }
 
@@ -632,12 +614,9 @@ void boss_one_ground_slam_follow_3_step(Entity& boss_entity, Boss& boss, Motion&
         boss_motion.velocity.y = BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY;
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_3_STATE;
 
-        // remove render request
-        registry.renderRequests.remove(boss_entity);
-
-        // TODO: add animate request
+        // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
-        animateRequest.used_animation = ANIMATION_ID::ANIMATION_COUNT;
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_FALL;
 
     } else {
         Entity& player_entity = registry.players.entities[0];
@@ -656,9 +635,9 @@ void boss_one_ground_slam_slam_3_step(Entity& boss_entity, Boss& boss, Motion& b
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_LAND_3_STATE;
         boss.timer_ms = BOSS_ONE_GROUND_SLAM_LAND_DURATION_MS;
 
-        // TODO: update animate request
+        // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
-        animateRequest.used_animation = ANIMATION_ID::ANIMATION_COUNT;
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_LAND;
     }
 }
 
@@ -675,8 +654,11 @@ void boss_one_ground_slam_land_3_step(Entity& boss_entity, Boss& boss, Motion& b
 
         // boss becomes harmless
         boss.can_damage_player = false;
+        if (registry.harmfuls.has(boss_entity)) {
+            registry.harmfuls.remove(boss_entity);
+        }
 
-        // TODO: update animate request
+        // update animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_WALK;
     }
@@ -687,26 +669,27 @@ void boss_one_ground_slam_land_3_step(Entity& boss_entity, Boss& boss, Motion& b
 float calculate_boss_one_x_velocity(float boss_x, float player_x) {
     // Use sigmoid
     // Calculate the distance
-    float dist = boss_x - player_x;
+    float dist = player_x - boss_x;
+
+    std::cout << "player x position: " << player_x << std::endl;
+    std::cout << "boss x position: " << boss_x << std::endl;
+    std::cout << "Their distance is: " << dist << std::endl;
 
     // Calculate a tentative velocity using the multiplier
     float velocity = dist * BOSS_ONE_X_VELOCITY_MULTIPLIER;
 
     // Clamp the velocity at the set minimum if velocity is too small
     if (abs(velocity) < BOSS_ONE_MIN_X_VELOCITY) {
-        velocity = BOSS_ONE_MIN_X_VELOCITY * std::copysignf(1.f, dist);
+        velocity = std::copysignf(BOSS_ONE_MIN_X_VELOCITY, dist);
+
+    } else if (abs(velocity) > BOSS_ONE_MAX_X_VELOCITY) {
+        // Clamp the velocity at the set maximum if the velocity is too large in either direction
+        velocity = std::copysignf(BOSS_ONE_MAX_X_VELOCITY, dist);
     }
 
-    // Clamp the velocity at the set maximum if the velocity is too large in either direction
-    if (velocity > BOSS_ONE_MAX_X_VELOCITY) {
-        velocity = BOSS_ONE_MAX_X_VELOCITY;
-    }
-
-    if (velocity < BOSS_ONE_MAX_X_VELOCITY) {
-        velocity = -BOSS_ONE_MAX_X_VELOCITY;
-    }
-
+    std::cout << "Calculated boss x velocity is: " << velocity << std::endl;
     return velocity;
+    // return 0.f; // for testing
 }
 
 // Chooses the attack based on decision tree (distance between boss and player, and a random number between 0 and 100) and transitions to the corresponding state
@@ -714,6 +697,7 @@ void chooseAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float el
     // helper function that chooses the attack state for boss one using a decision tree
 
     // random_num is between 0 and 100
+    std::cout << "random_num is: " << random_num << std::endl;
 
     // grab player related info
     Player& player = registry.players.components[0];
@@ -759,48 +743,24 @@ void chooseLongRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion
     } else if (random_num <= 50) {
         boss.boss_state = BOSS_STATE::BOSS1_FAST_PROJECTILE_ATTACK_STATE;
 
-        // remove animate request
-        registry.animateRequests.remove(boss_entity);
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = is_player_to_boss_left ? ANIMATION_ID::BOSS_ONE_PROJECTILE_LEFT : ANIMATION_ID::BOSS_ONE_PROJECTILE_RIGHT;
 
-        // add render request
-        RenderRequest& renderRequest = registry.renderRequests.insert(
-            boss_entity,
-            {
-                is_player_to_boss_left ? TEXTURE_ASSET_ID::BOSS_ONE_PROJECTILE_LEFT : TEXTURE_ASSET_ID::BOSS_ONE_PROJECTILE_RIGHT,
-                EFFECT_ASSET_ID::TEXTURED,
-                GEOMETRY_BUFFER_ID::SPRITE
-            }
-        );
     } else if (random_num <= 75) {
         boss.boss_state = BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE;
 
-        // remove animate request
-        registry.animateRequests.remove(boss_entity);
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_DELAYED_PROJECTILE;
 
-        // add render request
-        RenderRequest& renderRequest = registry.renderRequests.insert(
-            boss_entity,
-            {
-                TEXTURE_ASSET_ID::BOSS_ONE_DELAYED_PROJECTILE,
-                EFFECT_ASSET_ID::TEXTURED,
-                GEOMETRY_BUFFER_ID::SPRITE
-            }
-        );
     } else {
         boss.boss_state = BOSS_STATE::BOSS1_REGULAR_PROJECTILE_ATTACK_STATE;
 
-        // remove animate request
-        registry.animateRequests.remove(boss_entity);
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = is_player_to_boss_left ? ANIMATION_ID::BOSS_ONE_PROJECTILE_LEFT : ANIMATION_ID::BOSS_ONE_PROJECTILE_RIGHT;
 
-        // add render request
-        RenderRequest& renderRequest = registry.renderRequests.insert(
-            boss_entity,
-            {
-                is_player_to_boss_left ? TEXTURE_ASSET_ID::BOSS_ONE_PROJECTILE_LEFT : TEXTURE_ASSET_ID::BOSS_ONE_PROJECTILE_RIGHT,
-                EFFECT_ASSET_ID::TEXTURED,
-                GEOMETRY_BUFFER_ID::SPRITE
-            }
-        );
     }
 
 }
@@ -825,33 +785,17 @@ void chooseMediumRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_moti
     } else if (random_num <= 80) {
         boss.boss_state = BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE;
 
-        // remove animate request
-        registry.animateRequests.remove(boss_entity);
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_DELAYED_PROJECTILE;
 
-        // add render request
-        RenderRequest& renderRequest = registry.renderRequests.insert(
-            boss_entity,
-            {
-                TEXTURE_ASSET_ID::BOSS_ONE_DELAYED_PROJECTILE,
-                EFFECT_ASSET_ID::TEXTURED,
-                GEOMETRY_BUFFER_ID::SPRITE
-            }
-        );
     } else {
         boss.boss_state = BOSS_STATE::BOSS1_REGULAR_PROJECTILE_ATTACK_STATE;
 
-        // remove animate request
-        registry.animateRequests.remove(boss_entity);
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = is_player_to_boss_left ? ANIMATION_ID::BOSS_ONE_PROJECTILE_LEFT : ANIMATION_ID::BOSS_ONE_PROJECTILE_RIGHT;
 
-        // add render request
-        RenderRequest& renderRequest = registry.renderRequests.insert(
-            boss_entity,
-            {
-                is_player_to_boss_left ? TEXTURE_ASSET_ID::BOSS_ONE_PROJECTILE_LEFT : TEXTURE_ASSET_ID::BOSS_ONE_PROJECTILE_RIGHT,
-                EFFECT_ASSET_ID::TEXTURED,
-                GEOMETRY_BUFFER_ID::SPRITE
-            }
-        );
     }
 }
 
@@ -869,23 +813,15 @@ void chooseShortRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motio
 
         // TODO: update animate request
         AnimateRequest& animateRequest = registry.animateRequests.emplace(boss_entity);
-        animateRequest.used_animation = ANIMATION_ID::ANIMATION_COUNT;
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_RISE;
 
     } else {
         boss.boss_state = BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE;
 
-        // remove animate request
-        registry.animateRequests.remove(boss_entity);
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_DELAYED_PROJECTILE;
 
-        // add render request
-        RenderRequest& renderRequest = registry.renderRequests.insert(
-            boss_entity,
-            {
-                is_player_to_boss_left ? TEXTURE_ASSET_ID::BOSS_ONE_PROJECTILE_LEFT : TEXTURE_ASSET_ID::BOSS_ONE_PROJECTILE_RIGHT,
-                EFFECT_ASSET_ID::TEXTURED,
-                GEOMETRY_BUFFER_ID::SPRITE
-            }
-        );
     }
 }
 
@@ -987,4 +923,20 @@ void create_delayed_projectile(vec2 pos, float timer_ms) {
     // add Delayed component
     Delayed& delayed = registry.delayeds.emplace(entity);
     delayed.timer_ms = timer_ms;
+}
+
+void choose_regular_projectile_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_in_phase_two, bool is_player_to_boss_left) {
+
+}
+
+void choose_fast_projectile_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_in_phase_two, bool is_player_to_boss_left) {
+
+}
+
+void choose_delayed_projectile_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_in_phase_two, bool is_player_to_boss_left) {
+
+}
+
+void choose_dash_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_in_phase_two, bool is_player_to_boss_left) {
+
 }

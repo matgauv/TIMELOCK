@@ -142,7 +142,7 @@ struct Camera
 // use for physics based objects
 struct PhysicsObject
 {
-	float mass;
+	float mass = 0.1f;
 	float friction = STATIC_FRICTION;
 	float drag_coefficient = 0.2f;
 	bool apply_gravity = true;

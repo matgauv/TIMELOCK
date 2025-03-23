@@ -900,10 +900,13 @@ float calculate_moment_of_inertia(Entity entity) {
 				total += (1.0f/12.0f) * submesh_mass * (size.x*size.x + size.y*size.y)
 					   + submesh_mass * distance_sq;
 			}
+			phys.moment_of_inertia = total;
 			return total;
 		} else {
 			vec2 size = motion.scale;
-			return (1.0f/12.0f) * phys.mass * (size.x*size.x + size.y*size.y);
+			float total =  (1.0f/12.0f) * phys.mass * (size.x*size.x + size.y*size.y);
+			phys.moment_of_inertia = total;
+			return total;
 		}
 	}
 	return phys.moment_of_inertia;
@@ -985,17 +988,27 @@ void PhysicsSystem::handle_rotational_dynamics(Entity& object_entity, Entity& pl
 		selected_contacts.push_back(projected_contacts[i].second);
 	}
 
+	if (selected_contacts.empty())
+		return;
+
 	// project the contact points to determine the support area of the object
-	float min_contact_x = FLT_MAX, max_contact_x = -FLT_MAX;
-	vec2 min_pivot_point, max_pivot_point;
+	vec2 min_pivot_point = selected_contacts[0];
+	vec2 max_pivot_point = selected_contacts[0];
+	float min_contact_x = FLT_MAX;
+	float max_contact_x = -FLT_MAX;
 
-	for (const vec2& p : selected_contacts) {
-		vec2 relative_point = p - platform_pos;
-		float projected = dot(relative_point, tangent);
+	for (size_t i = 1; i < selected_contacts.size(); i++) {
+		vec2 p = selected_contacts[i];
+		float projected = dot(p - platform_pos, tangent);
 
-		// find the min and max of the pivot points
-		if (projected < min_contact_x) { min_contact_x = projected; min_pivot_point = p; }
-		if (projected > max_contact_x) { max_contact_x = projected; max_pivot_point = p; }
+		if (projected < min_contact_x) {
+			min_contact_x = projected;
+			min_pivot_point = p;
+		}
+		if (projected > max_contact_x) {
+			max_contact_x = projected;
+			max_pivot_point = p;
+		}
 	}
 
 
@@ -1114,17 +1127,18 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 	float lever_arm_A_perp = contact_offset_a.x * normal.y - contact_offset_a.y * normal.x;
 	float lever_arm_B_perp = contact_offset_b.x * normal.y - contact_offset_b.y * normal.x;
 
-	float A_vel_towards_collision = dot(motionA.velocity, normal) + physA.angular_velocity * lever_arm_A_perp;
-	float B_vel_towards_collision = dot(motionB.velocity, normal) + physB.angular_velocity * lever_arm_B_perp;
+	float A_ang_term = physA.apply_rotation ? physA.angular_velocity * lever_arm_A_perp : 0.0f;
+	float B_ang_term = physB.apply_rotation ? physB.angular_velocity * lever_arm_B_perp : 0.0f;
+	float A_vel_towards_collision = dot(motionA.velocity, normal) + A_ang_term;
+	float B_vel_towards_collision = dot(motionB.velocity, normal) + B_ang_term;
 	float vel_along_normal = B_vel_towards_collision - A_vel_towards_collision;
 
 	if (vel_along_normal > 0.0f) return;
 
 	// compute the impulse from the collision (relative to center of mass)
 	float impulse_magnitude = -(1.0f + PHYSICS_OBJECT_BOUNCE) * vel_along_normal;
-	float a_inv_inertia = (physA.moment_of_inertia > 0) ? 1.0f / calculate_moment_of_inertia(entityA) : 0.0f;
-	float b_inv_inertia = (physB.moment_of_inertia > 0) ? 1.0f / calculate_moment_of_inertia(entityB) : 0.0f;
-
+	float a_inv_inertia = (physA.apply_rotation) ? 1.0f / calculate_moment_of_inertia(entityA) : 0.0f;
+	float b_inv_inertia = (physB.apply_rotation) ? 1.0f / calculate_moment_of_inertia(entityB) : 0.0f;
 	float impulse_denom = total_inv_mass + (lever_arm_A_perp * lever_arm_A_perp) * a_inv_inertia + (lever_arm_B_perp * lever_arm_B_perp) * b_inv_inertia;
 
 	if (impulse_denom == 0.0f) return;
@@ -1136,15 +1150,31 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 	motionA.velocity -= impulse * a_inv_mass; // because normal points A->B but A is moving towards B
 	motionB.velocity += impulse * b_inv_mass;
 
-	physA.angular_velocity -= impulse_magnitude * lever_arm_A_perp * a_inv_inertia;
-	physB.angular_velocity += impulse_magnitude * lever_arm_B_perp * b_inv_inertia;
+
+	if (physA.apply_rotation) {
+		physA.angular_velocity -= impulse_magnitude * lever_arm_A_perp * a_inv_inertia;
+	}
+	if (physB.apply_rotation) {
+		physB.angular_velocity += impulse_magnitude * lever_arm_B_perp * b_inv_inertia;
+	}
 
 	// friction
-	vec2 friction_dir = normalize(motionB.velocity - motionA.velocity - normal * dot(motionB.velocity - motionA.velocity, normal));
-	if (length(friction_dir) < 0.001f) return;
+	vec2 rel_velocity = motionB.velocity - motionA.velocity;
+	vec2 tangent = rel_velocity - dot(rel_velocity, normal) * normal;
+	float tan_len = length(tangent);
 
-	float tangent_vel_A = dot(motionA.velocity, friction_dir) + physA.angular_velocity * (contact_offset_a.x * friction_dir.y - contact_offset_a.y * friction_dir.x);
-	float tangent_vel_B = dot(motionB.velocity, friction_dir) + physB.angular_velocity * (contact_offset_b.x * friction_dir.y - contact_offset_b.y * friction_dir.x);
+	if (tan_len < 0.001f) return;
+
+	vec2 friction_dir = tangent / tan_len;
+
+	float tangent_vel_A = dot(motionA.velocity, friction_dir);
+	if (physA.apply_rotation) {
+		tangent_vel_A += physA.angular_velocity * (contact_offset_a.x * friction_dir.y - contact_offset_a.y * friction_dir.x);
+	}
+	float tangent_vel_B = dot(motionB.velocity, friction_dir);
+	if (physB.apply_rotation) {
+		tangent_vel_B += physB.angular_velocity * (contact_offset_b.x * friction_dir.y - contact_offset_b.y * friction_dir.x);
+	}
 	float rel_tan_velocity = tangent_vel_B - tangent_vel_A;
 
 	float friction = sqrt(physA.friction * physB.friction);
@@ -1157,13 +1187,16 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 
 
 	// angular friction
-	float tangential_lever_a = contact_offset_a.x * friction_dir.y - contact_offset_a.y * friction_dir.x;
-	float tangential_lever_b = contact_offset_b.x * friction_dir.y - contact_offset_b.y * friction_dir.x;
-	physA.angular_velocity -= tangent_impulse_scalar * tangential_lever_a * a_inv_inertia;
-	physB.angular_velocity += tangent_impulse_scalar * tangential_lever_b * b_inv_inertia;
-
-	handle_rotational_dynamics(entityA, entityB, collision.normal, step_seconds);
-	handle_rotational_dynamics(entityB, entityA, -collision.normal, step_seconds);
+	if (physA.apply_rotation) {
+		float tangential_lever_a = contact_offset_a.x * friction_dir.y - contact_offset_a.y * friction_dir.x;
+		physA.angular_velocity -= tangent_impulse_scalar * tangential_lever_a * a_inv_inertia;
+		handle_rotational_dynamics(entityA, entityB, collision.normal, step_seconds);
+	}
+	if (physB.apply_rotation) {
+		float tangential_lever_b = contact_offset_b.x * friction_dir.y - contact_offset_b.y * friction_dir.x;
+		physB.angular_velocity += tangent_impulse_scalar * tangential_lever_b * b_inv_inertia;
+		handle_rotational_dynamics(entityB, entityA, -collision.normal, step_seconds);
+	}
 }
 
 // proper friction using coulomb's law

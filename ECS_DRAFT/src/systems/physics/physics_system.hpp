@@ -5,6 +5,7 @@
 #include "../../tinyECS/components.hpp"
 #include "../../tinyECS/registry.hpp"
 #include "systems/ISystem.hpp"
+#include "../world/world_system.hpp"
 
 #include <mutex>
 #include <future>

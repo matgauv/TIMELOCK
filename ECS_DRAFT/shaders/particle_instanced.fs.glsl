@@ -12,6 +12,7 @@ in vec4 color_info;
 // Currently we are loading all data and switching to them based on texture id
 // It is an ugly table mapping method, but should be enough for the project
 uniform sampler2D texture1;
+uniform sampler2D texture2;
 
 // Output color
 layout(location = 0) out  vec4 color;
@@ -28,6 +29,9 @@ void main()
         switch (texture_id) {
             case 1:
                 color = texture(texture1, texcoord);
+                break;
+            case 2:
+                color = texture(texture2, texcoord);
                 break;
             default:
                 color = vec4(0.0, 0.0, 0.0, 1.0);

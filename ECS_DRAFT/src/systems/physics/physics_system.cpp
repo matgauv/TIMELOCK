@@ -968,7 +968,7 @@ void PhysicsSystem::handle_player_breakable_collision(Entity& player_entity, Ent
 		GameState& gameState = registry.gameStates.components[0];
 
 		if (gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED) {
-			registry.remove_all_components_of(breakable_entity);
+			WorldSystem::destroy_breakable_platform(breakable_entity);
 		}
 	}
 }

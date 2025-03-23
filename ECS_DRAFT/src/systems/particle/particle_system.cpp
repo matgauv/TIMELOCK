@@ -161,6 +161,16 @@ bool ParticleSystem::handle_particle_type(Entity entity, PARTICLE_ID particle_id
 			break;
 		case PARTICLE_ID::SAMPLED_TEXTURE:
 			break;
+		case PARTICLE_ID::BREAKABLE_FRAGMENTS:
+		{
+			Particle& par = registry.particles.get(entity);
+			par.gravity_influence = 0.5f;
+			par.angle = rand_float(-15.f, 15.f);
+			par.ang_velocity = rand_float(-50.f, 50.f);
+
+			registry.animateRequests.emplace(entity).used_animation = ANIMATION_ID::BREAKABLE_FRAGMENTS;
+			break;
+		}
 		default:
 			success = false;
 			break;

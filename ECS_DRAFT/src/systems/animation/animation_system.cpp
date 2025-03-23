@@ -59,6 +59,12 @@ void AnimationSystem::updateTimer(AnimateRequest& animateRequest, const Animatio
 			animateRequest.timer += elapsed_ms;
 		}
 	}
+	else if (animationConfig.animation_type == ANIMATION_TYPE_ID::FREEZE_ON_RANDOM) {
+		// Uninitialized
+		if (animateRequest.timer <= 0.0) {
+			animateRequest.timer = rand_float(0.1f, animationConfig.duration_ms);
+		}
+	}
 }
 
 void AnimationSystem::late_step(float elapsed_ms) {

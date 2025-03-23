@@ -12,6 +12,7 @@
 #include <SDL_mixer.h>
 
 #include "../rendering/render_system.hpp"
+#include "../particle/particle_system.hpp"
 
 // Container for all our entities and game logic.
 // Individual rendering / updates are deferred to the update() methods.
@@ -40,6 +41,9 @@ public:
 	void setFreeFly(bool fly) {
 		this->fly = fly;
 	}
+
+	// Should likely aggregate these into a utils class
+	static void destroy_breakable_platform(Entity entity);
 
 private:
 	// starts and loads music and sound effects

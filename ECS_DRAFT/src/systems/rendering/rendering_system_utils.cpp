@@ -106,6 +106,9 @@ void RenderSystem::instancedRenderParticles(const std::vector<Entity> & particle
 
 	// Bind all textures in order
 	bindTexture(GL_TEXTURE0, TEXTURE_ASSET_ID::GREY_CIRCLE);
+	bindTexture(GL_TEXTURE0 +1, TEXTURE_ASSET_ID::BREAKABLE_FRAGMENTS);
+	glUniform1i(glGetUniformLocation(curr_program, "texture1"), 0);
+	glUniform1i(glGetUniformLocation(curr_program, "texture2"), 1);
 
 	// Set Vertex Attributes
 	const GLuint vbo = vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SPRITE];

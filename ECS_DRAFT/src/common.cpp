@@ -81,6 +81,16 @@ vec2 random_sample_ellipse(vec2 center, vec2 dimensions, float angle_radians) {
 	return center + rotate_2D(offset, angle_radians);
 }
 
+vec2 safe_normalize(vec2 v) {
+	// Handles the case where v is zero vector
+	float length = glm::length(v);
+
+	if (length == 0.0) {
+		return v;
+	}
+
+	return v / length;
+}
 
 bool gl_has_errors()
 {

@@ -180,6 +180,7 @@ float rand_float(float min = 0.0f, float max = 1.0f);
 vec2 rand_direction();
 vec2 rotate_2D(vec2 v, float angle_rad);
 vec2 angle_to_direction(float angle_rad);
+vec2 safe_normalize(vec2 v);
 
 vec2 random_sample_rectangle(vec2 center, vec2 dimensions, float angle_radians = 0.0);
 vec2 random_sample_ellipse(vec2 center, vec2 dimensions, float angle_radians = 0.0);

@@ -41,7 +41,8 @@ void PlayerSystem::step(float elapsed_ms) {
 	// Generate running particles
 	const Entity player_entity = registry.players.entities[0];
 	const vec2 player_velocity = registry.motions.get(player_entity).velocity;
-	if (registry.onGrounds.has(player_entity) && abs(player_velocity.x) > PLAYER_MAX_WALKING_SPEED * 0.3f) {
+	if (registry.players.components[0].jumping_valid_time > 0.9f * JUMPING_VALID_TIME_MS 
+		&& abs(player_velocity.x) > PLAYER_MAX_WALKING_SPEED * 0.3f) {
 		float speed_factor = min(1.0f, (abs(player_velocity.x) - PLAYER_MAX_WALKING_SPEED * 0.3f) / (PLAYER_MAX_WALKING_SPEED * 0.7f));
 		float rand_threshold = lerpToTarget(speed_factor, 0.6f, 0.1f);
 

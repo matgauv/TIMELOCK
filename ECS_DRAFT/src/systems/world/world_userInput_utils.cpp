@@ -1,0 +1,195 @@
+#include "world_system.hpp"
+
+// on key callback
+void WorldSystem::on_key(int key, int, int action, int mod) {
+
+	if (registry.players.size() == 0) { return; } // level not loaded. TODO: set flag in the registry once level loading is done
+
+
+	// exit game w/ ESC
+	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
+		glfwSetWindowShouldClose(window, GLFW_TRUE);
+	}
+
+	// Resetting game
+	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
+		int w, h;
+		glfwGetWindowSize(window, &w, &h);
+
+		restart_game();
+		return;
+	}
+
+	if (key == GLFW_KEY_D) {
+		if (action == GLFW_RELEASE) {
+			if (debugging.in_debug_mode) {
+				debugging.in_debug_mode = false;
+			}
+			else {
+				debugging.in_debug_mode = true;
+			}
+		}
+	}
+
+
+	// The following actions only available when player is alive
+	// Could extend to case of game pause
+	const Player& player = registry.players.components[0];
+	if (player.state == PLAYER_STATE::RESPAWNED || player.state == PLAYER_STATE::DEAD) {
+		return;
+	}
+
+	GameState& gameState = registry.gameStates.components[0];
+
+	// Activate acceleration
+	if (key == GLFW_KEY_EQUAL && action == GLFW_RELEASE) {
+		if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED) {
+			control_time(true, false);
+		}
+		else {
+			control_time(true, true);
+		}
+	}
+
+	// Activate deceleration
+	if (key == GLFW_KEY_MINUS && action == GLFW_RELEASE)
+	{
+		if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED) {
+			control_time(false, false);
+		}
+		else {
+			control_time(false, true);
+		}
+	}
+
+	if (key == GLFW_KEY_D) {
+		if (action == GLFW_PRESS) {
+			player_walking(true, false);
+		}
+		else if (action == GLFW_RELEASE) {
+			player_walking(false, false);
+		}
+
+		PlayerSystem::set_direction(false);
+	}
+
+	if (key == GLFW_KEY_A) {
+		if (action == GLFW_PRESS) {
+			player_walking(true, true);
+		}
+		else if (action == GLFW_RELEASE) {
+			player_walking(false, true);
+		}
+
+		PlayerSystem::set_direction(true);
+	}
+
+	Entity& player_entity = registry.players.entities[0];
+	if (key == GLFW_KEY_W) {
+		if (registry.climbing.has(player_entity)) {
+			Climbing& climbing = registry.climbing.get(player_entity);
+			climbing.is_up = true;
+		}
+		else {
+			player_jump();
+		}
+
+
+	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_W) {
+		if (registry.climbing.has(player_entity)) {
+			Climbing& climbing = registry.climbing.get(player_entity);
+			climbing.is_up = false;
+		}
+	}
+
+
+	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+		LevelState& levelState = registry.levelStates.components[0];
+		levelState.curr_level_folder_name = "Level_0";
+		levelState.ground = TEXTURE_ASSET_ID::D_TUTORIAL_GROUND;
+		levelState.shouldLoad = true;
+	}
+
+	if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+		LevelState& levelState = registry.levelStates.components[0];
+		levelState.curr_level_folder_name = "Level_1";
+		levelState.ground = TEXTURE_ASSET_ID::A_TUTORIAL_GROUND;
+		levelState.shouldLoad = true;
+	}
+
+	if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
+		LevelState& levelState = registry.levelStates.components[0];
+		levelState.curr_level_folder_name = "Level_2";
+		levelState.ground = TEXTURE_ASSET_ID::DECEL_LEVEL_GROUND;
+		levelState.shouldLoad = true;
+	}
+
+	if (key == GLFW_KEY_GRAVE_ACCENT && action == GLFW_PRESS) {
+		LevelParsingSystem::schedule_reload();
+	}
+
+	// Fly controls (run ./TIMELOCK --fly):
+	if (key == GLFW_KEY_RIGHT && fly) {
+		if (action == GLFW_PRESS) {
+			player_walking(true, false);
+		}
+		else if (action == GLFW_RELEASE) {
+			player_walking(false, false);
+		}
+
+		PlayerSystem::set_direction(false);
+	}
+
+	if (key == GLFW_KEY_LEFT && fly) {
+		if (action == GLFW_PRESS) {
+			player_walking(true, true);
+		}
+		else if (action == GLFW_RELEASE) {
+			player_walking(false, true);
+		}
+
+		PlayerSystem::set_direction(true);
+	}
+
+	if (key == GLFW_KEY_DOWN && fly) {
+		Motion& motion = registry.motions.get(registry.players.entities[0]);
+		if (action == GLFW_PRESS) {
+			motion.velocity.y = JUMP_VELOCITY;
+		}
+		else if (action == GLFW_RELEASE) {
+			motion.velocity.y = 0;
+		}
+	}
+
+	if (key == GLFW_KEY_UP && fly) {
+		Motion& motion = registry.motions.get(registry.players.entities[0]);
+		if (action == GLFW_PRESS) {
+			motion.velocity.y = -JUMP_VELOCITY;
+		}
+		else if (action == GLFW_RELEASE) {
+			motion.velocity.y = 0;
+		}
+	}
+}
+
+void WorldSystem::on_mouse_move(vec2 mouse_position) {
+
+	// record the current mouse position
+	mouse_pos_x = mouse_position.x;
+	mouse_pos_y = mouse_position.y;
+}
+
+void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
+	// on button press
+	if (action == GLFW_PRESS) {
+		std::cout << "mouse position: " << mouse_pos_x << ", " << mouse_pos_y << std::endl;
+	}
+}
+
+void WorldSystem::playSoundIfEnabled(Mix_Chunk* sound) {
+	if (this->play_sound) {
+		Mix_PlayChannel(-1, sound, 0);
+	}
+}

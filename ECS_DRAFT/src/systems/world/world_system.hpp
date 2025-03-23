@@ -6,13 +6,20 @@
 // stlib
 #include <vector>
 #include <random>
+#include <cassert>
+#include <sstream>
+#include <iostream>
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 #include <SDL_mixer.h>
 
+#include "../../tinyECS/registry.hpp"
 #include "../rendering/render_system.hpp"
 #include "../particle/particle_system.hpp"
+#include "../player/player_system.hpp"
+#include "../physics/physics_system.hpp"
+#include "../parser/parsing_system.hpp"
 
 // Container for all our entities and game logic.
 // Individual rendering / updates are deferred to the update() methods.
@@ -26,6 +33,8 @@ public:
 
 	// steps the game ahead by ms milliseconds
 	void step(float elapsed_ms) override;
+
+	void degrade_breakable_platform(const Entity& entity, TimeControllable& tc, GameState& gameState, float elapsed_ms_since_last_update);
 
 	// steps the game ahead, runs after all other components have stepped
 	void late_step(float elapsed_ms) override;
@@ -51,7 +60,7 @@ private:
 
 	// control acceleration/deceleration
 	void control_time(bool accelerate, bool activate);
-
+	void update_time_control_properties(TIME_CONTROL_STATE timeControlState, TimeControllable& tc, const Entity& entity);
 	void lerpTimeState(float start, float factor, Motion& motion, std::chrono::time_point<std::chrono::high_resolution_clock> effectStartTime);
 
 	void player_walking(bool walking, bool is_left);
@@ -77,7 +86,6 @@ private:
 
 	// Player kill and respawn
 	void check_player_killed();
-
 	void check_scene_transition();
 
 	// GameState entity

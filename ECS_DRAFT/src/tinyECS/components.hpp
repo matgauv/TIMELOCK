@@ -205,7 +205,7 @@ struct ScreenState
 {
 	float acceleration_factor = -1.0;
 	float deceleration_factor = -1.0;
-	float scene_transition_factor = -1.0;
+	float scene_transition_factor = 3.0; // start from transition in
 };
 
 // A struct that includes the necessary properties of the current game state
@@ -486,6 +486,7 @@ struct LevelState {
 	std::string next_level_folder_name;
 	TEXTURE_ASSET_ID ground;
 	bool shouldLoad = false;
+	float reload_coutdown = -1.0f;
 	vec2 dimensions;
 };
 

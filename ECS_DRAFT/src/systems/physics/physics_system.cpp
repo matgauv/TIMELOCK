@@ -6,6 +6,7 @@
 #include "../world/world_init.hpp"
 #include "../player/player_system.hpp"
 #include <iostream>
+#include "../parser/parsing_system.hpp"
 
 void compute_platform_verticies(Motion& motion, Entity& e, float& angle_cos, float& angle_sin) {
 	PlatformGeometry& geo = registry.platformGeometries.get(e);
@@ -448,7 +449,7 @@ void PhysicsSystem::player_walk(Entity& entity, Motion& motion, float step_secon
 		rel_velocity += desired_direction * acceleration * interpFactor * step_seconds;
 
 		// clamp relative velocity instead of world velocity
-		rel_velocity.x = clamp(rel_velocity.x, -PLAYER_MAX_WALKING_SPEED, PLAYER_MAX_WALKING_SPEED);
+		rel_velocity.x = std::clamp(rel_velocity.x, -PLAYER_MAX_WALKING_SPEED, PLAYER_MAX_WALKING_SPEED);
 
 		motion.velocity = rel_velocity + platform_velocity;
 	}
@@ -584,8 +585,12 @@ void PhysicsSystem::handle_player_door_collision() {
 
 	if (ls.curr_level_folder_name == ls.next_level_folder_name) return;
 
+	/*
 	ls.curr_level_folder_name = ls.next_level_folder_name;
 	ls.shouldLoad = true;
+	*/
+
+	LevelParsingSystem::schedule_reload();
 }
 
 

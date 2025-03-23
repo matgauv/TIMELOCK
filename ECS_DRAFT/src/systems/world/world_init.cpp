@@ -484,8 +484,6 @@ Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity)
 	motion.position = pos;
 	motion.scale = size;
 
-    std::cout << "position " << pos.x << " " << pos.y << std::endl;
-
     Blocked& blocked = registry.blocked.emplace(entity);
     blocked.normal = vec2(0, 0);
 
@@ -899,7 +897,7 @@ Entity create_spikeball(vec2 position, vec2 size) {
     physics_object.apply_gravity = true;
     physics_object.mass = 90.0f;
     physics_object.friction = 0.01f;
-    physics_object.apply_rotation = false;
+    physics_object.apply_rotation = true;
 
     CompositeMesh& compositeMesh = registry.compositeMeshes.emplace(entity);
 
@@ -933,10 +931,6 @@ Entity create_spikeball(vec2 position, vec2 size) {
         };
 
         compositeMesh.meshes.push_back(spike);
-
-        std::cout << "OFFSET:" << spike.offset.x << ", " << spike.offset.y << std::endl;
-        std::cout << "SPIKE MESH Rotation: " << spike.rotation << std::endl;
-        std::cout << "spikeball center:" << motion.position.x << ", " << motion.position.y << std::endl;
     };
 
     Mesh* spike_mesh = get_mesh("/meshes/spikeball-spikes.obj");

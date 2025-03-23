@@ -558,14 +558,29 @@ Entity create_partof(vec2 position, vec2 scale, json tile_id_array, int stride) 
 }
 
 Entity create_breakable_static_platform(vec2 position, vec2 scale, bool should_break_instantly, float degrade_speed, bool is_time_controllable, json& tile_id_array, int stride) {
-    Entity entity = create_static_platform(position, scale, tile_id_array, stride, false);
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0.0, 0.0};
+    motion.angle = 0;
+
+    registry.platforms.emplace(entity);
+
     Breakable& breakable = registry.breakables.emplace(entity);
     breakable.health = 1000.f;
     breakable.degrade_speed_per_ms = degrade_speed;
     breakable.should_break_instantly = should_break_instantly;
 
-    RenderRequest& renderRequest = registry.renderRequests.get(entity);
-    renderRequest.used_texture = is_time_controllable? TEXTURE_ASSET_ID::OBJECT : TEXTURE_ASSET_ID::GREY_CIRCLE;
+    // TODO: need to add a proper texture for this
+    registry.renderRequests.insert(entity, {
+            is_time_controllable? TEXTURE_ASSET_ID::OBJECT : TEXTURE_ASSET_ID::GREY_CIRCLE,
+            EFFECT_ASSET_ID::TEXTURED,
+            GEOMETRY_BUFFER_ID::SPRITE
+    });
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
 
     return entity;
 }

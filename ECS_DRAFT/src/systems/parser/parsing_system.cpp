@@ -128,9 +128,58 @@ void LevelParsingSystem::init_level_entities() {
             init_ladders(entity_list);
         } else if (entity_type == "Checkpoint") {
             init_checkpoints(entity_list);
+        } else if (entity_type == "Breakable") {
+            init_breakable_platforms(entity_list);
         }
     }
 }
+
+void LevelParsingSystem::init_breakable_platforms(json breakables) {
+    for (json& breakable : breakables) {
+        vec2 size;
+
+        json json_full_size = breakable["customFields"]["size"];
+        if (!validate_custom_field(json_full_size, "size", breakable["iid"])) {
+            continue;
+        }
+        int full_size = json_full_size;
+
+        json json_direction = breakable["customFields"]["direction"];
+        if (!validate_custom_field(json_direction, "direction", breakable["iid"])) {
+            continue;
+        }
+        string direction = json_direction;
+
+        int conversion_factor;
+        bool is_x_axis;
+        if (direction == "up" || direction == "down")
+        {
+            size = {breakable["width"], static_cast<int>(breakable["height"]) * full_size};
+            if (direction == "up") {
+                conversion_factor = (static_cast<int>(breakable["height"]) / 2) - (static_cast<int>(size.y) / 2);
+            } else {
+                conversion_factor = (static_cast<int>(size.y) / 2) - (static_cast<int>(breakable["height"]) / 2);
+            }
+            is_x_axis = false;
+        }
+        else
+        {
+            size = {static_cast<int>(breakable["width"]) * full_size, breakable["height"]};
+            if (direction == "left") {
+                conversion_factor = (static_cast<int>(breakable["width"]) / 2) - (static_cast<int>(size.x) / 2);
+            } else {
+                conversion_factor = (static_cast<int>(size.x) / 2) - (static_cast<int>(breakable["width"]) / 2);
+            }
+            is_x_axis = true;
+        }
+
+        vec2 start_pos = {static_cast<int>(breakable["x"]) / TILE_TO_PIXELS, static_cast<int>(breakable["y"]) / TILE_TO_PIXELS};
+        vec2 position = centralize_position(start_pos, conversion_factor, is_x_axis);
+
+        create_time_controllable_breakable_static_platform(position, size, false, 2.0, tile_id_array, stride);
+    }
+}
+
 
 void LevelParsingSystem::init_pipes(json pipes) {
     for (json& pipe : pipes) {

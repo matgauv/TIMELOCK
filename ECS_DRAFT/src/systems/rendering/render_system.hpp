@@ -62,7 +62,8 @@ class RenderSystem : public ISystem {
 		textures_path("tutorial-text/decel2.png"),
 		textures_path("tutorial-text/accel.png"),
 		textures_path("pendulum.png"),
-		textures_path("gear.png")
+		textures_path("gear.png"),
+		textures_path("spikeball.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

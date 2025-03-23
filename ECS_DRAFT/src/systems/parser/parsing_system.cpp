@@ -121,6 +121,8 @@ void LevelParsingSystem::init_level_entities() {
        //     init_pendulums(entity_list);
         } else if (entity_type == "Gear") {
             init_gears(entity_list);
+        } else if (entity_type == "Spikeball") {
+            init_spikeballs(entity_list);
         }
     }
 }
@@ -155,6 +157,15 @@ void LevelParsingSystem::init_pendulums(json pendulum) {
 
     }
 }
+
+void LevelParsingSystem::init_spikeballs(json spikeballs) {
+    for (json spikeball : spikeballs) {
+        vec2 position = {spikeball["x"], spikeball["y"]};
+        vec2 size_px = {spikeball["customFields"]["width"], spikeball["customFields"]["height"]};
+        create_spikeball(position, size_px);
+    }
+}
+
 
 void LevelParsingSystem::init_gears(json gears) {
     for (json gear : gears) {

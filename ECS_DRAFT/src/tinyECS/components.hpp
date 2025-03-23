@@ -273,7 +273,7 @@ struct SubMesh {
 	std::vector<vec2> cached_axes;
 	vec2 offset;
 	float rotation = 0.0f;
-	float scale_ratio = 1.0f;
+	vec2 scale_ratio = {1.0f, 1.0f};
 	vec2 world_pos = { 0, 0 };
 	bool cache_invalidated = true;
 };
@@ -426,7 +426,8 @@ enum class TEXTURE_ASSET_ID {
 	ACCEL = DECEL2 + 1,
 	PENDULUM = ACCEL + 1,
 	GEAR = PENDULUM + 1,
-	TEXTURE_COUNT = GEAR + 1,
+	SPIKEBALL = GEAR + 1,
+	TEXTURE_COUNT = SPIKEBALL + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

@@ -56,50 +56,77 @@ void compute_platform_verticies(Motion& motion, Entity& e, float& angle_cos, flo
 		motion.cached_vertices.push_back(rotated + pos);
 	}
 }
+void compute_composite_mesh_vertices(Motion& motion, Entity& e)
+{
+    CompositeMesh& compositeMesh = registry.compositeMeshes.get(e);
 
-void compute_composite_mesh_vertices(Motion& motion, Entity& e) {
-	CompositeMesh& compositeMesh = registry.compositeMeshes.get(e);
+    float parentAngleRad = radians(motion.angle);
+    float cosParent      = cos(parentAngleRad);
+    float sinParent      = sin(parentAngleRad);
 
-	for (SubMesh& sub_mesh : compositeMesh.meshes) {
-		if (motion.cache_invalidated || sub_mesh.cache_invalidated) {
-			sub_mesh.cached_vertices.clear();
-			sub_mesh.cached_axes.clear();
+    for (SubMesh& sub_mesh : compositeMesh.meshes)
+    {
+        if (motion.cache_invalidated || sub_mesh.cache_invalidated)
+        {
+            sub_mesh.cached_vertices.clear();
+            sub_mesh.cached_axes.clear();
 
-			float angle = radians(motion.angle + sub_mesh.rotation);
-			float cos_angle = cos(angle);
-			float sin_angle = sin(angle);
 
-			vec2 rotated_offset = {
-				sub_mesh.offset.x * cos_angle - sub_mesh.offset.y * sin_angle,
-				sub_mesh.offset.x * sin_angle + sub_mesh.offset.y * cos_angle,
-			};
+        	// local rotation is how to orient the mesh relative to parent (ie. angle of spike)
+            float localAngleRad = radians(sub_mesh.rotation);
+            float cosLocal      = cos(localAngleRad);
+            float sinLocal      = sin(localAngleRad);
 
-			sub_mesh.world_pos = rotated_offset + motion.position;
 
-			for (auto& vertex : sub_mesh.original_mesh->vertices) {
+            vec2 rotated_offset = {
+                sub_mesh.offset.x * cosParent - sub_mesh.offset.y * sinParent,
+                sub_mesh.offset.x * sinParent + sub_mesh.offset.y * cosParent,
+            };
 
-				vec2 scaled = {vertex.position.x *  motion.scale.x * sub_mesh.scale_ratio, vertex.position.y *  motion.scale.y * sub_mesh.scale_ratio};
+            sub_mesh.world_pos = motion.position + rotated_offset;
 
-				vec2 rotated = {
-					scaled.x * cos_angle - scaled.y * sin_angle,
-					scaled.x * sin_angle + scaled.y * cos_angle,
-				};
+            for (auto& vertex : sub_mesh.original_mesh->vertices)
+            {
+                vec2 localScaled = {
+                    vertex.position.x * sub_mesh.scale_ratio.x,
+                    vertex.position.y * sub_mesh.scale_ratio.y
+                };
 
-				vec2 vertex_pos = rotated + sub_mesh.world_pos;
-				sub_mesh.cached_vertices.push_back(vertex_pos);
-			}
+                vec2 localRotated = {
+                    localScaled.x * cosLocal - localScaled.y * sinLocal,
+                    localScaled.x * sinLocal + localScaled.y * cosLocal
+                };
 
-			// TODO put this in a different place? can probable generalize this logic...
-			for (size_t i = 0; i < sub_mesh.cached_vertices.size(); i++) {
-				vec2 edge = sub_mesh.cached_vertices[(i +1) % sub_mesh.cached_vertices.size()] - sub_mesh.cached_vertices[i];
-				vec2 normal = normalize(vec2{-edge.y, edge.x});
-				sub_mesh.cached_axes.push_back(normal);
-			}
+                vec2 parentScaled = {
+                    localRotated.x * motion.scale.x,
+                    localRotated.y * motion.scale.y
+                };
 
-			sub_mesh.cache_invalidated = false;
-		}
-	}
+                vec2 finalRotated = {
+                    parentScaled.x * cosParent - parentScaled.y * sinParent,
+                    parentScaled.x * sinParent + parentScaled.y * cosParent
+                };
+
+                vec2 vertexPos = finalRotated + sub_mesh.world_pos;
+
+                sub_mesh.cached_vertices.push_back(vertexPos);
+            }
+
+            for (size_t i = 0; i < sub_mesh.cached_vertices.size(); i++)
+            {
+                vec2 curr = sub_mesh.cached_vertices[i];
+                vec2 next = sub_mesh.cached_vertices[(i + 1) % sub_mesh.cached_vertices.size()];
+                vec2 edge = next - curr;
+
+                vec2 normal = normalize(vec2{-edge.y, edge.x});
+                sub_mesh.cached_axes.push_back(normal);
+            }
+
+            sub_mesh.cache_invalidated = false;
+        }
+    }
 }
+
 
 
 void compute_vertices(Motion& motion, Entity& e) {

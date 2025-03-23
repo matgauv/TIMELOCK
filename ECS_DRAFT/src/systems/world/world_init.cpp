@@ -2,6 +2,7 @@
 
 #include <cfloat>
 #include <iostream>
+#include <glm/detail/func_trigonometric.inl>
 
 #include "../../tinyECS/registry.hpp"
 #include "systems/rendering/render_system.hpp"
@@ -483,12 +484,15 @@ Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity)
 	motion.position = pos;
 	motion.scale = size;
 
+    std::cout << "position " << pos.x << " " << pos.y << std::endl;
+
     Blocked& blocked = registry.blocked.emplace(entity);
     blocked.normal = vec2(0, 0);
 
     PhysicsObject& object = registry.physicsObjects.emplace(entity);
     object.mass = 25.0f;
     object.apply_gravity = default_gravity;
+    object.apply_rotation = false;
     object.friction = BOLT_FRICTION;
     object.drag_coefficient = 0.01;
 
@@ -791,6 +795,19 @@ Mesh* get_mesh_from_file(std::string filename) {
     return mesh;
 }
 
+// TODO: we also have a mesh cache in the registry, but if meshes are just for collisions, it feels weird/annyoing to load them in the render system...
+// this just prevents us from loading the mesh every time we create an object
+Mesh* get_mesh(std::string filepath) {
+    auto it = mesh_cache.find(filepath);
+    if (it != mesh_cache.end()) {
+        return it->second;
+    }
+
+    Mesh* mesh = get_mesh_from_file(data_path() + filepath);
+    mesh_cache[filepath] = mesh;
+    return mesh;
+}
+
 
 Entity create_gear(vec2 position, vec2 size) {
     Entity entity = Entity();
@@ -811,28 +828,26 @@ Entity create_gear(vec2 position, vec2 size) {
     CompositeMesh& compositeMesh = registry.compositeMeshes.emplace(entity);
 
     float inner_radius = (size.x / 2.0f) * GEAR_CENTER_RATIO;
-
     float tooth_length = (size.x / 2.0f) * GEAR_TOOTH_RATIO;
 
-    std::cout << GEAR_CENTER_RATIO << std::endl;
 
     Mesh* mesh = createCircleMesh(entity, 16);
     SubMesh sub_mesh = SubMesh{};
     sub_mesh.original_mesh = mesh;
-    sub_mesh.scale_ratio = GEAR_CENTER_RATIO;
+    sub_mesh.scale_ratio = {GEAR_CENTER_RATIO, GEAR_CENTER_RATIO};
 
     compositeMesh.meshes.push_back(sub_mesh);
 
     // TODO: this is real bad, only should do once total (not per gear)...
-    Mesh* nesw_tooth = get_mesh_from_file(data_path() + "/meshes/step-jagged-ne-sw.obj");
-    Mesh* nwse_tooth = get_mesh_from_file(data_path() + "/meshes/step-jagged-nw-se.obj");
-    Mesh* ew_tooth = get_mesh_from_file(data_path() + "/meshes/step-teeth.obj");
+    Mesh* nesw_tooth = get_mesh("/meshes/step-jagged-ne-sw.obj");
+    Mesh* nwse_tooth = get_mesh("/meshes/step-jagged-nw-se.obj");
+    Mesh* ew_tooth = get_mesh("/meshes/step-teeth.obj");
 
     // lil helper to add the tooth
     auto add_tooth = [&](Mesh* tooth_mesh, float angle_rad, float scale_ratio, bool flip = false) {
         SubMesh tooth = SubMesh{};
         tooth.original_mesh = tooth_mesh;
-        tooth.scale_ratio = scale_ratio;
+        tooth.scale_ratio = {GEAR_TOOTH_RATIO, GEAR_TOOTH_RATIO};
 
         tooth.rotation = (flip ? 180.0 : 0.0f);
 
@@ -869,6 +884,77 @@ Entity create_gear(vec2 position, vec2 size) {
 
     return entity;
 }
+
+Entity create_spikeball(vec2 position, vec2 size) {
+   Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = size;
+    motion.angle = 0.0f;
+    motion.velocity = {0.0f, 0.0f};
+    motion.cache_invalidated = true;
+
+    PhysicsObject& physics_object = registry.physicsObjects.emplace(entity);
+    physics_object.apply_gravity = true;
+    physics_object.mass = 90.0f;
+    physics_object.friction = 0.01f;
+    physics_object.apply_rotation = false;
+
+    CompositeMesh& compositeMesh = registry.compositeMeshes.emplace(entity);
+
+    float inner_radius = ((size.x * SPIKEBALL_CENTER_RATIO) / 2.0f);
+    float spike_height = (size.x) * SPIKE_HEIGHT_RATIO;
+    float spike_width = (size.x) * SPIKE_WIDTH_PX;
+
+    Mesh* mesh = createCircleMesh(entity, 16);
+    SubMesh sub_mesh = SubMesh{};
+    sub_mesh.original_mesh = mesh;
+    sub_mesh.scale_ratio = {SPIKEBALL_CENTER_RATIO, SPIKEBALL_CENTER_RATIO};
+
+    compositeMesh.meshes.push_back(sub_mesh);
+
+    int num_spikes = 8;
+    float angle = 0.0f;
+    float angle_diff =  360.0f / num_spikes;
+
+    auto add_spike = [&](Mesh* spike_mesh, float angle_deg, float scale_ratio, bool flip = false) {
+        SubMesh spike = SubMesh{};
+        spike.original_mesh = spike_mesh;
+        spike.scale_ratio = vec2{SPIKE_WIDTH_RATIO, SPIKE_HEIGHT_RATIO};
+
+         spike.rotation = angle_deg + 90.0f;
+
+        float offset_len = inner_radius + (spike_height / 2.0f);
+
+        spike.offset = {
+            (offset_len * cos(radians(angle_deg))),
+            (offset_len * sin(radians(angle_deg)))
+        };
+
+        compositeMesh.meshes.push_back(spike);
+
+        std::cout << "OFFSET:" << spike.offset.x << ", " << spike.offset.y << std::endl;
+        std::cout << "SPIKE MESH Rotation: " << spike.rotation << std::endl;
+        std::cout << "spikeball center:" << motion.position.x << ", " << motion.position.y << std::endl;
+    };
+
+    Mesh* spike_mesh = get_mesh("/meshes/spikeball-spikes.obj");
+
+    for (int i = 0; i < num_spikes; i++) {
+        add_spike(spike_mesh, angle, SPIKE_WIDTH_RATIO, false);
+        angle += angle_diff;
+    }
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::SPIKEBALL,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+    return entity;
+}
+
 
 
 float getDistance(const Motion& one, const Motion& other) {

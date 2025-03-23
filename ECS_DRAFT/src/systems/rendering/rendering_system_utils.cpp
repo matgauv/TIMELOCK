@@ -220,6 +220,8 @@ void RenderSystem::instancedRenderParticles(const std::vector<Entity> & particle
 	glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0, instance_count);
 }
 
+
+// Can safely ignore the following; meant for instanced rendering of every object
 void RenderSystem::drawLayer(const std::vector<Entity>& entities) {
 	if (entities.size() <= 0) {
 		return;

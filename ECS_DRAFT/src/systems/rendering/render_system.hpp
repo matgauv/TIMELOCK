@@ -72,6 +72,7 @@ class RenderSystem : public ISystem {
 		textures_path("spikeball.png"),
 		textures_path("screw-platform.png"),
 		textures_path("particles/BreakablePlatform_Fragments.png"),
+		textures_path("particles/CoyoteParticles.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

@@ -815,7 +815,7 @@
 				"height": 16,
 				"color": 14984818,
 				"customFields": {
-					"direction": null
+					"direction": "right"
 				}
 			},
 			{
@@ -828,7 +828,7 @@
 				"height": 16,
 				"color": 14984818,
 				"customFields": {
-					"direction": null
+					"direction": "right"
 				}
 			},
 			{
@@ -841,7 +841,7 @@
 				"height": 16,
 				"color": 14984818,
 				"customFields": {
-					"direction": null
+					"direction": "right"
 				}
 			},
 			{
@@ -854,7 +854,7 @@
 				"height": 16,
 				"color": 14984818,
 				"customFields": {
-					"direction": null
+					"direction": "right"
 				}
 			},
 			{
@@ -867,7 +867,7 @@
 				"height": 16,
 				"color": 14984818,
 				"customFields": {
-					"direction": null
+					"direction": "right"
 				}
 			},
 			{
@@ -880,7 +880,7 @@
 				"height": 16,
 				"color": 14984818,
 				"customFields": {
-					"direction": null
+					"direction": "right"
 				}
 			}
 		],

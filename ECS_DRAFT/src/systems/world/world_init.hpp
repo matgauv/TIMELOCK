@@ -33,6 +33,7 @@ Entity create_door(vec2 position, bool open, json& tile_id_array, int stride);
 Entity create_cannon_tower(vec2 pos);
 Entity create_tutorial_text(vec2 position, vec2 size, TEXTURE_ASSET_ID texture_id);
 Entity create_door(vec2 position, bool open, json& tile_id_array, int stride);
+Entity create_pipe_head(vec2 position, vec2 scale, std::string direction, json& tile_id_array, int stride);
 
 // Helper methods
 float getDistance(const Motion& one, const Motion& other);

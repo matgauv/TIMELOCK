@@ -475,9 +475,9 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 
 		// if player hits a breakable platform
 		if (registry.players.has(one) && registry.breakables.has(other)) {
-			handle_player_breakable_collision(one, other, collision);
+			handle_player_breakable_collision(other, elapsed_ms);
 		} else if (registry.players.has(other) && registry.breakables.has(one)) {
-			handle_player_breakable_collision(other, one, collision);
+			handle_player_breakable_collision(one, elapsed_ms);
 		}
 
 		// order here is important so handle both cases sep
@@ -959,16 +959,29 @@ bool PhysicsSystem::is_collision_between_player_and_spike(Entity& one, Entity& o
 	(registry.players.has(other) && registry.spikes.has(one));
 }
 
-void PhysicsSystem::handle_player_breakable_collision(Entity& player_entity, Entity& breakable_entity, Collision collision) {
+void PhysicsSystem::handle_player_breakable_collision(Entity& breakable_entity, float elapsed_ms) {
 	Breakable& breakable = registry.breakables.get(breakable_entity);
+	float health_decrease_factor = 1.0;
+	if (registry.timeControllables.has(breakable_entity)) {
+		TimeControllable& tc = registry.timeControllables.get(breakable_entity);
+		health_decrease_factor = tc.target_time_control_factor;
+	}
 
 	if (breakable.should_break_instantly) {
-
 		assert(registry.gameStates.components.size() <= 1);
 		GameState& gameState = registry.gameStates.components[0];
 
 		if (gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED) {
 			WorldSystem::destroy_breakable_platform(breakable_entity);
+			return;
 		}
 	}
+
+	breakable.health -= health_decrease_factor * breakable.degrade_speed_per_ms * elapsed_ms;
+
+	if (breakable.health <= 0) {
+		WorldSystem::destroy_breakable_platform(breakable_entity);
+	}
+
+
 }

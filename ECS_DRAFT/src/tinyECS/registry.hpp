@@ -51,6 +51,7 @@ public:
 	ComponentContainer<CannonTower> cannonTowers;
 	ComponentContainer<CannonBarrel> cannonBarrels;
 	ComponentContainer<Door> doors;
+	ComponentContainer<Pipe> pipes;
 	ComponentContainer<Particle> particles;
 	ComponentContainer<ParticleSystemState> particleSystemStates;
 
@@ -97,6 +98,7 @@ public:
 		registry_list.push_back(&cannonTowers);
 		registry_list.push_back(&cannonBarrels);
 		registry_list.push_back(&doors);
+		registry_list.push_back(&pipes);
 		registry_list.push_back(&particles);
 		registry_list.push_back(&particleSystemStates);
 	}

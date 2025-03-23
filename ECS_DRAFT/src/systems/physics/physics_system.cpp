@@ -254,7 +254,7 @@ void PhysicsSystem::step(float elapsed_ms) {
 				float rotationFrictionFactor = 1.0f;
 				vec2 angular_push = tangent * fabs(phys.angular_velocity) * rotationFrictionFactor;
 				motion.position += angular_push * step_seconds;
-                phys.angular_velocity *= (1.0f - 0.8f * step_seconds); // Damping factor
+                phys.angular_velocity *= (1.0f - 0.95f * step_seconds); // Damping factor
 			}
 
 		}
@@ -492,25 +492,63 @@ Collision compute_sat_collision(Motion& a_motion, Motion& b_motion, Entity a, En
 	return strongest_collision;
 }
 
+bool compute_AABB_collision(const Motion& a_motion, const Motion& b_motion)
+{
+	vec2 a_half = a_motion.scale * 0.5f;
+	vec2 b_half = b_motion.scale * 0.5f;
+
+	// A's BB
+	float a_min_x = a_motion.position.x - a_half.x;
+	float a_max_x = a_motion.position.x + a_half.x;
+	float a_min_y = a_motion.position.y - a_half.y;
+	float a_max_y = a_motion.position.y + a_half.y;
+
+	// B's BB
+	float b_min_x = b_motion.position.x - b_half.x;
+	float b_max_x = b_motion.position.x + b_half.x;
+	float b_min_y = b_motion.position.y - b_half.y;
+	float b_max_y = b_motion.position.y + b_half.y;
+
+	if (a_max_x < b_min_x || a_min_x > b_max_x)
+		return false;
+	if (a_max_y < b_min_y || a_min_y > b_max_y)
+		return false;
+
+	return true;
+}
+
+void collision_check(Entity& entity_i, Motion& motion_i, Entity& entity_j) {
+	if (entity_i.id() == entity_j.id()) return;
+
+	Motion& motion_j = registry.motions.get(entity_j);
+	if (!compute_AABB_collision(motion_i, motion_j)) return;
+
+	Collision result = compute_sat_collision(motion_i, motion_j, entity_i, entity_j);
+
+	if (result.normal != vec2{0, 0}) {
+		registry.collisions.emplace_with_duplicates(entity_i, entity_j, result.overlap, result.normal);
+	}
+}
+
 // detect collisions between all moving entities.
 void PhysicsSystem::detect_collisions() {
 	auto& physics_objects = registry.physicsObjects;
-	auto& motion_container = registry.motions;
+	auto& platform_container = registry.platforms;
 
 	for (uint i = 0; i < physics_objects.size(); ++i) {
 		Entity entity_i = physics_objects.entities[i];
 		Motion& motion_i = registry.motions.get(entity_i);
 
-		for (uint j = 0; j < motion_container.size(); ++j) {
-			Entity entity_j = motion_container.entities[j];
-			if (entity_i == entity_j) continue;
+		// check between each object and each platform
+		for (uint j = 0; j < platform_container.size(); ++j) {
+			Entity entity_j = platform_container.entities[j];
+			collision_check(entity_i, motion_i, entity_j);
+		}
 
-			Motion& motion_j = registry.motions.get(entity_j);
-			Collision result = compute_sat_collision(motion_i, motion_j, entity_i, entity_j);
-
-			if (result.normal != vec2{0, 0}) {
-				registry.collisions.emplace_with_duplicates(entity_i, entity_j, result.overlap, result.normal);
-			}
+		// check between each physics object and each other
+		for (uint j = i+1; j < physics_objects.size(); ++j) {
+			Entity entity_j = physics_objects.entities[j];
+			collision_check(entity_i, motion_i, entity_j);
 		}
 	}
 }
@@ -558,13 +596,11 @@ void PhysicsSystem::update_pendulum(Entity& entity, float step_seconds) {
 	pendulum.angular_velocity += angular_accel * modified_step_seconds;
 	pendulum.angular_velocity *= (1.0f - pendulum.damping * modified_step_seconds); // will slow the pendulum down
 
+	// angle is tracked separately so the sprite does not rotate
 	pendulum.current_angle += pendulum.angular_velocity * modified_step_seconds;
 
 	motion.position.x = pendulum.pivot_point.x + pendulum.length * sin(pendulum.current_angle);
 	motion.position.y = pendulum.pivot_point.y + pendulum.length * cos(pendulum.current_angle);
-
-	// TODO: do we need this? is it okay to handle angle separately?
-	motion.angle = degrees(pendulum.current_angle + M_PI/2);
 
 	// need the x and y velocity for collision handling
 	motion.velocity.x = pendulum.angular_velocity * pendulum.length * cos(pendulum.current_angle);
@@ -1047,7 +1083,7 @@ void PhysicsSystem::handle_rotational_dynamics(Entity& object_entity, Entity& pl
 	// check if the com falls within the support pivot points
 	if (projected_com > min_contact_x && projected_com < max_contact_x) {
 		// damp motion if stable
-		phys.angular_velocity *= 0.1;
+		phys.angular_velocity *= 0.02;
 		return;
 	} else if (projected_com >= max_contact_x) {
 		pivot = max_pivot_point;
@@ -1055,14 +1091,19 @@ void PhysicsSystem::handle_rotational_dynamics(Entity& object_entity, Entity& pl
 		pivot = min_pivot_point;
 	}
 
+
 	// otherwise, if unstable, compute torque based on lever arm defined by pivot and center of mass
 	vec2 lever_arm_vec = com - pivot;
 	vec2 gravity_force = vec2(0, phys.mass * -GRAVITY);
 
+
 	// (cross product can be simplified in 2D) torque = r x F, since Fx = 0 we can ignore that term
 	float torque = -(lever_arm_vec.x * gravity_force.y);
 
+
 	float moment_of_inertia = calculate_moment_of_inertia(object_entity);
+
+
 	if (moment_of_inertia > 0) {
 		float angular_acceleration = torque / moment_of_inertia;
 		phys.angular_velocity += angular_acceleration * step_seconds;

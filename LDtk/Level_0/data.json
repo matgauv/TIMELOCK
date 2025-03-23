@@ -1083,7 +1083,7 @@
 				"id": "Projectile",
 				"iid": "a3fe5290-e920-11ef-a06b-f78418527b82",
 				"layer": "Components",
-				"x": 180,
+				"x": 220,
 				"y": 400,
 				"width": 16,
 				"height": 16,
@@ -2323,23 +2323,25 @@
 				}
 			}
 		],
-		"Gear": [
+		"Spikeball": [
 			{
-				"id": "Gear",
+				"id": "Spikeball",
 				"iid": "ceb92fd0-e920-11ef-8ab5-a996b8257b55",
 				"layer": "Components",
-				"x": 200,
+				"x": 180,
 				"y": 432,
 				"width": 16,
 				"height": 16,
 				"color": 2943221,
 				"customFields": {
-					"height": 60,
-					"width": 60
+					"height": 75,
+					"width": 75
 				}
-			},
+			}
+		],
+		"Gear": [
 			{
-				"id": "Gear",
+				"id": "Spikeball",
 				"iid": "ceb92fd0-e920-11ef-8ab5-a996b8257b55",
 				"layer": "Components",
 				"x": 500,
@@ -2348,11 +2350,10 @@
 				"height": 16,
 				"color": 2943221,
 				"customFields": {
-					"height": 60,
-					"width": 60
+					"height": 90,
+					"width": 90
 				}
 			}
-
 		]
 	}
 }

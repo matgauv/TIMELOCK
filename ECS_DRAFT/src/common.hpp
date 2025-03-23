@@ -88,7 +88,7 @@ const float DEFAULT_MASS = 10.0f;
 const float PLATFORM_SLIP_ANGLE = 45.0f;
 const float PLAYER_MAX_WALK_ANGLE = 80.0f;
 
-const float DISTANCE_TO_DROP_BOLT = 150.0f;
+const float DISTANCE_TO_DROP_BOLT = 300.0f;
 
 // Player Statistics
 const vec2 PLAYER_SCALE = { 50.0f, 50.0f };

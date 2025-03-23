@@ -728,7 +728,7 @@ Entity create_pendulum_string(vec2 start, vec2 end) {
     pivot_point.offset = {0.0f, -length / 2.0f};
 
     registry.renderRequests.insert(entity, {
-                                       TEXTURE_ASSET_ID::BLACK,
+                                       TEXTURE_ASSET_ID::PENDULUM_ARM,
                                        EFFECT_ASSET_ID::TEXTURED,
                                        GEOMETRY_BUFFER_ID::SPRITE
                                    });
@@ -747,7 +747,7 @@ Entity create_pendulum(vec2 pivot_position, float length, float initial_angle, f
 
     Motion &motion = registry.motions.emplace(entity);
     motion.position = {bob_x, bob_y};
-    motion.angle = initial_angle - 90.0f;
+    motion.angle =0.0f;
     motion.velocity = {0.0f, 0.0f};
     motion.scale = {bob_radius * 2, bob_radius * 2};
 
@@ -778,7 +778,7 @@ Entity create_pendulum(vec2 pivot_position, float length, float initial_angle, f
     rod_component.bob_id = entity.id();
 
     registry.renderRequests.insert(entity, {
-                                       TEXTURE_ASSET_ID::GREY_CIRCLE,
+                                       TEXTURE_ASSET_ID::PENDULUM,
                                        EFFECT_ASSET_ID::TEXTURED,
                                        GEOMETRY_BUFFER_ID::SPRITE
                                    });

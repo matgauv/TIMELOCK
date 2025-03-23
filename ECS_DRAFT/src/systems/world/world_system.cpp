@@ -604,7 +604,7 @@ void WorldSystem::playSoundIfEnabled(Mix_Chunk* sound) {
 void WorldSystem::destroy_breakable_platform(Entity entity) {
 	const Motion& motion = registry.motions.get(entity);
 	const float fragment_size = min(min(motion.scale.x, motion.scale.y), (float)TILE_TO_PIXELS);
-	const int fragment_count = (int)(motion.scale.x * motion.scale.y / (fragment_size * fragment_size));
+	const int fragment_count = (int)(motion.scale.x * motion.scale.y / (fragment_size * fragment_size)) + 1;
 	const vec2 player_pos = registry.motions.get(registry.players.entities[0]).position;
 
 	// Fragments
@@ -619,14 +619,14 @@ void WorldSystem::destroy_breakable_platform(Entity entity) {
 	}
 
 	// Random dusts
-	for (int i = 0; i < 30; i++) {
+	for (int i = 0; i < 60; i++) {
 		vec2 dust_position = random_sample_rectangle(motion.position, motion.scale);
 
-		ParticleSystem::spawn_particle(vec3{0.15f, 0.15f, 0.15f},
+		ParticleSystem::spawn_particle(vec3(0.5f),
 			dust_position,
 			0.0f, vec2{ 2.0, 2.0 },
 			rand_direction() * 30.0f,
-			500.0, 0.8f, { 0.0f, 0.0f }, {0.0f, 200.0f},
+			700.0, 0.8f, { 0.0f, 0.0f }, {0.0f, 200.0f},
 			0.0, 1.0);
 	}
 

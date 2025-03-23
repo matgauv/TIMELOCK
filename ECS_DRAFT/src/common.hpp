@@ -194,6 +194,7 @@ const float SCREW_LIFE_MS = SCREW_FLIGHT_LENGTH / SCREW_SPEED * 1000.0f;
 
 // door
 const vec2 DOOR_SIZE = vec2 { 2.0f * TILE_TO_PIXELS, 3.0f * TILE_TO_PIXELS };
+const float LOAD_LEVEL_COUNTDOWN = DEAD_REVIVE_TIME_MS + 10.0f;
 
 // Parsing constants
 const float PARSING_CANNON_Y_POS_DIFF = (0.5f * TILE_TO_PIXELS) - (CANNON_TOWER_SIZE.y / 2);

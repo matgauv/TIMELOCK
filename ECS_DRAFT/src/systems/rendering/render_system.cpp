@@ -368,7 +368,7 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 
 	// TODO
-	glUniform1f(transition_fac_uloc, screen.scene_transition_factor);
+	glUniform1f(transition_fac_uloc, std::min(1.0f, screen.scene_transition_factor));
 	
 	const Entity player_entity = registry.players.entities[0];
 	const Motion& motion = registry.motions.get(player_entity);
@@ -426,11 +426,28 @@ void RenderSystem::step(float elapsed_ms) {
 		}
 	} else {
 		if (screen.scene_transition_factor > 0.0) {
+			// Update tolerance
+			if (screen.scene_transition_factor > 1.0) {
+				screen.scene_transition_factor = max(1.0f, screen.scene_transition_factor - 1.0f);
+				return;
+			}
 			screen.scene_transition_factor = min(1.0f, screen.scene_transition_factor) - elapsed_ms / DEAD_REVIVE_TIME_MS;
-
+			//std::cout << screen.scene_transition_factor << ":" << elapsed_ms << std::endl;
 			if (screen.scene_transition_factor <= 0.0) {
 				screen.scene_transition_factor = -1.0;
 			}
+			/*
+			if (screen.scene_transition_factor > 1.0) {
+				// Newly set: skip this step to avoid large elapsed time
+				screen.scene_transition_factor = 1.0;
+			}
+			else {
+				screen.scene_transition_factor = min(1.0f, screen.scene_transition_factor) - elapsed_ms / DEAD_REVIVE_TIME_MS;
+
+				if (screen.scene_transition_factor <= 0.0) {
+					screen.scene_transition_factor = -1.0;
+				}
+			}*/
 		}
 	}
 }
@@ -490,8 +507,8 @@ void RenderSystem::draw()
 	glViewport(0, 0, w, h);
 	glDepthRange(0.00001, 10);
 	
-	// white background
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	// white background -> black background
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	glClearDepth(10.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

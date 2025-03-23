@@ -36,8 +36,12 @@ enum class SPAWN_POINT_STATE {
 enum class PLAYER_STATE {
 	// TODO: expand this to all possible states and transfer control to player system
 	RESPAWNED = 0,
-	ALIVE = RESPAWNED + 1,
-	DEAD = ALIVE + 1
+	STANDING = RESPAWNED + 1,
+	WALKING = STANDING + 1,
+	CLIMB = WALKING + 1,
+	COYOTE = CLIMB + 1,
+	// TODO: exiting & entering scene
+	DEAD = COYOTE + 1
 };
 
 // Player component
@@ -46,7 +50,7 @@ struct Player
 	vec2 spawn_point;
 	float timer = 0.0;
 	// Consider expanding the fields with a state variable (idle, walking, in air, dead, etc.)
-	PLAYER_STATE state = PLAYER_STATE::ALIVE;
+	PLAYER_STATE state = PLAYER_STATE::STANDING;
 	// Potentially transfer acceleration/deceleration controls to Player as well
 
 	float jumping_valid_time = -1.0f;
@@ -377,7 +381,9 @@ enum class TEXTURE_ASSET_ID {
 	SAMPLE_BACKGROUND = GREY_CIRCLE + 1,
 	PLAYER_WALKING_V1 = SAMPLE_BACKGROUND + 1,
 	PLAYER_STANDING_V1 = PLAYER_WALKING_V1 + 1,
-	PLAYER_KILL = PLAYER_STANDING_V1 + 1,
+	PLAYER_CLIMB = PLAYER_STANDING_V1 + 1,
+	PLAYER_COYOTE = PLAYER_CLIMB + 1,
+	PLAYER_KILL = PLAYER_COYOTE + 1,
 	PLAYER_RESPAWN = PLAYER_KILL + 1,
 	SAMPLE_PROJECTILE = PLAYER_RESPAWN + 1,
 	OBJECT = SAMPLE_PROJECTILE + 1,
@@ -431,7 +437,10 @@ const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 enum class ANIMATION_ID {
 	PLAYER_WALKING = 0,
 	PLAYER_STANDING = PLAYER_WALKING + 1,
-	PLAYER_KILL = PLAYER_STANDING + 1,
+	PLAYER_CLIMB = PLAYER_STANDING + 1,
+	PLAYER_CLIMB_FREEZE = PLAYER_CLIMB + 1,
+	PLAYER_COYOTE = PLAYER_CLIMB_FREEZE + 1,
+	PLAYER_KILL = PLAYER_COYOTE + 1,
 	PLAYER_RESPAWN = PLAYER_KILL + 1,
 	SPAWNPOINT_ACTIVATE = PLAYER_RESPAWN + 1,
 	SPAWNPOINT_DEACTIVATE = SPAWNPOINT_ACTIVATE + 1,

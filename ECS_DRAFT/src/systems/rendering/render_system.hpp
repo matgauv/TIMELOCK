@@ -40,6 +40,8 @@ class RenderSystem : public ISystem {
 		textures_path("backgrounds/SampleBackground.png"),
 		textures_path("player/PlayerWalking_v1.png"),
 		textures_path("player/PlayerStanding_v1.png"),
+		textures_path("player/PlayerClimb.png"),
+		textures_path("player/PlayerCoyote.png"),
 		textures_path("player/PlayerKill.png"),
 		textures_path("player/PlayerRespawn.png"),
 		textures_path("white_bubble.png"),

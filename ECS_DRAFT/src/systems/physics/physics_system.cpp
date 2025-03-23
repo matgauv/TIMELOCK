@@ -172,13 +172,15 @@ void PhysicsSystem::step(float elapsed_ms) {
 		// TODO: handle boss and wall collisions
 		if (registry.bosses.has(entity)) {
 			vec2 next_pos = motion.position + (motion.velocity * motion.velocityModifier) * step_seconds;
-			if (next_pos.x < 290.f) {
-				motion.position.x = 290.f;
+			if (next_pos.x < 295.f) {
+				motion.position.x = 295.f;
 				motion.position.y += (motion.velocity.y * motion.velocityModifier) * step_seconds;
+				motion.velocity *= -1.0f;
 				// next_pos.x = 290.f;
 			} else if (next_pos.x > 425.f) {
 				motion.position.x = 425.f;
 				motion.position.y += (motion.velocity.y * motion.velocityModifier) * step_seconds;
+				motion.velocity *= -1.0f;
 			} else {
 				motion.position += (motion.velocity * motion.velocityModifier) * step_seconds;
 			}
@@ -524,10 +526,12 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 
 		// TODO: handle player and boss collision
 		if (registry.players.has(one) && registry.bosses.has(other)) {
+			std::cout << "Collision between player and boss" << std::endl;
 			
 			// kill the player if the boss is harmful (during dash attack)
 			Entity& boss_entity = registry.bosses.entities[0];
 			if (registry.harmfuls.has(boss_entity)) {
+				std::cout << "Boss is harmful" << std::endl;
 				PlayerSystem::kill();
 			}
 		} else if (registry.players.has(other) && registry.bosses.has(one)) {
@@ -535,6 +539,7 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			// kill the player if the boss is harmful (during dash attack)
 			Entity& boss_entity = registry.bosses.entities[0];
 			if (registry.harmfuls.has(boss_entity)) {
+				std::cout << "Boss is harmful" << std::endl;
 				PlayerSystem::kill();
 			}
 		}
@@ -544,11 +549,13 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 
 			FirstBoss& firstBoss = registry.firstBosses.components[0];
 			firstBoss.player_collided_with_snooze_button = true;
+			registry.remove_all_components_of(other);
 
 		} else if (registry.players.has(other) && registry.snoozeButtons.has(one)) {
 
 			FirstBoss& firstBoss = registry.firstBosses.components[0];
 			firstBoss.player_collided_with_snooze_button = true;
+			registry.remove_all_components_of(one);
 		}
 
 		GameState& gameState = registry.gameStates.components[0];

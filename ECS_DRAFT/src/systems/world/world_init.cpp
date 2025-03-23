@@ -348,15 +348,21 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
 	motion.position = pos;
 	motion.scale = size;
 
-    Blocked& blocked = registry.blocked.emplace(entity);
-    blocked.normal = vec2(0, 0);
+    // Blocked& blocked = registry.blocked.emplace(entity);
+    // blocked.normal = vec2(0, 0);
 
+    // PhysicsObject& object = registry.physicsObjects.emplace(entity);
+    // object.mass = 10.0f;
+    // object.apply_gravity = false;
+    // object.friction = BOLT_FRICTION / 3.f;
+    // object.drag_coefficient = 0.01;
 
     TimeControllable& tc = registry.timeControllables.emplace(entity);
     tc.can_become_harmless = true;
-    tc.can_be_accelerated = false;
+    // tc.can_be_decelerated = true;
+    // tc.can_be_accelerated = false;
 
-    Harmful& harmful = registry.harmfuls.emplace(entity);
+    // Harmful& harmful = registry.harmfuls.emplace(entity); // commentted out for testing purposes
 
     registry.renderRequests.insert(
 		entity,
@@ -418,6 +424,8 @@ Entity create_first_boss_test() {
     boss.boss_id = BOSS_ID::FIRST;
     boss.boss_state = BOSS_STATE::BOSS1_IDLE_STATE;
     boss.can_be_damaged = false;
+    boss.time_until_exhausted_ms = BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS;
+    boss.health = BOSS_ONE_MAX_HEALTH;
 
     FirstBoss& firstBoss = registry.firstBosses.emplace(entity);
     Motion& motion = registry.motions.emplace(entity);
@@ -426,12 +434,20 @@ Entity create_first_boss_test() {
     motion.velocity = vec2(0.f, 0.f);
     motion.scale = vec2(BOSS_ONE_BB_WIDTH_PX, BOSS_ONE_BB_HEIGHT_PX);
 
+    // BUG: boss should be time controllable, but it is somehow harmful even when I did not add the harmful component to it
+    // TimeControllable& tc = registry.timeControllables.emplace(entity);
+    // tc.can_be_decelerated = true;
+    // tc.can_become_harmless = true;
+
     // grab player position and use that as the spawning point
     Entity& player_entity = registry.players.entities[0];
     Motion& player_motion = registry.motions.get(player_entity);
 
     // initial position
-    motion.position = vec2(player_motion.position.x + 100, player_motion.position.y - BOSS_ONE_BB_HEIGHT_PX / 2);
+    motion.position = vec2(20000.f, 480.f);
+    std::cout << "Player position is: (" << player_motion.position.x << "," << player_motion.position.y << ")" << std::endl;
+    std::cout << "Boss position is: (" << motion.position.x << "," << motion.position.y << ")" << std::endl;
+    // motion.position = vec2(BOSS_ONE_SPAWN_POINT_X, BOSS_ONE_SPAWN_POINT_Y);
 
     // add physical object to boss
     // PhysicsObject& po = registry.physicsObjects.emplace(entity);

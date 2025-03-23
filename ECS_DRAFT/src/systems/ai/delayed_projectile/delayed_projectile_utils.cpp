@@ -4,6 +4,7 @@
 #include <cmath>
 
 void delayed_projectile_step(float elapsed_ms) {
+    if (registry.delayeds.components.size() > 0) std::cout << "There are " << registry.delayeds.components.size() << " delayed entities" << std::endl;
     for (unsigned int i = 0; i < registry.delayeds.components.size(); i++) {
         Entity& entity = registry.delayeds.entities[i];
         Delayed& delayed = registry.delayeds.components[i];

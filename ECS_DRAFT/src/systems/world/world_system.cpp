@@ -551,6 +551,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		levelState.shouldLoad = true;
 	}
 
+	if (key == GLFW_KEY_4 && action == GLFW_PRESS) {
+		LevelState& levelState = registry.levelStates.components[0];
+		levelState.curr_level_folder_name = "Level_3";
+		levelState.ground = TEXTURE_ASSET_ID::DECEL_LEVEL_GROUND;
+		levelState.shouldLoad = true;
+	}
+
 	// Fly controls (run ./TIMELOCK --fly):
 	if (key == GLFW_KEY_RIGHT && fly) {
 		if (action == GLFW_PRESS) {

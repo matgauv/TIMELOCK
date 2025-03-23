@@ -25,7 +25,8 @@ private:
     {
         {"Level_0", TEXTURE_ASSET_ID::D_TUTORIAL_GROUND},
         {"Level_1", TEXTURE_ASSET_ID::A_TUTORIAL_GROUND},
-        {"Level_2", TEXTURE_ASSET_ID::DECEL_LEVEL_GROUND}
+        {"Level_2", TEXTURE_ASSET_ID::DECEL_LEVEL_GROUND},
+        {"Level_3", TEXTURE_ASSET_ID::BOSS_ONE_LEVEL_GROUND}
     };
 
     bool parse_json();

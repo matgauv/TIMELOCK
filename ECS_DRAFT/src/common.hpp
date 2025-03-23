@@ -131,47 +131,54 @@ const float PLAYER_ATTACK_DAMAGE = 20.0f;
 const int TILE_TO_PIXELS = 16;
 
 // Boss 1 specific properties
-const float BOSS_ONE_SPAWN_POINT_X = WINDOW_WIDTH_PX - 100.f;
-const float BOSS_ONE_SPAWN_POINT_Y = WINDOW_HEIGHT_PX - 200.f;
-const float BOSS_ONE_ON_GROUND_Y_POSITION = WINDOW_HEIGHT_PX - 200.f; // TODO: need to verify this
+const float BOSS_ONE_SPAWN_POINT_X = 400.f;
+const float BOSS_ONE_SPAWN_POINT_Y = 720.f;
+const float BOSS_ONE_ON_GROUND_Y_POSITION = 730.f; // TODO: need to verify this
 const float BOSS_ONE_MAX_HEALTH = 100.f;
 const float BOSS_ONE_X_VELOCITY_MULTIPLIER = 0.5f;
 const float BOSS_ONE_MAX_X_VELOCITY = PLAYER_MAX_WALKING_SPEED;
 const float BOSS_ONE_MIN_X_VELOCITY = BOSS_ONE_MAX_X_VELOCITY / 20.f;
-const float BOSS_ONE_BB_WIDTH_PX = 100.f; // TODO: placeholder, we should adjust this once the actual texture is ready
-const float BOSS_ONE_BB_HEIGHT_PX = 100.f; // TODO: placeholder, we should adjust this once the actual texture is ready
+const float BOSS_ONE_BB_WIDTH_PX = 50.f; // TODO: placeholder, we should adjust this once the actual texture is ready
+const float BOSS_ONE_BB_HEIGHT_PX = 50.f; // TODO: placeholder, we should adjust this once the actual texture is ready
+const float BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS = 30000.f;
 
-const float BOSS_ONE_MAX_WALK_DURATION_MS = 1000.f; // use 1000.f for testing purposes, otherwise use 5000.f
+const float BOSS_ONE_MAX_WALK_DURATION_MS = 2000.f; // use 1000.f for testing purposes, otherwise use 5000.f
 const float BOSS_ONE_MAX_EXHAUSTED_DURATION_MS = 10000.f;
 const float BOSS_ONE_MAX_RECOVER_DURATION_MS = 2000.f;
 const float BOSS_ONE_MAX_DAMAGED_DURATION_MS = 2000.f;
 
 const float BOSS_ONE_MAX_NUM_OF_NON_DELAYED_PROJECTILE = 4;
-const float BOSS_ONE_INTER_PROJECTILE_TIMER_MS = 500.f;
+const float BOSS_ONE_INTER_PROJECTILE_TIMER_MS = 1000.f;
+const float BOSS_ONE_PROJECTILE_WIDTH_PX = 15.f;
+const float BOSS_ONE_PROJECTILE_HEIGHT_PX = 15.f;
 
 const float BOSS_ONE_REGULAR_PROJECTILE_VELOCITY = WINDOW_WIDTH_PX / 3.f;
 
 const float BOSS_ONE_FAST_PROJECTILE_VELOCITY = BOSS_ONE_REGULAR_PROJECTILE_VELOCITY * 2.f;
 
-const float BOSS_ONE_DELAYED_PROJECTILE_Y_POSITION = WINDOW_HEIGHT_PX / 4.f;
-const float BOSS_ONE_FIRST_DELAYED_PROJECTILE_X_POSITION = WINDOW_WIDTH_PX * 0.25f;
+// const float BOSS_ONE_DELAYED_PROJECTILE_Y_POSITION = WINDOW_HEIGHT_PX / 4.f;
+const float BOSS_ONE_DELAYED_PROJECTILE_Y_POSITION = 700.f; // for testing purposes
+// const float BOSS_ONE_FIRST_DELAYED_PROJECTILE_X_POSITION = WINDOW_WIDTH_PX * 0.25f;
+const float BOSS_ONE_FIRST_DELAYED_PROJECTILE_X_POSITION = 300.f; // for testing purposes
 const float BOSS_ONE_FIRST_DELAYED_PROJECTILE_TIMER_MS = 2500.f;
-const float BOSS_ONE_SECOND_DELAYED_PROJECTILE_X_POSITION = WINDOW_WIDTH_PX * 0.5f;
+// const float BOSS_ONE_SECOND_DELAYED_PROJECTILE_X_POSITION = WINDOW_WIDTH_PX * 0.5f;
+const float BOSS_ONE_SECOND_DELAYED_PROJECTILE_X_POSITION = 350.f; // for testing purposes
 const float BOSS_ONE_SECOND_DELAYED_PROJECTILE_TIMER_MS = 4000.f;
-const float BOSS_ONE_THIRD_DELAYED_PROJECTILE_X_POSITION = WINDOW_WIDTH_PX * 0.75f;
+// const float BOSS_ONE_THIRD_DELAYED_PROJECTILE_X_POSITION = WINDOW_WIDTH_PX * 0.75f;
+const float BOSS_ONE_THIRD_DELAYED_PROJECTILE_X_POSITION = 400.f; // for testing purposes
 const float BOSS_ONE_THIRD_DELAYED_PROJECTILE_TIMER_MS = 4500.f;
 
-const float BOSS_ONE_DASH_VELOCITY = WINDOW_WIDTH_PX;
+const float BOSS_ONE_DASH_VELOCITY = 100.f; // use 100.f for testing purposes, otherwise, the boss should be able to cross the screen in one second
 const float BOSS_ONE_DASH_DURATION_MS = 4000.f;
 
-const float BOSS_ONE_GROUND_SLAM_RISE_VELOCITY = -500.f;
-const float BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY = 2000.f;
-const float BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION = WINDOW_HEIGHT_PX * 0.3f;
+const float BOSS_ONE_GROUND_SLAM_RISE_VELOCITY = -50.f; // for testing purposes, use -50.f, otherwise, the boss should take about 1~2 seconds to rise
+const float BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY = 300.f; // for testing purposes, use 300.f, otherwise, the boss should slam down in 0.25~0.5 seconds
+const float BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION = 600.f; // for testing purposes, use 600.f, otherwise, the boss should be at the 1/3 point from the top
 const float BOSS_ONE_FIRST_GROUND_SLAM_FOLLOW_DURATION_MS = 3000.f;
 const float BOSS_ONE_SECOND_GROUND_SLAM_FOLLOW_DURATION_MS = 2000.f;
 const float BOSS_ONE_THIRD_GROUND_SLAM_FOLLOW_DURATION_MS = 5000.f;
-const float BOSS_ONE_GROUND_SLAM_LAND_DURATION_MS = 500.f;
-const float BOSS_ONE_GROUND_SLAM_IMPACT_WIDTH_PX = 300.f;
+const float BOSS_ONE_GROUND_SLAM_LAND_DURATION_MS = 1000.f;
+const float BOSS_ONE_GROUND_SLAM_IMPACT_WIDTH_PX = 20.f; // for testing purposes, use 20.f, otherwise, 100.f
 const float BOSS_ONE_GROUND_SLAM_IMPACT_HEIGHT_PX = 50.f;
 
 #ifndef M_PI

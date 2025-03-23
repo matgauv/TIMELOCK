@@ -92,7 +92,8 @@ void chooseShortRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motio
 
 void create_delayed_projectile(vec2 pos, float timer_ms);
 
-void choose_regular_projectile_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_in_phase_two, bool is_player_to_boss_left);
-void choose_fast_projectile_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_in_phase_two, bool is_player_to_boss_left);
-void choose_delayed_projectile_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_in_phase_two, bool is_player_to_boss_left);
-void choose_dash_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_in_phase_two, bool is_player_to_boss_left);
+void choose_regular_projectile_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_player_to_boss_left);
+void choose_fast_projectile_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_player_to_boss_left);
+void choose_delayed_projectile_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion);
+void choose_dash_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion);
+void choose_ground_slam_test(Entity& boss_entity, Boss& boss, Motion& boss_motion);

@@ -376,6 +376,7 @@ struct Boss
 	float health;
 	float timer_ms; // a general timer, set to different values based on the boss state
 	unsigned int num_of_attack_completed;
+	float time_until_exhausted_ms;
 	bool can_damage_player; // a flag to indicate that collision with the boss can damage the player
 };
 
@@ -470,7 +471,8 @@ enum class TEXTURE_ASSET_ID {
 	D_TUTORIAL_GROUND = BARREL + 1,
 	A_TUTORIAL_GROUND = D_TUTORIAL_GROUND + 1,
 	DECEL_LEVEL_GROUND = A_TUTORIAL_GROUND +1,
-	TILE = DECEL_LEVEL_GROUND + 1,
+	BOSS_ONE_LEVEL_GROUND = DECEL_LEVEL_GROUND + 1,
+	TILE = BOSS_ONE_LEVEL_GROUND + 1,
 	WASD = TILE + 1,
 	DECEL = WASD + 1,
 	DECEL2 = DECEL + 1,

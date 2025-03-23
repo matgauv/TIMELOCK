@@ -526,12 +526,10 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 
 		// TODO: handle player and boss collision
 		if (registry.players.has(one) && registry.bosses.has(other)) {
-			std::cout << "Collision between player and boss" << std::endl;
 			
 			// kill the player if the boss is harmful (during dash attack)
 			Entity& boss_entity = registry.bosses.entities[0];
 			if (registry.harmfuls.has(boss_entity)) {
-				std::cout << "Boss is harmful" << std::endl;
 				PlayerSystem::kill();
 			}
 		} else if (registry.players.has(other) && registry.bosses.has(one)) {
@@ -539,7 +537,6 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			// kill the player if the boss is harmful (during dash attack)
 			Entity& boss_entity = registry.bosses.entities[0];
 			if (registry.harmfuls.has(boss_entity)) {
-				std::cout << "Boss is harmful" << std::endl;
 				PlayerSystem::kill();
 			}
 		}

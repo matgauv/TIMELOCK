@@ -435,7 +435,7 @@ Entity create_first_boss_test() {
     motion.scale = vec2(BOSS_ONE_BB_WIDTH_PX, BOSS_ONE_BB_HEIGHT_PX);
 
     // BUG: boss should be time controllable, but it is somehow harmful even when I did not add the harmful component to it
-    // TimeControllable& tc = registry.timeControllables.emplace(entity);
+    TimeControllable& tc = registry.timeControllables.emplace(entity);
     // tc.can_be_decelerated = true;
     // tc.can_become_harmless = true;
 

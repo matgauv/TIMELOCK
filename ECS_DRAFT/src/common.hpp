@@ -106,6 +106,7 @@ const float DEAD_REVIVE_TIME_MS = 500.0f;
 
 const float JUMPING_VALID_TIME_MS = 3000.0f;
 const float COYOTE_JUMP_DURATION = 450.0f;
+const float DUST_SUMMONING_SPEED = PLAYER_MAX_WALKING_SPEED * 0.6f;
 
 // Fore, mid, background Depths; used for scaling only
 const float FOREGROUND_DEPTH = 0.5f;

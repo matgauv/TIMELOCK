@@ -85,10 +85,15 @@ void CameraSystem::follow(Motion& cam_motion, vec2 target) {
 		float speed = CAMERA_MAX_SPEED * std::clamp(dist / CAMERA_TRACE_RANGE, 0.0f, 1.0f);
 		vec2 expected_vel = speed * direction;
 
-
-		cam_motion.velocity =
-			cam_motion.velocity * (1.0f - CAMERA_VEL_LERP_FACTOR) +
-			expected_vel * CAMERA_VEL_LERP_FACTOR;
+		// Reduces overshoot
+		if (glm::length(expected_vel - cam_motion.velocity) <= CAMERA_VELOCITY_CLAMP_THRESHOLD) {
+			cam_motion.velocity = expected_vel;
+		}
+		else {
+			cam_motion.velocity = 
+				cam_motion.velocity * (1.0f - CAMERA_VEL_LERP_FACTOR) +
+				expected_vel * CAMERA_VEL_LERP_FACTOR;
+		}
 	}
 }
 

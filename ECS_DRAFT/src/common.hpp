@@ -111,6 +111,7 @@ const float PLAYER_WALK_LADDER_ACCELERATION = PLAYER_WALK_ACCELERATION / 3.0f;
 const float DEAD_REVIVE_TIME_MS = 500.0f;
 
 const float JUMPING_VALID_TIME_MS = 3000.0f;
+const float COYOTE_JUMP_DURATION = 450.0f;
 
 // Fore, mid, background Depths; used for scaling only
 const float FOREGROUND_DEPTH = 0.5f;

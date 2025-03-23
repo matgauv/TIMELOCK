@@ -396,14 +396,14 @@ void WorldSystem::player_walking(bool walking, bool is_left) {
 				walking_component.is_left = is_left;
 			}
 
-			PlayerSystem::set_walking(is_left);
+			//PlayerSystem::set_walking(is_left);
 		} else {
 			if (registry.walking.has(player)) {
 				Walking& walking_component = registry.walking.get(player);
 				// if current walking component is in the direction of this player walk stop call, remove it and stop walking
 				if (walking_component.is_left == is_left) {
 					registry.walking.remove(player);
-					PlayerSystem::set_standing(is_left);
+					//PlayerSystem::set_standing(is_left);
 				}
 			}
 		}
@@ -464,7 +464,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// The following actions only available when player is alive
 	// Could extend to case of game pause
 	const Player& player = registry.players.components[0];
-	if (player.state != PLAYER_STATE::ALIVE) {
+	if (player.state == PLAYER_STATE::RESPAWNED || player.state == PLAYER_STATE::DEAD) {
 		return;
 	}
 
@@ -495,6 +495,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		} else if (action == GLFW_RELEASE) {
 			player_walking(false, false);
 		}
+
+		PlayerSystem::set_direction(false);
 	}
 
 	if (key == GLFW_KEY_A) {
@@ -503,6 +505,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		} else if (action == GLFW_RELEASE) {
 			player_walking(false, true);
 		}
+
+		PlayerSystem::set_direction(true);
 	}
 
 	Entity& player_entity = registry.players.entities[0];
@@ -558,6 +562,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		} else if (action == GLFW_RELEASE) {
 			player_walking(false, false);
 		}
+
+		PlayerSystem::set_direction(false);
 	}
 
 	if (key == GLFW_KEY_LEFT && flag_state.fly) {
@@ -566,6 +572,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		} else if (action == GLFW_RELEASE) {
 			player_walking(false, true);
 		}
+
+		PlayerSystem::set_direction(true);
 	}
 
 	if (key == GLFW_KEY_DOWN && flag_state.fly) {

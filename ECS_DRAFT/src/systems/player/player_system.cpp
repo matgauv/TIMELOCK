@@ -15,19 +15,46 @@ void PlayerSystem::step(float elapsed_ms) {
 		// player timer never influenced by acceleration/deceleration
 		player.timer -= elapsed_ms;
 
+		/*
 		if (player.timer <= 0) {
 			if (player.state == PLAYER_STATE::DEAD) {
 				player_respawn();
 			}
 			else if (player.state == PLAYER_STATE::RESPAWNED) {
 				// TODO: potentially expand this to some function for setting the player ready
-				player.state = PLAYER_STATE::ALIVE;
+				player.state = PLAYER_STATE::STANDING;
 				player.timer = 0;
 			}
 			else {
 				player.timer = 0;
 			}
-		}
+		}*/
+	}
+
+	switch (player.state) {
+		case PLAYER_STATE::DEAD:
+			if (player.timer <= 0) {
+				player_respawn();
+			}
+			break;
+		case PLAYER_STATE::RESPAWNED:
+			if (player.timer <= 0) {
+				player.state = PLAYER_STATE::STANDING;
+				player.timer = 0;
+			}
+			break;
+		/*
+		case PLAYER_STATE::COYOTE:
+			if (player.timer <= 0) {
+				player.state = PLAYER_STATE::STANDING;
+				player.timer = 0;
+			}
+			break;
+		*/
+		default:
+			//player.timer = 0;
+			handle_player_motion();
+			break;
 	}
 
 	if (player.jumping_valid_time >= 0) {
@@ -61,6 +88,21 @@ void PlayerSystem::step(float elapsed_ms) {
 	//std::cout << "(" << motion.selfVelocity[0] << "," << motion.selfVelocity[1] << ") : (" << motion.appliedVelocity[0] << "," << motion.appliedVelocity[1] << ")" << std::endl;
 }
 
+void PlayerSystem::handle_player_motion() {
+	const Entity entity = registry.players.entities[0];
+
+	// Climbing overweights walking
+	if (registry.climbing.has(entity)) {
+		set_climbing();
+	}
+	else if (registry.walking.has(entity)) {
+		set_walking();
+	}
+	else {
+		set_standing();
+	}
+}
+
 void PlayerSystem::set_jumping_validity(bool can_jump) {
 	Player& player = registry.players.components[0];
 
@@ -68,6 +110,15 @@ void PlayerSystem::set_jumping_validity(bool can_jump) {
 		player.jumping_valid_time = JUMPING_VALID_TIME_MS;
 	}
 	else {
+		// Currently setting to false implies a jump
+
+		/*
+		// Check for Coyote jump
+		if (player.jumping_valid_time < 1.2f * JUMPING_VALID_TIME_MS) {
+			set_coyote();
+		}
+		*/
+
 		player.jumping_valid_time = -1.0f;
 	}
 }
@@ -129,23 +180,58 @@ void PlayerSystem::player_respawn() {
 	animateRequest.used_animation = ANIMATION_ID::PLAYER_RESPAWN;
 }
 
-void PlayerSystem::set_standing(bool is_left) {
+void PlayerSystem::set_standing() {
 	Entity& player_entity = registry.players.entities[0];
 
 	if (registry.animateRequests.has(player_entity)) {
 		registry.animateRequests.get(player_entity).used_animation = ANIMATION_ID::PLAYER_STANDING;
 	}
+
+	Player& player = registry.players.components[0];
+	player.state = PLAYER_STATE::STANDING;
 }
 
-void PlayerSystem::set_walking(bool is_left) {
+void PlayerSystem::set_walking() {
 	Entity& player_entity = registry.players.entities[0];
-	// TODO: this might not be the best approach to flip Player sprite;
-	// Could potentially isolate all Player-related properties into Player component, and update Player system accordingly
-	if (registry.renderRequests.has(player_entity)) {
-		registry.renderRequests.get(player_entity).flipped = is_left;
-	}
 
 	if (registry.animateRequests.has(player_entity)) {
 		registry.animateRequests.get(player_entity).used_animation = ANIMATION_ID::PLAYER_WALKING;
+	}
+
+	Player& player = registry.players.components[0];
+	player.state = PLAYER_STATE::WALKING;
+}
+
+void PlayerSystem::set_climbing() {
+	Entity& player_entity = registry.players.entities[0];
+	
+	if (registry.animateRequests.has(player_entity)) {
+		const Climbing& climbing = registry.climbing.get(player_entity);
+		const Motion& motion = registry.motions.get(player_entity);
+		registry.animateRequests.get(player_entity).used_animation = 
+			(glm::length(motion.velocity) > 2.0f) ? ANIMATION_ID::PLAYER_CLIMB : ANIMATION_ID::PLAYER_CLIMB_FREEZE;
+	}
+
+	Player& player = registry.players.components[0];
+	player.state = PLAYER_STATE::CLIMB;
+}
+
+void PlayerSystem::set_coyote() {
+	Entity& player_entity = registry.players.entities[0];
+
+	if (registry.animateRequests.has(player_entity)) {
+		registry.animateRequests.get(player_entity).used_animation = ANIMATION_ID::PLAYER_COYOTE;
+	}
+
+	Player& player = registry.players.components[0];
+	player.state = PLAYER_STATE::COYOTE;
+	player.timer = COYOTE_JUMP_DURATION;
+}
+
+void PlayerSystem::set_direction(bool is_left) {
+	Entity& player_entity = registry.players.entities[0];
+
+	if (registry.renderRequests.has(player_entity)) {
+		registry.renderRequests.get(player_entity).flipped = is_left;
 	}
 }

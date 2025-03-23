@@ -372,8 +372,8 @@ void RenderSystem::drawToScreen()
 	
 	const Entity player_entity = registry.players.entities[0];
 	const Motion& motion = registry.motions.get(player_entity);
-	vec3 augmeted_player_pos = vec3{motion.position.x, motion.position.y, 1.0f};
-	vec3 canonical_player_pos = this->projection_matrix * augmeted_player_pos;
+	vec3 augmented_player_pos = vec3{motion.position.x, motion.position.y, 1.0f};
+	vec3 canonical_player_pos = this->projection_matrix * augmented_player_pos;
 	
 	float focal_point[2] = {
 		(canonical_player_pos[0] + 1.0f) / 2.0f,

@@ -115,7 +115,9 @@ void LevelParsingSystem::init_level_entities() {
         } else if (entity_type == "Projectile") {
             init_projectiles(entity_list);
         } else if (entity_type == "Pipe") {
-
+            init_pipes(entity_list);
+        } else if (entity_type == "PipePart") {
+            init_pipeparts(entity_list);
         } else if (entity_type == "Boundary") {
             init_boundaries(entity_list);
         } else if (entity_type == "PartOf") {
@@ -129,6 +131,31 @@ void LevelParsingSystem::init_level_entities() {
         }
     }
 }
+
+void LevelParsingSystem::init_pipes(json pipes) {
+    for (json& pipe : pipes) {
+        vec2 position = {pipe["x"], pipe["y"]};
+        vec2 scale = {pipe["width"], pipe["height"]};
+
+        json json_direction = pipe["customFields"]["direction"];
+        if (!validate_custom_field(json_direction, "direction", pipe["iid"])) {
+            continue;
+        }
+
+        string direction = json_direction;
+        create_pipe_head(position, scale, direction, tile_id_array, stride);
+    }
+}
+
+void LevelParsingSystem::init_pipeparts(json parts) {
+    for (json& pipe_part : parts) {
+        vec2 position = {pipe_part["x"], pipe_part["y"]};
+        vec2 size = {pipe_part["width"], pipe_part["height"]};
+        create_static_platform(position, size, tile_id_array, stride, false);
+    }
+}
+
+
 
 void LevelParsingSystem::init_doors(json doors) {
     for (json door : doors) {

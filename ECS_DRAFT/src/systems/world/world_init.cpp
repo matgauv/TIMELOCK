@@ -627,6 +627,40 @@ Entity create_door(vec2 position, bool open, json& tile_id_array, int stride) {
     return entity;
 }
 
+Entity create_pipe_head(vec2 position, vec2 scale, std::string direction, json& tile_id_array, int stride) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, 0};
+    motion.angle = 0;
+
+    registry.platforms.emplace(entity);
+
+    Pipe& pipe = registry.pipes.emplace(entity);
+    pipe.direction = direction;
+
+    int tile_arr_index = get_tile_index(position.x, position.y, 0, 0, stride);
+
+    Entity tile_entity = Entity();
+
+    Tile& tile = registry.tiles.emplace(tile_entity);
+    tile.parent_id = entity.id();
+    tile.offset = {0, 0};
+    tile.id = tile_id_array[tile_arr_index];
+
+    registry.renderRequests.insert(tile_entity, {
+                TEXTURE_ASSET_ID::TILE,
+                EFFECT_ASSET_ID::TILE,
+                GEOMETRY_BUFFER_ID::SPRITE
+            });
+
+    registry.layers.insert(tile_entity, { LAYER_ID::MIDGROUND });
+
+    return entity;
+}
+
 float getDistance(const Motion& one, const Motion& other) {
     return glm::length(one.position - other.position);
 }

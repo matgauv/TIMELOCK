@@ -317,6 +317,11 @@ struct Ladder {
 
 };
 
+// struct indicating that entity is a Pipe
+struct Pipe {
+	std::string direction;
+};
+
 // A struct indicating that an entity is breakable
 struct Breakable
 {

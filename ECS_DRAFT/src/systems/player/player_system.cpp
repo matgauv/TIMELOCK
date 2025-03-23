@@ -76,10 +76,11 @@ void PlayerSystem::step(float elapsed_ms) {
 		float rand_factor = rand_float();
 		if (rand_factor > rand_threshold) {
 			ParticleSystem::spawn_particle(vec3{ 0.35f, 0.35f, 0.35f },
-				random_sample_rectangle(registry.motions.get(player_entity).position + vec2{0.0f, PLAYER_SCALE.y * 0.35f}, { PLAYER_SCALE.x, 2.0f }),
+				random_sample_rectangle(registry.motions.get(player_entity).position + vec2{0.0f, PLAYER_SCALE.y * 0.35f}, { PLAYER_SCALE.x * 0.65f, 2.0f }),
 				0.0f, vec2{ 1.5f, 1.5f } * (1.0f + 0.25f * rand_factor), rand_direction() * 20.0f, 1000.0, 0.8f, {50.0f, 200.0f});
 		}
 	}
+
 
 	//std::cout << registry.onGrounds.has(registry.players.entities[0]);
 
@@ -112,12 +113,20 @@ void PlayerSystem::set_jumping_validity(bool can_jump) {
 	else {
 		// Currently setting to false implies a jump
 
-		/*
 		// Check for Coyote jump
-		if (player.jumping_valid_time < 1.2f * JUMPING_VALID_TIME_MS) {
-			set_coyote();
+		// Generate Coyote Jump particles
+		const Entity player_entity = registry.players.entities[0];
+		const vec2 player_velocity = registry.motions.get(player_entity).velocity;
+
+		if (JUMPING_VALID_TIME_MS - player.jumping_valid_time > 25.0f) {
+			const int particles_count = 3 + (rand() % 3);
+			for (int i = 0; i < particles_count; i++) {
+				ParticleSystem::spawn_particle(PARTICLE_ID::COYOTE_PARTICLES,
+					random_sample_rectangle(registry.motions.get(player_entity).position + vec2{ 0.0f, PLAYER_SCALE.y * 0.35f }, { PLAYER_SCALE.x * 0.65f, 2.0f }),
+					0.0f, vec2(10.0f) * rand_float(1.0f, 1.25f), 
+					-0.5f * player_velocity, COYOTE_PARTICLES_DURATION, 1.0f, {10.0f, 0.0f});
+			}
 		}
-		*/
 
 		player.jumping_valid_time = -1.0f;
 	}

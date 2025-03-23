@@ -13,6 +13,7 @@ in vec4 color_info;
 // It is an ugly table mapping method, but should be enough for the project
 uniform sampler2D texture1;
 uniform sampler2D texture2;
+uniform sampler2D texture3;
 
 // Output color
 layout(location = 0) out  vec4 color;
@@ -32,6 +33,9 @@ void main()
                 break;
             case 2:
                 color = texture(texture2, texcoord);
+                break;
+            case 3:
+                color = texture(texture3, texcoord);
                 break;
             default:
                 color = vec4(0.0, 0.0, 0.0, 1.0);

@@ -123,7 +123,7 @@ const float CAMERA_MIN_SCALING = 0.2f;
 const float CAMERA_MAX_SCALING = 5.0f;
 const float CAMERA_BOUNDARY_PADDING = 0.75f;
 const float CAMERA_SCREEN_SPACING_FOR_MOTION_RATIO = 1.0f / 10.0f;
-const float CAMERA_VELOCITY_CLAMP_THRESHOLD = 25.0f;
+const float CAMERA_VELOCITY_CLAMP_THRESHOLD = 35.0f;
 
 const float PROJECTILE_WIDTH_PX = 40.0f;
 const float PROJECTILE_HEIGHT_PX = 40.0f;
@@ -167,6 +167,8 @@ const float MAX_CAMERA_DISTANCE = 2000.0;
 const float TURBULENCE_GRID_SIZE = MAX_CAMERA_DISTANCE / 32.0f;
 const float TURBULENCE_EVOLUTION_SPEED = 1e-12f;
 const int TURBULENCE_OCTAVES = 1;
+
+const float COYOTE_PARTICLES_DURATION = 500.0f;
 
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)

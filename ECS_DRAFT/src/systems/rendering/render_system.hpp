@@ -66,6 +66,7 @@ class RenderSystem : public ISystem {
 		textures_path("tutorial-text/decel2.png"),
 		textures_path("tutorial-text/accel.png"),
 		textures_path("particles/BreakablePlatform_Fragments.png"),
+		textures_path("particles/CoyoteParticles.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

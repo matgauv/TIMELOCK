@@ -116,7 +116,7 @@ void handle_player_breakable_collision(Entity& breakable_entity, float elapsed_m
 }
 
 void handle_player_door_collision() {
-  	std::cout << "DOOR COLLISION" << std::endl;
+  	// std::cout << "DOOR COLLISION" << std::endl;
 	LevelState& ls = registry.levelStates.components[0];
 
 	if (ls.curr_level_folder_name == ls.next_level_folder_name) return;

@@ -834,7 +834,7 @@ Mesh* get_mesh(std::string filepath) {
 }
 
 
-Entity create_gear(vec2 position, vec2 size) {
+Entity create_gear(vec2 position, vec2 size, bool fixed, float angular_velocity, float intial_angle) {
     Entity entity = Entity();
 
     registry.gears.emplace(entity);
@@ -842,15 +842,34 @@ Entity create_gear(vec2 position, vec2 size) {
     Motion& motion = registry.motions.emplace(entity);
     motion.position = position;
     motion.scale = size;
-    motion.angle = M_PI;
+    motion.angle = intial_angle;
     motion.velocity = {0.0f, 0.0f};
     motion.cache_invalidated = true;
 
     PhysicsObject& physics_object = registry.physicsObjects.emplace(entity);
-    physics_object.apply_gravity = true;
-    physics_object.mass = 90.0f;
-    physics_object.friction = 0.01f;
-    physics_object.apply_rotation = true;
+
+    if (fixed) {
+       physics_object.apply_gravity = false;
+       physics_object.friction = 0.5f;
+       physics_object.apply_air_resistance = false;
+        physics_object.mass = 0.0f;
+        physics_object.moment_of_inertia = 1000000000.0f;
+        physics_object.apply_rotation = true;
+        physics_object.angular_velocity = angular_velocity;
+        physics_object.angular_damping = 0.0f;
+
+        if (angular_velocity > 0.0f) {
+            RotatingGear& rg = registry.rotatingGears.emplace(entity);
+            rg.angular_velocity = angular_velocity;
+        }
+
+    } else {
+        physics_object.apply_gravity = true;
+        physics_object.mass = 90.0f;
+        physics_object.friction = 0.01f;
+        physics_object.apply_rotation = true;
+    }
+
 
     CompositeMesh& compositeMesh = registry.compositeMeshes.emplace(entity);
 

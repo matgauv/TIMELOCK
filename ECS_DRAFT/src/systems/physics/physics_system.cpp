@@ -60,8 +60,14 @@ void PhysicsSystem::step(float elapsed_ms) {
 				vec2 tangent = { -sin(angle_rad), cos(angle_rad) };
 				float rotationFrictionFactor = 1.0f;
 				vec2 angular_push = tangent * fabs(phys.angular_velocity) * rotationFrictionFactor;
-				motion.position += angular_push * step_seconds;
-                phys.angular_velocity *= (1.0f - 0.8f * step_seconds); // Damping factor
+				if (phys.mass >0.0f) motion.position += angular_push * step_seconds;
+				if (phys.angular_damping > 0.0f) phys.angular_velocity *= (1.0f - phys.angular_damping * step_seconds); // Damping factor
+
+				std::cout << "entity: " << entity.id() << " av: :" << phys.angular_velocity << std::endl;
+
+				if (registry.rotatingGears.has(entity)) {
+					phys.angular_velocity = registry.rotatingGears.get(entity).angular_velocity;
+				}
 			}
 
 		}

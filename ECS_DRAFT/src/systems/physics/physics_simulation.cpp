@@ -103,7 +103,8 @@ void handle_rotational_dynamics(Entity& object_entity, Entity& other_entity, con
 	// check if the com falls within the support pivot points
 	const float tolerance = 1.0f;
 	if (projected_com > min_contact_x - tolerance && projected_com < max_contact_x + tolerance) {
-		phys.angular_velocity *= 0.02;
+		// if stable, damp rotation a lot to prevent from tipping.
+		if (phys.angular_damping > 0.0f) phys.angular_velocity *= 0.02;
 		return;
 	} else if (projected_com >= max_contact_x) {
 		pivot = max_pivot_point;
@@ -267,12 +268,12 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 
 
 	// angular friction
-	if (physA.apply_rotation) {
+	if (physA.apply_rotation && physA.angular_damping > 0.0f) {
 		float tangential_lever_a = contact_offset_a.x * friction_dir.y - contact_offset_a.y * friction_dir.x;
 		physA.angular_velocity -= tangent_impulse_scalar * tangential_lever_a * a_inv_inertia;
 		handle_rotational_dynamics(entityA, entityB, collision.normal, step_seconds);
 	}
-	if (physB.apply_rotation) {
+	if (physB.apply_rotation && physB.angular_damping > 0.0f) {
 		float tangential_lever_b = contact_offset_b.x * friction_dir.y - contact_offset_b.y * friction_dir.x;
 		physB.angular_velocity += tangent_impulse_scalar * tangential_lever_b * b_inv_inertia;
 		handle_rotational_dynamics(entityB, entityA, -collision.normal, step_seconds);

@@ -34,6 +34,7 @@ public:
 	ComponentContainer<Pendulum> pendulums;
 	ComponentContainer<PendulumRod> pendulumRods;
 	ComponentContainer<Gear> gears;
+	ComponentContainer<RotatingGear> rotatingGears;
 	ComponentContainer<Projectile> projectiles;
 	ComponentContainer<Rock> rocks;
 	ComponentContainer<WaterDrop> waterdrops;
@@ -83,6 +84,7 @@ public:
 		registry_list.push_back(&pendulums);
 		registry_list.push_back(&pendulumRods);
 		registry_list.push_back(&gears);
+		registry_list.push_back(&rotatingGears);
 		registry_list.push_back(&projectiles);
 		registry_list.push_back(&rocks);
 		registry_list.push_back(&waterdrops);

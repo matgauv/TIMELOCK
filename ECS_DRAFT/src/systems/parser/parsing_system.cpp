@@ -320,8 +320,13 @@ void LevelParsingSystem::init_gears(json gears) {
         vec2 gear_edge_pos = {json_gear_edge["cx"], json_gear_edge["cy"]};
         float radius = abs(position.x  - (gear_edge_pos.x * TILE_TO_PIXELS));
 
+        // TODO: error handling
+        bool fixed = gear["customFields"]["fixed"];
+        float angular_velocity = gear["customFields"]["angular_velocity"];
+        float inital_angle = gear["customFields"]["initial_angle"];
+
         vec2 size_px = {radius * 2, radius * 2};
-        create_gear(position, size_px);
+        create_gear(position, size_px, fixed, angular_velocity, inital_angle);
     }
 }
 

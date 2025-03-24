@@ -172,6 +172,9 @@ struct PhysicsObject
 	// NOTE: the 'effective area' is also considered in air resistance calculations, so larger objects will slow down more.
 	float drag_coefficient = 0.2f;
 
+	// the amount of energy lost when rotating. Set this to 0 to have an object rotate forever!
+	float angular_damping = 0.8f;
+
 	// INTERNAL PROPERTIES
 	// these are just used to keep track of information, no need to set manually as they will be calculated automatically!
 	float moment_of_inertia = 0.0f;
@@ -181,6 +184,10 @@ struct PhysicsObject
 
 struct NonPhysicsCollider {
 
+};
+
+struct RotatingGear {
+	float angular_velocity = 0.0f;
 };
 
 

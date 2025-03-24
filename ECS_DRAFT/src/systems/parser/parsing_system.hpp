@@ -25,7 +25,8 @@ private:
     {
         {"Level_0", TEXTURE_ASSET_ID::D_TUTORIAL_GROUND},
         {"Level_1", TEXTURE_ASSET_ID::A_TUTORIAL_GROUND},
-        {"Level_2", TEXTURE_ASSET_ID::DECEL_LEVEL_GROUND}
+        {"Level_2", TEXTURE_ASSET_ID::DECEL_LEVEL_GROUND},
+        {"Level_3", TEXTURE_ASSET_ID::BOSS_LEVEL_ONE_GROUND}
     };
 
     bool parse_json();
@@ -41,6 +42,10 @@ private:
     void init_ladders(json ladders);
     void init_checkpoints(json checkpoints);
     void init_doors(json doors);
+    void init_pipes(json pipes);
+    void init_pipeparts(json parts);
+    void init_breakable_platforms(json breakables);
+    void init_chains(json chains);
 
     bool extract_full_platform_dimensions(json platform, vec2& dimensions);
     bool extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos, bool& rounded);

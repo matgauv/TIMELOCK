@@ -6,7 +6,7 @@
 	"width": 6992,
 	"height": 3936,
 	"bgColor": "#696A79",
-	"neighbourLevels": [],
+	"neighbourLevels": ["Level_3"],
 	"customFields" : {},
 	"layers": [
 		 {
@@ -801,7 +801,7 @@
 				"height": 16,
 				"color": 14984818,
 				"customFields": {
-					"direction": null
+					"direction": "right"
 				}
 			},
 			{
@@ -814,7 +814,7 @@
 				"height": 16,
 				"color": 14984818,
 				"customFields": {
-					"direction": null
+					"direction": "right"
 				}
 			},
 			{
@@ -827,7 +827,7 @@
 				"height": 16,
 				"color": 14984818,
 				"customFields": {
-					"direction": null
+					"direction": "right"
 				}
 			},
 			{
@@ -840,7 +840,7 @@
 				"height": 16,
 				"color": 14984818,
 				"customFields": {
-					"direction": null
+					"direction": "right"
 				}
 			},
 			{
@@ -853,7 +853,7 @@
 				"height": 16,
 				"color": 14984818,
 				"customFields": {
-					"direction": null
+					"direction": "right"
 				}
 			},
 			{
@@ -866,7 +866,7 @@
 				"height": 16,
 				"color": 14984818,
 				"customFields": {
-					"direction": null
+					"direction": "right"
 				}
 			}
 		],

@@ -43,10 +43,13 @@ void LevelParsingSystem::step(float elapsed_ms) {
     init_player_and_camera();
 
     if (level_state.ground == TEXTURE_ASSET_ID::BOSS_ONE_LEVEL_GROUND) {
+        if (registry.bosses.size() == 1) {
+            registry.remove_all_components_of(registry.bosses.entities[0]);
+        }
         create_first_boss_test();
         assert(registry.gameStates.components.size() <= 1);
         GameState& gameState = registry.gameStates.components[0];
-        gameState.is_in_boss_fight = true;
+        gameState.is_in_boss_fight = false;
     }
 
     level_state.shouldLoad = false;

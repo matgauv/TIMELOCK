@@ -44,7 +44,7 @@ Entity create_snooze_button(vec2 boss_position) {
     motion.velocity = vec2(0.f, 0.f);
     
     // snooze button position should be based on the clock's position
-    motion.position = boss_position - vec2(0.f, BOSS_ONE_BB_HEIGHT_PX / 2); // TODO: fine tune this
+    motion.position = boss_position - vec2(0.f, BOSS_ONE_BB_HEIGHT_PX / 2 - 6.f); // TODO: fine tune this
     
     // render request
     registry.renderRequests.insert(
@@ -70,130 +70,101 @@ void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_nu
 
     boss.time_until_exhausted_ms -= elapsed_ms;
 
-    // Entity& player_entity = registry.players.entities[0];
-    // Motion& player_motion = registry.motions.get(player_entity);
-
-    // std::cout << "Player position is: " << player_motion.position.x << std::endl;
-
     // state transition logic
     switch (boss.boss_state) {
         case BOSS_STATE::BOSS1_IDLE_STATE:
-            // std::cout << "Idle state..." << std::endl;
             boss_one_idle_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
 
         case BOSS_STATE::BOSS1_MOVE_STATE:
-            std::cout << "Move state..." << std::endl;
             boss_one_move_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
 
         case BOSS_STATE::BOSS1_EXHAUSTED_STATE:
-            // std::cout << "Exhausted state..." << std::endl;
             boss_one_exhausted_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
 
         case BOSS_STATE::BOSS1_RECOVER_STATE:
-            // std::cout << "Recovered state..." << std::endl;
             boss_one_recover_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_DAMAGED_STATE:
-            std::cout << "Damaged state..." << std::endl;
             boss_one_damaged_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
 
         case BOSS_STATE::BOSS1_DEAD_STATE:
-            std::cout << "Dead state..." << std::endl;
             boss_one_dead_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_CHOOSE_ATTACK_STATE:
-            std::cout << "Choose attack state..." << std::endl;
             boss_one_choose_attack_step(boss_entity, boss, boss_motion, elapsed_ms, random_num);
             break;
         
         case BOSS_STATE::BOSS1_REGULAR_PROJECTILE_ATTACK_STATE:
-            std::cout << "Regular projectile state..." << std::endl;
             boss_one_regular_projectile_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_FAST_PROJECTILE_ATTACK_STATE:
-            std::cout << "Fast projectile state..." << std::endl;
             boss_one_fast_projectile_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
             
         case BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE:
-            std::cout << "Delayed state..." << std::endl;
             boss_one_delayed_projectile_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
             
         case BOSS_STATE::BOSS1_DASH_ATTACK_STATE:
-            std::cout << "Dash state..." << std::endl;
             boss_one_dash_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
             
         case BOSS_STATE::BOSS1_GROUND_SLAM_RISE_1_STATE:
-            std::cout << "Rise 1 state..." << std::endl;
             boss_one_ground_slam_rise_1_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_GROUND_SLAM_FOLLOW_1_STATE:
-            std::cout << "Follow 1 state..." << std::endl;
             boss_one_ground_slam_follow_1_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_1_STATE:
-            std::cout << "Slam 1 state..." << std::endl;
             boss_one_ground_slam_slam_1_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
             
         case BOSS_STATE::BOSS1_GROUND_SLAM_LAND_1_STATE:
-            std::cout << "Land 1 state..." << std::endl;
             boss_one_ground_slam_land_1_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_GROUND_SLAM_RISE_2_STATE:
-            std::cout << "Rise 2 state..." << std::endl;
             boss_one_ground_slam_rise_2_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_GROUND_SLAM_FOLLOW_2_STATE:
-            std::cout << "Follow 2 state..." << std::endl;
             boss_one_ground_slam_follow_2_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_2_STATE:
-            std::cout << "Slam 2 state..." << std::endl;
             boss_one_ground_slam_slam_2_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
             
         case BOSS_STATE::BOSS1_GROUND_SLAM_LAND_2_STATE:
-            std::cout << "Land 2 state..." << std::endl;
             boss_one_ground_slam_land_2_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_GROUND_SLAM_RISE_3_STATE:
-            std::cout << "Rise 3 state..." << std::endl;
             boss_one_ground_slam_rise_3_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_GROUND_SLAM_FOLLOW_3_STATE:
-            std::cout << "Follow 3 state..." << std::endl;
             boss_one_ground_slam_follow_3_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         case BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_3_STATE:
-            std::cout << "Slam 3 state..." << std::endl;
             boss_one_ground_slam_slam_3_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
             
         case BOSS_STATE::BOSS1_GROUND_SLAM_LAND_3_STATE:
-            std::cout << "Land 3 state..." << std::endl;
             boss_one_ground_slam_land_3_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
         
         default:
-            std::cout << "Default state" << std::endl;
             break;
     }
 
@@ -203,8 +174,6 @@ void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_nu
 
 // Hanldes the logic to transition into the MOVE state
 void boss_one_idle_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
-    // TODO: if the camera is going to be on the entire boss areana already, then we can directly
-    //       transition to MOVE state
 
     // Get player motion
     Entity& player_entity = registry.players.entities[0];
@@ -214,15 +183,14 @@ void boss_one_idle_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, fl
     float dist = abs(boss_motion.position.x - player_motion.position.x);
 
     // transition to move if both are in screen
-    // if (dist <= WINDOW_WIDTH_PX) {
-    //     std::cout << "Transitioning to MOVE state" << std::endl;
-    //     boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
-    //     boss.timer_ms = BOSS_ONE_MAX_WALK_DURATION_MS; // walk for 5 seconds before attacking
+    if (dist <= 200.f) {
+        boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
+        boss.timer_ms = BOSS_ONE_MAX_WALK_DURATION_MS; // walk for 5 seconds before attacking
         
-    //     // update animate request
-    //     AnimateRequest& animateRequest = registry.animateRequests.emplace(boss_entity);
-    //     animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_WALK;
-    // }
+        // update animate request
+        AnimateRequest& animateRequest = registry.animateRequests.emplace(boss_entity);
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_WALK;
+    }
 }
 
 // Handles the boss motion and the transition logic to CHOOSE_ATTACK and EXHAUSTED state
@@ -236,9 +204,6 @@ void boss_one_move_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, fl
     boss_motion.velocity.x = calculate_boss_one_x_velocity(boss_motion.position.x, player_motion.position.x);
     boss_motion.velocity.y = 0;
 
-    // If the boss has used 5 attacks, enter EXHAUSTED state
-    // std::cout << "Number of attacks used:" << boss.num_of_attack_completed << std::endl;
-    // if (boss.num_of_attack_completed == 5) {
     // If 30 seconds have passed, enter EXHAUSTED state
     if (boss.time_until_exhausted_ms <= 0.f) {
         boss.boss_state = BOSS_STATE::BOSS1_EXHAUSTED_STATE;
@@ -258,24 +223,26 @@ void boss_one_move_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, fl
 
     // If the boss has walked for 5 seconds, then enter CHOOSE ATTACK state
 
-    // if (boss.timer_ms <= 0.f) {
-    //     boss.boss_state = BOSS_STATE::BOSS1_CHOOSE_ATTACK_STATE;
-    //     std::cout << "Change to choose attack state" << std::endl;
-    // }
-
-    bool is_player_to_boss_left = player_motion.position.x <= boss_motion.position.x;
-    // for testing purposes
     if (boss.timer_ms <= 0.f) {
-        choose_ground_slam_test(boss_entity, boss, boss_motion);
+        boss.boss_state = BOSS_STATE::BOSS1_CHOOSE_ATTACK_STATE;
     }
+
+    // bool is_player_to_boss_left = player_motion.position.x <= boss_motion.position.x;
+    // for testing purposes
+    // if (boss.timer_ms <= 0.f) {
+        // choose_dash_attack_test(boss_entity, boss, boss_motion);
+        // choose_regular_projectile_attack_test(boss_entity, boss, boss_motion, is_player_to_boss_left);
+        // choose_delayed_projectile_attack_test(boss_entity, boss, boss_motion);
+        // choose_fast_projectile_attack_test(boss_entity, boss, boss_motion, is_player_to_boss_left);
+        // choose_ground_slam_test(boss_entity, boss, boss_motion);
+    // }
 }
 
 // Handles the transition logic to RECOVER and DAMAGED states
 void boss_one_exhausted_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
     
     // create the snooze button if it is not there
-    if (registry.snoozeButtons.components.size() == 0) {
-        // TODO: finish the snooze button function
+    if (registry.snoozeButtons.components.size() == 0 && boss_motion.velocity.x == 0.f) {
         create_snooze_button(boss_motion.position);
     }
 
@@ -323,8 +290,6 @@ void boss_one_recover_step(Entity& boss_entity, Boss& boss, Motion& boss_motion,
     if (boss.timer_ms <= 0.f) {
         boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
         boss.timer_ms = BOSS_ONE_MAX_WALK_DURATION_MS;
-
-        // boss.num_of_attack_completed = 0;
 
         boss.time_until_exhausted_ms = BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS;
         
@@ -402,6 +367,9 @@ void boss_one_regular_projectile_step(Entity& boss_entity, Boss& boss, Motion& b
         firstBoss.num_of_projectiles_created = 0;
         boss.timer_ms = BOSS_ONE_MAX_WALK_DURATION_MS;
 
+        // update the scaling
+        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX;
+
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_WALK;
@@ -422,6 +390,9 @@ void boss_one_fast_projectile_step(Entity& boss_entity, Boss& boss, Motion& boss
         firstBoss.num_of_projectiles_created = 0;
         boss.timer_ms = BOSS_ONE_MAX_WALK_DURATION_MS;
 
+        // update the scaling
+        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX;        
+
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_WALK;
@@ -433,14 +404,25 @@ void boss_one_fast_projectile_step(Entity& boss_entity, Boss& boss, Motion& boss
 
 // Creates 3 delayed projectiles and transitions to MOVE state
 void boss_one_delayed_projectile_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
-    boss_one_delayed_projectile_attack(boss_entity, boss, boss_motion, elapsed_ms);
-    boss.num_of_attack_completed++;
-    boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
-    boss.timer_ms = BOSS_ONE_MAX_WALK_DURATION_MS * 5.f;
 
-    // update the animate request
-    AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
-    animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_WALK;
+    boss.timer_ms -= elapsed_ms;
+
+    if (boss.timer_ms <= 0.f) {
+        boss_one_delayed_projectile_attack(boss_entity, boss, boss_motion, elapsed_ms);
+        boss.num_of_attack_completed++;
+        boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
+        FirstBoss& firstBoss = registry.firstBosses.get(boss_entity);
+        firstBoss.num_of_projectiles_created = 0;
+        boss.timer_ms = BOSS_ONE_MAX_WALK_DURATION_MS * 5.f;
+    
+        // update the scaling
+        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX;
+                
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_WALK;
+    }
+
 }
 
 // Increases boss x velocity and transitions to MOVE state
@@ -449,12 +431,6 @@ void boss_one_dash_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, fl
     // Decrement the timer
     boss.timer_ms -= elapsed_ms;
 
-    // the boss needs to have harmful component and is time controllable?
-    if (!registry.harmfuls.has(boss_entity)) {
-        std::cout << "Boss is now harmful" << std::endl;
-        registry.harmfuls.emplace(boss_entity);
-    }
-
     // Transitions to MOVE state if timer is up
     if (boss.timer_ms <= 0.f) {
         boss.num_of_attack_completed++;
@@ -462,6 +438,9 @@ void boss_one_dash_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, fl
         // boss becomes harmless
         // boss.can_damage_player = false;
         registry.harmfuls.remove(boss_entity);
+        TimeControllable& tc = registry.timeControllables.get(boss_entity);
+        tc.can_be_decelerated = false;
+        tc.can_become_harmless = false;
 
         boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
         boss.timer_ms = BOSS_ONE_MAX_WALK_DURATION_MS;
@@ -476,11 +455,8 @@ void boss_one_dash_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, fl
 // and transitions to GROUND SLAM FOLLOW 1 state
 void boss_one_ground_slam_rise_1_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
 
-    if (boss_motion.position.y >= BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION) {
+    if (boss_motion.position.y <= BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION) {
         boss_motion.position.y = BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION;
-        // Entity& player_entity = registry.players.entities[0];
-        // Motion& player_motion = registry.motions.get(player_entity);
-        // boss_motion.velocity.x = calculate_boss_one_x_velocity(boss_motion.position.x, player_motion.position.x);
         boss_motion.velocity.y = 0;
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_FOLLOW_1_STATE;
         boss.timer_ms = BOSS_ONE_FIRST_GROUND_SLAM_FOLLOW_DURATION_MS;
@@ -504,16 +480,13 @@ void boss_one_ground_slam_follow_1_step(Entity& boss_entity, Boss& boss, Motion&
 
         // boss becomes harmful
         if (!registry.harmfuls.has(boss_entity)) {
-            std::cout << "Boss is now harmful" << std::endl;
             registry.harmfuls.emplace(boss_entity);
         }
 
         // boss becomes time controllable
-        if (!registry.timeControllables.has(boss_entity)) {
-            TimeControllable& tc = registry.timeControllables.emplace(boss_entity);
-            tc.can_be_decelerated = true;
-            tc.can_become_harmless = true;
-        }
+        TimeControllable& tc = registry.timeControllables.get(boss_entity);
+        tc.can_be_decelerated = true;
+        tc.can_become_harmless = true;
 
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
@@ -523,7 +496,7 @@ void boss_one_ground_slam_follow_1_step(Entity& boss_entity, Boss& boss, Motion&
         Entity& player_entity = registry.players.entities[0];
         Motion& player_motion = registry.motions.get(player_entity);
     
-        boss_motion.velocity.x = calculate_boss_one_x_velocity(boss_motion.position.x, player_motion.position.x);
+        boss_motion.velocity.x = 10.f * calculate_boss_one_x_velocity(boss_motion.position.x, player_motion.position.x);
     }
 }
 
@@ -531,7 +504,7 @@ void boss_one_ground_slam_follow_1_step(Entity& boss_entity, Boss& boss, Motion&
 // and transitions to GROUND SLAM LAND 1 state
 void boss_one_ground_slam_slam_1_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
 
-    if (boss_motion.position.y <= BOSS_ONE_ON_GROUND_Y_POSITION) {
+    if (boss_motion.position.y >= BOSS_ONE_ON_GROUND_Y_POSITION) {
         boss_motion.position.y = BOSS_ONE_ON_GROUND_Y_POSITION;
         boss_motion.velocity.y = 0;
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_LAND_1_STATE;
@@ -553,8 +526,9 @@ void boss_one_ground_slam_land_1_step(Entity& boss_entity, Boss& boss, Motion& b
     Motion& player_motion = registry.motions.get(player_entity);
 
     // handle collision
-    if ((boss_motion.position.x - BOSS_ONE_GROUND_SLAM_IMPACT_WIDTH_PX <= player_motion.position.x || player_motion.position.x <= boss_motion.position.x + BOSS_ONE_GROUND_SLAM_IMPACT_WIDTH_PX) &&
-        (boss_motion.position.y + BOSS_ONE_BB_HEIGHT_PX / 2 <= player_motion.position.y + player_motion.scale.y || player_motion.position.y - player_motion.scale.y <= boss_motion.position.y - BOSS_ONE_BB_HEIGHT_PX / 2 )) {
+    float left_bound = boss_motion.position.x - BOSS_ONE_GROUND_SLAM_IMPACT_WIDTH_PX;
+    float right_bound = boss_motion.position.x + BOSS_ONE_GROUND_SLAM_IMPACT_WIDTH_PX;
+    if (left_bound <= player_motion.position.x && player_motion.position.x <= right_bound) {
         PlayerSystem::kill();
     }
 
@@ -565,6 +539,9 @@ void boss_one_ground_slam_land_1_step(Entity& boss_entity, Boss& boss, Motion& b
 
         // boss becomes harmless
         registry.harmfuls.remove(boss_entity);
+        TimeControllable& tc = registry.timeControllables.get(boss_entity);
+        tc.can_be_decelerated = false;
+        tc.can_become_harmless = false;
 
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
@@ -576,15 +553,8 @@ void boss_one_ground_slam_land_1_step(Entity& boss_entity, Boss& boss, Motion& b
 // and transitions to GROUND SLAM FOLLOW 2 state
 void boss_one_ground_slam_rise_2_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
 
-    // if (boss_motion.position.y == BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION) {
-    //     boss_motion.velocity.y = 0;
-    //     boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_FOLLOW_2_STATE;
-    //     boss.timer_ms = BOSS_ONE_SECOND_GROUND_SLAM_FOLLOW_DURATION_MS;
-    if (boss_motion.position.y >= BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION) {
+    if (boss_motion.position.y <= BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION) {
         boss_motion.position.y = BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION;
-        // Entity& player_entity = registry.players.entities[0];
-        // Motion& player_motion = registry.motions.get(player_entity);
-        // boss_motion.velocity.x = calculate_boss_one_x_velocity(boss_motion.position.x, player_motion.position.x);
         boss_motion.velocity.y = 0;
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_FOLLOW_2_STATE;
         boss.timer_ms = BOSS_ONE_SECOND_GROUND_SLAM_FOLLOW_DURATION_MS;
@@ -608,16 +578,13 @@ void boss_one_ground_slam_follow_2_step(Entity& boss_entity, Boss& boss, Motion&
 
         // boss becomes harmful
         if (!registry.harmfuls.has(boss_entity)) {
-            std::cout << "Boss is now harmful" << std::endl;
             registry.harmfuls.emplace(boss_entity);
         }
 
         // boss becomes time controllable
-        if (!registry.timeControllables.has(boss_entity)) {
-            TimeControllable& tc = registry.timeControllables.emplace(boss_entity);
-            tc.can_be_decelerated = true;
-            tc.can_become_harmless = true;
-        }
+        TimeControllable& tc = registry.timeControllables.get(boss_entity);
+        tc.can_be_decelerated = true;
+        tc.can_become_harmless = true;
 
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
@@ -627,7 +594,7 @@ void boss_one_ground_slam_follow_2_step(Entity& boss_entity, Boss& boss, Motion&
         Entity& player_entity = registry.players.entities[0];
         Motion& player_motion = registry.motions.get(player_entity);
     
-        boss_motion.velocity.x = calculate_boss_one_x_velocity(boss_motion.position.x, player_motion.position.x);
+        boss_motion.velocity.x = 10.f * calculate_boss_one_x_velocity(boss_motion.position.x, player_motion.position.x);
     }
 }
 
@@ -635,7 +602,7 @@ void boss_one_ground_slam_follow_2_step(Entity& boss_entity, Boss& boss, Motion&
 // and transitions to GROUND SLAM LAND 2 state
 void boss_one_ground_slam_slam_2_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
 
-    if (boss_motion.position.y <= BOSS_ONE_ON_GROUND_Y_POSITION) {
+    if (boss_motion.position.y >= BOSS_ONE_ON_GROUND_Y_POSITION) {
         boss_motion.position.y = BOSS_ONE_ON_GROUND_Y_POSITION;
         boss_motion.velocity.y = 0;
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_LAND_2_STATE;
@@ -657,8 +624,9 @@ void boss_one_ground_slam_land_2_step(Entity& boss_entity, Boss& boss, Motion& b
     Motion& player_motion = registry.motions.get(player_entity);
 
     // handle collision
-    if ((boss_motion.position.x - BOSS_ONE_GROUND_SLAM_IMPACT_WIDTH_PX <= player_motion.position.x || player_motion.position.x <= boss_motion.position.x + BOSS_ONE_GROUND_SLAM_IMPACT_WIDTH_PX) &&
-        (boss_motion.position.y + BOSS_ONE_BB_HEIGHT_PX / 2 <= player_motion.position.y + player_motion.scale.y || player_motion.position.y - player_motion.scale.y <= boss_motion.position.y - BOSS_ONE_BB_HEIGHT_PX / 2 )) {
+    float left_bound = boss_motion.position.x - BOSS_ONE_GROUND_SLAM_IMPACT_WIDTH_PX;
+    float right_bound = boss_motion.position.x + BOSS_ONE_GROUND_SLAM_IMPACT_WIDTH_PX;
+    if (left_bound <= player_motion.position.x && player_motion.position.x <= right_bound) {
         PlayerSystem::kill();
     }
 
@@ -668,6 +636,9 @@ void boss_one_ground_slam_land_2_step(Entity& boss_entity, Boss& boss, Motion& b
         boss_motion.velocity.y = BOSS_ONE_GROUND_SLAM_RISE_VELOCITY;
 
         registry.harmfuls.remove(boss_entity);
+        TimeControllable& tc = registry.timeControllables.get(boss_entity);
+        tc.can_be_decelerated = false;
+        tc.can_become_harmless = false;
 
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
@@ -679,15 +650,8 @@ void boss_one_ground_slam_land_2_step(Entity& boss_entity, Boss& boss, Motion& b
 // and transitions to GROUND SLAM FOLLOW 3 state
 void boss_one_ground_slam_rise_3_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
 
-    // if (boss_motion.position.y == BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION) {
-    //     boss_motion.velocity.y = 0;
-    //     boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_FOLLOW_3_STATE;
-    //     boss.timer_ms = BOSS_ONE_THIRD_GROUND_SLAM_FOLLOW_DURATION_MS;
-    if (boss_motion.position.y >= BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION) {
+    if (boss_motion.position.y <= BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION) {
         boss_motion.position.y = BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION;
-        // Entity& player_entity = registry.players.entities[0];
-        // Motion& player_motion = registry.motions.get(player_entity);
-        // boss_motion.velocity.x = calculate_boss_one_x_velocity(boss_motion.position.x, player_motion.position.x);
         boss_motion.velocity.y = 0;
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_FOLLOW_3_STATE;
         boss.timer_ms = BOSS_ONE_THIRD_GROUND_SLAM_FOLLOW_DURATION_MS;
@@ -711,17 +675,12 @@ void boss_one_ground_slam_follow_3_step(Entity& boss_entity, Boss& boss, Motion&
 
          // boss becomes harmful
         if (!registry.harmfuls.has(boss_entity)) {
-            std::cout << "Boss is now harmful" << std::endl;
             registry.harmfuls.emplace(boss_entity);
         }
 
-        // boss becomes time controllable
-        if (!registry.timeControllables.has(boss_entity)) {
-            TimeControllable& tc = registry.timeControllables.emplace(boss_entity);
-            tc.can_be_decelerated = true;
-            tc.can_become_harmless = true;
-        }
-
+        TimeControllable& tc = registry.timeControllables.get(boss_entity);
+        tc.can_be_decelerated = true;
+        tc.can_become_harmless = true;
 
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
@@ -731,7 +690,7 @@ void boss_one_ground_slam_follow_3_step(Entity& boss_entity, Boss& boss, Motion&
         Entity& player_entity = registry.players.entities[0];
         Motion& player_motion = registry.motions.get(player_entity);
     
-        boss_motion.velocity.x = calculate_boss_one_x_velocity(boss_motion.position.x, player_motion.position.x);
+        boss_motion.velocity.x = 10.f * calculate_boss_one_x_velocity(boss_motion.position.x, player_motion.position.x);
     }
 }
 
@@ -739,7 +698,7 @@ void boss_one_ground_slam_follow_3_step(Entity& boss_entity, Boss& boss, Motion&
 // and transitions to GROUND SLAM LAND 3 state
 void boss_one_ground_slam_slam_3_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
 
-    if (boss_motion.position.y <= BOSS_ONE_ON_GROUND_Y_POSITION) {
+    if (boss_motion.position.y >= BOSS_ONE_ON_GROUND_Y_POSITION) {
         boss_motion.position.y = BOSS_ONE_ON_GROUND_Y_POSITION;
         boss_motion.velocity.y = 0;
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_LAND_3_STATE;
@@ -761,8 +720,9 @@ void boss_one_ground_slam_land_3_step(Entity& boss_entity, Boss& boss, Motion& b
     Motion& player_motion = registry.motions.get(player_entity);
 
     // handle collision
-    if ((boss_motion.position.x - BOSS_ONE_GROUND_SLAM_IMPACT_WIDTH_PX <= player_motion.position.x || player_motion.position.x <= boss_motion.position.x + BOSS_ONE_GROUND_SLAM_IMPACT_WIDTH_PX) &&
-        (boss_motion.position.y + BOSS_ONE_BB_HEIGHT_PX / 2 <= player_motion.position.y + player_motion.scale.y || player_motion.position.y - player_motion.scale.y <= boss_motion.position.y - BOSS_ONE_BB_HEIGHT_PX / 2 )) {
+    float left_bound = boss_motion.position.x - BOSS_ONE_GROUND_SLAM_IMPACT_WIDTH_PX;
+    float right_bound = boss_motion.position.x + BOSS_ONE_GROUND_SLAM_IMPACT_WIDTH_PX;
+    if (left_bound <= player_motion.position.x && player_motion.position.x <= right_bound) {
         PlayerSystem::kill();
     }
 
@@ -771,6 +731,9 @@ void boss_one_ground_slam_land_3_step(Entity& boss_entity, Boss& boss, Motion& b
         boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
         boss_motion.velocity.y = 0;
 
+        // update scaling
+        boss_motion.scale = vec2(BOSS_ONE_BB_WIDTH_PX, BOSS_ONE_BB_HEIGHT_PX);
+
         registry.harmfuls.remove(boss_entity);
 
         // boss becomes harmless
@@ -778,6 +741,9 @@ void boss_one_ground_slam_land_3_step(Entity& boss_entity, Boss& boss, Motion& b
         if (registry.harmfuls.has(boss_entity)) {
             registry.harmfuls.remove(boss_entity);
         }
+        TimeControllable& tc = registry.timeControllables.get(boss_entity);
+        tc.can_be_decelerated = false;
+        tc.can_become_harmless = false;
 
         // update animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
@@ -786,15 +752,11 @@ void boss_one_ground_slam_land_3_step(Entity& boss_entity, Boss& boss, Motion& b
 
 }
 
-// Uses a non-linear function to calcualte the x velocity of the boss based on distance from player
+// Uses a linear function to calcualte the x velocity of the boss based on distance from player
 float calculate_boss_one_x_velocity(float boss_x, float player_x) {
-    // Use sigmoid
+
     // Calculate the distance
     float dist = player_x - boss_x;
-
-    // std::cout << "player x position: " << player_x << std::endl;
-    // std::cout << "boss x position: " << boss_x << std::endl;
-    // std::cout << "Their distance is: " << dist << std::endl;
 
     // Calculate a tentative velocity using the multiplier
     float velocity = dist * BOSS_ONE_X_VELOCITY_MULTIPLIER;
@@ -808,9 +770,7 @@ float calculate_boss_one_x_velocity(float boss_x, float player_x) {
         velocity = std::copysignf(BOSS_ONE_MAX_X_VELOCITY, dist);
     }
 
-    // std::cout << "Calculated boss x velocity is: " << velocity << std::endl;
-    // eturn velocity;
-    return 0.f; // for testing
+    return velocity;
 }
 
 // Chooses the attack based on decision tree (distance between boss and player, and a random number between 0 and 100) and transitions to the corresponding state
@@ -818,23 +778,27 @@ void chooseAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float el
     // helper function that chooses the attack state for boss one using a decision tree
 
     // random_num is between 0 and 100
-    std::cout << "random_num is: " << random_num << std::endl;
+    // std::cout << "random_num is: " << random_num << std::endl;
 
     // grab player related info
     Player& player = registry.players.components[0];
     Entity& player_entity = registry.players.entities[0];
     Motion& player_motion = registry.motions.get(player_entity);
 
-    float dist = abs(boss_motion.position.x - player_motion.position.x) / WINDOW_WIDTH_PX;
+    float dist = abs(boss_motion.position.x - player_motion.position.x) / 400.f;
     bool is_in_phase_two = (boss.health / BOSS_ONE_MAX_HEALTH) <= 0.6f;
 
     bool is_player_to_boss_left = boss_motion.position.x >= player_motion.position.x;
+    // std::cout << "dist is: " << dist << ", " << abs(boss_motion.position.x - player_motion.position.x) << std::endl;
 
-    if (dist < 0.3f) {
+    if (dist < 0.25f) {
+        // std::cout << "choosing short ranged attack" << std::endl;
         chooseShortRangedAttack(boss_entity, boss, boss_motion, is_in_phase_two, is_player_to_boss_left, random_num);
-    } else if (dist > 0.7f) {
+    } else if (dist > 0.55f) {
+        // std::cout << "choosing long ranged attack" << std::endl;
         chooseLongRangedAttack(boss_entity, boss, boss_motion, is_in_phase_two, is_player_to_boss_left, random_num);
     } else {
+        // std::cout << "choosing medium ranged attack" << std::endl;
        chooseMediumRangedAttack(boss_entity, boss, boss_motion, is_in_phase_two, is_player_to_boss_left, random_num);
     }
 }
@@ -855,8 +819,16 @@ void chooseLongRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion
 
         // boss becomes harmful during dash attack
         boss.can_damage_player = true; // TODO: remove this and use Harmful component instead
-        std::cout << "Boss is now harmful" << std::endl;
-        registry.harmfuls.emplace(boss_entity);
+
+        // boss becomes time controllable
+        TimeControllable& tc = registry.timeControllables.get(boss_entity);
+        tc.can_be_decelerated = true;
+        tc.can_become_harmless = true;
+
+        // the boss needs to have harmful component and is time controllable?
+        if (!registry.harmfuls.has(boss_entity)) {
+            registry.harmfuls.emplace(boss_entity);
+        }
 
         // update animate request
         AnimateRequest& animateRequest = registry.animateRequests.emplace(boss_entity);
@@ -865,12 +837,28 @@ void chooseLongRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion
     } else if (random_num <= 50) {
         boss.boss_state = BOSS_STATE::BOSS1_FAST_PROJECTILE_ATTACK_STATE;
 
+        // stop the boss from moving
+        boss_motion.velocity.x = 0.f;
+
+        // update the scaling
+        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;        
+
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = is_player_to_boss_left ? ANIMATION_ID::BOSS_ONE_PROJECTILE_LEFT : ANIMATION_ID::BOSS_ONE_PROJECTILE_RIGHT;
 
     } else if (random_num <= 75) {
         boss.boss_state = BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE;
+        boss.timer_ms = 2000.f;
+
+        FirstBoss& firstBoss = registry.firstBosses.get(boss_entity);
+        firstBoss.num_of_projectiles_created = 0;
+
+        // stop the boss from moving
+        boss_motion.velocity.x = 0.f;
+
+        // update scaling
+        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;        
 
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
@@ -878,6 +866,12 @@ void chooseLongRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion
 
     } else {
         boss.boss_state = BOSS_STATE::BOSS1_REGULAR_PROJECTILE_ATTACK_STATE;
+
+        // stop the boss from moving
+        boss_motion.velocity.x = 0.f;
+
+        // update scaling
+        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;
 
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
@@ -900,12 +894,22 @@ void chooseMediumRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_moti
         boss_motion.velocity.x = 0;
         boss_motion.velocity.y = BOSS_ONE_GROUND_SLAM_RISE_VELOCITY;
 
-        // TODO: update animate request
+        // update the scaling
+        boss_motion.scale = vec2(200.f, 200.f);
+
+        // update animate request
         AnimateRequest& animateRequest = registry.animateRequests.emplace(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::ANIMATION_COUNT;
 
     } else if (random_num <= 80) {
         boss.boss_state = BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE;
+        boss.timer_ms = 2000.f;
+
+        // stop the boss from moving
+        boss_motion.velocity.x = 0.f;
+
+        // update scaling
+        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;        
 
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
@@ -913,6 +917,12 @@ void chooseMediumRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_moti
 
     } else {
         boss.boss_state = BOSS_STATE::BOSS1_REGULAR_PROJECTILE_ATTACK_STATE;
+
+        // stop the boss from moving
+        boss_motion.velocity.x = 0.f;
+
+        // update scaling
+        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;        
 
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
@@ -933,12 +943,22 @@ void chooseShortRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motio
         boss_motion.velocity.x = 0;
         boss_motion.velocity.y = BOSS_ONE_GROUND_SLAM_RISE_VELOCITY;
 
-        // TODO: update animate request
+        // update the scaling
+        boss_motion.scale = vec2(200.f, 200.f);
+
+        // update animate request
         AnimateRequest& animateRequest = registry.animateRequests.emplace(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_RISE;
 
     } else {
         boss.boss_state = BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE;
+        boss.timer_ms = 2000.f;
+
+        // stop the boss from moving
+        boss_motion.velocity.x = 0.f;
+
+        // update the scaling
+        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;
 
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
@@ -1014,34 +1034,6 @@ void boss_one_delayed_projectile_attack(Entity& boss_entity, Boss& boss, Motion&
     }
 }
 
-void boss_one_dash_attack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
-    // likely don't need this?
-}
-
-void boss_one_ground_slam_rise_attack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
-
-}
-
-void boss_one_ground_slam_slam_attack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
-
-}
-
-void boss_one_ground_slam_land_attack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
-
-}
-
-void boss_one_ground_slam_follow_1_attack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
-
-}
-
-void boss_one_ground_slam_follow_2_attack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
-
-}
-
-void boss_one_ground_slam_follow_3_attack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
-
-}
-
 void create_delayed_projectile(vec2 pos, float timer_ms) {
     Entity entity = create_projectile(pos, vec2(BOSS_ONE_PROJECTILE_WIDTH_PX, BOSS_ONE_PROJECTILE_HEIGHT_PX), vec2(0.f, 0.f));
 
@@ -1053,6 +1045,12 @@ void create_delayed_projectile(vec2 pos, float timer_ms) {
 void choose_regular_projectile_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_player_to_boss_left) {
     boss.boss_state = BOSS_STATE::BOSS1_REGULAR_PROJECTILE_ATTACK_STATE;
 
+    // stop the boss from moving
+    boss_motion.velocity.x = 0.f;
+
+    // update scaling
+    boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;
+
     // update the animate request
     AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
     animateRequest.used_animation = is_player_to_boss_left ? ANIMATION_ID::BOSS_ONE_PROJECTILE_LEFT : ANIMATION_ID::BOSS_ONE_PROJECTILE_RIGHT;
@@ -1061,6 +1059,12 @@ void choose_regular_projectile_attack_test(Entity& boss_entity, Boss& boss, Moti
 void choose_fast_projectile_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_player_to_boss_left) {
     boss.boss_state = BOSS_STATE::BOSS1_FAST_PROJECTILE_ATTACK_STATE;
 
+    // stop the boss from moving
+    boss_motion.velocity.x = 0.f;
+
+    // update the scaling
+    boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;
+
     // update the animate request
     AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
     animateRequest.used_animation = is_player_to_boss_left ? ANIMATION_ID::BOSS_ONE_PROJECTILE_LEFT : ANIMATION_ID::BOSS_ONE_PROJECTILE_RIGHT;
@@ -1068,6 +1072,13 @@ void choose_fast_projectile_attack_test(Entity& boss_entity, Boss& boss, Motion&
 
 void choose_delayed_projectile_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion) {
     boss.boss_state = BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE;
+    boss.timer_ms = 2000.f;
+
+    // stop the boss from moving
+    boss_motion.velocity.x = 0.f;
+
+    // update the scaling
+    boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;
 
     // update the animate request
     AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
@@ -1079,10 +1090,15 @@ void choose_delayed_projectile_attack_test(Entity& boss_entity, Boss& boss, Moti
 }
 
 void choose_dash_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion) {
-    std::cout << "Setting boss state to dash attack state" << std::endl;
     boss.boss_state = BOSS_STATE::BOSS1_DASH_ATTACK_STATE;
     boss_motion.velocity.x = std::copysignf(BOSS_ONE_DASH_VELOCITY, boss_motion.velocity.x);
     boss.timer_ms = BOSS_ONE_DASH_DURATION_MS;
+
+    TimeControllable& tc = registry.timeControllables.get(boss_entity);
+    tc.can_be_decelerated = true;
+    tc.can_become_harmless = true;
+
+    registry.harmfuls.emplace(boss_entity);
 
     // update the animate request
     AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
@@ -1091,7 +1107,6 @@ void choose_dash_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motio
 }
 
 void choose_ground_slam_test(Entity& boss_entity, Boss& boss, Motion& boss_motion) {
-    std::cout << "Setting boss state to ground slam rise 1 state" << std::endl;
     boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_RISE_1_STATE;
     boss_motion.velocity.x = 0;
     boss_motion.velocity.y = BOSS_ONE_GROUND_SLAM_RISE_VELOCITY;

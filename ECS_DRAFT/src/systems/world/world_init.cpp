@@ -359,17 +359,16 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
 
     TimeControllable& tc = registry.timeControllables.emplace(entity);
     tc.can_become_harmless = true;
-    // tc.can_be_decelerated = true;
-    // tc.can_be_accelerated = false;
+    tc.can_be_decelerated = true;
 
-    // Harmful& harmful = registry.harmfuls.emplace(entity); // commentted out for testing purposes
+    Harmful& harmful = registry.harmfuls.emplace(entity);
 
     registry.renderRequests.insert(
 		entity,
 		{
-			TEXTURE_ASSET_ID::SAMPLE_PROJECTILE,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE
+			TEXTURE_ASSET_ID::HEX,
+			EFFECT_ASSET_ID::HEX,
+			GEOMETRY_BUFFER_ID::HEX
 		}
 	);
 
@@ -444,7 +443,7 @@ Entity create_first_boss_test() {
     Motion& player_motion = registry.motions.get(player_entity);
 
     // initial position
-    motion.position = vec2(20000.f, 480.f);
+    motion.position = vec2(1200.f, 480.f);
     std::cout << "Player position is: (" << player_motion.position.x << "," << player_motion.position.y << ")" << std::endl;
     std::cout << "Boss position is: (" << motion.position.x << "," << motion.position.y << ")" << std::endl;
     // motion.position = vec2(BOSS_ONE_SPAWN_POINT_X, BOSS_ONE_SPAWN_POINT_Y);

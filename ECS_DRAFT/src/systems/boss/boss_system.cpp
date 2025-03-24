@@ -18,6 +18,17 @@ void BossSystem::step(float elapsed_ms) {
     assert(registry.gameStates.components.size() <= 1);
     GameState& gameState = registry.gameStates.components[0];
 
+    if (registry.bosses.entities.size() == 1) {
+        Entity& boss_entity = registry.bosses.entities[0];
+        Entity& player_entity = registry.players.entities[0];
+        Motion& player_motion = registry.motions.get(player_entity);
+        Motion& boss_motion = registry.motions.get(boss_entity);
+    
+        if (abs(player_motion.position.x - boss_motion.position.x) <= 200.f) {
+            gameState.is_in_boss_fight = true;
+        }
+    } 
+
     if (gameState.is_in_boss_fight) {
         // this assumes that the boss to be looked at is always the first boss component
         Boss& boss = registry.bosses.components[0];

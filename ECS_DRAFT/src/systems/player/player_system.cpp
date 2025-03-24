@@ -110,6 +110,13 @@ void PlayerSystem::player_respawn() {
 	AnimateRequest& animateRequest = registry.animateRequests.get(e);
 	animateRequest.timer = 0.0;
 	animateRequest.used_animation = ANIMATION_ID::PLAYER_RESPAWN;
+
+	// If the player is respawning in the boss level, clear the entire level
+	GameState& gameState = registry.gameStates.components[0];
+	if (gameState.is_in_boss_fight == true) {
+		LevelState& levelState = registry.levelStates.components[0];
+		levelState.shouldLoad = true;
+	}
 }
 
 void PlayerSystem::set_standing(bool is_left) {

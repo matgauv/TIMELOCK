@@ -4,7 +4,6 @@
 #include <cmath>
 
 void delayed_projectile_step(float elapsed_ms) {
-    if (registry.delayeds.components.size() > 0) std::cout << "There are " << registry.delayeds.components.size() << " delayed entities" << std::endl;
     for (unsigned int i = 0; i < registry.delayeds.components.size(); i++) {
         Entity& entity = registry.delayeds.entities[i];
         Delayed& delayed = registry.delayeds.components[i];
@@ -27,8 +26,6 @@ void delayed_projectile_step(float elapsed_ms) {
             // set the projectile velocity
             motion.velocity = final_velocity;
 
-            // NOTE: double check if this causes any issue since we are directly removing the entity from the container in a for loop
-            // for now, remove the delayed component so that the projectile isn't homing, we could potentially change this later
             registry.delayeds.remove(entity);
         }
     }
@@ -42,5 +39,5 @@ vec2 calculate_velocity_vector(vec2 projectile_position, vec2 player_position) {
     vec2 direction = glm::normalize(dist);
 
     // calculate the x and y velocity based on direction and the overall projectile velocity
-    return PROJECTILE_SPEED * direction;
+    return BOSS_ONE_DELAYED_PROJECTILE_SPEED * direction;
 }

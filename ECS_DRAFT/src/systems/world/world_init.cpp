@@ -512,6 +512,9 @@ Entity create_spike(vec2 position, vec2 scale, json tile_id_array, int stride) {
     motion.velocity = {0, 0};
     motion.angle = 0.f;
 
+
+    registry.nonPhysicsColliders.emplace(entity);
+
     int tile_arr_index = get_tile_index(position.x, position.y, 0, 0, stride);
 
     Tile& tile_component = registry.tiles.emplace(entity);
@@ -571,6 +574,11 @@ Entity create_breakable_static_platform(vec2 position, vec2 scale, bool should_b
 
     registry.platforms.emplace(entity);
 
+    PhysicsObject& phys = registry.physicsObjects.emplace(entity);
+    phys.mass =0.0f;
+    phys.apply_gravity = false;
+    phys.apply_rotation = false;
+
     Breakable& breakable = registry.breakables.emplace(entity);
     breakable.health = 1000.f;
     breakable.degrade_speed_per_ms = degrade_speed;
@@ -612,6 +620,8 @@ Entity create_door(vec2 position, bool open, json& tile_id_array, int stride) {
 
     Door& door = registry.doors.emplace(entity);
     door.opened = open;
+
+    registry.nonPhysicsColliders.emplace(entity);
 
     int width_in_tiles = DOOR_SIZE.x / TILE_TO_PIXELS;
     int height_in_tiles = DOOR_SIZE.y / TILE_TO_PIXELS;
@@ -656,25 +666,28 @@ Entity create_pipe_head(vec2 position, vec2 scale, std::string direction, json& 
 
     registry.platforms.emplace(entity);
 
+    PhysicsObject& phys = registry.physicsObjects.emplace(entity);
+    phys.mass = 0.0f;
+    phys.apply_gravity = false;
+    phys.apply_rotation = false;
+
     Pipe& pipe = registry.pipes.emplace(entity);
     pipe.direction = direction;
 
     int tile_arr_index = get_tile_index(position.x, position.y, 0, 0, stride);
 
-    Entity tile_entity = Entity();
-
-    Tile& tile = registry.tiles.emplace(tile_entity);
+    Tile& tile = registry.tiles.emplace(entity);
     tile.parent_id = entity.id();
     tile.offset = {0, 0};
     tile.id = tile_id_array[tile_arr_index];
 
-    registry.renderRequests.insert(tile_entity, {
+    registry.renderRequests.insert(entity, {
                 TEXTURE_ASSET_ID::TILE,
                 EFFECT_ASSET_ID::TILE,
                 GEOMETRY_BUFFER_ID::SPRITE
             });
 
-    registry.layers.insert(tile_entity, { LAYER_ID::MIDGROUND });
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
 
     return entity;
 }

@@ -672,7 +672,11 @@ Entity create_pipe_head(vec2 position, vec2 scale, std::string direction, json& 
     phys.apply_rotation = false;
 
     Pipe& pipe = registry.pipes.emplace(entity);
-    pipe.direction = direction;
+    pipe.direction_factor = (direction == "right" ? 1.0f : -1.0f);
+    //pipe.timer = rand
+
+    // to influence firing frequency; maybe should not include this
+    registry.timeControllables.emplace(entity);
 
     int tile_arr_index = get_tile_index(position.x, position.y, 0, 0, stride);
 

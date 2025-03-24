@@ -57,6 +57,7 @@ public:
 	ComponentContainer<CannonBarrel> cannonBarrels;
 	ComponentContainer<Door> doors;
 	ComponentContainer<Pipe> pipes;
+	ComponentContainer<ObstacleSpawner>	obstacleSpawners;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -107,6 +108,7 @@ public:
 		registry_list.push_back(&cannonBarrels);
 		registry_list.push_back(&doors);
 		registry_list.push_back(&pipes);
+		registry_list.push_back(&obstacleSpawners);
 	}
 
 	void clear_all_components() {

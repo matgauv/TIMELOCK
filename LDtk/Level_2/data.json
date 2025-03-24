@@ -5477,6 +5477,32 @@
 				"customFields" : {}
 			}
 		],
+		"Gear_spawn_point": [
+			{
+				"id": "Gear_spawn_point",
+				"iid": "2f1f6860-e920-11ef-b20f-df8870edd4b7",
+				"layer": "Components",
+				"x": 5280,
+				"y": 1232,
+				"width": 16,
+				"height": 16,
+				"color": 5925256,
+				"customFields": {
+					"x_velocity": -250,
+					"y_velocity": 0,
+					"end_point": {
+						"cx": 176,
+						"cy": 78
+					},
+					"width": 250,
+					"height": 250,
+					"start_point": {
+						"cx": 325,
+						"cy": 77
+					}
+				}
+			}
+		],
 		"Pendulum": [
 			{
 				"id": "Pendulum",

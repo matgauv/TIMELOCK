@@ -63,8 +63,6 @@ void PhysicsSystem::step(float elapsed_ms) {
 				if (phys.mass >0.0f) motion.position += angular_push * step_seconds;
 				if (phys.angular_damping > 0.0f) phys.angular_velocity *= (1.0f - phys.angular_damping * step_seconds); // Damping factor
 
-				std::cout << "entity: " << entity.id() << " av: :" << phys.angular_velocity << std::endl;
-
 				if (registry.rotatingGears.has(entity)) {
 					phys.angular_velocity = registry.rotatingGears.get(entity).angular_velocity;
 				}

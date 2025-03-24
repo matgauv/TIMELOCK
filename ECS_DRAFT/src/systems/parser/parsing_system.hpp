@@ -48,6 +48,7 @@ private:
     void init_chains(json chains);
     void init_pendulums(json pendulums);
     void init_gears(json gears);
+    void init_gear_spawners(json gear_spawners);
     void init_spikeballs(json spikeballs);
 
     bool extract_full_platform_dimensions(json platform, vec2& dimensions);

@@ -1,6 +1,7 @@
 #include <iostream>
 #include "ai_system.hpp"
 #include "../world/world_init.hpp"
+#include "obstacle_spawner/obstacle_spawner.h"
 
 void AISystem::init(GLFWwindow *window) {
 	this->window = window;
@@ -8,6 +9,7 @@ void AISystem::init(GLFWwindow *window) {
 
 void AISystem::step(float elapsed_ms) {
 	cannon_tower_step(elapsed_ms);
+	obstacle_spawner_step(elapsed_ms);
 }
 
 void AISystem::late_step(float elapsed_ms) {

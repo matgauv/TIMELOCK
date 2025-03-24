@@ -997,6 +997,19 @@ Entity create_spikeball(vec2 position, vec2 size) {
     return entity;
 }
 
+Entity create_gear_spawner(vec2 size, vec2 velocity, vec2 start_pos, vec2 end_pos) {
+    Entity entity = Entity();
+
+    ObstacleSpawner& spawner = registry.obstacleSpawners.emplace(entity);
+    spawner.size = size;
+    spawner.velocity = velocity;
+    spawner.start_position = start_pos;
+    spawner.end_position = end_pos;
+    spawner.obstacle_type = "GEAR";
+
+    return entity;
+}
+
 
 
 float getDistance(const Motion& one, const Motion& other) {

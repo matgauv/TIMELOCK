@@ -190,6 +190,18 @@ struct RotatingGear {
 	float angular_velocity = 0.0f;
 };
 
+struct ObstacleSpawner {
+	vec2 velocity;
+	vec2 start_position;
+	vec2 end_position;
+	vec2 size;
+	unsigned int obstacle_id = 0;
+	std::string obstacle_type;
+
+	float time_left_ms = 10000.0f;
+	float lifetime_ms = 10000.0f;
+};
+
 
 // All data relevant to the shape and motion of entities
 struct Motion {

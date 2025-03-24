@@ -137,6 +137,8 @@ void LevelParsingSystem::init_level_entities() {
             init_gears(entity_list);
         } else if (entity_type == "Spikeball") {
             init_spikeballs(entity_list);
+        } else if (entity_type == "Gear_spawn_point") {
+            init_gear_spawners(entity_list);
         }
     }
 }
@@ -195,6 +197,23 @@ void LevelParsingSystem::init_breakable_platforms(json breakables) {
         create_time_controllable_breakable_static_platform(position, size, false, 2.0, tile_id_array, stride);
     }
 }
+
+void LevelParsingSystem::init_gear_spawners(json gear_spawners) {
+    for (json& gear_spawner : gear_spawners) {
+        json customFields = gear_spawner["customFields"];
+        vec2 velocity = vec2{customFields["x_velocity"], customFields["y_velocity"]};
+        vec2 size = vec2{customFields["width"], customFields["height"]};
+
+        vec2 start_pos = vec2{customFields["start_point"]["cx"], customFields["start_point"]["cy"]};
+        start_pos *= TILE_TO_PIXELS;
+
+        vec2 end_pos = vec2{customFields["end_point"]["cx"], customFields["end_point"]["cy"]};
+        end_pos *= TILE_TO_PIXELS;
+
+        create_gear_spawner(size, velocity, start_pos, end_pos);
+    }
+}
+
 
 
 void LevelParsingSystem::init_pipes(json pipes) {

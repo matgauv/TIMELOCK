@@ -11,6 +11,7 @@ class ECSRegistry
 
 public:
 	// Manually created list of all components this game has
+	ComponentContainer<FlagState> flags;
 	ComponentContainer<Motion> motions;
 	ComponentContainer<PivotPoint> pivotPoints;
 	ComponentContainer<Collision> collisions;
@@ -59,6 +60,7 @@ public:
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
 	{
+		registry_list.push_back(&flags);
 		registry_list.push_back(&motions);
 		registry_list.push_back(&pivotPoints);
 		registry_list.push_back(&collisions);

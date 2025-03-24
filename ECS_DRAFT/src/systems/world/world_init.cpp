@@ -236,6 +236,8 @@ Entity create_world_boundary(vec2 position, vec2 scale) {
     motion.velocity = {0, 0};
     motion.angle = 0;
 
+    registry.nonPhysicsColliders.emplace(entity);
+
     registry.boundaries.emplace(entity);
 
     return entity;

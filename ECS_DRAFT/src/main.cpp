@@ -20,7 +20,6 @@ int main(int argc, char *argv[])
 {
 
 	bool play_sound = true;
-	bool fly = false;
 	if (argc == 2)
 	{
 		std::vector<std::string> flags;
@@ -32,9 +31,7 @@ int main(int argc, char *argv[])
 		}
 
 		for (const string& flag : flags) {
-			if (flag == "--fly") {
-				fly = true;
-			} else if (flag == "--nosound") {
+			if (flag == "--nosound") {
 				play_sound = false;
 			}
 		}
@@ -58,8 +55,6 @@ int main(int argc, char *argv[])
 	SpawnPointSystem spawnpoint_system;
 
 	world_system.setSound(play_sound);
-	world_system.setFreeFly(fly);
-	physics_system.setFreeFly(fly);
 
 	// register order is the order steps (and then late steps) will be called
 	system_manager.register_system(&parsing_system);

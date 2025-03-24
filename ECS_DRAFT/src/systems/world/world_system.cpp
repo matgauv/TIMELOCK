@@ -56,6 +56,8 @@ void WorldSystem::init(GLFWwindow* window) {
 	levelState.curr_level_folder_name = "Level_0";
 	levelState.shouldLoad = true;
 
+	Entity flag_entity = Entity();
+	registry.flags.emplace(flag_entity);
 
 	if (this->play_sound && !start_and_load_sounds()) {
 		std::cerr << "ERROR: Failed to start or load sounds." << std::endl;
@@ -415,7 +417,6 @@ void WorldSystem::player_jump() {
 
 // on key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
-
 	if (registry.players.size() == 0) { return; } // level not loaded. TODO: set flag in the registry once level loading is done
 
 
@@ -429,7 +430,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
 
-        restart_game();
+		restart_game();
 		return;
 	}
 
@@ -533,8 +534,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		levelState.shouldLoad = true;
 	}
 
+	FlagState& flag_state = registry.flags.components[0];
+
 	// Fly controls (run ./TIMELOCK --fly):
-	if (key == GLFW_KEY_RIGHT && fly) {
+	if (key == GLFW_KEY_RIGHT && flag_state.fly) {
 		if (action == GLFW_PRESS) {
 			player_walking(true, false);
 		} else if (action == GLFW_RELEASE) {
@@ -542,7 +545,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (key == GLFW_KEY_LEFT && fly) {
+	if (key == GLFW_KEY_LEFT && flag_state.fly) {
 		if (action == GLFW_PRESS) {
 			player_walking(true, true);
 		} else if (action == GLFW_RELEASE) {
@@ -550,22 +553,33 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (key == GLFW_KEY_DOWN && fly) {
+	if (key == GLFW_KEY_DOWN && flag_state.fly) {
 		Motion& motion = registry.motions.get(registry.players.entities[0]);
 		if (action == GLFW_PRESS) {
-			motion.velocity.y = JUMP_VELOCITY;
+			motion.velocity.y = JUMP_VELOCITY * 5.0f;
 		} else if (action == GLFW_RELEASE) {
 			motion.velocity.y = 0;
 		}
 	}
 
-	if (key == GLFW_KEY_UP && fly) {
+	if (key == GLFW_KEY_UP && flag_state.fly) {
 		Motion& motion = registry.motions.get(registry.players.entities[0]);
 		if (action == GLFW_PRESS) {
-			motion.velocity.y = -JUMP_VELOCITY;
+			motion.velocity.y = -JUMP_VELOCITY * 5.0f;
 		} else if (action == GLFW_RELEASE) {
 			motion.velocity.y = 0;
 		}
+	}
+
+	// keybinds for toggling debug controls
+	if (key == GLFW_KEY_N && action == GLFW_PRESS) {
+		flag_state.no_clip = !flag_state.no_clip;
+		std::cout << "No-clip set to: " << flag_state.no_clip << std::endl;
+	}
+
+	if (key == GLFW_KEY_M && action == GLFW_PRESS) {
+		flag_state.fly = !flag_state.fly;
+		std::cout << "Fly set to: " << flag_state.fly << std::endl;
 	}
 }
 

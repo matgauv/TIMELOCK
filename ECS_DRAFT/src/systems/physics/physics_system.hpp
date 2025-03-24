@@ -16,16 +16,11 @@ public:
 	void step(float elapsed_ms) override;
 	void late_step(float elapsed_ms) override;
 
-	void setFreeFly(bool fly) {
-		this->fly = fly;
-	}
-
 	PhysicsSystem()
 	{
 	}
 private:
 	GLFWwindow* window = nullptr;
-	bool fly = false;
 
 	void handle_collisions(float elapsed_ms);
 	void detect_collisions();

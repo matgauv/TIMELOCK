@@ -40,6 +40,11 @@ enum class PLAYER_STATE {
 	DEAD = ALIVE + 1
 };
 
+struct FlagState {
+	bool fly = false;
+	bool no_clip = false;
+};
+
 // Player component
 struct Player
 {

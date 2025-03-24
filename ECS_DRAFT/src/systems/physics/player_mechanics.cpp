@@ -38,6 +38,8 @@ void player_walk(Entity& entity, Motion& motion, float step_seconds)
 			acceleration = PLAYER_WALK_LADDER_ACCELERATION;
 		}
 
+        FlagState& flags = registry.flags.components[0];
+        if (flags.fly) acceleration *= 5.0f;
 
 
 		Walking& walking = registry.walking.get(entity);
@@ -61,7 +63,7 @@ void player_walk(Entity& entity, Motion& motion, float step_seconds)
 		rel_velocity += desired_direction * acceleration * interpFactor * step_seconds;
 
 		// clamp relative velocity instead of world velocity
-		rel_velocity.x = clamp(rel_velocity.x, -PLAYER_MAX_WALKING_SPEED, PLAYER_MAX_WALKING_SPEED);
+        if (!flags.fly) rel_velocity.x = clamp(rel_velocity.x, -PLAYER_MAX_WALKING_SPEED, PLAYER_MAX_WALKING_SPEED);
 
 		motion.velocity = rel_velocity + platform_velocity;
 	} else {

@@ -153,6 +153,12 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 		Collision& collision = collision_container.components[i];
 		Entity other = Entity(collision.other_id);
 
+		// do not collide with anything if no clip is on
+		bool no_clip = registry.flags.components[0].no_clip;
+		if (no_clip && (registry.players.has(one) || registry.players.has(other))) {
+			continue;
+		}
+
 		// if player hits a breakable platform
 		if (registry.players.has(one) && registry.breakables.has(other)) {
 			handle_player_breakable_collision(other, elapsed_ms);
@@ -165,7 +171,6 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 		} else if (registry.players.has(other) && registry.doors.has(other)) {
 			handle_player_door_collision();
 		}
-
 
 		if (registry.players.has(one) && registry.projectiles.has(other)) {
 			// TODO: should handle_player_projectile_collision() be handle_player_attack_collision() ?

@@ -5488,7 +5488,7 @@
 				"height": 16,
 				"color": 5925256,
 				"customFields": {
-					"x_velocity": -250,
+					"x_velocity": -350,
 					"y_velocity": 0,
 					"end_point": {
 						"cx": 176,

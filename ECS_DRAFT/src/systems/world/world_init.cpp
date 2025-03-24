@@ -857,6 +857,7 @@ Entity create_gear(vec2 position, vec2 size, bool fixed, float angular_velocity,
         physics_object.apply_rotation = true;
         physics_object.angular_velocity = angular_velocity;
         physics_object.angular_damping = 0.0f;
+        physics_object.bounce = 0.0f;
 
         if (angular_velocity > 0.0f) {
             RotatingGear& rg = registry.rotatingGears.emplace(entity);
@@ -874,7 +875,7 @@ Entity create_gear(vec2 position, vec2 size, bool fixed, float angular_velocity,
     CompositeMesh& compositeMesh = registry.compositeMeshes.emplace(entity);
 
     float inner_radius = (size.x / 2.0f) * GEAR_CENTER_RATIO;
-    float tooth_length = (size.x / 2.0f) * GEAR_TOOTH_RATIO;
+    float tooth_length = (size.x) * GEAR_TOOTH_WIDTH_RATIO;
 
 
     Mesh* mesh = createCircleMesh(entity, 16);
@@ -890,16 +891,17 @@ Entity create_gear(vec2 position, vec2 size, bool fixed, float angular_velocity,
     Mesh* ew_tooth = get_mesh("/meshes/step-teeth.obj");
 
     // lil helper to add the tooth
-    auto add_tooth = [&](Mesh* tooth_mesh, float angle_rad, float scale_ratio, bool flip = false) {
+    auto add_tooth = [&](Mesh* tooth_mesh, float angle_rad, bool flip = false) {
         SubMesh tooth = SubMesh{};
         tooth.original_mesh = tooth_mesh;
-        tooth.scale_ratio = {GEAR_TOOTH_RATIO, GEAR_TOOTH_RATIO};
+        tooth.scale_ratio = {GEAR_TOOTH_WIDTH_RATIO, GEAR_TOOTH_WIDTH_RATIO};
 
-        tooth.rotation = (flip ? 0.0f : 180.0f);
+        tooth.rotation = (flip ? -180.0f : 0.0f);
 
+        float len = (inner_radius + (tooth_length / 2.0f));
         tooth.offset = {
-            (inner_radius + tooth_length) * cos(angle_rad),
-            (inner_radius + tooth_length) * sin(angle_rad)
+            (len) * cos(angle_rad),
+            (len) * sin(angle_rad)
         };
 
         compositeMesh.meshes.push_back(tooth);
@@ -913,13 +915,13 @@ Entity create_gear(vec2 position, vec2 size, bool fixed, float angular_velocity,
     float northwest_angle = M_PI * 1.33f;
     float northeast_angle = M_PI * 1.66f;
 
-     add_tooth(ew_tooth, east_angle, GEAR_TOOTH_RATIO, false);
-     add_tooth(nesw_tooth, northeast_angle, GEAR_TOOTH_RATIO, false);
-     add_tooth(nwse_tooth, southeast_angle, GEAR_TOOTH_RATIO, false);
-
-     add_tooth(ew_tooth, west_angle, GEAR_TOOTH_RATIO, true);
-     add_tooth(nesw_tooth, southwest_angle, GEAR_TOOTH_RATIO, true);
-     add_tooth(nwse_tooth, northwest_angle, GEAR_TOOTH_RATIO, true);
+     add_tooth(ew_tooth, east_angle, false);
+     add_tooth(nesw_tooth, northeast_angle, false);
+     add_tooth(nwse_tooth, southeast_angle,  false);
+     //
+     add_tooth(ew_tooth, west_angle,  true);
+     add_tooth(nesw_tooth, southwest_angle,  true);
+     add_tooth(nwse_tooth, northwest_angle,  true);
 
     registry.renderRequests.insert(entity, {
         TEXTURE_ASSET_ID::GEAR,

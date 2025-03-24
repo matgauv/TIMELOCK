@@ -104,7 +104,7 @@ void handle_rotational_dynamics(Entity& object_entity, Entity& other_entity, con
 	const float tolerance = 1.0f;
 	if (projected_com > min_contact_x - tolerance && projected_com < max_contact_x + tolerance) {
 		// if stable, damp rotation a lot to prevent from tipping.
-		if (phys.angular_damping > 0.0f) phys.angular_velocity *= 0.02;
+		if (phys.angular_damping > 0.0f) phys.angular_velocity *= (phys.angular_damping / 4.0f);
 		return;
 	} else if (projected_com >= max_contact_x) {
 		pivot = max_pivot_point;
@@ -121,7 +121,7 @@ void handle_rotational_dynamics(Entity& object_entity, Entity& other_entity, con
 	float torque = -(lever_arm_vec.x * gravity_force.y);
 	float moment_of_inertia = calculate_moment_of_inertia(object_entity);
 
-	if (moment_of_inertia > 0) {
+	if (moment_of_inertia > 0.0001f) {
 		float angular_acceleration = torque / moment_of_inertia;
 		phys.angular_velocity += angular_acceleration * step_seconds;
 	}
@@ -201,8 +201,12 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 
 	// compute the impulse from the collision (relative to center of mass)
 	float impulse_magnitude = -(1.0f + bounce) * vel_along_normal;
-	float a_inv_inertia = (physA.apply_rotation) ? 1.0f / calculate_moment_of_inertia(entityA) : 0.0f;
-	float b_inv_inertia = (physB.apply_rotation) ? 1.0f / calculate_moment_of_inertia(entityB) : 0.0f;
+
+	float a_inertia = calculate_moment_of_inertia(entityA);
+	float b_inertia = calculate_moment_of_inertia(entityB);
+
+	float a_inv_inertia = (physA.apply_rotation && a_inertia > 0.001f) ? 1.0f / a_inertia : 0.0f;
+	float b_inv_inertia = (physB.apply_rotation && b_inertia > 0.001f) ? 1.0f / b_inertia : 0.0f;
 	float impulse_denom = total_inv_mass + (lever_arm_A_perp * lever_arm_A_perp) * a_inv_inertia + (lever_arm_B_perp * lever_arm_B_perp) * b_inv_inertia;
 
 	if (impulse_denom == 0.0f) return;
@@ -288,15 +292,18 @@ void apply_air_resistance(Entity entity, Motion& motion, float step_seconds)
 	if (!registry.physicsObjects.has(entity)) return;
 
 	PhysicsObject& physics = registry.physicsObjects.get(entity);
-
-	if (!physics.apply_air_resistance) return;
-
 	vec2 velocity = motion.velocity;
+
+	if (!physics.apply_air_resistance || physics.mass <= 0.001f || length(velocity) <= 0.001f) return;
+
 	float speed_squared = dot(velocity, velocity);
-	if (speed_squared <= 0.0f) return;
+	if (speed_squared <= 0.0001f) return;
 
 	float drag = physics.drag_coefficient;
 	float speed = sqrt(speed_squared);
+
+	// extra guard
+	if (speed <= 0.0f) return;
 
 	// compute area relative to direciton we are moving (ie. falling down only care about y scale)
 	float effective_area = (fabs(velocity.x) / speed) * motion.scale.y +

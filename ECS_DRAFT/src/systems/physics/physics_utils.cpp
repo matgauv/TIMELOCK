@@ -41,7 +41,11 @@ float calculate_moment_of_inertia(Entity entity) {
 // helper function that returns the closest point to p along the segment a<->b
 vec2 closest_point_on_segment(const vec2& p, const vec2& a, const vec2& b) {
 	vec2 ab = b - a;
-	float t = dot(p - a, ab) / dot(ab, ab);
+
+	float dp = dot(ab, ab);
+	if (abs(dp) <= 0.001f) dp = 0.1f;
+
+	float t = dot(p - a, ab) / dp;
 	t = clamp(t, 0.0f, 1.0f);
 	return a + t * ab;
 }

@@ -140,11 +140,13 @@ const float PLATFORM_EDGE_MESH_SIZE = 3.75f;
 
 // APPROX gear measurements
 const float GEAR_CENTER_PX = 86.0f;
-const float GEAR_TOOTH_PX = 19.0f;
+const float GEAR_TOOTH_WIDTH_PX = 19.0f;
+const float GEAR_TOOTH_HEIGHT_PX = 29.0f;
 const float GEAR_TOTAL_WIDTH = 124.0f;
 
 const float GEAR_CENTER_RATIO = GEAR_CENTER_PX / GEAR_TOTAL_WIDTH;
-const float GEAR_TOOTH_RATIO = GEAR_TOOTH_PX / GEAR_TOTAL_WIDTH;
+const float GEAR_TOOTH_WIDTH_RATIO = GEAR_TOOTH_WIDTH_PX / GEAR_TOTAL_WIDTH;
+const float GEAR_TOOTH_HEIGHT_RATIO = GEAR_TOOTH_HEIGHT_PX / GEAR_TOTAL_WIDTH;
 
 // APPROAX spikeball measurements
 const float SPIKE_HEIGHT_PX = 25.0f;

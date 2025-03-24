@@ -116,6 +116,8 @@ Entity create_player(vec2 position, vec2 scale) {
 
     PhysicsObject &object = registry.physicsObjects.emplace(entity);
     object.mass = 40.0f;
+    object.friction = 0.7f;
+    object.bounce = 0.0f; // player should NOT bounce
 
     Motion &motion = registry.motions.emplace(entity);
     motion.position = position;
@@ -190,6 +192,12 @@ Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 init
     MovementPath& movementPath = registry.movementPaths.emplace(entity);
     movementPath.paths = movements;
 
+    PhysicsObject& physics_object = registry.physicsObjects.emplace(entity);
+    physics_object.mass = 0.0f;
+    physics_object.apply_gravity = false;
+    physics_object.apply_rotation = false;
+    physics_object.friction = 0.25;
+
     registry.platforms.emplace(entity);
     registry.timeControllables.emplace(entity);
 
@@ -234,6 +242,12 @@ Entity create_static_platform(vec2 position, vec2 scale, json &tile_id_array, in
     motion.scale = scale;
     motion.velocity = {0, 0};
     motion.angle = 0;
+
+    PhysicsObject& physics_object = registry.physicsObjects.emplace(entity);
+    physics_object.apply_gravity = false;
+    physics_object.mass = 0.0f;
+    physics_object.apply_rotation = false;
+    physics_object.friction = 0.25;
 
     Blocked &blocked = registry.blocked.emplace(entity);
     blocked.normal = vec2(0, 0);
@@ -310,6 +324,12 @@ Entity create_level_boundary(vec2 position, vec2 scale) {
     Entity entity = Entity();
 
     registry.platforms.emplace(entity);
+
+    PhysicsObject& physics_object = registry.physicsObjects.emplace(entity);
+    physics_object.apply_gravity = false;
+    physics_object.apply_rotation = false;
+    physics_object.mass = 0.0f;
+    physics_object.friction = 0.5;
 
     Motion &motion = registry.motions.emplace(entity);
     motion.position = position;
@@ -809,6 +829,8 @@ Mesh* get_mesh(std::string filepath) {
 
 Entity create_gear(vec2 position, vec2 size) {
     Entity entity = Entity();
+
+    registry.gears.emplace(entity);
 
     Motion& motion = registry.motions.emplace(entity);
     motion.position = position;

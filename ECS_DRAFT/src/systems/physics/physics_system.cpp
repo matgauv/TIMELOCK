@@ -250,16 +250,17 @@ void PhysicsSystem::step(float elapsed_ms) {
                 // Update angle
                 motion.angle += degrees(phys.angular_velocity * step_seconds);
                 motion.cache_invalidated = true;
-				vec2 tangent = { -sin(motion.angle), cos(motion.angle) };
+
+				float angle_rad = radians(motion.angle);
+
+				vec2 tangent = { -sin(angle_rad), cos(angle_rad) };
 				float rotationFrictionFactor = 1.0f;
 				vec2 angular_push = tangent * fabs(phys.angular_velocity) * rotationFrictionFactor;
 				motion.position += angular_push * step_seconds;
-                phys.angular_velocity *= (1.0f - 0.95f * step_seconds); // Damping factor
+                phys.angular_velocity *= (1.0f - 0.8f * step_seconds); // Damping factor
 			}
 
 		}
-
-
 
 		if (registry.players.has(entity)	) {
 			player_walk(entity, motion, step_seconds);
@@ -537,6 +538,10 @@ void PhysicsSystem::detect_collisions() {
 
 	for (uint i = 0; i < physics_objects.size(); ++i) {
 		Entity entity_i = physics_objects.entities[i];
+
+		// only check collsions between objects and platforms (no need for platform platform collisions)
+		if (platform_container.has(entity_i)) continue;
+
 		Motion& motion_i = registry.motions.get(entity_i);
 
 		// check between each object and each platform
@@ -550,27 +555,33 @@ void PhysicsSystem::detect_collisions() {
 			Entity entity_j = physics_objects.entities[j];
 			collision_check(entity_i, motion_i, entity_j);
 		}
+
+		for (uint j = 0; j < registry.ladders.size(); ++j) {
+			Entity entity_j = registry.ladders.entities[j];
+			collision_check(entity_i, motion_i, entity_j);
+		}
 	}
 }
 
 // will move an object along its movement path, rotating between the different paths specified in the component
 void PhysicsSystem::move_object_along_path(Entity& entity, Motion& motion, float step_seconds) {
 	MovementPath& movement_path = registry.movementPaths.get(entity);
-
 	Path currentPath = movement_path.paths[movement_path.currentPathIndex];
 
-	vec2 modified_velocity = get_modified_velocity(motion);
+	vec2 displacement = currentPath.velocity * step_seconds;
 
-	if (abs(motion.position.x - currentPath.end.x) <= abs(modified_velocity.x * step_seconds) &&
-		abs(motion.position.y - currentPath.end.y) <= abs(modified_velocity.y * step_seconds)) {
+	if (abs(motion.position.x - currentPath.end.x) <= abs(displacement.x) &&
+		abs(motion.position.y - currentPath.end.y) <= abs(displacement.y)) {
+		std::cout << "switching directions!" << std::endl;
 		if (movement_path.currentPathIndex == movement_path.paths.size() - 1) {
 			movement_path.currentPathIndex = 0;
 		} else {
 			movement_path.currentPathIndex++;
 		}
-			currentPath = movement_path.paths[movement_path.currentPathIndex];
-			motion.position = currentPath.start;
-		}
+		currentPath = movement_path.paths[movement_path.currentPathIndex];
+		motion.position = currentPath.start;
+	}
+
 	motion.velocity = currentPath.velocity;
 }
 
@@ -703,9 +714,6 @@ void PhysicsSystem::player_walk(Entity& entity, Motion& motion, float step_secon
 			platform_velocity = get_modified_velocity(platform_motion);
 		}
 
-
-
-
 		vec2 rel_velocity = motion.velocity - platform_velocity;
 
 		// accelerate on a curve of x^2 instead of linear
@@ -746,19 +754,9 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			handle_player_breakable_collision(other, one, collision);
 		}
 
-		// order here is important so handle both cases sep
-		if (registry.physicsObjects.has(one) && registry.platforms.has(other)) {
-			handle_object_rigid_collision(one, other, collision, step_seconds, groundedEntities);
-		} else if (registry.physicsObjects.has(other) && registry.platforms.has(one)) {
-			collision.normal *= -1;
-			handle_object_rigid_collision(other, one, collision, step_seconds, groundedEntities);
-		}
-
-
 		if (registry.players.has(one) && registry.projectiles.has(other)) {
 			// TODO: should handle_player_projectile_collision() be handle_player_attack_collision() ?
 			// TODO: should leave all events that kill player to collision with harmful entities
-
 			handle_player_attack_collision(one, other, collision);
 		} else if (registry.players.has(other) && registry.projectiles.has(one)) {
 			handle_player_attack_collision(other, one, collision);
@@ -787,13 +785,6 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			PlayerSystem::kill();
 		}
 
-		// if objects touch the boundary, remove them
-		// if (registry.physicsObjects.has(one) && registry.boundaries.has(other)) {
-		// 	registry.remove_all_components_of(one);
-		// } else if (registry.physicsObjects.has(other) && registry.boundaries.has(one)) {
-		// 	registry.remove_all_components_of(other);
-		// }
-
 		if (registry.players.has(one) && registry.ladders.has(other)) {
 			handle_player_ladder_collision(one, other, step_seconds);
 			player_ladder_collision = true;
@@ -809,7 +800,6 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 	}
 	for (int i = 0; i < registry.physicsObjects.entities.size(); i++){
 		Entity& entity = registry.physicsObjects.entities[i];
-
 
 		if(!in(groundedEntities, entity.id())) {
 			registry.onGrounds.remove(entity);
@@ -867,83 +857,6 @@ void PhysicsSystem::handle_player_ladder_collision(Entity& player_entity, Entity
 	}
 }
 
-// Handles collision between a PhysicsObject entity and a Platform entity.
-void PhysicsSystem::handle_object_rigid_collision(Entity& object_entity, Entity& platform_entity, Collision collision, float step_seconds, std::vector<unsigned int>& groundedEntities)
-{
-
-	// Blocked& blocked = registry.blocked.get(object_entity);
-	Motion& obj_motion = registry.motions.get(object_entity);
-
-	vec2 normal = collision.normal;
-	// blocked.normal = normal;
-
-	resolve_collision_position(object_entity, platform_entity, collision);
-	handle_rotational_dynamics(object_entity, platform_entity, collision.normal, step_seconds);
-
-	adjust_velocity_along_normal(obj_motion, normal);
-
-	float mass = DEFAULT_MASS;
-	if (registry.physicsObjects.has(object_entity)) {
-		mass = registry.physicsObjects.get(object_entity).mass;
-	}
-
-	Motion& platform_motion = registry.motions.get(platform_entity);
-	vec2 platform_velocity = get_modified_velocity(platform_motion);
-
-
-	if (should_slip(-normal.y)) {
-		bool is_moving_platform = registry.movementPaths.has(platform_entity);
-		vec2 relative_vel = obj_motion.velocity - platform_velocity;
-
-		vec2 new_relative_vel = get_friction(
-			object_entity,
-			relative_vel,
-			normal,
-			step_seconds,
-			mass,
-			is_moving_platform
-		);
-
-		obj_motion.velocity = new_relative_vel + platform_velocity;
-
-		// calculate fling velocity based on platform movement
-		float platform_speed = length(platform_velocity);
-		if (platform_speed > 250.0f) {
-			//vec2 tangent = normalize(vec2(-normal.y, normal.x));
-
-			// Fling in platform's movement direction scaled by surface alignment
-		//	float surface_alignment = abs(dot(normalize(platform_velocity), tangent));
-			obj_motion.velocity += vec2{platform_velocity.x * 0.05f, platform_velocity.y * 0.005f};
-
-
-			// TODO I wanted to avoid explicitly doing this, but it works
-			float relative_y = obj_motion.velocity.y - platform_velocity.y;
-			if (fabs(relative_y) > 5.0f) {
-				obj_motion.velocity.y = platform_velocity.y;
-			}
-		}
-
-
-	}
-
-	if (is_on_ground(-normal.y)) {
-		groundedEntities.push_back(object_entity);
-		if (registry.onGrounds.has(object_entity)) {
-			registry.onGrounds.get(object_entity).other_id = platform_entity.id();
-		} else {
-			registry.onGrounds.emplace(object_entity, platform_entity.id());
-		}
-
-		if (registry.players.has(object_entity)) {
-			PlayerSystem::set_jumping_validity(true);
-		}
-
-
-	} else {
-
-	}
-}
-
 // TODO: prob should invest in a more robust method here, currently just approximating everything as a rectangle.
 float calculate_moment_of_inertia(Entity entity) {
 	Motion& motion = registry.motions.get(entity);
@@ -984,13 +897,13 @@ vec2 closest_point_on_segment(const vec2& p, const vec2& a, const vec2& b) {
 }
 
 // process rotational dynamics!
-void PhysicsSystem::handle_rotational_dynamics(Entity& object_entity, Entity& platform_entity, const vec2& collision_normal, float step_seconds) {
+void PhysicsSystem::handle_rotational_dynamics(Entity& object_entity, Entity& other_entity, const vec2& collision_normal, float step_seconds) {
 	Motion& obj_motion = registry.motions.get(object_entity);
 	PhysicsObject& phys = registry.physicsObjects.get(object_entity);
 
 	if (!phys.apply_rotation) return;
 
-	Motion& platform_motion = registry.motions.get(platform_entity);
+	Motion& platform_motion = registry.motions.get(other_entity);
 	vec2 platform_normal = collision_normal;
 	vec2 tangent = normalize(vec2(platform_normal.y, -platform_normal.x));
 	vec2 platform_pos = platform_motion.position;
@@ -1010,7 +923,7 @@ void PhysicsSystem::handle_rotational_dynamics(Entity& object_entity, Entity& pl
 
 
 	// determine candidate contact points
-	const float contact_threshold = 3.0f; // pixel threshold to find more ontacts
+	const float contact_threshold = 8.0f; // pixel threshold to find more ontacts
 	std::vector<vec2> contact_points;
 	for (const vec2& obj_v : object_vertices) {
 		float min_dist = FLT_MAX;
@@ -1081,8 +994,8 @@ void PhysicsSystem::handle_rotational_dynamics(Entity& object_entity, Entity& pl
 	vec2 pivot;
 
 	// check if the com falls within the support pivot points
-	if (projected_com > min_contact_x && projected_com < max_contact_x) {
-		// damp motion if stable
+	const float tolerance = 1.0f;
+	if (projected_com > min_contact_x - tolerance && projected_com < max_contact_x + tolerance) {
 		phys.angular_velocity *= 0.02;
 		return;
 	} else if (projected_com >= max_contact_x) {
@@ -1152,12 +1065,11 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 		normal = -normal;
 	}
 
-
 	// prepare inverse masses
-	float a_inv_mass = (1.0f / physA.mass);
-	float b_inv_mass = (1.0f / physB.mass);
+	float a_inv_mass = physA.mass > 0 ? (1.0f / physA.mass) : 0.0f;
+	float b_inv_mass = physB.mass > 0 ? (1.0f / physB.mass) : 0.0f;
 	float total_inv_mass = a_inv_mass + b_inv_mass;
-	resolve_collision_position(entityA, entityB, collision);
+	resolve_collision_position(entityA, entityB, collision, a_inv_mass, b_inv_mass);
 
 	// detect if they are on the ground! (or an angled platform)
 	if (is_on_ground(normal.y))
@@ -1203,13 +1115,20 @@ void PhysicsSystem::handle_physics_collision(float step_seconds, Entity& entityA
 
 	if (vel_along_normal > 0.0f) return;
 
+	float bounce = min(physA.bounce, physB.bounce);
+
 	// compute the impulse from the collision (relative to center of mass)
-	float impulse_magnitude = -(1.0f + PHYSICS_OBJECT_BOUNCE) * vel_along_normal;
+	float impulse_magnitude = -(1.0f + bounce) * vel_along_normal;
 	float a_inv_inertia = (physA.apply_rotation) ? 1.0f / calculate_moment_of_inertia(entityA) : 0.0f;
 	float b_inv_inertia = (physB.apply_rotation) ? 1.0f / calculate_moment_of_inertia(entityB) : 0.0f;
 	float impulse_denom = total_inv_mass + (lever_arm_A_perp * lever_arm_A_perp) * a_inv_inertia + (lever_arm_B_perp * lever_arm_B_perp) * b_inv_inertia;
 
 	if (impulse_denom == 0.0f) return;
+
+	// TODO: hacky, but we need to dampen the impulse since the platform has 0 mass but high velocity
+	if (registry.movementPaths.has(entityA) || registry.movementPaths.has(entityB)) {
+		impulse_magnitude *= 0.1;
+	}
 
 	impulse_magnitude /= impulse_denom;
 	vec2 impulse = impulse_magnitude * normal;
@@ -1322,26 +1241,14 @@ void PhysicsSystem::apply_air_resistance(Entity entity, Motion& motion, float st
 }
 
 
-void PhysicsSystem::resolve_collision_position(Entity& entityA, Entity& entityB, Collision& collision)
+void PhysicsSystem::resolve_collision_position(Entity& entityA, Entity& entityB, Collision& collision, float inv_mass_a, float inv_mass_b)
 {
 	Motion& motionA = registry.motions.get(entityA);
 	Motion& motionB = registry.motions.get(entityB);
 
-	float inv_mass_a = 0.0f;
-	if (registry.physicsObjects.has(entityA))
-	{
-		inv_mass_a = 1.0f / registry.physicsObjects.get(entityA).mass;
-	}
-
-	float inv_mass_b = 0.0f;
-	if (registry.physicsObjects.has(entityB))
-	{
-		inv_mass_b = 1.0f / registry.physicsObjects.get(entityB).mass;
-	}
 
 	const float total_inv_mass = inv_mass_a + inv_mass_b;
 	if (total_inv_mass <= 0.0f) return;
-
 
 	// leave the objects slightly colliding so that the collision is still triggered
 	const float epsilon = 0.0001f * sign(collision.normal.y);

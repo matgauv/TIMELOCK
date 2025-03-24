@@ -62,8 +62,8 @@ private:
 	bool should_slip(float normal_y);
 	bool is_on_ground(float normal_y);
 	void adjust_velocity_along_normal(Motion& motion, vec2& normal);
-	void handle_rotational_dynamics(Entity& object_entity, Entity& platform_entity, const vec2& collision_normal, float step_seconds);
-	void resolve_collision_position(Entity& entityA, Entity& entityB, Collision& collision);
+	void handle_rotational_dynamics(Entity& object_entity, Entity& other_entity, const vec2& collision_normal, float step_seconds);
+	void resolve_collision_position(Entity& entityA, Entity& entityB, Collision& collision, float inv_mass_a, float inv_mass_b);
 
 	bool is_collision_between_player_and_boundary(Entity& one, Entity& other);
 	bool is_collision_between_player_and_spike(Entity& one, Entity& other);

@@ -142,14 +142,40 @@ struct Camera
 // use for physics based objects
 struct PhysicsObject
 {
-	float mass = 0.1f;
-	float friction = STATIC_FRICTION;
-	float bounce = PHYSICS_OBJECT_BOUNCE;
-	float drag_coefficient = 0.2f;
+	// TOGGLES (true means property will be applied)
 	bool apply_gravity = true;
 	bool apply_rotation = false;
+	bool apply_air_resistance = true;
+	bool apply_friction = true;
+
+	// Properties to set:
+
+	// general guide is 20-100ish, though you can go beyond. Extremely high or low values can lead to unexpected behaviour.
+	// mass = 0 means the object is FIXED and will not move in response to a collision. (though any set velocity in the motion will still be applied)
+	float mass = 0.1f;
+
+	// friction will resist the object's motion on collision. Should be set in the 0-1 range.
+	float friction = STATIC_FRICTION;
+
+	// bounce controls how much energy is lost due to a collision.
+	//   - 0.0 means 100% energy is lost (no bounce)
+	//   - 1.0 means no energy is lost (bonce forever)
+	// NOTE: in a collision the minmum "bounce" between the two colliding objects will be used for calculation
+	float bounce = PHYSICS_OBJECT_BOUNCE;
+
+	// controls how air resistance slows down the object. Should eb in the 0-1 range. (think of as air friction)
+	// NOTE: the 'effective area' is also considered in air resistance calculations, so larger objects will slow down more.
+	float drag_coefficient = 0.2f;
+
+	// INTERNAL PROPERTIES
+	// these are just used to keep track of information, no need to set manually as they will be calculated automatically!
 	float moment_of_inertia = 0.0f;
 	float angular_velocity = 0.0f;
+};
+
+
+struct NonPhysicsCollider {
+
 };
 
 

@@ -45,6 +45,7 @@ public:
 	ComponentContainer<MovementPath> movementPaths;
 	ComponentContainer<Boss> bosses;
 	ComponentContainer<PhysicsObject> physicsObjects;
+	ComponentContainer<NonPhysicsCollider> nonPhysicsColliders;
 	ComponentContainer<Boundary> boundaries;
 	ComponentContainer<SpawnPoint> spawnPoints;
 	ComponentContainer<Spike> spikes;
@@ -91,6 +92,7 @@ public:
 		registry_list.push_back(&movementPaths);
 		registry_list.push_back(&bosses);
 		registry_list.push_back(&physicsObjects);
+		registry_list.push_back(&nonPhysicsColliders);
 		registry_list.push_back(&boundaries);
 		registry_list.push_back(&spawnPoints);
 		registry_list.push_back(&tiles);

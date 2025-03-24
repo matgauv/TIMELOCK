@@ -292,6 +292,9 @@ Entity create_ladder(vec2 position, vec2 scale, int height, json tile_id_array, 
     Motion &motion = registry.motions.emplace(entity);
     motion.position = {position.x, position.y - ((height / 2.0f) * TILE_TO_PIXELS) + (TILE_TO_PIXELS)};
 
+
+    registry.nonPhysicsColliders.emplace(entity);
+
     vec2 ladder_scale = {scale.x, scale.y * height};
     motion.scale = ladder_scale;
 

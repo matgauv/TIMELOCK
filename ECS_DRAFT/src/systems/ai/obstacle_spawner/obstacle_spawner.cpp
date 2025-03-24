@@ -14,8 +14,6 @@ void create_obstacle(ObstacleSpawner& spawner) {
 
         spawner.obstacle_id = gear.id();
 
-        std::cout << spawner.obstacle_id << "FROM create" <<  std::endl;
-
 
         PhysicsObject& phys = registry.physicsObjects.get(gear);
         phys.angular_damping = 0.01f;
@@ -60,7 +58,6 @@ void obstacle_spawner_step(float elapsed_ms) {
 
             vec2 toEnd = spawner.end_position - motion.position;
             if (dot(toEnd, spawner.velocity) < 0.0f) {
-                std::cout << "removing: current pos" << motion.position.x << " " << motion.position.y  << "end pos: " << spawner.end_position.x << " , " << spawner.end_position.y << std::endl;
                 registry.remove_all_components_of(obstacle);
                 spawner.obstacle_id = 0;
                 spawner.time_left_ms = spawner.lifetime_ms;

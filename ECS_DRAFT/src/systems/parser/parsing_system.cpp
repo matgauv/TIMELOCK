@@ -84,8 +84,6 @@ void LevelParsingSystem::init_player_and_camera() {
     create_player(initPos, { int(playerJson["width"]) * 1.5, int(playerJson["height"]) * 1.5});
     create_camera(initPos, { 1.0f, 1.0f });
 
-    fire_screw(initPos - vec2{ 0.0, 100.0f }, vec2{10.0f, 0.0f});
-
     // TEMP: for now, tutorial text is always shown
     // hardcode rn but maybe should pass position as text entity in ldtk?
     bool tutorial = true;

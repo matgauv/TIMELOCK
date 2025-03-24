@@ -3,6 +3,7 @@
 //
 
 #include "collision_handlers.h"
+#include <iostream>
 
 void handle_player_ladder_collision(Entity& player_entity, Entity& ladder_entity, int step_seconds) {
     Motion& player_motion = registry.motions.get(player_entity);

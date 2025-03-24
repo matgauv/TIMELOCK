@@ -19,6 +19,7 @@ void main()
 
 
 	if (silhouette_color.a > 0.0) {
+		// TODO: need to take sprite width & height into consideration
 		float thickness = 0.075;
 
 		// Test Boundary: if this pixel opaque & close to transparent pixel
@@ -30,18 +31,18 @@ void main()
 			if (dist_to_edge <= thickness) {
 				color = silhouette_color;
 			}
-		}
-		else {
-			for (int i = -1; i <= 1; i++) {
-				for (int j = -1; j <= 1; j++) {
-					if (i == 0 && j == 0) {
-						continue;
-					}
-					vec4 neighbor_color = texture(sampler0, vec2(texcoord.x + i * thickness, texcoord.y + j * thickness));
+			else {
+				for (int i = -1; i <= 1; i++) {
+					for (int j = -1; j <= 1; j++) {
+						if (i == 0 && j == 0) {
+							continue;
+						}
+						vec4 neighbor_color = texture(sampler0, vec2(texcoord.x + i * thickness, texcoord.y + j * thickness));
 
-					if (neighbor_color.a < 0.05) {
-						color = silhouette_color;
-						break;
+						if (neighbor_color.a < 0.05) {
+							color = silhouette_color;
+							break;
+						}
 					}
 				}
 			}

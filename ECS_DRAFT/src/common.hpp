@@ -176,8 +176,8 @@ const float CANNON_PROJECTILE_SPEED = 600.0f;
 const vec2 CANNON_PROJECTILE_SIZE = vec2 {30.0f, 30.0f};
 
 // Pipes and Screws
-const float PIPE_FIRING_PERIOD_MS = 1500.0f;
-const float SCREW_SPEED = 800.0f;
+const float PIPE_FIRING_PERIOD_MS = 30000.0f;
+const float SCREW_SPEED = 150.0f;
 const vec2 SCREW_SIZE = vec2{ 90.0f, 14.0f };
 
 

@@ -853,7 +853,7 @@ Entity create_gear(vec2 position, vec2 size, bool fixed, float angular_velocity,
        physics_object.friction = 0.5f;
        physics_object.apply_air_resistance = false;
         physics_object.mass = 0.0f;
-        physics_object.moment_of_inertia = 1000000000.0f;
+        physics_object.moment_of_inertia = 100000000.0f;
         physics_object.apply_rotation = true;
         physics_object.angular_velocity = angular_velocity;
         physics_object.angular_damping = 0.0f;
@@ -895,7 +895,7 @@ Entity create_gear(vec2 position, vec2 size, bool fixed, float angular_velocity,
         tooth.original_mesh = tooth_mesh;
         tooth.scale_ratio = {GEAR_TOOTH_RATIO, GEAR_TOOTH_RATIO};
 
-        tooth.rotation = (flip ? 180.0 : 0.0f);
+        tooth.rotation = (flip ? 0.0f : 180.0f);
 
         tooth.offset = {
             (inner_radius + tooth_length) * cos(angle_rad),

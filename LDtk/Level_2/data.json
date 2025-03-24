@@ -5488,11 +5488,11 @@
 				"height": 16,
 				"color": 12635100,
 				"customFields": {
-					"bob_radius": 45,
-					"initial_angle": 30,
+					"bob_radius": 30,
+					"initial_angle": 45,
 					"length": {
 						"cx": 56,
-						"cy": 134
+						"cy": 132
 					}
 				}
 			},
@@ -5506,11 +5506,11 @@
 				"height": 16,
 				"color": 12635100,
 				"customFields": {
-					"bob_radius": 45,
-					"initial_angle": 30,
+					"bob_radius": 30,
+					"initial_angle": 45,
 					"length": {
 						"cx": 72,
-						"cy": 134
+						"cy": 132
 					}
 				}
 			},
@@ -5524,11 +5524,11 @@
 				"height": 16,
 				"color": 12635100,
 				"customFields": {
-					"bob_radius": 45,
-					"initial_angle": 30,
+					"bob_radius": 30,
+					"initial_angle": 45,
 					"length": {
 						"cx": 88,
-						"cy": 134
+						"cy": 132
 					}
 				}
 			}

@@ -138,6 +138,9 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 	PhysicsObject& physA = registry.physicsObjects.get(entityA);
 	PhysicsObject& physB = registry.physicsObjects.get(entityB);
 
+	vec2 A_modified_vel = get_modified_velocity(motionA);
+	vec2 B_modified_vel = get_modified_velocity(motionB);
+
 	vec2 normal = collision.normal;
 
 	vec2 posDiff = motionB.position - motionA.position;
@@ -188,8 +191,8 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 
 	float A_ang_term = physA.apply_rotation ? physA.angular_velocity * lever_arm_A_perp : 0.0f;
 	float B_ang_term = physB.apply_rotation ? physB.angular_velocity * lever_arm_B_perp : 0.0f;
-	float A_vel_towards_collision = dot(motionA.velocity, normal) + A_ang_term;
-	float B_vel_towards_collision = dot(motionB.velocity, normal) + B_ang_term;
+	float A_vel_towards_collision = dot(A_modified_vel, normal) + A_ang_term;
+	float B_vel_towards_collision = dot(B_modified_vel, normal) + B_ang_term;
 	float vel_along_normal = B_vel_towards_collision - A_vel_towards_collision;
 
 	if (vel_along_normal > 0.0f) return;
@@ -226,7 +229,7 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 	}
 
 	// friction
-	vec2 rel_velocity = motionB.velocity - motionA.velocity;
+	vec2 rel_velocity = B_modified_vel - A_modified_vel;
 	vec2 tangent = rel_velocity - dot(rel_velocity, normal) * normal;
 	float tan_len = length(tangent);
 
@@ -234,25 +237,25 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 
 	vec2 friction_dir = tangent / tan_len;
 
-	float tangent_vel_A = dot(motionA.velocity, friction_dir);
+	float tangent_vel_A = dot(A_modified_vel, friction_dir);
 	if (physA.apply_rotation) {
 		tangent_vel_A += physA.angular_velocity * (contact_offset_a.x * friction_dir.y - contact_offset_a.y * friction_dir.x);
 	}
-	float tangent_vel_B = dot(motionB.velocity, friction_dir);
+
+	float tangent_vel_B = dot(B_modified_vel, friction_dir);
 	if (physB.apply_rotation) {
 		tangent_vel_B += physB.angular_velocity * (contact_offset_b.x * friction_dir.y - contact_offset_b.y * friction_dir.x);
 	}
 
 	// TODO: again hacky better solution prob exists for this
-	if (registry.movementPaths.has(entityA)) {
-		tangent_vel_A = 0.0f;
-	}
-
-	if (registry.movementPaths.has(entityB)) {
-		tangent_vel_B = 0.0f;
-	}
-
 	float rel_tan_velocity = tangent_vel_B - tangent_vel_A;
+
+	bool damp_velocity = (registry.movementPaths.has(entityA) || registry.movementPaths.has(entityB) || registry.pendulums.has(entityA) || registry.pendulums.has(entityB));
+	if (damp_velocity) {
+		float velocity_match_factor = 0.5f;
+		rel_tan_velocity *= velocity_match_factor;
+	}
+
 
 	float friction = sqrt(physA.friction * physB.friction);
 
@@ -338,7 +341,8 @@ void update_pendulum(Entity& entity, float step_seconds) {
 	Pendulum& pendulum = registry.pendulums.get(entity);
 	Motion& motion = registry.motions.get(entity);
 
-	float g = (GRAVITY) / pendulum.length;
+	// normal gravity is a bit too strong IMO
+	float g = (GRAVITY_JUMP_ASCENT) / pendulum.length;
 	float angular_accel = -g * sin(pendulum.current_angle);
 
 	float modified_step_seconds = step_seconds * motion.velocityModifier;

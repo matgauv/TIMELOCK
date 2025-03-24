@@ -593,10 +593,7 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 		}
 
 		if (registry.physicsObjects.has(one) && registry.physicsObjects.has(other)) {
-			// ignore boss and player case
-			// if (!(registry.players.has(one) && registry.bosses.has(other)) && !(registry.players.has(other) && registry.bosses.has(one))) {
-				handle_physics_collision(step_seconds, one, other, collision, groundedEntities);
-			// }
+			handle_physics_collision(step_seconds, one, other, collision, groundedEntities);
 		}
 
 	}
@@ -761,27 +758,6 @@ void PhysicsSystem::handle_player_boss_collision(Entity& player_entity, Entity& 
 
 	boss.health -= PLAYER_ATTACK_DAMAGE;
 
-	// if (boss.health <= 0.f) {
-	// 	assert(registry.gameStates.components.size() <= 1);
-	// 	GameState& gameState = registry.gameStates.components[0];
-	// 	gameState.is_in_boss_fight = 0;
-	// 	registry.bosses.remove(boss_entity);
-	// }
-}
-
-void PhysicsSystem::handle_boss_platform_collision(Entity& boss_entity, Entity& platform_entity, Collision collision) {
-	Motion& boss_motion = registry.motions.get(boss_entity);
-	Motion& platform_motion = registry.motions.get(platform_entity);
-
-	if (boss_motion.position.x <= platform_motion.position.x && boss_motion.velocity.x < 0) {
-		boss_motion.position.x = platform_motion.position.x + 5;
-		boss_motion.velocity.x *= -1;
-	}
-
-	if (boss_motion.position.x >= platform_motion.position.x && boss_motion.velocity.x > 0) {
-		boss_motion.position.x = platform_motion.position.x - 5;
-		boss_motion.velocity.x *= -1;
-	}
 }
 
 // Handles collision between two PhysicsObject entities.

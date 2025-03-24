@@ -213,7 +213,7 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 	float b_inv_inertia = (physB.apply_rotation && b_inertia > 0.001f) ? 1.0f / b_inertia : 0.0f;
 	float impulse_denom = total_inv_mass + (lever_arm_A_perp * lever_arm_A_perp) * a_inv_inertia + (lever_arm_B_perp * lever_arm_B_perp) * b_inv_inertia;
 
-	if (fabs(impulse_denom) < 0.001f) return;
+	if (impulse_denom == 0.0f) return;
 
 	impulse_magnitude /= impulse_denom;
 	vec2 impulse = impulse_magnitude * normal;

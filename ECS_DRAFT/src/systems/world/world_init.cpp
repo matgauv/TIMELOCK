@@ -999,7 +999,8 @@ Entity create_spikeball(vec2 position, vec2 size) {
     return entity;
 }
 
-Entity create_gear_spawner(vec2 size, vec2 velocity, vec2 start_pos, vec2 end_pos) {
+
+Entity create_spawner(std::string type, vec2 size, vec2 velocity, vec2 start_pos, vec2 end_pos) {
     Entity entity = Entity();
 
     ObstacleSpawner& spawner = registry.obstacleSpawners.emplace(entity);
@@ -1007,10 +1008,12 @@ Entity create_gear_spawner(vec2 size, vec2 velocity, vec2 start_pos, vec2 end_po
     spawner.velocity = velocity;
     spawner.start_position = start_pos;
     spawner.end_position = end_pos;
-    spawner.obstacle_type = "GEAR";
+    spawner.obstacle_type = type;
 
     return entity;
 }
+
+
 
 
 

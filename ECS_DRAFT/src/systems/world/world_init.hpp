@@ -39,7 +39,8 @@ Entity create_chain(vec2 position, vec2 scale);
 Entity create_pendulum(vec2 pivot_position, float length, float initial_angle, float bob_radius);
 Entity create_gear(vec2 position, vec2 size, bool fixed, float angular_velocity, float inital_angle);
 Entity create_spikeball(vec2 position, vec2 size);
-Entity create_gear_spawner(vec2 size, vec2 velocity, vec2 start_pos, vec2 end_pos);
+Entity create_spawner(std::string type, vec2 size, vec2 velocity, vec2 start_pos, vec2 end_pos);
+
 
 // Helper methods
 float getDistance(const Motion& one, const Motion& other);

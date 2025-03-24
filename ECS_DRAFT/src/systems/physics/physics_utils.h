@@ -4,7 +4,7 @@
 #include "../../tinyECS/registry.hpp"
 
 float lerp(float a, float b, float t);
-float calculate_moment_of_inertia(Entity entity);
+float calculate_moment_of_inertia(Entity& entity);
 vec2 closest_point_on_segment(const vec2& p, const vec2& a, const vec2& b);
 bool is_on_ground(float normal_y);
 float clampToTarget(float value, float change, float target);

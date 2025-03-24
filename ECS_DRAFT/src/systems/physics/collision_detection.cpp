@@ -115,7 +115,11 @@ void compute_composite_mesh_vertices(Motion& motion, Entity& e)
                 vec2 next = sub_mesh.cached_vertices[(i + 1) % sub_mesh.cached_vertices.size()];
                 vec2 edge = next - curr;
 
-                vec2 normal = normalize(vec2{-edge.y, edge.x});
+                vec2 normal = vec2{-edge.y, edge.x};
+				float normal_len = length(normal);
+            	if (normal_len < 0.001f) continue;
+            	normal /= normal_len;
+
                 sub_mesh.cached_axes.push_back(normal);
             }
 
@@ -195,7 +199,14 @@ void compute_axes(Motion& motion, std::vector<vec2>& vertices)
 	for (int i = 0; i < vertices.size(); i++)
 	{
 		vec2 edge = vertices[(i+1)%vertices.size()] - vertices[i]; // modulo so we properly wrap around
-		vec2 normal = normalize(vec2{-edge.y, edge.x});
+		vec2 normal = vec2{-edge.y, edge.x};
+
+		// ignore these cases TODO: what is best solution here
+		float len = length(normal);
+		if (len < 0.001f) continue;
+
+		normal /= len;
+
 		motion.cached_axes.push_back(normal);
 	}
 }

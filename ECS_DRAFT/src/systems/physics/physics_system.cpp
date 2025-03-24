@@ -28,7 +28,7 @@ void PhysicsSystem::step(float elapsed_ms) {
 	drop_bolt_when_player_near(DISTANCE_TO_DROP_BOLT);
 
 	for (uint i = 0; i < registry.pendulums.size(); i++) {
-		Entity entity = registry.pendulums.entities[i];
+		Entity& entity = registry.pendulums.entities[i];
 		update_pendulum(entity, step_seconds);
 	}
 
@@ -58,7 +58,7 @@ void PhysicsSystem::step(float elapsed_ms) {
 				float angle_rad = radians(motion.angle);
 
 				vec2 tangent = { -sin(angle_rad), cos(angle_rad) };
-				float rotationFrictionFactor = 1.0f;
+				float rotationFrictionFactor = 0.5f;
 				vec2 angular_push = tangent * fabs(phys.angular_velocity) * rotationFrictionFactor;
 				if (phys.mass >0.0f) motion.position += angular_push * step_seconds;
 				if (phys.angular_damping > 0.0f) phys.angular_velocity *= (1.0f - phys.angular_damping * step_seconds); // Damping factor
@@ -81,6 +81,7 @@ void PhysicsSystem::step(float elapsed_ms) {
 
 		vec2 oldMotion = motion.position;
 		motion.position += (motion.velocity * motion.velocityModifier) * step_seconds;
+
 
 		// invalidate the cached vertices of the motion moved
 		if (oldMotion != motion.position) {
@@ -111,7 +112,7 @@ void PhysicsSystem::detect_collisions() {
 	auto& colliders = registry.nonPhysicsColliders;
 
 	for (uint i = 0; i < physics_objects.size(); ++i) {
-		Entity entity_i = physics_objects.entities[i];
+		Entity& entity_i = physics_objects.entities[i];
 
 		// only check collsions between objects and platforms (no need for platform-platform collisions)
 		if (platform_container.has(entity_i)) continue;
@@ -120,19 +121,19 @@ void PhysicsSystem::detect_collisions() {
 
 		// check between each object and each platform
 		for (uint j = 0; j < platform_container.size(); ++j) {
-			Entity entity_j = platform_container.entities[j];
+			Entity& entity_j = platform_container.entities[j];
 			collision_check(entity_i, motion_i, entity_j);
 		}
 
 		// check between each physics object and each other
 		for (uint j = i+1; j < physics_objects.size(); ++j) {
-			Entity entity_j = physics_objects.entities[j];
+			Entity& entity_j = physics_objects.entities[j];
 			collision_check(entity_i, motion_i, entity_j);
 		}
 
 		// check between physics objects and any other colliders
 		for (uint j = 0; j < colliders.size(); ++j) {
-			Entity entity_j = colliders.entities[j];
+			Entity& entity_j = colliders.entities[j];
 			collision_check(entity_i, motion_i, entity_j);
 		}
 	}

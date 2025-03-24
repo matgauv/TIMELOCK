@@ -51,7 +51,7 @@ void drop_bolt_when_player_near(float dist_threshold) {
 }
 
 
-void handle_player_boss_collision(Entity& player_entity, Entity& boss_entity, Collision collision) {
+void handle_player_boss_collision(Entity& player_entity, Entity& boss_entity, Collision& collision) {
 	Boss& boss = registry.bosses.get(boss_entity);
 
 	boss.health -= PLAYER_ATTACK_DAMAGE;
@@ -77,7 +77,7 @@ void handle_projectile_collision(Entity& proj_entity, Entity& other_entity) {
 	}
 }
 
-void handle_player_attack_collision(Entity& player_entity, Entity& attack_entity, Collision collision) {
+void handle_player_attack_collision(Entity& player_entity, Entity& attack_entity, Collision& collision) {
 	GameState& gameState = registry.gameStates.components[0];
 
 	// TODO: make this part of logic consistent with WorldSystem::control_time

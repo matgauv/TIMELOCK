@@ -12,10 +12,14 @@ void handle_rotational_dynamics(Entity& object_entity, Entity& other_entity, con
 
 	if (!phys.apply_rotation) return;
 
-	Motion& platform_motion = registry.motions.get(other_entity);
+	Motion& other_motion = registry.motions.get(other_entity);
 	vec2 platform_normal = collision_normal;
-	vec2 tangent = normalize(vec2(platform_normal.y, -platform_normal.x));
-	vec2 platform_pos = platform_motion.position;
+	vec2 tangent = vec2(platform_normal.y, -platform_normal.x);
+	float t_len = length(tangent);
+	if (t_len < 0.001f) return;
+	tangent /= t_len;
+
+	vec2 platform_pos = other_motion.position;
 
 	// get all the verticies (including for composite meshes)
 	std::vector<vec2> object_vertices;
@@ -36,8 +40,8 @@ void handle_rotational_dynamics(Entity& object_entity, Entity& other_entity, con
 	std::vector<vec2> contact_points;
 	for (const vec2& obj_v : object_vertices) {
 		float min_dist = FLT_MAX;
-		const std::vector<vec2>& platform_verts = platform_motion.cached_vertices;
-		platform_motion.cache_invalidated = true;
+		const std::vector<vec2>& platform_verts = other_motion.cached_vertices;
+		other_motion.cache_invalidated = true;
 
 		// finding the closest platform edge to the vertex
 		for (size_t i = 0; i < platform_verts.size(); i++) {
@@ -121,7 +125,7 @@ void handle_rotational_dynamics(Entity& object_entity, Entity& other_entity, con
 	float torque = -(lever_arm_vec.x * gravity_force.y);
 	float moment_of_inertia = calculate_moment_of_inertia(object_entity);
 
-	if (moment_of_inertia > 0.0001f) {
+	if (moment_of_inertia > 0.1f) {
 		float angular_acceleration = torque / moment_of_inertia;
 		phys.angular_velocity += angular_acceleration * step_seconds;
 	}
@@ -131,7 +135,7 @@ void handle_rotational_dynamics(Entity& object_entity, Entity& other_entity, con
 
 // Handles collision between two PhysicsObject entities.
 // TODO, this method is long. should split up and document better
-void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entityB, Collision collision, std::vector<unsigned int>& grounded)
+void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entityB, Collision& collision, std::vector<unsigned int>& grounded)
 {
 	Motion& motionA = registry.motions.get(entityA);
 	Motion& motionB = registry.motions.get(entityB);
@@ -209,9 +213,7 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 	float b_inv_inertia = (physB.apply_rotation && b_inertia > 0.001f) ? 1.0f / b_inertia : 0.0f;
 	float impulse_denom = total_inv_mass + (lever_arm_A_perp * lever_arm_A_perp) * a_inv_inertia + (lever_arm_B_perp * lever_arm_B_perp) * b_inv_inertia;
 
-	if (impulse_denom == 0.0f) return;
-
-
+	if (fabs(impulse_denom) < 0.001f) return;
 
 	impulse_magnitude /= impulse_denom;
 	vec2 impulse = impulse_magnitude * normal;
@@ -268,6 +270,7 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 	float tangent_impulse_scalar = -rel_tan_velocity / impulse_denom;
 	tangent_impulse_scalar = clamp(tangent_impulse_scalar, -impulse_magnitude * friction, impulse_magnitude * friction); // clamp to coloumb's law
 
+
 	vec2 tangent_impulse = friction_dir * tangent_impulse_scalar;
 
 	if (physA.apply_friction) motionA.velocity -= tangent_impulse * a_inv_mass;
@@ -287,7 +290,7 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 	}
 }
 
-void apply_air_resistance(Entity entity, Motion& motion, float step_seconds)
+void apply_air_resistance(Entity& entity, Motion& motion, float step_seconds)
 {
 	if (!registry.physicsObjects.has(entity)) return;
 
@@ -303,7 +306,7 @@ void apply_air_resistance(Entity entity, Motion& motion, float step_seconds)
 	float speed = sqrt(speed_squared);
 
 	// extra guard
-	if (speed <= 0.0f) return;
+	if (abs(speed) <= 0.001f) return;
 
 	// compute area relative to direciton we are moving (ie. falling down only care about y scale)
 	float effective_area = (fabs(velocity.x) / speed) * motion.scale.y +
@@ -314,7 +317,20 @@ void apply_air_resistance(Entity entity, Motion& motion, float step_seconds)
 	vec2 direction = -normalize(velocity);
 	vec2 acceleration = (direction * magnitude) / physics.mass; // divide by mass since F=ma
 
-	motion.velocity += acceleration * step_seconds;
+	vec2 velocity_change = acceleration * step_seconds;
+
+	float max_x_mag = abs(0.75f * motion.velocity.x);
+	if (abs(velocity_change.x) > max_x_mag) {
+		velocity_change.x = max_x_mag * sign(velocity_change.x);
+	}
+
+	float max_y_mag = abs(0.75f * motion.velocity.y);
+	if (abs(velocity_change.y) > max_y_mag) {
+		velocity_change.y = max_y_mag * sign(velocity_change.y);
+	}
+
+
+	motion.velocity += velocity_change;
 }
 
 // accelerates the entity by GRAVITY until it reaches the max_speed (terminal velocity)
@@ -372,7 +388,7 @@ void update_pendulum(Entity& entity, float step_seconds) {
 // after updating all of the pendulum bobs, also update their rods
 void update_pendulum_rods() {
 	for (uint i = 0; i < registry.pendulumRods.size(); i++) {
-		Entity rod_entity = registry.pendulumRods.entities[i];
+		Entity& rod_entity = registry.pendulumRods.entities[i];
 		PendulumRod& rod = registry.pendulumRods.components[i];
 
 		Entity bob_entity = Entity(rod.bob_id);

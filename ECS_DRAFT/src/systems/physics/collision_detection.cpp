@@ -1,7 +1,8 @@
 #include "collision_detection.h"
 #include <glm/detail/func_trigonometric.inl>
 
-
+// caches the vertices for the platform at the current position (in world space)
+// includes the rounded edge mesh
 void compute_platform_verticies(Motion& motion, Entity& e, float& angle_cos, float& angle_sin) {
 	PlatformGeometry& geo = registry.platformGeometries.get(e);
 	Mesh* edge_mesh = registry.meshPtrs.get(e);
@@ -14,7 +15,7 @@ void compute_platform_verticies(Motion& motion, Entity& e, float& angle_cos, flo
 	// left edge
 	for (auto& v : edge_mesh->vertices) {
 		vec2 pos = v.position;
-		platform_vertices.emplace_back(pos / 3.75f);
+		platform_vertices.emplace_back(pos / PLATFORM_EDGE_MESH_SIZE);
 	}
 
 	// middle flat seciton of the platform
@@ -50,6 +51,9 @@ void compute_platform_verticies(Motion& motion, Entity& e, float& angle_cos, flo
 		motion.cached_vertices.push_back(rotated + pos);
 	}
 }
+
+// caches the vertices for each submesh.
+// NOTE: submesh verticies are stored in the submesh component, not the main motion. TODO: fix this...
 void compute_composite_mesh_vertices(Motion& motion, Entity& e)
 {
     CompositeMesh& compositeMesh = registry.compositeMeshes.get(e);
@@ -64,7 +68,6 @@ void compute_composite_mesh_vertices(Motion& motion, Entity& e)
         {
             sub_mesh.cached_vertices.clear();
             sub_mesh.cached_axes.clear();
-
 
         	// local rotation is how to orient the mesh relative to parent (ie. angle of spike)
             float localAngleRad = radians(sub_mesh.rotation);
@@ -121,8 +124,8 @@ void compute_composite_mesh_vertices(Motion& motion, Entity& e)
     }
 }
 
-
-
+// Used to compute the vertices for the entity e at the current position (in world space), based on the components present (mesh, composite mesh, or no mesh)
+// vertices are store in the motion.cached_vertices or the submesh.cached_vertices depending on type
 void compute_vertices(Motion& motion, Entity& e) {
 	motion.cached_vertices.clear();
 	float angle_cos = cos(radians(motion.angle));
@@ -369,6 +372,8 @@ void collision_check(Entity& entity_i, Motion& motion_i, Entity& entity_j) {
 	if (entity_i.id() == entity_j.id()) return;
 
 	Motion& motion_j = registry.motions.get(entity_j);
+
+	// before expensive SAT collision check, cheaply verify that the objects are even overlapping first...
 	if (!compute_AABB_collision(motion_i, motion_j)) return;
 
 	Collision result = compute_sat_collision(motion_i, motion_j, entity_i, entity_j);

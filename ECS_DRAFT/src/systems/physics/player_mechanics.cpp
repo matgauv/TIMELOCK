@@ -29,10 +29,15 @@ void player_walk(Entity& entity, Motion& motion, float step_seconds)
 	if (registry.walking.has(entity))
 	{
 
+		// lower player friction while they walk
+		PhysicsObject& phys = registry.physicsObjects.get(entity);
+		phys.friction = DYNAMIC_FRICTION;
+
 		float acceleration = PLAYER_WALK_ACCELERATION;
 		if (registry.climbing.has(entity)) {
 			acceleration = PLAYER_WALK_LADDER_ACCELERATION;
 		}
+
 
 
 		Walking& walking = registry.walking.get(entity);
@@ -48,6 +53,8 @@ void player_walk(Entity& entity, Motion& motion, float step_seconds)
 
 		vec2 rel_velocity = motion.velocity - platform_velocity;
 
+		if (rel_velocity.x * desired_direction.x < 0.0f) acceleration *= 5.0f;
+
 		// accelerate on a curve of x^2 instead of linear
 		float normalizedSpeed = fabs(rel_velocity.x) / PLAYER_MAX_WALKING_SPEED;
 		float interpFactor = 1.0f - (normalizedSpeed * normalizedSpeed);
@@ -57,5 +64,8 @@ void player_walk(Entity& entity, Motion& motion, float step_seconds)
 		rel_velocity.x = clamp(rel_velocity.x, -PLAYER_MAX_WALKING_SPEED, PLAYER_MAX_WALKING_SPEED);
 
 		motion.velocity = rel_velocity + platform_velocity;
+	} else {
+		PhysicsObject& phys = registry.physicsObjects.get(entity);
+		phys.friction = PLAYER_STATIC_FRICTION;
 	}
 }

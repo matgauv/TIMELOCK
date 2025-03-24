@@ -58,19 +58,17 @@ void handle_rotational_dynamics(Entity& object_entity, Entity& other_entity, con
 	// so we filter for the deepest two contact points
 
 	// project the contacts onto the platform's normal to find the deepest points
-	std::vector<std::pair<float, vec2>> projected_contacts;
-	for (const vec2& p : contact_points) {
-		float proj = dot(p - platform_pos, platform_normal);
-		projected_contacts.emplace_back(proj, p);
-	}
-	std::sort(projected_contacts.begin(), projected_contacts.end(),
-			  [](const auto& a, const auto& b) { return a.first < b.first; });
+	auto cmp = [&](const vec2& a, const vec2& b) {
+		return dot(a - platform_pos, platform_normal) < dot(b - platform_pos, platform_normal);
+	};
 
+	std::vector<vec2> sorted_contacts = contact_points;
+	std::sort(sorted_contacts.begin(), sorted_contacts.end(), cmp);
+
+	// Select up to two deepest contact points (those with the smallest projection values)
 	std::vector<vec2> selected_contacts;
-
-	// take up to two deepest contact points
-	for (size_t i = 0; i < std::min(projected_contacts.size(), size_t(2)); i++) {
-		selected_contacts.push_back(projected_contacts[i].second);
+	for (size_t i = 0; i < std::min(sorted_contacts.size(), size_t(2)); i++) {
+		selected_contacts.push_back(sorted_contacts[i]);
 	}
 
 	if (selected_contacts.empty())
@@ -131,11 +129,11 @@ void handle_rotational_dynamics(Entity& object_entity, Entity& other_entity, con
 
 
 // Handles collision between two PhysicsObject entities.
+// TODO, this method is long. should split up and document better
 void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entityB, Collision collision, std::vector<unsigned int>& grounded)
 {
 	Motion& motionA = registry.motions.get(entityA);
 	Motion& motionB = registry.motions.get(entityB);
-
 	PhysicsObject& physA = registry.physicsObjects.get(entityA);
 	PhysicsObject& physB = registry.physicsObjects.get(entityB);
 
@@ -184,7 +182,6 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 	vec2 contact_offset_a = contact_point - motionA.position;
 	vec2 contact_offset_b = contact_point - motionB.position;
 
-	//
 	float lever_arm_A_perp = contact_offset_a.x * normal.y - contact_offset_a.y * normal.x;
 	float lever_arm_B_perp = contact_offset_b.x * normal.y - contact_offset_b.y * normal.x;
 
@@ -206,18 +203,19 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 
 	if (impulse_denom == 0.0f) return;
 
-	// TODO: hacky, but we need to dampen the impulse since the platform has 0 mass but high velocity
-	if (registry.movementPaths.has(entityA) || registry.movementPaths.has(entityB)) {
-		impulse_magnitude *= 0.1;
-	}
+
 
 	impulse_magnitude /= impulse_denom;
 	vec2 impulse = impulse_magnitude * normal;
 
+	// TODO: hacky, but we need to dampen the impulse since the platform has 0 mass but high velocity
+	if (registry.movementPaths.has(entityA) || registry.movementPaths.has(entityB)) {
+		impulse *= 0.1f;
+	}
+
 	// update velocity with the impulse and angular velocities
 	motionA.velocity -= impulse * a_inv_mass; // because normal points A->B but A is moving towards B
 	motionB.velocity += impulse * b_inv_mass;
-
 
 	if (physA.apply_rotation) {
 		physA.angular_velocity -= impulse_magnitude * lever_arm_A_perp * a_inv_inertia;
@@ -243,6 +241,16 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 	if (physB.apply_rotation) {
 		tangent_vel_B += physB.angular_velocity * (contact_offset_b.x * friction_dir.y - contact_offset_b.y * friction_dir.x);
 	}
+
+	// TODO: again hacky better solution prob exists for this
+	if (registry.movementPaths.has(entityA)) {
+		tangent_vel_A = 0.0f;
+	}
+
+	if (registry.movementPaths.has(entityB)) {
+		tangent_vel_B = 0.0f;
+	}
+
 	float rel_tan_velocity = tangent_vel_B - tangent_vel_A;
 
 	float friction = sqrt(physA.friction * physB.friction);

@@ -116,7 +116,7 @@ Entity create_player(vec2 position, vec2 scale) {
 
     PhysicsObject &object = registry.physicsObjects.emplace(entity);
     object.mass = 40.0f;
-    object.friction = 0.7f;
+    object.friction = PLAYER_STATIC_FRICTION;
     object.bounce = 0.0f; // player should NOT bounce
 
     Motion &motion = registry.motions.emplace(entity);

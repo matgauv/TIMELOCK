@@ -16,9 +16,9 @@ void handle_player_ladder_collision(Entity& player_entity, Entity& ladder_entity
             registry.climbing.emplace(player_entity);
         }
 
-        player_motion.velocity.x *= 0.99f;
+        player_motion.velocity.x *= 0.999f;
 
-        if (player_bottom < ladder_top + TILE_TO_PIXELS/2.0f) {
+        if (player_bottom < ladder_top + LADDER_TOP_OUT_THRESH) {
             player_motion.velocity.y = std::max(player_motion.velocity.y, 0.0f);
         }
 
@@ -75,10 +75,6 @@ void handle_projectile_collision(Entity& proj_entity, Entity& other_entity) {
 		registry.remove_all_components_of(proj_entity);
 	}
 }
-
-
-
-
 
 void handle_player_attack_collision(Entity& player_entity, Entity& attack_entity, Collision collision) {
 	GameState& gameState = registry.gameStates.components[0];

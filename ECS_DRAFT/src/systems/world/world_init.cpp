@@ -674,7 +674,7 @@ Entity create_pipe_head(vec2 position, vec2 scale, std::string direction, json& 
 
     Pipe& pipe = registry.pipes.emplace(entity);
     pipe.direction_factor = (direction == "right" ? 1.0f : -1.0f);
-    //pipe.timer = rand
+    pipe.timer = PIPE_FIRING_PERIOD_MS;
 
     // to influence firing frequency; maybe should not include this
     registry.timeControllables.emplace(entity);

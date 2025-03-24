@@ -15,11 +15,10 @@ void pipe_step(float elapsed_ms) {
 			pipe.timer = PIPE_FIRING_PERIOD_MS;
 
 			if (glm::length(player_pos - motion.position) < 3000.0f) {
-				const vec2 screw_position = motion.position + vec2{ (TILE_TO_PIXELS + SCREW_SIZE.x + 1.0f) * pipe.direction_factor, 0.0f };
+				const vec2 screw_position = motion.position + vec2{ (TILE_TO_PIXELS + 0.5f * SCREW_SIZE.x + 1.0f) * pipe.direction_factor, TILE_TO_PIXELS * 0.5f };
 				fire_screw(
 					screw_position,
 					vec2{ pipe.direction_factor * SCREW_SPEED, 0.0f});
-				std::cout << screw_position.x << ", " << screw_position.y << std::endl;
 			}
 		}
 	}
@@ -29,8 +28,10 @@ void fire_screw(vec2 position, vec2 velocity) {
 	auto proj_entity = Entity();
 
 	PhysicsObject& object = registry.physicsObjects.emplace(proj_entity);
-	object.mass = 100.0f;
-	object.drag_coefficient = 0.01f;
+	object.mass = 0.0f;
+	object.drag_coefficient = 0.0f;
+	object.apply_friction = false;
+	object.friction = 1.0f;
 	object.apply_gravity = false;
 	object.apply_rotation = false;
 

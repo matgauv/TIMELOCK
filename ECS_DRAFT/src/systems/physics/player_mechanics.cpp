@@ -46,7 +46,7 @@ void player_walk(Entity& entity, Motion& motion, float step_seconds)
 		vec2 desired_direction = {walking.is_left ? -1.0f : 1.0f, 0.0f};
 		vec2 accel = desired_direction * acceleration;
 
-		vec2 platform_velocity = {0.0f, 0.0f};
+		vec2 platform_velocity = motion.velocity;
 		if (registry.onGrounds.has(entity)) {
 			unsigned int ground_id = registry.onGrounds.get(entity).other_id;
 			Motion& platform_motion = registry.motions.get(ground_id);

@@ -512,21 +512,24 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
 		LevelState& levelState = registry.levelStates.components[0];
 		levelState.curr_level_folder_name = "Level_0";
-		levelState.ground = TEXTURE_ASSET_ID::D_TUTORIAL_GROUND;
 		levelState.shouldLoad = true;
 	}
 
 	if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
 		LevelState& levelState = registry.levelStates.components[0];
 		levelState.curr_level_folder_name = "Level_1";
-		levelState.ground = TEXTURE_ASSET_ID::A_TUTORIAL_GROUND;
 		levelState.shouldLoad = true;
 	}
 
 	if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
 		LevelState& levelState = registry.levelStates.components[0];
 		levelState.curr_level_folder_name = "Level_2";
-		levelState.ground = TEXTURE_ASSET_ID::DECEL_LEVEL_GROUND;
+		levelState.shouldLoad = true;
+	}
+
+	if (key == GLFW_KEY_4 && action == GLFW_PRESS) {
+		LevelState& levelState = registry.levelStates.components[0];
+		levelState.curr_level_folder_name = "Level_3";
 		levelState.shouldLoad = true;
 	}
 

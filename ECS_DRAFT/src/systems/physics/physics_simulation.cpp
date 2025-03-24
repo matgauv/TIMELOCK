@@ -254,6 +254,9 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 	float rel_tan_velocity = tangent_vel_B - tangent_vel_A;
 
 	float friction = sqrt(physA.friction * physB.friction);
+
+	if (registry.pendulums.has(entityA) || registry.pendulums.has(entityB)) friction = 1.0f;
+
 	float tangent_impulse_scalar = -rel_tan_velocity / impulse_denom;
 	tangent_impulse_scalar = clamp(tangent_impulse_scalar, -impulse_magnitude * friction, impulse_magnitude * friction); // clamp to coloumb's law
 

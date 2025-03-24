@@ -83,7 +83,7 @@ const float STATIC_FRICTION = 0.1f;
 const float DYNAMIC_FRICTION = 0.015f;
 const float BOLT_FRICTION = 0.1f;
 const float AIR_RESISTANCE = 250.0f;
-const float JUMP_VELOCITY = 380.0f;
+const float JUMP_VELOCITY = 410.0f;
 const float AIR_DENSITY = 0.25f;
 
 const float PHYSICS_OBJECT_BOUNCE = 0.2f;

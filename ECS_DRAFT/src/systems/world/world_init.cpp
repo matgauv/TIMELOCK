@@ -787,14 +787,16 @@ Entity create_pendulum(vec2 pivot_position, float length, float initial_angle, f
     PhysicsObject &physics_object = registry.physicsObjects.emplace(entity);
     physics_object.apply_gravity = false;
     physics_object.drag_coefficient = 0.0f;
+    physics_object.apply_air_resistance = false;
     physics_object.mass = 10.0f;
+    physics_object.friction = 0.99f;
 
     TimeControllable& tc = registry.timeControllables.emplace(entity);
     tc.can_be_accelerated = true;
     tc.can_be_decelerated = true;
 
     // TODO: performance, share mesh!! no need to have the same mesh over and over again...
-    Mesh* mesh = createCircleMesh(entity, 16);
+    Mesh* mesh = createCircleMesh(entity, 6);
     registry.meshPtrs.emplace(entity, mesh);
 
 

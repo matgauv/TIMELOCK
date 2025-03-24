@@ -270,12 +270,12 @@ void LevelParsingSystem::init_pendulums(json pendulum) {
     for (json pendulum : pendulum) {
         vec2 pivot_position = {pendulum["x"], pendulum["y"]};
 
-        json json_length_tiles = pendulum["customFields"]["length"];
-        if (!validate_custom_field(json_length_tiles, "length", pendulum["iid"])) {
+        json json_end_pos = pendulum["customFields"]["length"];
+        if (!validate_custom_field(json_end_pos, "length", pendulum["iid"], {"cx", "cy"})) {
             continue;
         }
-        int length_tiles = json_length_tiles;
-        int length = length_tiles * TILE_TO_PIXELS;
+        float end_pos_y = json_end_pos["cy"];
+        float length = abs(pivot_position.y - (end_pos_y * TILE_TO_PIXELS));
 
         json json_initial_angle = pendulum["customFields"]["initial_angle"];
         json json_bob_radius = pendulum["customFields"]["bob_radius"];
@@ -311,17 +311,16 @@ void LevelParsingSystem::init_spikeballs(json spikeballs) {
 
 void LevelParsingSystem::init_gears(json gears) {
     for (json gear : gears) {
-        json json_width = gear["customFields"]["width"];
-        json json_height = gear["customFields"]["height"];
-
-        if (!validate_custom_field(json_width, "width", gear["iid"]) ||
-            !validate_custom_field(json_height, "height", gear["iid"])) {
-            continue;
-
-            }
-
         vec2 position = {gear["x"], gear["y"]};
-        vec2 size_px = {json_width, json_height};
+
+        json json_gear_edge = gear["customFields"]["gear_edge"];
+        if (!validate_custom_field(json_gear_edge, "gear_edge", gear["iid"], {"cx", "cy"})) {
+            continue;
+        }
+        vec2 gear_edge_pos = {json_gear_edge["cx"], json_gear_edge["cy"]};
+        float radius = abs(position.x  - (gear_edge_pos.x * TILE_TO_PIXELS));
+
+        vec2 size_px = {radius * 2, radius * 2};
         create_gear(position, size_px);
     }
 }

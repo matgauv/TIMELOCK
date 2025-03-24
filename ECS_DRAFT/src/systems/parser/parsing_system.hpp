@@ -46,6 +46,9 @@ private:
     void init_pipeparts(json parts);
     void init_breakable_platforms(json breakables);
     void init_chains(json chains);
+    void init_pendulums(json pendulums);
+    void init_gears(json gears);
+    void init_spikeballs(json spikeballs);
 
     bool extract_full_platform_dimensions(json platform, vec2& dimensions);
     bool extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos, bool& rounded);

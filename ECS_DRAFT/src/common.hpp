@@ -5,6 +5,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include "float.h"
 
 // glfw (OpenGL)
 #define NOMINMAX
@@ -41,6 +42,9 @@ inline std::string mesh_path(const std::string& name) {return data_path() + "/me
 //
 const int WINDOW_WIDTH_PX = 1280;
 const int WINDOW_HEIGHT_PX = 720;
+
+// Level parsing constants
+const int TILE_TO_PIXELS = 16;
 
 // FPS Counter Update Period
 const float FPS_COUNTER_UPDATE_PERIOD_MS = 1000.0f;
@@ -88,13 +92,15 @@ const float DEFAULT_MASS = 10.0f;
 const float PLATFORM_SLIP_ANGLE = 45.0f;
 const float PLAYER_MAX_WALK_ANGLE = 80.0f;
 
-const float DISTANCE_TO_DROP_BOLT = 150.0f;
+const float DISTANCE_TO_DROP_BOLT = 300.0f;
 
 // Player Statistics
 const vec2 PLAYER_SCALE = { 50.0f, 50.0f };
 const float PLAYER_MAX_FALLING_SPEED = 1000.0f;
 const float PLAYER_MAX_WALKING_SPEED = 220.0f;
 const float PLAYER_CLIMBING_SPEED = 150.0f;
+const float LADDER_TOP_OUT_THRESH = TILE_TO_PIXELS / 4.0f;
+const float PLAYER_STATIC_FRICTION = 0.7f;
 
 const float PLAYER_WALK_ACCELERATION = 1200.0f;
 const float PLAYER_WALK_LADDER_ACCELERATION = PLAYER_WALK_ACCELERATION / 3.0f;
@@ -127,8 +133,29 @@ const float BOSS_ATTACK_COOLDOWN_MS = 500.0f;
 
 const float PLAYER_ATTACK_DAMAGE = 20.0f;
 
-// Level parsing constants
-const int TILE_TO_PIXELS = 16;
+
+
+// platform stuff
+const float PLATFORM_EDGE_MESH_SIZE = 3.75f;
+
+// APPROX gear measurements
+const float GEAR_CENTER_PX = 86.0f;
+const float GEAR_TOOTH_PX = 19.0f;
+const float GEAR_TOTAL_WIDTH = 124.0f;
+
+const float GEAR_CENTER_RATIO = GEAR_CENTER_PX / GEAR_TOTAL_WIDTH;
+const float GEAR_TOOTH_RATIO = GEAR_TOOTH_PX / GEAR_TOTAL_WIDTH;
+
+// APPROAX spikeball measurements
+const float SPIKE_HEIGHT_PX = 25.0f;
+const float SPIKE_WIDTH_PX = 17.0f;
+const float SPIKEBALL_CENTER_PX = 59.0f;
+const float SPIKEBALL_TOTAL_PX = 109.0f;
+
+const float SPIKE_HEIGHT_RATIO = SPIKE_HEIGHT_PX / SPIKEBALL_TOTAL_PX;
+const float SPIKE_WIDTH_RATIO = SPIKE_WIDTH_PX / SPIKEBALL_TOTAL_PX;
+const float SPIKEBALL_CENTER_RATIO = SPIKEBALL_CENTER_PX / SPIKEBALL_TOTAL_PX;
+
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f

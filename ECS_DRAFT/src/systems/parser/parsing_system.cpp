@@ -131,6 +131,12 @@ void LevelParsingSystem::init_level_entities() {
             init_breakable_platforms(entity_list);
         } else if (entity_type == "Chain") {
             init_chains(entity_list);
+        } else if (entity_type == "Pendulum") {
+            init_pendulums(entity_list);
+        } else if (entity_type == "Gear") {
+            init_gears(entity_list);
+        } else if (entity_type == "Spikeball") {
+            init_spikeballs(entity_list);
         }
     }
 }
@@ -257,6 +263,66 @@ void LevelParsingSystem::init_ladders(json ladders) {
 
         vec2 dimensions = {ladder["width"], ladder["height"]};
         create_ladder(position, dimensions, height, tile_id_array, stride);
+    }
+}
+
+void LevelParsingSystem::init_pendulums(json pendulum) {
+    for (json pendulum : pendulum) {
+        vec2 pivot_position = {pendulum["x"], pendulum["y"]};
+
+        json json_length_tiles = pendulum["customFields"]["length"];
+        if (!validate_custom_field(json_length_tiles, "length", pendulum["iid"])) {
+            continue;
+        }
+        int length_tiles = json_length_tiles;
+        int length = length_tiles * TILE_TO_PIXELS;
+
+        json json_initial_angle = pendulum["customFields"]["initial_angle"];
+        json json_bob_radius = pendulum["customFields"]["bob_radius"];
+
+        if (!validate_custom_field(json_initial_angle, "initial_angle", pendulum["iid"]) ||
+            !validate_custom_field(json_bob_radius, "bob_radius", pendulum["iid"])) {
+            continue;
+        }
+
+        float initial_angle = json_initial_angle;
+        float bob_radius = json_bob_radius;
+
+        create_pendulum(pivot_position, length, initial_angle, bob_radius);
+
+    }
+}
+
+void LevelParsingSystem::init_spikeballs(json spikeballs) {
+    for (json spikeball : spikeballs) {
+        json json_width = spikeball["customFields"]["width"];
+        json json_height = spikeball["customFields"]["height"];
+
+        if (!validate_custom_field(json_width, "width", spikeball["iid"]) ||
+            !validate_custom_field(json_height, "height", spikeball["iid"])) {
+            continue;
+        }
+        vec2 position = {spikeball["x"], spikeball["y"]};
+        vec2 size_px = {json_width, json_height};
+        create_spikeball(position, size_px);
+    }
+}
+
+
+void LevelParsingSystem::init_gears(json gears) {
+    for (json gear : gears) {
+        json json_width = gear["customFields"]["width"];
+        json json_height = gear["customFields"]["height"];
+
+        if (!validate_custom_field(json_width, "width", gear["iid"]) ||
+            !validate_custom_field(json_height, "height", gear["iid"])) {
+            continue;
+
+            }
+
+        vec2 position = {gear["x"], gear["y"]};
+        vec2 size_px = {json_width, json_height};
+        create_gear(position, size_px);
     }
 }
 

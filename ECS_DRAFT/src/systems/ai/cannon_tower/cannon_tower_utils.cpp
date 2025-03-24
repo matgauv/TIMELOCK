@@ -175,9 +175,6 @@ void cannon_fire(Entity tower_entity, float angle) {
 
 	auto proj_entity = Entity();
 
-	Blocked& blocked = registry.blocked.emplace(proj_entity);
-	blocked.normal = vec2(0, 0);
-
 	PhysicsObject& object = registry.physicsObjects.emplace(proj_entity);
 	object.mass = 10.0f;
 	object.drag_coefficient = 0.01f;

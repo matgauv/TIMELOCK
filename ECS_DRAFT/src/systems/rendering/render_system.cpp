@@ -20,9 +20,21 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 	if (!registry.tiles.has(entity)) {
 		Motion& motion = registry.motions.get(entity);
-		transform.translate(motion.position);
-		transform.rotate(radians(motion.angle));
-		transform.scale(motion.scale);
+
+		// if pivot point exists, translate to offset, rotate, translate back, scale (hack for pendulums)
+		if (registry.pivotPoints.has(entity)) {
+			vec2 pivot_offset = registry.pivotPoints.get(entity).offset;
+
+			transform.translate(motion.position);
+			transform.translate(pivot_offset);
+			transform.rotate(radians(motion.angle));
+			transform.translate(-pivot_offset);
+			transform.scale(motion.scale);
+		} else {
+			transform.translate(motion.position);
+			transform.rotate(radians(motion.angle));
+			transform.scale(motion.scale);
+		}
 	}
 
 	assert(registry.renderRequests.has(entity));

@@ -14,7 +14,6 @@ void create_obstacle(ObstacleSpawner& spawner) {
 
         spawner.obstacle_id = gear.id();
 
-
         PhysicsObject& phys = registry.physicsObjects.get(gear);
         phys.angular_damping = 0.01f;
         phys.angular_velocity = -10.0f;

@@ -2,6 +2,7 @@
 #include "parsing_system.hpp"
 #include "../world/world_init.hpp"
 #include "tinyECS/registry.hpp"
+#include "../boss/boss_one/boss_one_utils.hpp"
 #include <fstream>
 
 void LevelParsingSystem::init(GLFWwindow *window) {
@@ -46,7 +47,7 @@ void LevelParsingSystem::step(float elapsed_ms) {
         if (registry.bosses.size() == 1) {
             registry.remove_all_components_of(registry.bosses.entities[0]);
         }
-        create_first_boss_test();
+        create_first_boss();
         assert(registry.gameStates.components.size() <= 1);
         GameState& gameState = registry.gameStates.components[0];
         gameState.is_in_boss_fight = false;

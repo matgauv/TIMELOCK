@@ -9,29 +9,42 @@ Entity create_first_boss() {
     auto entity = Entity();
 
     Boss& boss = registry.bosses.emplace(entity);
-    registry.firstBosses.emplace(entity);
+    boss.boss_id = BOSS_ID::FIRST;
+    boss.boss_state = BOSS_STATE::BOSS1_IDLE_STATE;
+    boss.can_be_damaged = false;
+    boss.time_until_exhausted_ms = BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS;
+    boss.health = BOSS_ONE_MAX_HEALTH;
+
+    FirstBoss& firstBoss = registry.firstBosses.emplace(entity);
     Motion& motion = registry.motions.emplace(entity);
 
-    // initially idle
+    // initially idle for testing purposes
     motion.velocity = vec2(0.f, 0.f);
+    motion.scale = vec2(BOSS_ONE_BB_WIDTH_PX, BOSS_ONE_BB_HEIGHT_PX);
+
+    TimeControllable& tc = registry.timeControllables.emplace(entity);
+
+    // grab player position and use that as the spawning point
+    Entity& player_entity = registry.players.entities[0];
+    Motion& player_motion = registry.motions.get(player_entity);
 
     // initial position
     motion.position = vec2(BOSS_ONE_SPAWN_POINT_X, BOSS_ONE_SPAWN_POINT_Y);
-    motion.scale = vec2(BOSS_ONE_BB_WIDTH_PX, BOSS_ONE_BB_HEIGHT_PX);
-
-    // not physical object to avoid unnecessary collision
 
     // render request
     registry.renderRequests.insert(
 		entity,
 		{
-			TEXTURE_ASSET_ID::BOSS_ONE_IDLE_LEFT,
+			TEXTURE_ASSET_ID::GREY_CIRCLE,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
 		}
 	);
 
     registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    AnimateRequest& animateRequest = registry.animateRequests.emplace(entity);
+    animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_IDLE;
 
     return entity;
 }

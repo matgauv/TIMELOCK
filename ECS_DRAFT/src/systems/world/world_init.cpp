@@ -433,25 +433,14 @@ Entity create_first_boss_test() {
     motion.velocity = vec2(0.f, 0.f);
     motion.scale = vec2(BOSS_ONE_BB_WIDTH_PX, BOSS_ONE_BB_HEIGHT_PX);
 
-    // BUG: boss should be time controllable, but it is somehow harmful even when I did not add the harmful component to it
     TimeControllable& tc = registry.timeControllables.emplace(entity);
-    // tc.can_be_decelerated = true;
-    // tc.can_become_harmless = true;
 
     // grab player position and use that as the spawning point
     Entity& player_entity = registry.players.entities[0];
     Motion& player_motion = registry.motions.get(player_entity);
 
     // initial position
-    motion.position = vec2(1200.f, 480.f);
-    std::cout << "Player position is: (" << player_motion.position.x << "," << player_motion.position.y << ")" << std::endl;
-    std::cout << "Boss position is: (" << motion.position.x << "," << motion.position.y << ")" << std::endl;
-    // motion.position = vec2(BOSS_ONE_SPAWN_POINT_X, BOSS_ONE_SPAWN_POINT_Y);
-
-    // add physical object to boss
-    // PhysicsObject& po = registry.physicsObjects.emplace(entity);
-    // po.mass = 40.f;
-    // po.apply_gravity = false;
+    motion.position = vec2(BOSS_ONE_SPAWN_POINT_X, BOSS_ONE_SPAWN_POINT_Y);
 
     // render request
     registry.renderRequests.insert(

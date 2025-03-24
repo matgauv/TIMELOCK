@@ -46,21 +46,7 @@ vec2 closest_point_on_segment(const vec2& p, const vec2& a, const vec2& b) {
 	return a + t * ab;
 }
 
-void adjust_velocity_along_normal(Motion& motion, vec2& normal)
-{
-	float vec_along_normal = dot(motion.velocity, normal);
-	if (vec_along_normal < 0.0f)
-	{
-		motion.velocity -= normal * vec_along_normal;
-	}
-}
 
-bool should_slip(float normal_y)
-{
-	float slip_angle_rad = PLATFORM_SLIP_ANGLE * (M_PI / 180.0f);
-	float threshold = cos(slip_angle_rad);
-	return normal_y >= threshold;
-}
 
 bool is_on_ground(float normal_y) {
 	float ground_angle_rad = PLAYER_MAX_WALK_ANGLE * (M_PI / 180.0f);

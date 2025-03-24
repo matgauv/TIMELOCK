@@ -399,9 +399,15 @@ struct Ladder {
 
 };
 
+
 // struct indicating that entity is a Pipe
 struct Pipe {
-	std::string direction;
+	float direction_factor;
+	float timer = 0.0;
+};
+
+struct Screw {
+
 };
 
 // A struct indicating that an entity is breakable
@@ -492,7 +498,8 @@ enum class TEXTURE_ASSET_ID {
 	PENDULUM_ARM = PENDULUM + 1,
 	GEAR = PENDULUM_ARM + 1,
 	SPIKEBALL = GEAR + 1,
-	BREAKABLE_FRAGMENTS = SPIKEBALL + 1,
+	SCREW = SPIKEBALL + 1,
+	BREAKABLE_FRAGMENTS = SCREW + 1,
 	TEXTURE_COUNT = BREAKABLE_FRAGMENTS + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;

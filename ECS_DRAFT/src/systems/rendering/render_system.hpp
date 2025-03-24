@@ -68,6 +68,7 @@ class RenderSystem : public ISystem {
 		textures_path("pendulum_arm.png"),
 		textures_path("gear.png"),
 		textures_path("spikeball.png"),
+		textures_path("screw-platform.png"),
 		textures_path("particles/BreakablePlatform_Fragments.png"),
 	};
 

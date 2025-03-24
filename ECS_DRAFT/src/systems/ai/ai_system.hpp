@@ -7,6 +7,7 @@
 #include "systems/ISystem.hpp"
 
 #include "cannon_tower/cannon_tower_utils.hpp"
+#include "pipe/pipe_utils.hpp"
 
 class AISystem : public ISystem
 {

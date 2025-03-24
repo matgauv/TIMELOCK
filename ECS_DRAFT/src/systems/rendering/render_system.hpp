@@ -46,7 +46,7 @@ class RenderSystem : public ISystem {
 		textures_path("transparent1px.png"),
 		textures_path("backgrounds/gears.png"),
 		textures_path("backgrounds/metal.png"),
-		textures_path("backgrounds/chains.png"),
+		textures_path("chain.png"),
 		textures_path("hex.png"),
 		textures_path("spawnpoint/SpawnPoint_unvisited.png"),
 		textures_path("spawnpoint/SpawnPoint_activate.png"),

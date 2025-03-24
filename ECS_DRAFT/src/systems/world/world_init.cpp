@@ -676,6 +676,26 @@ Entity create_pipe_head(vec2 position, vec2 scale, std::string direction, json& 
     return entity;
 }
 
+Entity create_chain(vec2 position, vec2 scale) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, 0};
+    motion.angle = 0;
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::CHAIN,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+
+    registry.layers.insert(entity, { LAYER_ID::FOREGROUND });
+
+    return entity;
+}
+
 float getDistance(const Motion& one, const Motion& other) {
     return glm::length(one.position - other.position);
 }

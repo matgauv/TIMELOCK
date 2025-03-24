@@ -61,7 +61,6 @@ void LevelParsingSystem::init_level_background() {
     float background_h = static_cast<int>(json_data["height"]);
     create_parallaxbackground({background_w, background_h}, TEXTURE_ASSET_ID::GEARS_BACKGROUND);
     create_background({background_w, background_h}, TEXTURE_ASSET_ID::METAL_BACKGROUND);
-    create_foreground({ background_w, background_h}, TEXTURE_ASSET_ID::CHAIN_BACKGROUND);
     create_levelground({json_data["width"], json_data["height"]}, levelState.ground);
 
     // world boundaries
@@ -130,7 +129,18 @@ void LevelParsingSystem::init_level_entities() {
             init_checkpoints(entity_list);
         } else if (entity_type == "Breakable") {
             init_breakable_platforms(entity_list);
+        } else if (entity_type == "Chain") {
+            init_chains(entity_list);
         }
+    }
+}
+
+void LevelParsingSystem::init_chains(json chains) {
+    LevelState& ls = registry.levelStates.components[0];
+    for (json& chain : chains) {
+        vec2 position = {chain["x"], ls.dimensions.y / 2};
+        vec2 scale = {TILE_TO_PIXELS * ceil(ls.dimensions.y / 1500), ls.dimensions.y};
+        create_chain(position, scale);
     }
 }
 

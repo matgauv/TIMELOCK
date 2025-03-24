@@ -962,6 +962,8 @@ Entity create_spikeball(vec2 position, vec2 size) {
 
     compositeMesh.meshes.push_back(sub_mesh);
 
+    registry.spikes.emplace(entity);
+
     int num_spikes = 8;
     float angle = 0.0f;
     float angle_diff =  360.0f / num_spikes;

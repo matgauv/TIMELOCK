@@ -41,7 +41,7 @@ void PhysicsSystem::step(float elapsed_ms) {
 		Entity& entity = motion_registry.entities[i];
 
 		// we handle the pendulum motion separately
-		if (registry.pendulums.has(entity)) {
+	if (registry.pendulums.has(entity)) {
 			continue;
 		}
 

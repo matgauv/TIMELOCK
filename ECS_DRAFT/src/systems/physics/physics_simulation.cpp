@@ -282,7 +282,7 @@ void apply_air_resistance(Entity entity, Motion& motion, float step_seconds)
 
 	PhysicsObject& physics = registry.physicsObjects.get(entity);
 
-	if (!physics.apply_air_resistance) return;
+	if (!physics.apply_air_resistance || physics.mass == 0) return;
 
 	vec2 velocity = motion.velocity;
 	float speed_squared = dot(velocity, velocity);

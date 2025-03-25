@@ -221,14 +221,12 @@ void WorldSystem::check_scene_transition() {
 // M1 interpolation implementation
 void WorldSystem::lerpTimeState(float start, float target, Motion& motion, std::chrono::time_point<std::chrono::high_resolution_clock> effectStartTime) {
 
-	float currentTime = std::chrono::duration<float, std::milli>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-	float startTime = std::chrono::duration<float, std::milli>(
-			effectStartTime.time_since_epoch()
-		).count();
+	auto now = std::chrono::high_resolution_clock::now();
+	auto duration = now - effectStartTime;
 
-	float time = (currentTime - startTime) / ACCELERATION_EMERGE_MS;
+	float diff_ms = std::chrono::duration<float, std::milli>(duration).count();
+
+	float time = diff_ms / ACCELERATION_EMERGE_MS;
 
 	if (time > 1.0) time = 1.0;
 

@@ -407,7 +407,7 @@ struct Pipe {
 };
 
 struct Screw {
-
+	float timer = SCREW_LIFE_MS;
 };
 
 // A struct indicating that an entity is breakable

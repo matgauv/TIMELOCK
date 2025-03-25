@@ -8,6 +8,7 @@ void AISystem::init(GLFWwindow *window) {
 void AISystem::step(float elapsed_ms) {
 	cannon_tower_step(elapsed_ms);
 	pipe_step(elapsed_ms);
+	screw_step(elapsed_ms);
 	obstacle_spawner_step(elapsed_ms);
 }
 

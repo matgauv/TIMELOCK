@@ -181,9 +181,12 @@ const float CANNON_PROJECTILE_SPEED = 600.0f;
 const vec2 CANNON_PROJECTILE_SIZE = vec2 {30.0f, 30.0f};
 
 // Pipes and Screws
-const float PIPE_FIRING_PERIOD_MS = 30000.0f;
-const float SCREW_SPEED = 150.0f;
+const float PIPE_FIRING_PERIOD_MS = 8000.0f;
+const float SCREW_SPEED = 300.0f;
 const vec2 SCREW_SIZE = vec2{ 90.0f, 14.0f };
+
+const float SCREW_FLIGHT_LENGTH = 1000.0f; // MODIFY THIS ACCORDING TO LEVEL DESIGN
+const float SCREW_LIFE_MS = SCREW_FLIGHT_LENGTH / SCREW_SPEED * 1000.0f;
 
 
 // door

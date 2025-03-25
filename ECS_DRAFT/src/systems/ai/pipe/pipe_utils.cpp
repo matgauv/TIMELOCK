@@ -15,11 +15,24 @@ void pipe_step(float elapsed_ms) {
 			pipe.timer = PIPE_FIRING_PERIOD_MS;
 
 			if (glm::length(player_pos - motion.position) < 3000.0f) {
-				const vec2 screw_position = motion.position + vec2{ (TILE_TO_PIXELS + 0.5f * SCREW_SIZE.x + 1.0f) * pipe.direction_factor, TILE_TO_PIXELS * 0.5f };
+				const vec2 screw_position = motion.position + vec2{ (TILE_TO_PIXELS + 0.5f * SCREW_SIZE.x + 1.0f) * pipe.direction_factor, 0.0F};
 				fire_screw(
 					screw_position,
 					vec2{ pipe.direction_factor * SCREW_SPEED, 0.0f});
 			}
+		}
+	}
+}
+
+void screw_step(float elapsed_ms) {
+	for (int i = registry.screws.size() - 1; i >= 0; i--) {
+		const Entity entity = registry.screws.entities[i];
+		Screw& screw = registry.screws.components[i];
+
+		screw.timer -= (elapsed_ms * registry.timeControllables.get(entity).target_time_control_factor);
+
+		if (screw.timer <= 0.0) {
+			destroy_screw(entity);
 		}
 	}
 }
@@ -35,6 +48,7 @@ void fire_screw(vec2 position, vec2 velocity) {
 	object.apply_gravity = false;
 	object.apply_rotation = false;
 
+	registry.screws.emplace(proj_entity);
 	registry.harmfuls.emplace(proj_entity);
 	registry.projectiles.emplace(proj_entity);
 
@@ -59,4 +73,8 @@ void fire_screw(vec2 position, vec2 velocity) {
 
 	TimeControllable& timeControllable = registry.timeControllables.emplace(proj_entity);
 	timeControllable.can_become_harmless = true;
+}
+
+void destroy_screw(const Entity entity) {
+	registry.remove_all_components_of(entity);
 }

@@ -182,6 +182,26 @@ bool ParticleSystem::handle_particle_type(Entity entity, PARTICLE_ID particle_id
 			registry.animateRequests.emplace(entity).used_animation = ANIMATION_ID::BREAKABLE_FRAGMENTS;
 			break;
 		}
+		case PARTICLE_ID::SCREW_FRAGMENTS:
+		{
+			Particle& par = registry.particles.get(entity);
+			par.gravity_influence = 0.5f;
+			par.angle = rand_float(-15.f, 15.f);
+			par.ang_velocity = rand_float(-50.f, 50.f);
+
+			registry.animateRequests.emplace(entity).used_animation = ANIMATION_ID::SCREW_FRAGMENTS;
+			break;
+		}
+		case PARTICLE_ID::HEX_FRAGMENTS:
+		{
+			Particle& par = registry.particles.get(entity);
+			par.gravity_influence = 0.5f;
+			par.angle = rand_float(-15.f, 15.f);
+			par.ang_velocity = rand_float(-50.f, 50.f);
+
+			registry.animateRequests.emplace(entity).used_animation = ANIMATION_ID::HEX_FRAGMENTS;
+			break;
+		}
 		case PARTICLE_ID::COYOTE_PARTICLES: {
 			registry.animateRequests.emplace(entity).used_animation = ANIMATION_ID::COYOTE_PARTICLES;
 			break;

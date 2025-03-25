@@ -76,7 +76,8 @@ void handle_projectile_collision(Entity& proj_entity, Entity& other_entity) {
 	// Upon colliding with physicsObjects (other projectiles, player) / platforms
 	if (registry.physicsObjects.has(other_entity) || (registry.platforms.has(other_entity))) {
 		// TODO: add more effects to killing projectiles, likely based on types
-		registry.remove_all_components_of(proj_entity);
+		//registry.remove_all_components_of(proj_entity);
+		WorldSystem::destroy_projectile(proj_entity);
 	}
 }
 

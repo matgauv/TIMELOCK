@@ -4,6 +4,7 @@
 #include "../../../tinyECS/component_container.hpp"
 #include "../../../tinyECS/components.hpp"
 #include "../../../tinyECS/registry.hpp"
+#include "systems/world/world_system.hpp"
 
 
 void pipe_step(float elapsed_ms);

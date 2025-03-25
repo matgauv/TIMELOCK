@@ -50,6 +50,8 @@ public:
 	// Should likely aggregate these into a utils class
 	static void destroy_breakable_platform(Entity entity);
 
+	static void destroy_projectile(Entity entity);
+
 private:
 	// starts and loads music and sound effects
 	bool start_and_load_sounds();

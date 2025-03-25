@@ -76,5 +76,5 @@ void fire_screw(vec2 position, vec2 velocity) {
 }
 
 void destroy_screw(const Entity entity) {
-	registry.remove_all_components_of(entity);
+	WorldSystem::destroy_projectile(entity);
 }

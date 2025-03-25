@@ -17,4 +17,5 @@ void handle_player_breakable_collision(Entity& player_entity, Entity& breakable_
 std::pair<float, float> project(const std::vector<vec2>& verts, const vec2& axis);
 std::vector<vec2>& get_vertices(Entity& e);
 vec2 get_modified_velocity(Motion& m);
+float get_modified_angular_velocity(Motion& m, PhysicsObject& physics);
 std::vector<vec2>& get_axes(Entity& e);

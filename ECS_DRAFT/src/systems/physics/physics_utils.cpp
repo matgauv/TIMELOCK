@@ -138,6 +138,11 @@ vec2 get_modified_velocity(Motion& m)
 	return {m.velocity.x * m.velocityModifier, m.velocity.y * m.velocityModifier};
 }
 
+float get_modified_angular_velocity(Motion& m, PhysicsObject& physics)
+{
+  return physics.angular_velocity * m.velocityModifier;
+}
+
 std::vector<vec2>& get_axes(Entity& e)
 {
 	Motion& motion = registry.motions.get(e);

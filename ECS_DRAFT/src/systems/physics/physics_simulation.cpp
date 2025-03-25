@@ -153,8 +153,8 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 	}
 
 	// prepare inverse masses
-	float a_inv_mass = physA.mass > 0 ? (1.0f / physA.mass) : 0.0f;
-	float b_inv_mass = physB.mass > 0 ? (1.0f / physB.mass) : 0.0f;
+	float a_inv_mass = physA.mass > 0.0f ? (1.0f / physA.mass) : 0.0f;
+	float b_inv_mass = physB.mass > 0.0f ? (1.0f / physB.mass) : 0.0f;
 	float total_inv_mass = a_inv_mass + b_inv_mass;
 	resolve_collision_position(entityA, entityB, collision, a_inv_mass, b_inv_mass);
 
@@ -193,8 +193,11 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 	float lever_arm_A_perp = contact_offset_a.x * normal.y - contact_offset_a.y * normal.x;
 	float lever_arm_B_perp = contact_offset_b.x * normal.y - contact_offset_b.y * normal.x;
 
-	float A_ang_term = physA.apply_rotation ? physA.angular_velocity * lever_arm_A_perp : 0.0f;
-	float B_ang_term = physB.apply_rotation ? physB.angular_velocity * lever_arm_B_perp : 0.0f;
+    float a_modified_angular_vel = get_modified_angular_velocity(motionA, physA);
+    float b_modified_angular_vel = get_modified_angular_velocity(motionB, physB);
+
+	float A_ang_term = physA.apply_rotation ? a_modified_angular_vel * lever_arm_A_perp : 0.0f;
+	float B_ang_term = physB.apply_rotation ? b_modified_angular_vel * lever_arm_B_perp : 0.0f;
 	float A_vel_towards_collision = dot(A_modified_vel, normal) + A_ang_term;
 	float B_vel_towards_collision = dot(B_modified_vel, normal) + B_ang_term;
 	float vel_along_normal = B_vel_towards_collision - A_vel_towards_collision;

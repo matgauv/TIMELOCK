@@ -848,6 +848,10 @@ Entity create_gear(vec2 position, vec2 size, bool fixed, float angular_velocity,
 
     PhysicsObject& physics_object = registry.physicsObjects.emplace(entity);
 
+    TimeControllable& tc = registry.timeControllables.emplace(entity);
+    tc.can_be_accelerated = true;
+    tc.can_be_decelerated = true;
+
     if (fixed) {
        physics_object.apply_gravity = false;
        physics_object.friction = 0.5f;
@@ -952,6 +956,10 @@ Entity create_spikeball(vec2 position, vec2 size) {
     physics_object.apply_rotation = true;
 
     CompositeMesh& compositeMesh = registry.compositeMeshes.emplace(entity);
+
+    TimeControllable& tc = registry.timeControllables.emplace(entity);
+    tc.can_be_accelerated = true;
+    tc.can_be_decelerated = true;
 
     float inner_radius = ((size.x * SPIKEBALL_CENTER_RATIO) / 2.0f);
     float spike_height = (size.x) * SPIKE_HEIGHT_RATIO;

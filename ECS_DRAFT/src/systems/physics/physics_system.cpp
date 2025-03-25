@@ -52,19 +52,21 @@ void PhysicsSystem::step(float elapsed_ms) {
 
 			if (phys.apply_rotation) {
                 // Update angle
-                motion.angle += degrees(phys.angular_velocity * step_seconds);
+				float modified_angular_velocity = get_modified_angular_velocity(motion, phys);
+
+                motion.angle += degrees(modified_angular_velocity * step_seconds);
                 motion.cache_invalidated = true;
 
 				float angle_rad = radians(motion.angle);
 
 				vec2 tangent = { -sin(angle_rad), cos(angle_rad) };
 				float rotationFrictionFactor = 0.5f;
-				vec2 angular_push = tangent * fabs(phys.angular_velocity) * rotationFrictionFactor;
+				vec2 angular_push = tangent * fabs(modified_angular_velocity) * rotationFrictionFactor;
 				if (phys.mass >0.0f) motion.position += angular_push * step_seconds;
 				if (phys.angular_damping > 0.0f) phys.angular_velocity *= (1.0f - phys.angular_damping * step_seconds); // Damping factor
 
 				if (registry.rotatingGears.has(entity)) {
-					phys.angular_velocity = registry.rotatingGears.get(entity).angular_velocity;
+					phys.angular_velocity = registry.rotatingGears.get(entity).angular_velocity; // no need to modify here, should store normal time ang vel
 				}
 			}
 

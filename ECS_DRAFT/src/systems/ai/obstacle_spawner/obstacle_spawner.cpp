@@ -15,14 +15,14 @@ void create_obstacle(ObstacleSpawner& spawner) {
         spawner.obstacle_id = gear.id();
 
         PhysicsObject& phys = registry.physicsObjects.get(gear);
-        phys.angular_damping = 0.0f;
-        phys.angular_velocity = -10.0f;
+        phys.angular_damping = 0.00f;
+        phys.angular_velocity = (spawner.velocity.x) / 100.0f;
         phys.apply_air_resistance = false;
         phys.apply_rotation = true;
         phys.apply_gravity = true;
         phys.mass = 100.0f;
         phys.bounce = 0.0f;
-        phys.friction = 0.05f;
+        phys.friction = 0.0f;
 
         Motion& motion = registry.motions.get(gear);
         motion.velocity = spawner.velocity;
@@ -33,12 +33,12 @@ void create_obstacle(ObstacleSpawner& spawner) {
         PhysicsObject& phys = registry.physicsObjects.get(spikeball);
         phys.angular_damping = 0.0f;
         phys.friction = 0.01f;
-        phys.angular_velocity = -10.0f;
+        phys.angular_velocity = (spawner.velocity.x) / 100.0f;
         phys.apply_air_resistance = false;
         phys.apply_rotation = true;
         phys.apply_gravity = true;
         phys.mass = 100.0f;
-        phys.bounce = 0.2f;
+        phys.bounce = 0.1f;
 
         Motion& motion = registry.motions.get(spikeball);
         motion.velocity = spawner.velocity;

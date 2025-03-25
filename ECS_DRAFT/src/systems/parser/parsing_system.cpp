@@ -354,12 +354,13 @@ void LevelParsingSystem::init_gears(json gears) {
 void LevelParsingSystem::init_projectiles(json projectiles) {
     for (json projectile: projectiles) {
         vec2 position = vec2{projectile["x"], projectile["y"]};
-        vec2 size = vec2{projectile["width"], projectile["height"]};
         vec2 velocity = {0, 0};
+        float scale = projectile["customFields"]["scale"];
+        vec2 size = vec2 {scale, scale};
         // TODO: handle other meshtypes? (some are null in json rn so cannot parse)
         // string meshtype = "";
         // if (projectile["customFields"]["meshtype"]) meshtype = projectile["customFields"]["meshtype"];
-        create_bolt(position, size, velocity, false);
+        create_bolt(position, size, velocity, false, true);
     }
 }
 

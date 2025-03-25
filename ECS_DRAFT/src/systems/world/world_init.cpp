@@ -376,7 +376,7 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
 	return entity;
 }
 
-Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity)
+Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity, bool harmful)
 {
 	auto entity = Entity();
 	Motion& motion = registry.motions.emplace(entity);
@@ -393,6 +393,12 @@ Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity)
     object.drag_coefficient = 0.01;
 
     registry.bolts.emplace(entity);
+
+    if (harmful) {
+       TimeControllable& tc = registry.timeControllables.emplace(entity);
+       tc.can_become_harmless = true;
+        registry.harmfuls.emplace(entity);
+    }
 
     registry.colors.insert(
         entity, 

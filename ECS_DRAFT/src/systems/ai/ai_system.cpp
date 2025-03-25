@@ -1,7 +1,5 @@
 #include <iostream>
 #include "ai_system.hpp"
-#include "../world/world_init.hpp"
-#include "obstacle_spawner/obstacle_spawner.h"
 
 void AISystem::init(GLFWwindow *window) {
 	this->window = window;

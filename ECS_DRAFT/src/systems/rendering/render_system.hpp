@@ -73,7 +73,7 @@ class RenderSystem : public ISystem {
 	};
 
 	std::array<GLuint, effect_count> effects;
-	//std::array<GLuint, effect_count> vaos;
+
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, effect_count> effect_paths = {
 		shader_path("coloured"),

@@ -1012,6 +1012,10 @@ Entity create_spawner(std::string type, vec2 size, vec2 velocity, vec2 start_pos
     spawner.end_position = end_pos;
     spawner.obstacle_type = type;
 
+    // To ensure spawner is cleared during parsing & reload
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = start_pos;
+
     return entity;
 }
 

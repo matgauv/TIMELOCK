@@ -20,16 +20,25 @@ WorldSystem::WorldSystem()
 WorldSystem::~WorldSystem() {
 
 	if (this->play_sound) {
+		Mix_HaltMusic();
+		Mix_HaltChannel(-1);
 		// Destroy music components
 		if (background_music != nullptr)
 			Mix_FreeMusic(background_music);
+		background_music = nullptr;
 
 		for (Mix_Chunk* effect : sound_effects) {
 			if (effect != nullptr)
 				Mix_FreeChunk(effect);
+			effect = nullptr;
 		}
 
+		sound_effects.clear();
+
 		Mix_CloseAudio();
+		Mix_Quit();
+		SDL_QuitSubSystem(SDL_INIT_AUDIO);
+		SDL_Quit();
 	}
 
 	// Destroy all created components
@@ -299,6 +308,7 @@ bool WorldSystem::start_and_load_sounds() {
 
 	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
 		fprintf(stderr, "Failed to open audio device");
+		SDL_QuitSubSystem(SDL_INIT_AUDIO);
 		return false;
 	}
 
@@ -311,6 +321,18 @@ bool WorldSystem::start_and_load_sounds() {
 
 	if  (background_music == nullptr || slow_down_effect == nullptr || speed_up_effect == nullptr) {
 		fprintf(stderr, "Failed to load sounds -- make sure the data directory is present");
+		if (background_music) Mix_FreeMusic(background_music);
+		if (slow_down_effect) Mix_FreeChunk(slow_down_effect);
+		if (speed_up_effect) Mix_FreeChunk(speed_up_effect);
+
+		background_music = nullptr;
+		slow_down_effect = nullptr;
+		speed_up_effect = nullptr;
+
+		sound_effects.clear();
+
+		Mix_CloseAudio();
+		SDL_QuitSubSystem(SDL_INIT_AUDIO);
 		return false;
 	}
 

@@ -260,7 +260,7 @@
 				"height": 16,
 				"color": 5925256,
 				"customFields": {
-					"x_velocity": -250,
+					"x_velocity": -250.0,
 					"y_velocity": 0,
 					"end_point": {
 						"cx": 176,
@@ -285,7 +285,7 @@
 				"height": 16,
 				"color": 5925256,
 				"customFields": {
-					"x_velocity": -350,
+					"x_velocity": -350.0,
 					"y_velocity": 0,
 					"end_point": {
 						"cx": 153,
@@ -310,7 +310,7 @@
 				"height": 16,
 				"color": 5925256,
 				"customFields": {
-					"x_velocity": -350,
+					"x_velocity": -350.0,
 					"y_velocity": 0,
 					"end_point": {
 						"cx": 202,

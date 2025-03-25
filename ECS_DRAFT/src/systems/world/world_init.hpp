@@ -10,7 +10,7 @@
 
 using namespace nlohmann;
 
-inline std::unordered_map<std::string, Mesh*> mesh_cache;
+inline std::unordered_map<std::string, std::unique_ptr<Mesh>> mesh_cache;
 
 // Creation methods
 Entity create_player(vec2 position, vec2 scale);

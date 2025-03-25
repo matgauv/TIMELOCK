@@ -715,8 +715,8 @@ Entity create_chain(vec2 position, vec2 scale) {
 
 
 // TODO memory leak with the mesh allocation...
-Mesh* createCircleMesh(Entity e, int segments) {
-    Mesh *mesh = new Mesh();
+std::unique_ptr<Mesh> create_circle_mesh(Entity e, int segments) {
+    auto mesh = std::make_unique<Mesh>();
 
     for (int i = 0; i < segments; i++) {
         float theta = 2.0f * M_PI * float(i) / float(segments);
@@ -794,9 +794,10 @@ Entity create_pendulum(vec2 pivot_position, float length, float initial_angle, f
     tc.can_be_accelerated = true;
     tc.can_be_decelerated = true;
 
-    // TODO: performance, share mesh!! no need to have the same mesh over and over again...
-    Mesh* mesh = createCircleMesh(entity, 6);
-    registry.meshPtrs.emplace(entity, mesh);
+    if (mesh_cache.find("circle-6") == mesh_cache.end()) {
+        mesh_cache["circle-6"] = create_circle_mesh(entity, 6);
+    }
+    registry.meshPtrs.emplace(entity, mesh_cache["circle-6"].get());
 
 
     Entity rod = create_pendulum_string(pivot_position, motion.position);
@@ -821,15 +822,15 @@ Mesh* get_mesh_from_file(std::string filename) {
 
 // TODO: we also have a mesh cache in the registry, but if meshes are just for collisions, it feels weird/annyoing to load them in the render system...
 // this just prevents us from loading the mesh every time we create an object
-Mesh* get_mesh(std::string filepath) {
+Mesh* get_mesh(const std::string &filepath) {
     auto it = mesh_cache.find(filepath);
     if (it != mesh_cache.end()) {
-        return it->second;
+        return it->second.get();
     }
 
-    Mesh* mesh = get_mesh_from_file(data_path() + filepath);
-    mesh_cache[filepath] = mesh;
-    return mesh;
+    Mesh* raw_mesh = get_mesh_from_file(data_path() + filepath);
+    mesh_cache[filepath] = std::unique_ptr<Mesh>(raw_mesh);
+    return mesh_cache[filepath].get();
 }
 
 
@@ -877,9 +878,11 @@ Entity create_gear(vec2 position, vec2 size, bool fixed, float angular_velocity,
     float tooth_length = (size.x) * GEAR_TOOTH_WIDTH_RATIO;
 
 
-    Mesh* mesh = createCircleMesh(entity, 16);
+    if (mesh_cache.find("circle-16") == mesh_cache.end()) {
+        mesh_cache["circle-16"] = create_circle_mesh(entity, 6);
+    }
     SubMesh sub_mesh = SubMesh{};
-    sub_mesh.original_mesh = mesh;
+    sub_mesh.original_mesh = mesh_cache["circle-16"].get();
     sub_mesh.scale_ratio = {GEAR_CENTER_RATIO, GEAR_CENTER_RATIO};
 
     compositeMesh.meshes.push_back(sub_mesh);
@@ -954,9 +957,12 @@ Entity create_spikeball(vec2 position, vec2 size) {
     float spike_height = (size.x) * SPIKE_HEIGHT_RATIO;
     float spike_width = (size.x) * SPIKE_WIDTH_PX;
 
-    Mesh* mesh = createCircleMesh(entity, 16);
+
+    if (mesh_cache.find("circle-16") == mesh_cache.end()) {
+        mesh_cache["circle-16"] = create_circle_mesh(entity, 6);
+    }
     SubMesh sub_mesh = SubMesh{};
-    sub_mesh.original_mesh = mesh;
+    sub_mesh.original_mesh = mesh_cache["circle-16"].get();
     sub_mesh.scale_ratio = {SPIKEBALL_CENTER_RATIO, SPIKEBALL_CENTER_RATIO};
 
     compositeMesh.meshes.push_back(sub_mesh);

@@ -60,8 +60,9 @@ void WorldSystem::update_window_caption(float elapsed_ms) {
 
 // World initialization
 bool WorldSystem::start_and_load_sounds() {
+
 	//////////////////////////////////////
-		// Loading music and sounds with SDL
+	// Loading music and sounds with SDL
 	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
 		fprintf(stderr, "Failed to initialize SDL Audio");
 		return false;

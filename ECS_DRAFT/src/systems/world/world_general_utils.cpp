@@ -92,14 +92,13 @@ void WorldSystem::destroy_breakable_platform(Entity entity) {
 	}
 
 	// Random dusts
-	for (int i = 0; i < 60; i++) {
+	for (int i = 0; i < 30; i++) {
 		vec2 dust_position = random_sample_rectangle(motion.position, motion.scale);
 
 		ParticleSystem::spawn_particle(vec3(0.5f),
 			dust_position,
 			0.0f, vec2{ 2.0, 2.0 },
 			rand_direction() * 30.0f,
-			700.0, 0.8f, { 0.0f, 0.0f }, { 0.0f, 200.0f },
 			0.0, 1.0);
 	}
 

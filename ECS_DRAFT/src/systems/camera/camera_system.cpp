@@ -44,12 +44,13 @@ void CameraSystem::step(float elapsed_ms) {
 			facing_dir;
 
 		// If in the same direction & smaller offset, do not force-set and wait for natural decay
-		if (offset * cam.horizontal_offset < 0) {
-			cam.horizontal_offset = (1.0f - CAMERA_VEL_LERP_FACTOR) * cam.horizontal_offset + CAMERA_VEL_LERP_FACTOR * offset;
+		if ((offset * cam.horizontal_offset < 0) || (abs(offset) > abs(cam.horizontal_offset))) {
+			cam.horizontal_offset = (1.0f - (CAMERA_VEL_LERP_FACTOR * 0.5f)) * cam.horizontal_offset + CAMERA_VEL_LERP_FACTOR * 0.5f * offset;
 		}
+		/*
 		else if (abs(offset) > abs(cam.horizontal_offset)) {
 			cam.horizontal_offset = offset;
-		}
+		}*/
 
 		follow(camera_motion, player_motion.position + vec2{cam.horizontal_offset, 0.0f});
 	}

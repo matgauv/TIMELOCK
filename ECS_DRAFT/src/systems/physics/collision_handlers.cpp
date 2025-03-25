@@ -121,6 +121,9 @@ void handle_player_door_collision() {
 
 	if (ls.curr_level_folder_name == ls.next_level_folder_name) return;
 
+	/*
 	ls.curr_level_folder_name = ls.next_level_folder_name;
 	ls.shouldLoad = true;
+	*/
+	LevelParsingSystem::schedule_reload();
 }

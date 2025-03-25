@@ -2,6 +2,7 @@
 
 #include <array>
 #include <utility>
+#include <glm/trigonometric.hpp>
 
 #include "../../common.hpp"
 #include "../../tinyECS/components.hpp"
@@ -66,10 +67,12 @@ class RenderSystem : public ISystem {
 		textures_path("pendulum.png"),
 		textures_path("pendulum_arm.png"),
 		textures_path("gear.png"),
-		textures_path("spikeball.png")
+		textures_path("spikeball.png"),
+		textures_path("particles/BreakablePlatform_Fragments.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;
+	//std::array<GLuint, effect_count> vaos;
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, effect_count> effect_paths = {
 		shader_path("coloured"),
@@ -78,6 +81,7 @@ class RenderSystem : public ISystem {
         shader_path("screen"),
 		shader_path("hex"),
 		shader_path("tile"),
+		shader_path("particle_instanced"),
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -92,6 +96,8 @@ public:
 
 	template <class T>
 	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);
+
+	void initializeVAOs();
 
 	void initializeGlTextures();
 
@@ -119,12 +125,28 @@ public:
 
 private:
 	// Internal drawing functions for each entity type
+	void drawLayer(const std::vector<Entity>& entities);
+	void drawInstances(EFFECT_ASSET_ID effect_id, GEOMETRY_BUFFER_ID geo_id, TEXTURE_ASSET_ID tex_id, const std::vector<Entity>& entities);
 	void drawTexturedMesh(Entity entity, const mat3& projection);
 	void drawToScreen();
+
+	GLuint useShader(EFFECT_ASSET_ID shader_id);
+	void bindGeometryBuffers(GEOMETRY_BUFFER_ID geo_id);
+	void bindTexture(GLenum texture_unit, TEXTURE_ASSET_ID tex_id);
 
 	// Update Screen shader factors
 	void updateDecelerationFactor(GameState& gameState, ScreenState& screen, float elapsed_ms);
 	void updateAccelerationFactor(GameState& gameState, ScreenState& screen, float elapsed_ms);
+
+	// Helpers for setting up shader parameters
+	void instancedRenderParticles(const std::vector<Entity>& particles, float depth);
+	//void setupTextured(const std::vector<Entity>& entities, GLuint program);
+	//void setupTile(const std::vector<Entity>& entities, GLuint program);
+
+	void setTransform(Entity entity, glm::mat3& transform);
+	void setFColor(Entity entity, vec3& fcolor);
+	void setURange(Entity entity, vec2 &uRange);
+	void setSilhouetteColor(Entity entity, vec4& silhouette_color);
 
 	// Window handle
 	GLFWwindow* window;
@@ -133,6 +155,12 @@ private:
 	GLuint frame_buffer;
 	GLuint off_screen_render_buffer_color;
 	GLuint off_screen_render_buffer_depth;
+
+	// This may not be a good practice; buffers for instanced rendering
+	//GLuint instanced_vbo_static_tiles;
+	GLuint vao_particles;
+	GLuint vao_general;
+	GLuint instanced_vbo_particles;
 
 	Entity screen_state_entity;
 

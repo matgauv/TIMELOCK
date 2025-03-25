@@ -3,6 +3,7 @@
 #include "../../tinyECS/components.hpp"
 #include "../../tinyECS/registry.hpp"
 #include "./physics_utils.h"
+#include <glm/trigonometric.hpp>
 
 
 void compute_platform_verticies(Motion& motion, Entity& e, float& angle_cos, float& angle_sin);

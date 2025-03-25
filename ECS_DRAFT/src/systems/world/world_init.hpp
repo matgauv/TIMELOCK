@@ -5,6 +5,8 @@
 #include "../../common.hpp"
 #include "../../tinyECS/component_container.hpp"
 #include "tinyECS/components.hpp"
+#include "systems/rendering/render_system.hpp"
+
 
 using namespace nlohmann;
 

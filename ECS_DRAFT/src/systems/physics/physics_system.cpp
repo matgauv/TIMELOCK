@@ -5,7 +5,7 @@
 
 #include "../world/world_init.hpp"
 #include "../player/player_system.hpp"
-#include <glm/detail/func_trigonometric.inl>
+#include <iostream>
 
 #include <iostream>
 void PhysicsSystem::init(GLFWwindow* window) {

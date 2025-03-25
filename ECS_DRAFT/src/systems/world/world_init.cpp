@@ -2,10 +2,9 @@
 
 #include <cfloat>
 #include <iostream>
-#include <glm/detail/func_trigonometric.inl>
 
 #include "../../tinyECS/registry.hpp"
-#include "systems/rendering/render_system.hpp"
+
 
 Entity create_player(vec2 position, vec2 scale) {
     Entity entity = Entity();

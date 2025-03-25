@@ -1,5 +1,5 @@
 #include "collision_detection.h"
-#include <glm/detail/func_trigonometric.inl>
+//#include <glm/detail/func_trigonometric.inl>
 
 // caches the vertices for the platform at the current position (in world space)
 // includes the rounded edge mesh

@@ -12,6 +12,7 @@
 #include <SDL_mixer.h>
 
 #include "../rendering/render_system.hpp"
+#include "../particle/particle_system.hpp"
 
 // Container for all our entities and game logic.
 // Individual rendering / updates are deferred to the update() methods.
@@ -36,6 +37,9 @@ public:
 	Entity getGameStateEntity() { return game_state_entity; }
 
 	void setSound(bool play_sound) {this->play_sound = play_sound; }
+
+	// Should likely aggregate these into a utils class
+	static void destroy_breakable_platform(Entity entity);
 
 private:
 	// starts and loads music and sound effects

@@ -492,7 +492,8 @@ enum class TEXTURE_ASSET_ID {
 	PENDULUM_ARM = PENDULUM + 1,
 	GEAR = PENDULUM_ARM + 1,
 	SPIKEBALL = GEAR + 1,
-	TEXTURE_COUNT = SPIKEBALL + 1,
+	BREAKABLE_FRAGMENTS = SPIKEBALL + 1,
+	TEXTURE_COUNT = BREAKABLE_FRAGMENTS + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -503,7 +504,8 @@ enum class EFFECT_ASSET_ID {
   	SCREEN = LINE + 1,
 	HEX = SCREEN + 1,
 	TILE = HEX + 1,
-	EFFECT_COUNT = TILE + 1
+	PARTICLE_INSTANCED = TILE + 1,
+	EFFECT_COUNT = PARTICLE_INSTANCED + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -526,13 +528,15 @@ enum class ANIMATION_ID {
 	SPAWNPOINT_ACTIVATE = PLAYER_RESPAWN + 1,
 	SPAWNPOINT_DEACTIVATE = SPAWNPOINT_ACTIVATE + 1,
 	SPAWNPOINT_REACTIVATE = SPAWNPOINT_DEACTIVATE + 1,
-	ANIMATION_COUNT = SPAWNPOINT_REACTIVATE + 1
+	BREAKABLE_FRAGMENTS = SPAWNPOINT_REACTIVATE + 1,
+	ANIMATION_COUNT = BREAKABLE_FRAGMENTS + 1
 };
 const int animation_count = (int)ANIMATION_ID::ANIMATION_COUNT;
 
 enum class ANIMATION_TYPE_ID {
 	CYCLE = 0,
-	FREEZE_ON_LAST = CYCLE + 1,
+	FREEZE_ON_RANDOM = CYCLE + 1,
+	FREEZE_ON_LAST = FREEZE_ON_RANDOM + 1,
 	ANIMATION_TYPE_COUNT = FREEZE_ON_LAST + 1
 };
 
@@ -566,4 +570,48 @@ struct LevelState {
 	TEXTURE_ASSET_ID ground;
 	bool shouldLoad = false;
 	vec2 dimensions;
+};
+
+
+// Particles
+
+enum class PARTICLE_ID {
+	COLORED = 0,
+	SAMPLED_TEXTURE = COLORED + 1,
+	BREAKABLE_FRAGMENTS = SAMPLED_TEXTURE + 1,
+	PARTICLE_TYPE_COUNT = BREAKABLE_FRAGMENTS + 1
+};
+
+const int particle_type_count = (int)PARTICLE_ID::PARTICLE_TYPE_COUNT;
+
+struct Particle {
+	PARTICLE_ID particle_id;
+
+	// Motion properties are isolated from Physics system to avoid sub-stepping particles
+	vec2 position;
+	float angle;
+	vec2 scale;
+	vec2 velocity;
+	float ang_velocity = 0.0;
+
+	float life;
+	float timer = 0.0;
+	float alpha = 1.0;
+	vec2 fade_in_out = { 0.0, 0.0 };
+	vec2 shrink_in_out = { 0.0, 0.0 };
+
+	// Wind -> constant addition to velocity
+	// Gravity -> contant acceleration
+	// Turbulence -> randomized acceleration
+	float wind_influence = 0.0;
+	float gravity_influence = 0.0;
+	float turbulence_influence = 0.0;
+};
+
+struct ParticleSystemState {
+	vec2 wind_field = { 0.0, 0.0 };
+	vec2 gravity_field = {0.0, GRAVITY};
+
+	float turbulence_strength = 0.0;
+	float turbulence_scale = 1.0;
 };

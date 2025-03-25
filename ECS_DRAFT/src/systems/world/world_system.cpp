@@ -174,6 +174,13 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.harmfuls.remove(entity);
 			}
 		}
+
+		if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED) {
+			tc.target_time_control_factor = DECELERATE_FACTOR;
+		}
+		else if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED) {
+			tc.target_time_control_factor = ACCELERATE_FACTOR;
+		}
 	}
 
 	// Can potentially remove
@@ -268,6 +275,14 @@ void WorldSystem::restart_game() {
 	LevelState& levelState = registry.levelStates.components[0];
 	levelState.shouldLoad = true;
 
+	// Check if particle system initialized
+	if (registry.particleSystemStates.size() >= 1) {
+		ParticleSystemState& particleState = registry.particleSystemStates.components[0];
+		particleState.wind_field = { 0.0f, 0.0f };
+		particleState.gravity_field = { 0.0f, GRAVITY };
+		particleState.turbulence_scale = 1.0f;
+		particleState.turbulence_strength = 0.0f;
+	}
 	// TODO:
 	// Maybe the game state should also keep track of current level and player spawning position?
 
@@ -601,4 +616,36 @@ void WorldSystem::playSoundIfEnabled(Mix_Chunk* sound) {
 	if (this->play_sound) {
 		Mix_PlayChannel(-1, sound, 0);
 	}
+}
+
+void WorldSystem::destroy_breakable_platform(Entity entity) {
+	const Motion& motion = registry.motions.get(entity);
+	const float fragment_size = min(min(motion.scale.x, motion.scale.y), (float)TILE_TO_PIXELS);
+	const int fragment_count = (int)(motion.scale.x * motion.scale.y / (fragment_size * fragment_size)) + 1;
+	const vec2 player_pos = registry.motions.get(registry.players.entities[0]).position;
+
+	// Fragments
+	for (int i = 0; i < fragment_count; i++) {
+		vec2 fragment_position = random_sample_rectangle(motion.position, motion.scale);
+
+		ParticleSystem::spawn_particle(PARTICLE_ID::BREAKABLE_FRAGMENTS,
+			fragment_position,
+			0.0f, vec2{ fragment_size, fragment_size }, 
+			30.0f * safe_normalize(fragment_position - player_pos) + rand_direction() * 15.0f,
+			800.0, 1.0f, { 0.0f, 500.0f });
+	}
+
+	// Random dusts
+	for (int i = 0; i < 60; i++) {
+		vec2 dust_position = random_sample_rectangle(motion.position, motion.scale);
+
+		ParticleSystem::spawn_particle(vec3(0.5f),
+			dust_position,
+			0.0f, vec2{ 2.0, 2.0 },
+			rand_direction() * 30.0f,
+			700.0, 0.8f, { 0.0f, 0.0f }, {0.0f, 200.0f},
+			0.0, 1.0);
+	}
+
+	registry.remove_all_components_of(entity);
 }

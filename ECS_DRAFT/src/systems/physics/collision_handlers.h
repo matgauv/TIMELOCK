@@ -1,9 +1,13 @@
+#pragma once
+
 #include "../../common.hpp"
 #include "../../tinyECS/component_container.hpp"
 #include "../../tinyECS/components.hpp"
 #include "../../tinyECS/registry.hpp"
 #include "./physics_utils.h"
 #include "../player/player_system.hpp"
+#include "../world/world_system.hpp"
+//#include <glm/trigonometric.hpp>
 
 void handle_player_ladder_collision(Entity& player_entity, Entity& ladder_entity, int step_seconds);
 void drop_bolt_when_player_near(float dist_threshold);

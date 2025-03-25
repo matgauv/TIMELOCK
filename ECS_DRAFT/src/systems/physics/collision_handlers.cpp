@@ -103,7 +103,7 @@ void handle_player_breakable_collision(Entity& breakable_entity, float elapsed_m
 		GameState& gameState = registry.gameStates.components[0];
 
 		if (gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED) {
-			registry.remove_all_components_of(breakable_entity);
+			WorldSystem::destroy_breakable_platform(breakable_entity);
 			return;
 		}
 	}
@@ -111,7 +111,7 @@ void handle_player_breakable_collision(Entity& breakable_entity, float elapsed_m
 	breakable.health -= health_decrease_factor * breakable.degrade_speed_per_ms * elapsed_ms;
 
 	if (breakable.health <= 0) {
-		registry.remove_all_components_of(breakable_entity);
+		WorldSystem::destroy_breakable_platform(breakable_entity);
 	}
 }
 

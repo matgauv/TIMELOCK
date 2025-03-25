@@ -2,6 +2,7 @@
 
 // From vertex shader
 in vec2 texcoord;
+in vec2 tile_offset;
 
 // Application data
 uniform sampler2D sampler0;
@@ -9,9 +10,11 @@ uniform sampler2D sampler0;
 // Output color
 layout(location = 0) out  vec4 color;
 
-
+/*
+uniform vec2 tile_pos;
 uniform int tile_id;
-
+uniform vec2 t_offset;
+*/
 void main()
 {
     // tilesheet curently 7x7
@@ -19,11 +22,12 @@ void main()
     const float tile_size = 1.0 / float(tiles_per_row); // each tile occupies 1/7th of the texture
     
     // compute column and row  based on tile_id
-    int col = (tile_id - 1) % tiles_per_row;
-    int row = (tile_id - 1) / tiles_per_row;
+    /*
+   int col = (tile_id - 1) % tiles_per_row;
+   int row = (tile_id - 1) / tiles_per_row;
 
-    vec2 tile_offset = vec2(float(col), float(row)) * tile_size;
-
+   vec2 tile_offset = col_row * tile_size;
+   */
 
     vec2 tile_uv = tile_offset + texcoord * tile_size;
 

@@ -49,6 +49,9 @@ const int TILE_TO_PIXELS = 16;
 // FPS Counter Update Period
 const float FPS_COUNTER_UPDATE_PERIOD_MS = 1000.0f;
 
+// Render Settings
+const int MAX_INSTANCE_COUNT = 2000;
+
 // Spawn Points
 const float SPAWNPOINT_DETECTION_RANGE = 80.0;
 const float SPAWNPOINT_CHARGE_TIME_MS = 500.0;
@@ -183,6 +186,12 @@ const vec2 DOOR_SIZE = vec2 { 2.0f * TILE_TO_PIXELS, 3.0f * TILE_TO_PIXELS };
 // Parsing constants
 const float PARSING_CANNON_Y_POS_DIFF = (0.5f * TILE_TO_PIXELS) - (CANNON_TOWER_SIZE.y / 2);
 const float PARSING_CHECKPOINT_Y_POS_DIFF = (0.5f * TILE_TO_PIXELS) - (SPAWNPOINT_SCALE.y / 2);
+// Particles
+const int PARTICLE_COUNT_LIMIT = 1000;
+const float MAX_CAMERA_DISTANCE = 2000.0;
+const float TURBULENCE_GRID_SIZE = MAX_CAMERA_DISTANCE / 32.0f;
+const float TURBULENCE_EVOLUTION_SPEED = 1e-12f;
+const int TURBULENCE_OCTAVES = 1;
 
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)
@@ -195,4 +204,14 @@ struct Transform {
 };
 
 float lerpToTarget(float current, float target, float time);
+float cubic_interpolation(float source, float target, float t);
+float rand_float(float min = 0.0f, float max = 1.0f);
+vec2 rand_direction();
+vec2 rotate_2D(vec2 v, float angle_rad);
+vec2 angle_to_direction(float angle_rad);
+vec2 safe_normalize(vec2 v);
+
+vec2 random_sample_rectangle(vec2 center, vec2 dimensions, float angle_radians = 0.0);
+vec2 random_sample_ellipse(vec2 center, vec2 dimensions, float angle_radians = 0.0);
+
 bool gl_has_errors();

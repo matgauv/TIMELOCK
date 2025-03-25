@@ -57,6 +57,8 @@ public:
 	ComponentContainer<CannonBarrel> cannonBarrels;
 	ComponentContainer<Door> doors;
 	ComponentContainer<Pipe> pipes;
+	ComponentContainer<Particle> particles;
+	ComponentContainer<ParticleSystemState> particleSystemStates;
 	ComponentContainer<ObstacleSpawner>	obstacleSpawners;
 
 	// constructor that adds all containers for looping over them
@@ -108,6 +110,8 @@ public:
 		registry_list.push_back(&cannonBarrels);
 		registry_list.push_back(&doors);
 		registry_list.push_back(&pipes);
+		registry_list.push_back(&particles);
+		registry_list.push_back(&particleSystemStates);
 		registry_list.push_back(&obstacleSpawners);
 	}
 

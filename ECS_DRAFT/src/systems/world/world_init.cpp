@@ -326,7 +326,7 @@ Entity create_tutorial_text(vec2 position, vec2 size, TEXTURE_ASSET_ID texture_i
 
 
     registry.renderRequests.insert(entity, {
-        texture_id,
+		texture_id,
         EFFECT_ASSET_ID::TEXTURED,
         GEOMETRY_BUFFER_ID::SPRITE
         });

@@ -67,7 +67,10 @@ void handle_player_boss_collision(Entity& player_entity, Entity& boss_entity, Co
 void handle_projectile_collision(Entity& proj_entity, Entity& other_entity) {
 	// If not harmful, don't remove projectile upon player collision
 	if (!registry.harmfuls.has(proj_entity) /* && registry.players.has(other_entity)*/) {
-		return;
+		// Need different approaches for different projectiles
+		if (!registry.screws.has(proj_entity) || registry.players.has(other_entity)) {
+			return;
+		}
 	}
 
 	// Upon colliding with physicsObjects (other projectiles, player) / platforms

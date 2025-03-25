@@ -14,21 +14,6 @@ void PlayerSystem::step(float elapsed_ms) {
 	if (player.timer > 0) {
 		// player timer never influenced by acceleration/deceleration
 		player.timer -= elapsed_ms;
-
-		/*
-		if (player.timer <= 0) {
-			if (player.state == PLAYER_STATE::DEAD) {
-				player_respawn();
-			}
-			else if (player.state == PLAYER_STATE::RESPAWNED) {
-				// TODO: potentially expand this to some function for setting the player ready
-				player.state = PLAYER_STATE::STANDING;
-				player.timer = 0;
-			}
-			else {
-				player.timer = 0;
-			}
-		}*/
 	}
 
 	switch (player.state) {
@@ -68,6 +53,8 @@ void PlayerSystem::step(float elapsed_ms) {
 	// Generate running particles
 	const Entity player_entity = registry.players.entities[0];
 	const vec2 player_velocity = registry.motions.get(player_entity).velocity;
+
+	// TODO: check relative velocity
 	if (JUMPING_VALID_TIME_MS - registry.players.components[0].jumping_valid_time < 25.0f
 		&& abs(player_velocity.x) > DUST_SUMMONING_SPEED) {
 		float speed_factor = min(1.0f, (abs(player_velocity.x) - DUST_SUMMONING_SPEED) / (PLAYER_MAX_WALKING_SPEED - DUST_SUMMONING_SPEED));

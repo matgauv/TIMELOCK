@@ -9,6 +9,7 @@ uniform sampler2D sampler0;
 uniform vec3 fcolor;
 
 uniform vec4 silhouette_color;
+//uniform vec2 texture_scale;
 
 // Output color
 layout(location = 0) out  vec4 color;
@@ -20,13 +21,15 @@ void main()
 
 
 	if (silhouette_color.a > 0.0) {
-		// TODO: need to take sprite width & height into consideration
-		float thickness = 0.075;
+		// number of pixels
+		float thickness = 0.5;
+		vec2 texture_scale = textureSize(sampler0, 0);
 
 		// Test Boundary: if this pixel opaque & close to transparent pixel
 		if (sampled_color.a > 0.95) {
 			float dist_to_edge = min(
-				min(texcoord.x, 1.0 - texcoord.x), min(texcoord.y, 1.0 - texcoord.y)
+				min(texcoord.x, 1.0 - texcoord.x) * texture_scale.x, 
+				min(texcoord.y, 1.0 - texcoord.y) * texture_scale.y
 			);
 
 			if (dist_to_edge <= thickness) {
@@ -38,7 +41,8 @@ void main()
 						if (i == 0 && j == 0) {
 							continue;
 						}
-						vec4 neighbor_color = texture(sampler0, vec2(texcoord.x + i * thickness, texcoord.y + j * thickness));
+						vec4 neighbor_color = texture(sampler0, 
+							vec2(texcoord.x + i * thickness / texture_scale.x, texcoord.y + j * thickness / texture_scale.y));
 
 						if (neighbor_color.a < 0.05) {
 							color = silhouette_color;

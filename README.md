@@ -92,7 +92,7 @@
    <td>
    </td>
    <td>
-<code>https://youtu.be/kL9yFRfgWlU/code>
+<code>https://youtu.be/kL9yFRfgWlU</code>
    </td>
   </tr>
 </table>

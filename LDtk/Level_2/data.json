@@ -24,7 +24,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 2943221,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "Checkpoint",
@@ -35,7 +35,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 2943221,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "Checkpoint",
@@ -46,7 +46,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 2943221,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "Checkpoint",
@@ -57,7 +57,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 2943221,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "Checkpoint",
@@ -68,7 +68,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 2943221,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "Checkpoint",
@@ -79,7 +79,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 2943221,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "Checkpoint",
@@ -90,7 +90,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 2943221,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "Checkpoint",
@@ -101,7 +101,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 2943221,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "Checkpoint",
@@ -112,7 +112,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 2943221,
-				"customFields": {}
+				"customFields" : {}
 			}
 		],
 		"Gear": [
@@ -139,38 +139,38 @@
 				"id": "Gear",
 				"iid": "2a80ebf0-e920-11ef-b20f-35484ef0a553",
 				"layer": "Components",
-				"x": 2848,
+				"x": 2864,
 				"y": 3520,
 				"width": 16,
 				"height": 16,
 				"color": 16777215,
 				"customFields": {
 					"gear_edge": {
-						"cx": 171,
+						"cx": 172,
 						"cy": 220
 					},
 					"fixed": true,
 					"angular_velocity": 0,
-					"initial_angle": 15
+					"initial_angle": 10
 				}
 			},
 			{
 				"id": "Gear",
 				"iid": "2b5ad130-e920-11ef-b20f-d1c6c020eb35",
 				"layer": "Components",
-				"x": 2656,
+				"x": 2672,
 				"y": 3568,
 				"width": 16,
 				"height": 16,
 				"color": 16777215,
 				"customFields": {
 					"gear_edge": {
-						"cx": 159,
+						"cx": 160,
 						"cy": 223
 					},
 					"fixed": true,
 					"angular_velocity": 0,
-					"initial_angle": 0
+					"initial_angle": 15
 				}
 			},
 			{
@@ -215,19 +215,19 @@
 				"id": "Gear",
 				"iid": "ecdb36d0-e920-11ef-90b6-7f7fa4715f28",
 				"layer": "Components",
-				"x": 2464,
+				"x": 2480,
 				"y": 3520,
 				"width": 16,
 				"height": 16,
 				"color": 16777215,
 				"customFields": {
 					"gear_edge": {
-						"cx": 147,
+						"cx": 148,
 						"cy": 220
 					},
 					"fixed": true,
 					"angular_velocity": 0,
-					"initial_angle": 0
+					"initial_angle": 15
 				}
 			},
 			{
@@ -260,7 +260,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 39387,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "Cannon",
@@ -271,7 +271,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 39387,
-				"customFields": {}
+				"customFields" : {}
 			}
 		],
 		"Breakable": [
@@ -696,7 +696,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -707,7 +707,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -718,7 +718,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -729,7 +729,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -740,7 +740,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -751,7 +751,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -762,7 +762,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -773,7 +773,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -784,7 +784,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -795,7 +795,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -806,7 +806,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -817,7 +817,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -828,7 +828,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -839,7 +839,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -850,7 +850,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -861,7 +861,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -872,7 +872,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -883,7 +883,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -894,7 +894,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -905,7 +905,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -916,7 +916,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -927,7 +927,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -938,7 +938,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -949,7 +949,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -960,7 +960,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -971,7 +971,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -982,7 +982,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -993,7 +993,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -1004,7 +1004,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -1015,7 +1015,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -1026,7 +1026,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -1037,7 +1037,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -1048,7 +1048,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -1059,7 +1059,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -1070,7 +1070,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -1081,7 +1081,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -1092,7 +1092,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -1103,7 +1103,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -1114,7 +1114,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -1125,7 +1125,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -1136,7 +1136,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -1147,7 +1147,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -1158,7 +1158,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -1169,7 +1169,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -1180,7 +1180,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "PipePart",
@@ -1191,7 +1191,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 6539085,
-				"customFields": {}
+				"customFields" : {}
 			}
 		],
 		"Spike": [
@@ -2118,21 +2118,6 @@
 					"platform": true,
 					"size": 7,
 					"rounded": true
-				}
-			},
-			{
-				"id": "Platform",
-				"iid": "704d2380-e920-11ef-abe9-43e210a5b9a8",
-				"layer": "Components",
-				"x": 3617,
-				"y": 1852,
-				"width": 16,
-				"height": 16,
-				"color": 12470831,
-				"customFields": {
-					"platform": false,
-					"size": 0,
-					"rounded": false
 				}
 			}
 		],
@@ -5355,7 +5340,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 4073265,
-				"customFields": {}
+				"customFields" : {}
 			}
 		],
 		"Chain": [
@@ -5368,7 +5353,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 16711748,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "Chain",
@@ -5379,7 +5364,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 16711748,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "Chain",
@@ -5390,7 +5375,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 16711748,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "Chain",
@@ -5401,7 +5386,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 16711748,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "Chain",
@@ -5412,7 +5397,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 16711748,
-				"customFields": {}
+				"customFields" : {}
 			},
 			{
 				"id": "Chain",
@@ -5423,7 +5408,7 @@
 				"width": 16,
 				"height": 16,
 				"color": 16711748,
-				"customFields": {}
+				"customFields" : {}
 			}
 		],
 		"Pendulum": [

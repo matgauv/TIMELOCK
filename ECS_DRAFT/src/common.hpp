@@ -142,7 +142,7 @@ const float PLAYER_ATTACK_DAMAGE = 20.0f;
 const float PLATFORM_EDGE_MESH_SIZE = 3.75f;
 
 // APPROX gear measurements
-const float GEAR_CENTER_PX = 86.0f;
+const float GEAR_CENTER_PX = 88.0f;
 const float GEAR_TOOTH_WIDTH_PX = 19.0f;
 const float GEAR_TOOTH_HEIGHT_PX = 29.0f;
 const float GEAR_TOTAL_WIDTH = 124.0f;

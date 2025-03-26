@@ -906,7 +906,8 @@ Entity create_gear(vec2 position, vec2 size, bool fixed, float angular_velocity,
     auto add_tooth = [&](Mesh* tooth_mesh, float angle_rad, bool flip = false) {
         SubMesh tooth = SubMesh{};
         tooth.original_mesh = tooth_mesh;
-        tooth.scale_ratio = {GEAR_TOOTH_WIDTH_RATIO, GEAR_TOOTH_WIDTH_RATIO};
+        tooth.scale_ratio = {GEAR_TOOTH_WIDTH_RATIO, GEAR_TOOTH_HEIGHT_RATIO};
+
 
         tooth.rotation = (flip ? -180.0f : 0.0f);
 

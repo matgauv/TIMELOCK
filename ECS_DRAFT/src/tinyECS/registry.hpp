@@ -54,6 +54,7 @@ public:
 	ComponentContainer<FirstBoss> firstBosses;
 	ComponentContainer<SnoozeButton> snoozeButtons;
 	ComponentContainer<Door> doors;
+	ComponentContainer<Pipe> pipes;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -101,6 +102,7 @@ public:
 		registry_list.push_back(&firstBosses);
 		registry_list.push_back(&snoozeButtons);
 		registry_list.push_back(&doors);
+		registry_list.push_back(&pipes);
 	}
 
 	void clear_all_components() {

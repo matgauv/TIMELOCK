@@ -326,7 +326,7 @@ Entity create_tutorial_text(vec2 position, vec2 size, TEXTURE_ASSET_ID texture_i
 
 
     registry.renderRequests.insert(entity, {
-        texture_id,
+		texture_id,
         EFFECT_ASSET_ID::TEXTURED,
         GEOMETRY_BUFFER_ID::SPRITE
         });
@@ -586,14 +586,29 @@ Entity create_partof(vec2 position, vec2 scale, json tile_id_array, int stride) 
 }
 
 Entity create_breakable_static_platform(vec2 position, vec2 scale, bool should_break_instantly, float degrade_speed, bool is_time_controllable, json& tile_id_array, int stride) {
-    Entity entity = create_static_platform(position, scale, tile_id_array, stride, false);
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0.0, 0.0};
+    motion.angle = 0;
+
+    registry.platforms.emplace(entity);
+
     Breakable& breakable = registry.breakables.emplace(entity);
     breakable.health = 1000.f;
     breakable.degrade_speed_per_ms = degrade_speed;
     breakable.should_break_instantly = should_break_instantly;
 
-    RenderRequest& renderRequest = registry.renderRequests.get(entity);
-    renderRequest.used_texture = is_time_controllable? TEXTURE_ASSET_ID::OBJECT : TEXTURE_ASSET_ID::GREY_CIRCLE;
+    // TODO: need to add a proper texture for this
+    registry.renderRequests.insert(entity, {
+            is_time_controllable? TEXTURE_ASSET_ID::OBJECT : TEXTURE_ASSET_ID::GREY_CIRCLE,
+            EFFECT_ASSET_ID::TEXTURED,
+            GEOMETRY_BUFFER_ID::SPRITE
+    });
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
 
     return entity;
 }
@@ -651,6 +666,60 @@ Entity create_door(vec2 position, bool open, json& tile_id_array, int stride) {
             registry.layers.insert(tile_entity, { LAYER_ID::MIDGROUND });
         }
     }
+
+    return entity;
+}
+
+Entity create_pipe_head(vec2 position, vec2 scale, std::string direction, json& tile_id_array, int stride) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, 0};
+    motion.angle = 0;
+
+    registry.platforms.emplace(entity);
+
+    Pipe& pipe = registry.pipes.emplace(entity);
+    pipe.direction = direction;
+
+    int tile_arr_index = get_tile_index(position.x, position.y, 0, 0, stride);
+
+    Entity tile_entity = Entity();
+
+    Tile& tile = registry.tiles.emplace(tile_entity);
+    tile.parent_id = entity.id();
+    tile.offset = {0, 0};
+    tile.id = tile_id_array[tile_arr_index];
+
+    registry.renderRequests.insert(tile_entity, {
+                TEXTURE_ASSET_ID::TILE,
+                EFFECT_ASSET_ID::TILE,
+                GEOMETRY_BUFFER_ID::SPRITE
+            });
+
+    registry.layers.insert(tile_entity, { LAYER_ID::MIDGROUND });
+
+    return entity;
+}
+
+Entity create_chain(vec2 position, vec2 scale) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, 0};
+    motion.angle = 0;
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::CHAIN,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+
+    registry.layers.insert(entity, { LAYER_ID::FOREGROUND });
 
     return entity;
 }

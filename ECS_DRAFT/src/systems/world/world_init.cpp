@@ -393,7 +393,6 @@ Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity, boo
     object.drag_coefficient = 0.01;
 
     registry.bolts.emplace(entity);
-    registry.projectiles.emplace(entity);
 
     if (harmful) {
        TimeControllable& tc = registry.timeControllables.emplace(entity);

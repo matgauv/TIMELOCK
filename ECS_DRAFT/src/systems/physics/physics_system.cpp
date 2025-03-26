@@ -210,11 +210,11 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			PlayerSystem::kill();
 		}
 
-		// projectiles break on spikes
-		if (registry.projectiles.has(one) && registry.spikes.has(other)) {
+	//		bolts break on spikes
+		if (registry.bolts.has(one) && registry.spikes.has(other)) {
 			registry.remove_all_components_of(one);
 		}
-		if (registry.projectiles.has(other) && registry.spikes.has(one)) {
+		if (registry.bolts.has(other) && registry.spikes.has(one)) {
 			registry.remove_all_components_of(other);
 		}
 

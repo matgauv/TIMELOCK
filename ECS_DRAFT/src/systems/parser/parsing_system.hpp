@@ -29,10 +29,12 @@ private:
         {"Level_3", TEXTURE_ASSET_ID::BOSS_LEVEL_ONE_GROUND}
     };
 
+    json reparsable_entities = {};
+
     bool parse_json();
     void init_level_background();
     void init_player_and_camera();
-    void init_level_entities();
+    void init_level_entities(json entities);
     void init_platforms(json platforms, bool moving);
     void init_boundaries(json boundaries);
     void init_partof(json partof);

@@ -117,6 +117,9 @@ void PlayerSystem::kill() {
 }
 
 void PlayerSystem::player_respawn() {
+	LevelState& ls = registry.levelStates.components[0];
+	ls.shouldReparseEntities = true;
+
 	Player& player = registry.players.components[0];
 	player.timer = DEAD_REVIVE_TIME_MS;
 	player.state = PLAYER_STATE::RESPAWNED;

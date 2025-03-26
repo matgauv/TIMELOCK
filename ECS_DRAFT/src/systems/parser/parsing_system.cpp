@@ -10,6 +10,13 @@ void LevelParsingSystem::init(GLFWwindow *window) {
 
 void LevelParsingSystem::step(float elapsed_ms) {
     LevelState& level_state = registry.levelStates.components[0];
+
+    if (level_state.shouldReparseEntities) {
+        init_level_entities(reparsable_entities);
+        level_state.shouldReparseEntities = false;
+        return;
+    }
+
     if (!level_state.shouldLoad) return;
 
     // clear current level (remove all entities)
@@ -30,6 +37,9 @@ void LevelParsingSystem::step(float elapsed_ms) {
     json next_levels = json_data["neighbourLevels"];
     if (!next_levels.empty()) {
         level_state.next_level_folder_name = next_levels[0];
+    } else {
+        cout << "Next level name not present in JSON" << endl;
+        level_state.next_level_folder_name = level_state.curr_level_folder_name;
     }
 
     level_state.ground = level_ground_map.at(level_state.curr_level_folder_name);
@@ -39,7 +49,7 @@ void LevelParsingSystem::step(float elapsed_ms) {
 
     level_state.dimensions = vec2{ json_data["width"], json_data["height"] };
     init_level_background();
-    init_level_entities();
+    init_level_entities(json_data["entities"]);
     init_player_and_camera();
 
 
@@ -98,9 +108,7 @@ void LevelParsingSystem::init_player_and_camera() {
     }
 }
 
-void LevelParsingSystem::init_level_entities() {
-    json entities = json_data["entities"];
-
+void LevelParsingSystem::init_level_entities(json entities) {
     // TODO: This is really ugly -- can prob clean this up with a map or smt.
     for (auto& [entity_type, entity_list] : entities.items()) {
         if (entity_type == "Platform") {
@@ -112,6 +120,7 @@ void LevelParsingSystem::init_level_entities() {
         } else if (entity_type == "Door") {
             init_doors(entity_list);
         } else if (entity_type == "Projectile") {
+            reparsable_entities["Projectile"] = entity_list;
             init_projectiles(entity_list);
         } else if (entity_type == "Pipe") {
             init_pipes(entity_list);
@@ -128,6 +137,7 @@ void LevelParsingSystem::init_level_entities() {
         } else if (entity_type == "Checkpoint") {
             init_checkpoints(entity_list);
         } else if (entity_type == "Breakable") {
+            reparsable_entities["Breakable"] = entity_list;
             init_breakable_platforms(entity_list);
         } else if (entity_type == "Chain") {
             init_chains(entity_list);
@@ -153,6 +163,11 @@ void LevelParsingSystem::init_chains(json chains) {
 }
 
 void LevelParsingSystem::init_breakable_platforms(json breakables) {
+    // clear all projectiles (for reparsing)
+    while (registry.breakables.entities.size() > 0) {
+        registry.remove_all_components_of(registry.breakables.entities.back());
+    }
+
     for (json& breakable : breakables) {
         vec2 size;
 
@@ -352,6 +367,11 @@ void LevelParsingSystem::init_gears(json gears) {
 }
 
 void LevelParsingSystem::init_projectiles(json projectiles) {
+    // clear all bolts (for reparsing)
+    while (registry.bolts.entities.size() > 0) {
+        registry.remove_all_components_of(registry.bolts.entities.back());
+    }
+
     for (json projectile: projectiles) {
         vec2 position = vec2{projectile["x"], projectile["y"]};
         vec2 velocity = {0, 0};

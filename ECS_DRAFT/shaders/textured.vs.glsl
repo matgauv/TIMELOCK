@@ -4,8 +4,11 @@
 in vec3 in_position;
 in vec2 in_texcoord;
 
+// Instanced properties
+
 // Passed to fragment shader
 out vec2 texcoord;
+
 
 // Application data
 uniform mat3 transform;

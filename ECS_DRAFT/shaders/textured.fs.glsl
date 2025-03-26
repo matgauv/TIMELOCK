@@ -3,6 +3,7 @@
 // From vertex shader
 in vec2 texcoord;
 
+
 // Application data
 uniform sampler2D sampler0;
 uniform vec3 fcolor;

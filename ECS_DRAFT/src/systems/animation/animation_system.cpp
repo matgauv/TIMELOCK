@@ -33,7 +33,9 @@ void AnimationSystem::step(float elapsed_ms) {
 		// Update Render Request
 		if (renderRequest_registry.has(entity)) {
 			RenderRequest& renderRequest = renderRequest_registry.get(entity);
-			renderRequest.used_texture = animationConfig.sprite_texture;
+			if (renderRequest.used_texture != animationConfig.sprite_texture) {
+				renderRequest.used_texture = animationConfig.sprite_texture;
+			}
 
 			// Calculate Frame
 			int frame = min((int)(animateRequest.timer / animationConfig.ms_per_frame), animationConfig.frame_count - 1);
@@ -55,6 +57,12 @@ void AnimationSystem::updateTimer(AnimateRequest& animateRequest, const Animatio
 	else if (animationConfig.animation_type == ANIMATION_TYPE_ID::FREEZE_ON_LAST) {
 		if (animateRequest.timer + elapsed_ms <= animationConfig.duration_ms) {
 			animateRequest.timer += elapsed_ms;
+		}
+	}
+	else if (animationConfig.animation_type == ANIMATION_TYPE_ID::FREEZE_ON_RANDOM) {
+		// Uninitialized
+		if (animateRequest.timer <= 0.0) {
+			animateRequest.timer = rand_float(0.1f, animationConfig.duration_ms);
 		}
 	}
 }

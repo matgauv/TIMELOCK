@@ -12,6 +12,7 @@
 #include <SDL_mixer.h>
 
 #include "../rendering/render_system.hpp"
+#include "../particle/particle_system.hpp"
 
 // Container for all our entities and game logic.
 // Individual rendering / updates are deferred to the update() methods.
@@ -35,11 +36,10 @@ public:
 	// Getter for the GameState entity
 	Entity getGameStateEntity() { return game_state_entity; }
 
-	void setSound(bool play_sound) { this->play_sound = play_sound; }
+	void setSound(bool play_sound) {this->play_sound = play_sound; }
 
-	void setFreeFly(bool fly) {
-		this->fly = fly;
-	}
+	// Should likely aggregate these into a utils class
+	static void destroy_breakable_platform(Entity entity);
 
 private:
 	// starts and loads music and sound effects
@@ -94,10 +94,9 @@ private:
 	Mix_Chunk* speed_up_effect;
 	std::vector<Mix_Chunk*> sound_effects;
 
-	bool play_sound = true;
-	bool fly = false;
-
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
+
+	bool play_sound;
 };

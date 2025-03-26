@@ -1,6 +1,4 @@
-
 #include <SDL.h>
-#include <glm/trigonometric.hpp>
 #include <iostream>
 
 // internal
@@ -20,9 +18,21 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 	if (!registry.tiles.has(entity)) {
 		Motion& motion = registry.motions.get(entity);
-		transform.translate(motion.position);
-		transform.rotate(radians(motion.angle));
-		transform.scale(motion.scale);
+
+		// if pivot point exists, translate to offset, rotate, translate back, scale (hack for pendulums)
+		if (registry.pivotPoints.has(entity)) {
+			vec2 pivot_offset = registry.pivotPoints.get(entity).offset;
+
+			transform.translate(motion.position);
+			transform.translate(pivot_offset);
+			transform.rotate(radians(motion.angle));
+			transform.translate(-pivot_offset);
+			transform.scale(motion.scale);
+		} else {
+			transform.translate(motion.position);
+			transform.rotate(radians(motion.angle));
+			transform.scale(motion.scale);
+		}
 	}
 
 	assert(registry.renderRequests.has(entity));
@@ -105,28 +115,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
 
-
-
-		GLint color_uloc = glGetUniformLocation(program, "silhouette_color");
-		vec4 color = vec4(-1.0f);
-		const GameState& gameState = registry.gameStates.components[0];
-
-		if (registry.timeControllables.has(entity)) {
-			const TimeControllable& tc = registry.timeControllables.get(entity);
-			if (
-				(gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED && tc.can_become_harmless) ||
-				(gameState.game_time_control_state != TIME_CONTROL_STATE::ACCELERATED && tc.can_become_harmful)) {
-				// Green silhouette if (become harmless + decel) OR (become harmful + !accel)
-				color = vec4(0.0f, 1.0f, 0.0f, 1.0f);
-			}
-			else if (
-				(gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED && tc.can_become_harmful) ||
-				(gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED && tc.can_become_harmless)) {
-				// Red silhouette if (become harmful + accel) OR (become harmless + !decel)
-				color = vec4(1.0f, 0.0f, 0.0f, 1.0f);
-			}
-		}
-		glUniform4fv(color_uloc, 1, (float*)&color);
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::HEX)
@@ -467,7 +455,7 @@ void RenderSystem::draw()
 
 	// First render to the custom framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
-	gl_has_errors();
+	//gl_has_errors();
 	
 	// clear backbuffer
 	glViewport(0, 0, w, h);
@@ -483,7 +471,7 @@ void RenderSystem::draw()
 	glDisable(GL_DEPTH_TEST); // native OpenGL does not work with a depth buffer
 							  // and alpha blending, one would have to sort
 							  // sprites back to front
-	gl_has_errors();
+	//gl_has_errors();
 
 
 	// handle meshes
@@ -507,9 +495,16 @@ void RenderSystem::draw()
 	// Assort rendering tasks according to layers
 	
 	std::vector<Entity> parallaxbackgrounds;
+	//std::vector<Entity> parallaxbackgrounds_particles;
+
 	std::vector<Entity> backgrounds;
+	//std::vector<Entity> backgrounds_particles;
+
 	std::vector<Entity> midgrounds;
+	//std::vector<Entity> midgrounds_particles;
+
 	std::vector<Entity> foregrounds;
+	//std::vector<Entity> foregrounds_particles;
 
 	for (Entity entity : registry.layers.entities)
 	{
@@ -538,12 +533,10 @@ void RenderSystem::draw()
 					continue;
 				}
 				// TODO: may need to adjust rendering order for spawn points and interactive objects as well?
-				if (registry.spawnPoints.has(entity)) {
-					midgrounds.insert(midgrounds.begin(), entity);
+				if (registry.players.entities[0].id() == entity.id()) {
+					continue;
 				}
-				else {
-					midgrounds.push_back(entity);
-				}
+				midgrounds.push_back(entity);
 				break;
 			case LAYER_ID::PARALLAXBACKGROUND:
 				parallaxbackgrounds.push_back(entity);
@@ -557,10 +550,12 @@ void RenderSystem::draw()
 	}
 	midgrounds.push_back(registry.players.entities[0]);
 
+	glBindVertexArray(vao_general);
 	for (Entity entity : parallaxbackgrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
 	}
+
 
 	for (Entity entity : backgrounds)
 	{
@@ -568,35 +563,34 @@ void RenderSystem::draw()
 	}
 
 
+	midgrounds.push_back(registry.players.entities[0]);
 	for (Entity entity : midgrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
 	}
+	glBindVertexArray(0);
 
+	glBindVertexArray(vao_particles);
+	// Potentially aim for multi-layers
+	instancedRenderParticles(registry.particles.entities, MIDGROUND_DEPTH);
+
+	glBindVertexArray(0);
+
+	glBindVertexArray(vao_general);
 	for (Entity entity : foregrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
 	}
 
-	/*
-	for (Entity entity : registry.renderRequests.entities)
-	{
-		// filter to entities that have a motion component
-		if (registry.motions.has(entity)) {
-			// Note, its not very efficient to access elements indirectly via the entity
-			// albeit iterating through all Sprites in sequence. A good point to optimize
-			drawTexturedMesh(entity, this->projection_matrix );
-		}
-	}
-	*/
 
 	// draw framebuffer to screen
 	drawToScreen();
 
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
-	gl_has_errors();
+	//gl_has_errors();
 }
+
 
 mat3 RenderSystem::createProjectionMatrix()
 {

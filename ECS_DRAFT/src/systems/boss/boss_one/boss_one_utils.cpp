@@ -59,6 +59,8 @@ Entity create_snooze_button(vec2 boss_position) {
     // snooze button position should be based on the clock's position
     motion.position = boss_position - vec2(0.f, BOSS_ONE_BB_HEIGHT_PX / 2 - 6.f); // TODO: fine tune this
     
+    registry.nonPhysicsColliders.emplace(entity);
+
     // render request
     registry.renderRequests.insert(
 		entity,

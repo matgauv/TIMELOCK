@@ -28,6 +28,19 @@ void RenderSystem::init(GLFWwindow* window_arg)
 	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
 	gl_has_errors();
 
+	/*
+	glGenBuffers(1, &instanced_vbo_static_tiles);
+	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_static_tiles);
+	glBufferData(GL_ARRAY_BUFFER, MAX_INSTANCE_COUNT * (sizeof(float) * 20), nullptr, GL_STREAM_DRAW);
+	gl_has_errors();
+	*/
+
+	glGenBuffers(1, &instanced_vbo_particles);
+	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_particles);
+	//glBufferData(GL_ARRAY_BUFFER, MAX_INSTANCE_COUNT * (sizeof(float) * 20), nullptr, GL_STREAM_DRAW);
+	gl_has_errors();
+
+
 	// For some high DPI displays (ex. Retina Display on Macbooks)
 	// https://stackoverflow.com/questions/36672935/why-retina-screen-coordinate-value-is-twice-the-value-of-pixel-value
 	int frame_buffer_width_px, frame_buffer_height_px;
@@ -47,15 +60,24 @@ void RenderSystem::init(GLFWwindow* window_arg)
 
 	// We are not really using VAO's but without at least one bound we will crash in
 	// some systems.
-	GLuint vao;
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
+	glGenVertexArrays(1, &vao_particles);
+	glBindVertexArray(vao_particles);
+	gl_has_errors();
+
+	glGenVertexArrays(1, &vao_general);
+	glBindVertexArray(vao_general);
 	gl_has_errors();
 
 	initScreenTexture();
     initializeGlTextures();
 	initializeGlEffects();
+	// initializeVAOs();
 	initializeGlGeometryBuffers();
+}
+
+void RenderSystem::initializeVAOs() {
+	//glGenVertexArrays(effect_count, &vaos[0]);
+	gl_has_errors();
 }
 
 void RenderSystem::initializeGlTextures()
@@ -238,6 +260,8 @@ RenderSystem::~RenderSystem()
 	// but it's polite to clean after yourself.
 	glDeleteBuffers((GLsizei)vertex_buffers.size(), vertex_buffers.data());
 	glDeleteBuffers((GLsizei)index_buffers.size(), index_buffers.data());
+	//glDeleteBuffers(1, &instanced_vbo_static_tiles);
+	glDeleteBuffers(1, &instanced_vbo_particles);
 	glDeleteTextures((GLsizei)texture_gl_handles.size(), texture_gl_handles.data());
 	glDeleteTextures(1, &off_screen_render_buffer_color);
 	glDeleteRenderbuffers(1, &off_screen_render_buffer_depth);

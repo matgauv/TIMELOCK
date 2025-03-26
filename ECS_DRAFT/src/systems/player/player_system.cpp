@@ -1,4 +1,5 @@
 #include "player_system.hpp"
+#include "../particle/particle_system.hpp"
 #include <iostream>
 
 void PlayerSystem::init(GLFWwindow* window) {
@@ -34,6 +35,22 @@ void PlayerSystem::step(float elapsed_ms) {
 
 		if (player.jumping_valid_time <= 0) {
 			player.jumping_valid_time = -1.0f;
+		}
+	}
+
+	// Generate running particles
+	const Entity player_entity = registry.players.entities[0];
+	const vec2 player_velocity = registry.motions.get(player_entity).velocity;
+	if (registry.players.components[0].jumping_valid_time > 0.9f * JUMPING_VALID_TIME_MS 
+		&& abs(player_velocity.x) > PLAYER_MAX_WALKING_SPEED * 0.3f) {
+		float speed_factor = min(1.0f, (abs(player_velocity.x) - PLAYER_MAX_WALKING_SPEED * 0.3f) / (PLAYER_MAX_WALKING_SPEED * 0.7f));
+		float rand_threshold = lerpToTarget(speed_factor, 0.6f, 0.1f);
+
+		float rand_factor = rand_float();
+		if (rand_factor > rand_threshold) {
+			ParticleSystem::spawn_particle(vec3{ 0.35f, 0.35f, 0.35f },
+				random_sample_rectangle(registry.motions.get(player_entity).position + vec2{0.0f, PLAYER_SCALE.y * 0.35f}, { PLAYER_SCALE.x, 2.0f }),
+				0.0f, vec2{ 2.f, 2.0f } * (1.0f + 0.25f * rand_factor), rand_direction() * 20.0f, 1000.0, 0.8f, {50.0f, 200.0f});
 		}
 	}
 
@@ -90,12 +107,19 @@ void PlayerSystem::kill() {
 		registry.onGrounds.remove(e);
 	}
 
+	if (registry.climbing.has(e)) {
+		registry.climbing.remove(e);
+	}
+
 	AnimateRequest& animateRequest = registry.animateRequests.get(e);
 	animateRequest.timer = 0.0;
 	animateRequest.used_animation = ANIMATION_ID::PLAYER_KILL;
 }
 
 void PlayerSystem::player_respawn() {
+	LevelState& ls = registry.levelStates.components[0];
+	ls.shouldReparseEntities = true;
+
 	Player& player = registry.players.components[0];
 	player.timer = DEAD_REVIVE_TIME_MS;
 	player.state = PLAYER_STATE::RESPAWNED;

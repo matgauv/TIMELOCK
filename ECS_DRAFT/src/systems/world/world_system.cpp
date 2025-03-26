@@ -20,16 +20,25 @@ WorldSystem::WorldSystem()
 WorldSystem::~WorldSystem() {
 
 	if (this->play_sound) {
+		Mix_HaltMusic();
+		Mix_HaltChannel(-1);
 		// Destroy music components
 		if (background_music != nullptr)
 			Mix_FreeMusic(background_music);
+		background_music = nullptr;
 
 		for (Mix_Chunk* effect : sound_effects) {
 			if (effect != nullptr)
 				Mix_FreeChunk(effect);
+			effect = nullptr;
 		}
 
+		sound_effects.clear();
+
 		Mix_CloseAudio();
+		Mix_Quit();
+		SDL_QuitSubSystem(SDL_INIT_AUDIO);
+		SDL_Quit();
 	}
 
 	// Destroy all created components
@@ -56,6 +65,8 @@ void WorldSystem::init(GLFWwindow* window) {
 	levelState.curr_level_folder_name = "Level_0";
 	levelState.shouldLoad = true;
 
+	Entity flag_entity = Entity();
+	registry.flags.emplace(flag_entity);
 
 	if (this->play_sound && !start_and_load_sounds()) {
 		std::cerr << "ERROR: Failed to start or load sounds." << std::endl;
@@ -172,6 +183,13 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.harmfuls.remove(entity);
 			}
 		}
+
+		if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED) {
+			tc.target_time_control_factor = DECELERATE_FACTOR;
+		}
+		else if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED) {
+			tc.target_time_control_factor = ACCELERATE_FACTOR;
+		}
 	}
 
 	// Can potentially remove
@@ -212,14 +230,12 @@ void WorldSystem::check_scene_transition() {
 // M1 interpolation implementation
 void WorldSystem::lerpTimeState(float start, float target, Motion& motion, std::chrono::time_point<std::chrono::high_resolution_clock> effectStartTime) {
 
-	float currentTime = std::chrono::duration<float, std::milli>(
-			std::chrono::high_resolution_clock::now().time_since_epoch()
-		).count();
-	float startTime = std::chrono::duration<float, std::milli>(
-			effectStartTime.time_since_epoch()
-		).count();
+	auto now = std::chrono::high_resolution_clock::now();
+	auto duration = now - effectStartTime;
 
-	float time = (currentTime - startTime) / ACCELERATION_EMERGE_MS;
+	float diff_ms = std::chrono::duration<float, std::milli>(duration).count();
+
+	float time = diff_ms / ACCELERATION_EMERGE_MS;
 
 	if (time > 1.0) time = 1.0;
 
@@ -266,6 +282,14 @@ void WorldSystem::restart_game() {
 	LevelState& levelState = registry.levelStates.components[0];
 	levelState.shouldLoad = true;
 
+	// Check if particle system initialized
+	if (registry.particleSystemStates.size() >= 1) {
+		ParticleSystemState& particleState = registry.particleSystemStates.components[0];
+		particleState.wind_field = { 0.0f, 0.0f };
+		particleState.gravity_field = { 0.0f, GRAVITY };
+		particleState.turbulence_scale = 1.0f;
+		particleState.turbulence_strength = 0.0f;
+	}
 	// TODO:
 	// Maybe the game state should also keep track of current level and player spawning position?
 
@@ -284,6 +308,7 @@ bool WorldSystem::start_and_load_sounds() {
 
 	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
 		fprintf(stderr, "Failed to open audio device");
+		SDL_QuitSubSystem(SDL_INIT_AUDIO);
 		return false;
 	}
 
@@ -296,6 +321,18 @@ bool WorldSystem::start_and_load_sounds() {
 
 	if  (background_music == nullptr || slow_down_effect == nullptr || speed_up_effect == nullptr) {
 		fprintf(stderr, "Failed to load sounds -- make sure the data directory is present");
+		if (background_music) Mix_FreeMusic(background_music);
+		if (slow_down_effect) Mix_FreeChunk(slow_down_effect);
+		if (speed_up_effect) Mix_FreeChunk(speed_up_effect);
+
+		background_music = nullptr;
+		slow_down_effect = nullptr;
+		speed_up_effect = nullptr;
+
+		sound_effects.clear();
+
+		Mix_CloseAudio();
+		SDL_QuitSubSystem(SDL_INIT_AUDIO);
 		return false;
 	}
 
@@ -415,7 +452,6 @@ void WorldSystem::player_jump() {
 
 // on key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
-
 	if (registry.players.size() == 0) { return; } // level not loaded. TODO: set flag in the registry once level loading is done
 
 
@@ -429,7 +465,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
 
-        restart_game();
+		restart_game();
 		return;
 	}
 
@@ -540,8 +576,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		levelState.shouldLoad = true;
 	}
 
+	FlagState& flag_state = registry.flags.components[0];
+
 	// Fly controls (run ./TIMELOCK --fly):
-	if (key == GLFW_KEY_RIGHT && fly) {
+	if (key == GLFW_KEY_RIGHT && flag_state.fly) {
 		if (action == GLFW_PRESS) {
 			player_walking(true, false);
 		} else if (action == GLFW_RELEASE) {
@@ -549,7 +587,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (key == GLFW_KEY_LEFT && fly) {
+	if (key == GLFW_KEY_LEFT && flag_state.fly) {
 		if (action == GLFW_PRESS) {
 			player_walking(true, true);
 		} else if (action == GLFW_RELEASE) {
@@ -557,22 +595,33 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (key == GLFW_KEY_DOWN && fly) {
+	if (key == GLFW_KEY_DOWN && flag_state.fly) {
 		Motion& motion = registry.motions.get(registry.players.entities[0]);
 		if (action == GLFW_PRESS) {
-			motion.velocity.y = JUMP_VELOCITY;
+			motion.velocity.y = JUMP_VELOCITY * 5.0f;
 		} else if (action == GLFW_RELEASE) {
 			motion.velocity.y = 0;
 		}
 	}
 
-	if (key == GLFW_KEY_UP && fly) {
+	if (key == GLFW_KEY_UP && flag_state.fly) {
 		Motion& motion = registry.motions.get(registry.players.entities[0]);
 		if (action == GLFW_PRESS) {
-			motion.velocity.y = -JUMP_VELOCITY;
+			motion.velocity.y = -JUMP_VELOCITY * 5.0f;
 		} else if (action == GLFW_RELEASE) {
 			motion.velocity.y = 0;
 		}
+	}
+
+	// keybinds for toggling debug controls
+	if (key == GLFW_KEY_N && action == GLFW_PRESS) {
+		flag_state.no_clip = !flag_state.no_clip;
+		std::cout << "No-clip set to: " << flag_state.no_clip << std::endl;
+	}
+
+	if (key == GLFW_KEY_M && action == GLFW_PRESS) {
+		flag_state.fly = !flag_state.fly;
+		std::cout << "Fly set to: " << flag_state.fly << std::endl;
 	}
 }
 
@@ -594,4 +643,36 @@ void WorldSystem::playSoundIfEnabled(Mix_Chunk* sound) {
 	if (this->play_sound) {
 		Mix_PlayChannel(-1, sound, 0);
 	}
+}
+
+void WorldSystem::destroy_breakable_platform(Entity entity) {
+	const Motion& motion = registry.motions.get(entity);
+	const float fragment_size = min(min(motion.scale.x, motion.scale.y), (float)TILE_TO_PIXELS);
+	const int fragment_count = (int)(motion.scale.x * motion.scale.y / (fragment_size * fragment_size)) + 1;
+	const vec2 player_pos = registry.motions.get(registry.players.entities[0]).position;
+
+	// Fragments
+	for (int i = 0; i < fragment_count; i++) {
+		vec2 fragment_position = random_sample_rectangle(motion.position, motion.scale);
+
+		ParticleSystem::spawn_particle(PARTICLE_ID::BREAKABLE_FRAGMENTS,
+			fragment_position,
+			0.0f, vec2{ fragment_size, fragment_size }, 
+			30.0f * safe_normalize(fragment_position - player_pos) + rand_direction() * 15.0f,
+			800.0, 1.0f, { 0.0f, 500.0f });
+	}
+
+	// Random dusts
+	for (int i = 0; i < 60; i++) {
+		vec2 dust_position = random_sample_rectangle(motion.position, motion.scale);
+
+		ParticleSystem::spawn_particle(vec3(0.5f),
+			dust_position,
+			0.0f, vec2{ 2.0, 2.0 },
+			rand_direction() * 30.0f,
+			700.0, 0.8f, { 0.0f, 0.0f }, {0.0f, 200.0f},
+			0.0, 1.0);
+	}
+
+	registry.remove_all_components_of(entity);
 }

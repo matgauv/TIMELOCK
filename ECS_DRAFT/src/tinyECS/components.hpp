@@ -40,6 +40,11 @@ enum class PLAYER_STATE {
 	DEAD = ALIVE + 1
 };
 
+struct FlagState {
+	bool fly = false;
+	bool no_clip = false;
+};
+
 enum class BOSS_STATE {
 	BOSS1_IDLE_STATE = 0,
 	BOSS1_MOVE_STATE = BOSS1_IDLE_STATE + 1,
@@ -136,6 +141,19 @@ struct Boundary
 {
 };
 
+// Swinging Pendulum
+struct Pendulum {
+	vec2 pivot_point;
+	float length;
+	float current_angle;
+	float angular_velocity;
+	float damping = 0.0f; // optional, 0-1
+};
+
+struct PendulumRod {
+	unsigned int bob_id;
+};
+
 // Path for moving sprite
 struct Path {
 	vec2 start;
@@ -167,10 +185,59 @@ struct Camera
 // use for physics based objects
 struct PhysicsObject
 {
-	float mass;
-	float friction = STATIC_FRICTION;
-	float drag_coefficient = 0.2f;
+	// TOGGLES (true means property will be applied)
 	bool apply_gravity = true;
+	bool apply_rotation = false;
+	bool apply_air_resistance = true;
+	bool apply_friction = true;
+
+	// Properties to set:
+
+	// general guide is 20-100ish, though you can go beyond. Extremely high or low values can lead to unexpected behaviour.
+	// mass = 0 means the object is FIXED and will not move in response to a collision. (though any set velocity in the motion will still be applied)
+	float mass = 0.1f;
+
+	// friction will resist the object's motion on collision. Should be set in the 0-1 range.
+	float friction = STATIC_FRICTION;
+
+	// bounce controls how much energy is lost due to a collision.
+	//   - 0.0 means 100% energy is lost (no bounce)
+	//   - 1.0 means no energy is lost (bonce forever)
+	// NOTE: in a collision the minmum "bounce" between the two colliding objects will be used for calculation
+	float bounce = PHYSICS_OBJECT_BOUNCE;
+
+	// controls how air resistance slows down the object. Should eb in the 0-1 range. (think of as air friction)
+	// NOTE: the 'effective area' is also considered in air resistance calculations, so larger objects will slow down more.
+	float drag_coefficient = 0.2f;
+
+	// the amount of energy lost when rotating. Set this to 0 to have an object rotate forever!
+	float angular_damping = 0.8f;
+
+	// INTERNAL PROPERTIES
+	// these are just used to keep track of information, no need to set manually as they will be calculated automatically!
+	float moment_of_inertia = 0.0f;
+	float angular_velocity = 0.0f;
+};
+
+
+struct NonPhysicsCollider {
+
+};
+
+struct RotatingGear {
+	float angular_velocity = 0.0f;
+};
+
+struct ObstacleSpawner {
+	vec2 velocity;
+	vec2 start_position;
+	vec2 end_position;
+	vec2 size;
+	unsigned int obstacle_id = 0;
+	std::string obstacle_type;
+
+	float time_left_ms = 10000.0f;
+	float lifetime_ms = 10000.0f;
 };
 
 
@@ -185,6 +252,10 @@ struct Motion {
 	std::vector<vec2> cached_vertices;
 	std::vector<vec2> cached_axes;
 	bool cache_invalidated = true;
+};
+
+struct PivotPoint {
+	vec2 offset = { 0, 0 };
 };
 
 // This is added to a player who is walking.
@@ -285,6 +356,22 @@ struct Mesh
 	std::vector<uint16_t> vertex_indices;
 };
 
+struct SubMesh {
+	Mesh* original_mesh;
+	std::vector<vec2> cached_vertices;
+	std::vector<vec2> cached_axes;
+	vec2 offset;
+	float rotation = 0.0f;
+	vec2 scale_ratio = {1.0f, 1.0f};
+	vec2 world_pos = { 0, 0 };
+	bool cache_invalidated = true;
+};
+
+struct CompositeMesh {
+	std::vector<SubMesh> meshes;
+};
+
+
 // Marks an entity as responsive to time control
 // will accelerate/decelerate when time control is used
 struct TimeControllable
@@ -314,11 +401,6 @@ struct Text
 	Entity textEntity;
 };
 
-// A struct indicating that an entity is a swinging pendulum
-struct Pendulum
-{
-
-};
 
 // A struct indicating that an entity is a clock gear
 struct Gear
@@ -485,7 +567,12 @@ enum class TEXTURE_ASSET_ID {
 	DECEL = WASD + 1,
 	DECEL2 = DECEL + 1,
 	ACCEL = DECEL2 + 1,
-	BOSS_ONE_IDLE_LEFT = ACCEL + 1,
+	PENDULUM = ACCEL + 1,
+	PENDULUM_ARM = PENDULUM + 1,
+	GEAR = PENDULUM_ARM + 1,
+	SPIKEBALL = GEAR + 1,
+	BREAKABLE_FRAGMENTS = SPIKEBALL + 1,
+	BOSS_ONE_IDLE_LEFT = BREAKABLE_FRAGMENTS + 1,
 	BOSS_ONE_IDEL_RIGHT = BOSS_ONE_IDLE_LEFT + 1,
 	BOSS_ONE_EXHAUSTED = BOSS_ONE_IDEL_RIGHT + 1,
 	BOSS_ONE_DAMAGED = BOSS_ONE_EXHAUSTED + 1,
@@ -514,7 +601,8 @@ enum class EFFECT_ASSET_ID {
   	SCREEN = LINE + 1,
 	HEX = SCREEN + 1,
 	TILE = HEX + 1,
-	EFFECT_COUNT = TILE + 1
+	PARTICLE_INSTANCED = TILE + 1,
+	EFFECT_COUNT = PARTICLE_INSTANCED + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -537,7 +625,8 @@ enum class ANIMATION_ID {
 	SPAWNPOINT_ACTIVATE = PLAYER_RESPAWN + 1,
 	SPAWNPOINT_DEACTIVATE = SPAWNPOINT_ACTIVATE + 1,
 	SPAWNPOINT_REACTIVATE = SPAWNPOINT_DEACTIVATE + 1,
-	BOSS_ONE_IDLE = SPAWNPOINT_REACTIVATE + 1,
+	BREAKABLE_FRAGMENTS = SPAWNPOINT_REACTIVATE + 1,
+	BOSS_ONE_IDLE = BREAKABLE_FRAGMENTS + 1,
 	BOSS_ONE_WALK = BOSS_ONE_IDLE + 1,
 	BOSS_ONE_EXHAUSTED = BOSS_ONE_WALK + 1,
 	BOSS_ONE_DAMAGED = BOSS_ONE_EXHAUSTED + 1,
@@ -557,7 +646,8 @@ const int animation_count = (int)ANIMATION_ID::ANIMATION_COUNT;
 
 enum class ANIMATION_TYPE_ID {
 	CYCLE = 0,
-	FREEZE_ON_LAST = CYCLE + 1,
+	FREEZE_ON_RANDOM = CYCLE + 1,
+	FREEZE_ON_LAST = FREEZE_ON_RANDOM + 1,
 	ANIMATION_TYPE_COUNT = FREEZE_ON_LAST + 1
 };
 
@@ -590,5 +680,50 @@ struct LevelState {
 	std::string next_level_folder_name;
 	TEXTURE_ASSET_ID ground;
 	bool shouldLoad = false;
+	bool shouldReparseEntities = false;
 	vec2 dimensions;
+};
+
+
+// Particles
+
+enum class PARTICLE_ID {
+	COLORED = 0,
+	SAMPLED_TEXTURE = COLORED + 1,
+	BREAKABLE_FRAGMENTS = SAMPLED_TEXTURE + 1,
+	PARTICLE_TYPE_COUNT = BREAKABLE_FRAGMENTS + 1
+};
+
+const int particle_type_count = (int)PARTICLE_ID::PARTICLE_TYPE_COUNT;
+
+struct Particle {
+	PARTICLE_ID particle_id;
+
+	// Motion properties are isolated from Physics system to avoid sub-stepping particles
+	vec2 position;
+	float angle;
+	vec2 scale;
+	vec2 velocity;
+	float ang_velocity = 0.0;
+
+	float life;
+	float timer = 0.0;
+	float alpha = 1.0;
+	vec2 fade_in_out = { 0.0, 0.0 };
+	vec2 shrink_in_out = { 0.0, 0.0 };
+
+	// Wind -> constant addition to velocity
+	// Gravity -> contant acceleration
+	// Turbulence -> randomized acceleration
+	float wind_influence = 0.0;
+	float gravity_influence = 0.0;
+	float turbulence_influence = 0.0;
+};
+
+struct ParticleSystemState {
+	vec2 wind_field = { 0.0, 0.0 };
+	vec2 gravity_field = {0.0, GRAVITY};
+
+	float turbulence_strength = 0.0;
+	float turbulence_scale = 1.0;
 };

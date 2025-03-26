@@ -29,10 +29,12 @@ private:
         {"Level_3", TEXTURE_ASSET_ID::BOSS_ONE_LEVEL_GROUND}
     };
 
+    json reparsable_entities = {};
+
     bool parse_json();
     void init_level_background();
     void init_player_and_camera();
-    void init_level_entities();
+    void init_level_entities(json entities);
     void init_platforms(json platforms, bool moving);
     void init_boundaries(json boundaries);
     void init_partof(json partof);
@@ -46,6 +48,10 @@ private:
     void init_pipeparts(json parts);
     void init_breakable_platforms(json breakables);
     void init_chains(json chains);
+    void init_pendulums(json pendulums);
+    void init_gears(json gears);
+    void init_spikeballs(json spikeballs);
+    void init_spawners(json spawners);
 
     bool extract_full_platform_dimensions(json platform, vec2& dimensions);
     bool extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos, bool& rounded);

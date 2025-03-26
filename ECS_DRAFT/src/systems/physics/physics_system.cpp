@@ -206,8 +206,16 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 		}
 
 		// if player touches boundary or spike, reset the game
-		if (is_collision_between_player_and_boundary(one, other) || is_collision_between_player_and_spike(one, other)) {
+		if (is_collision_between_player_and_boundary(one, other) || is_collision_between_player_and_spike(one, other) || player_harmful_collision(one, other)) {
 			PlayerSystem::kill();
+		}
+
+		// projectiles break on spikes
+		if (registry.projectiles.has(one) && registry.spikes.has(other)) {
+			registry.remove_all_components_of(one);
+		}
+		if (registry.projectiles.has(other) && registry.spikes.has(one)) {
+			registry.remove_all_components_of(other);
 		}
 
 		if (registry.players.has(one) && registry.ladders.has(other)) {

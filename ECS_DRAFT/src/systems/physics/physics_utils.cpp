@@ -84,6 +84,11 @@ bool is_collision_between_player_and_spike(Entity& one, Entity& other) {
 	(registry.players.has(other) && registry.spikes.has(one));
 }
 
+bool player_harmful_collision(Entity& one, Entity& other) {
+	return (registry.players.has(one) && registry.harmfuls.has(other))
+			|| (registry.players.has(other) && registry.harmfuls.has(one));
+}
+
 void handle_player_breakable_collision(Entity& player_entity, Entity& breakable_entity, Collision collision) {
 	Breakable& breakable = registry.breakables.get(breakable_entity);
 

@@ -411,17 +411,17 @@
 				"height": 16,
 				"color": 5925256,
 				"customFields": {
-					"x_velocity": 0,
+					"x_velocity": 20,
 					"y_velocity": 5,
 					"end_point": {
 						"cx": 20,
 						"cy": 128
 					},
-					"width": 60,
-					"height": 60,
+					"width": 75,
+					"height": 75,
 					"start_point": {
-						"cx": 18,
-						"cy": 80
+						"cx": 17,
+						"cy": 88
 					},
 					"Type": "SPIKEBALL"
 				}
@@ -464,7 +464,7 @@
 					"can_be_decelerated": true,
 					"can_become_harmful": true,
 					"can_become_harmless": true,
-					"scale": 60
+					"scale": 40
 				}
 			},
 			{
@@ -503,7 +503,7 @@
 					"can_be_decelerated": false,
 					"can_become_harmful": false,
 					"can_become_harmless": false,
-					"scale": 60
+					"scale": 40
 				}
 			},
 			{
@@ -542,7 +542,7 @@
 					"can_be_decelerated": true,
 					"can_become_harmful": true,
 					"can_become_harmless": true,
-					"scale": 60
+					"scale": 40
 				}
 			},
 			{
@@ -581,7 +581,7 @@
 					"can_be_decelerated": true,
 					"can_become_harmful": true,
 					"can_become_harmless": true,
-					"scale": 60
+					"scale": 40
 				}
 			},
 			{
@@ -620,7 +620,7 @@
 					"can_be_decelerated": true,
 					"can_become_harmful": true,
 					"can_become_harmless": true,
-					"scale": 60
+					"scale": 40
 				}
 			}
 		],
@@ -4921,7 +4921,7 @@
 				"customFields": {
 					"direction": "left",
 					"length": {
-						"cx": 24,
+						"cx": 23,
 						"cy": 126
 					}
 				}
@@ -4938,7 +4938,7 @@
 				"customFields": {
 					"direction": "left",
 					"length": {
-						"cx": 24,
+						"cx": 23,
 						"cy": 122
 					}
 				}
@@ -4955,7 +4955,7 @@
 				"customFields": {
 					"direction": "left",
 					"length": {
-						"cx": 24,
+						"cx": 23,
 						"cy": 114
 					}
 				}
@@ -4972,7 +4972,7 @@
 				"customFields": {
 					"direction": "left",
 					"length": {
-						"cx": 24,
+						"cx": 23,
 						"cy": 110
 					}
 				}
@@ -4989,7 +4989,7 @@
 				"customFields": {
 					"direction": "left",
 					"length": {
-						"cx": 24,
+						"cx": 23,
 						"cy": 106
 					}
 				}
@@ -5108,7 +5108,7 @@
 				"customFields": {
 					"direction": "left",
 					"length": {
-						"cx": 24,
+						"cx": 23,
 						"cy": 118
 					}
 				}
@@ -5176,7 +5176,7 @@
 				"customFields": {
 					"direction": "left",
 					"length": {
-						"cx": 24,
+						"cx": 23,
 						"cy": 90
 					}
 				}
@@ -5193,7 +5193,7 @@
 				"customFields": {
 					"direction": "left",
 					"length": {
-						"cx": 24,
+						"cx": 23,
 						"cy": 94
 					}
 				}
@@ -5210,7 +5210,7 @@
 				"customFields": {
 					"direction": "left",
 					"length": {
-						"cx": 24,
+						"cx": 23,
 						"cy": 98
 					}
 				}
@@ -5227,7 +5227,7 @@
 				"customFields": {
 					"direction": "left",
 					"length": {
-						"cx": 24,
+						"cx": 23,
 						"cy": 102
 					}
 				}

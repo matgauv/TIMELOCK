@@ -80,7 +80,7 @@ const float DECELERATION_EMERGE_MS = 150.0f;
 const float M_TO_PIXELS = 80.0f; // 50 px is 1m
 const float GRAVITY = 1400.0f;
 const float GRAVITY_JUMP_ASCENT = 460.0f;
-const float OBJECT_MAX_FALLING_SPEED = 1000.0f;
+const float OBJECT_MAX_FALLING_SPEED = 600.0f;
 
 const float STATIC_FRICTION = 0.1f;
 const float DYNAMIC_FRICTION = 0.015f;
@@ -95,7 +95,7 @@ const float DEFAULT_MASS = 10.0f;
 const float PLATFORM_SLIP_ANGLE = 45.0f;
 const float PLAYER_MAX_WALK_ANGLE = 80.0f;
 
-const float DISTANCE_TO_DROP_BOLT = 300.0f;
+const float DISTANCE_TO_DROP_BOLT = 200.0f;
 
 // Player Statistics
 const vec2 PLAYER_SCALE = { 50.0f, 50.0f };

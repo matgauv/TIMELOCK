@@ -21,7 +21,7 @@ void create_obstacle(ObstacleSpawner& spawner) {
         phys.apply_rotation = true;
         phys.apply_gravity = true;
         phys.mass = 100.0f;
-        phys.bounce = 0.0f;
+        phys.bounce = 0.2f;
         phys.friction = 0.0f;
 
         Motion& motion = registry.motions.get(gear);
@@ -38,7 +38,7 @@ void create_obstacle(ObstacleSpawner& spawner) {
         phys.apply_rotation = true;
         phys.apply_gravity = true;
         phys.mass = 100.0f;
-        phys.bounce = 0.1f;
+        phys.bounce = 0.4f;
 
         Motion& motion = registry.motions.get(spikeball);
         motion.velocity = spawner.velocity;

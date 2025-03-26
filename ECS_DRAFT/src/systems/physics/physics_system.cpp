@@ -181,7 +181,7 @@ void PhysicsSystem::step(float elapsed_ms) {
 				motion.position.y += (motion.velocity.y * motion.velocityModifier) * step_seconds;
 				motion.velocity *= -1.0f;
 			} else {
-				motion.position += (motion.velocity * motion.velocityModifier) * step_seconds;
+				motion.position = next_pos;
 			}
 
 		} else {
@@ -523,35 +523,35 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			handle_player_attack_collision(other, one, collision);
 		}
 
-		// TODO: handle player and boss collision
-		if (registry.players.has(one) && registry.bosses.has(other)) {
+		// TODO: handle player and boss collision (temporarily moving this into the boss_one_utils.cpp)
+		// if (registry.players.has(one) && registry.bosses.has(other)) {
 			
-			// kill the player if the boss is harmful (during dash attack)
-			Entity& boss_entity = registry.bosses.entities[0];
-			if (registry.harmfuls.has(boss_entity)) {
-				PlayerSystem::kill();
-			}
-		} else if (registry.players.has(other) && registry.bosses.has(one)) {
+		// 	// kill the player if the boss is harmful (during dash attack)
+		// 	Entity& boss_entity = registry.bosses.entities[0];
+		// 	if (registry.harmfuls.has(boss_entity)) {
+		// 		PlayerSystem::kill();
+		// 	}
+		// } else if (registry.players.has(other) && registry.bosses.has(one)) {
 			
-			// kill the player if the boss is harmful (during dash attack)
-			Entity& boss_entity = registry.bosses.entities[0];
-			if (registry.harmfuls.has(boss_entity)) {
-				PlayerSystem::kill();
-			}
-		}
+		// 	// kill the player if the boss is harmful (during dash attack)
+		// 	Entity& boss_entity = registry.bosses.entities[0];
+		// 	if (registry.harmfuls.has(boss_entity)) {
+		// 		PlayerSystem::kill();
+		// 	}
+		// }
 
 		// TODO: handle player and snooze button collision
 		if (registry.players.has(one) && registry.snoozeButtons.has(other)) {
 
 			FirstBoss& firstBoss = registry.firstBosses.components[0];
 			firstBoss.player_collided_with_snooze_button = true;
-			registry.remove_all_components_of(other);
+			// registry.remove_all_components_of(other); // remove snooze button -> maybe this should be the job of a particular boss state
 
 		} else if (registry.players.has(other) && registry.snoozeButtons.has(one)) {
 
 			FirstBoss& firstBoss = registry.firstBosses.components[0];
 			firstBoss.player_collided_with_snooze_button = true;
-			registry.remove_all_components_of(one);
+			// registry.remove_all_components_of(one); // remove snooze button -> maybe this should be the job of a particular boss state
 		}
 
 		GameState& gameState = registry.gameStates.components[0];

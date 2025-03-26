@@ -130,6 +130,9 @@ const float PLAYER_ATTACK_DAMAGE = 20.0f;
 // Level parsing constants
 const int TILE_TO_PIXELS = 16;
 
+const float PLAYER_BB_WIDTH_PX = 24;
+const float PLAYER_BB_HEIGHT_PX = 24;
+
 // Boss 1 specific properties
 const float BOSS_ONE_SPAWN_POINT_X = 1150.f;
 const float BOSS_ONE_SPAWN_POINT_Y = 480.f;
@@ -140,9 +143,11 @@ const float BOSS_ONE_MAX_X_VELOCITY = PLAYER_MAX_WALKING_SPEED;
 const float BOSS_ONE_MIN_X_VELOCITY = BOSS_ONE_MAX_X_VELOCITY / 20.f;
 const float BOSS_ONE_BB_WIDTH_PX = 50.f; // TODO: placeholder, we should adjust this once the actual texture is ready
 const float BOSS_ONE_BB_HEIGHT_PX = 50.f; // TODO: placeholder, we should adjust this once the actual texture is ready
-const float BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS = 30000.f;
+const float BOSS_ONE_GROUND_SLAM_BB_WIDTH_PX = 200.f;
+const float BOSS_ONE_GROUND_SLAM_BB_HEIGHT_PX = 200.f;
+const float BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS = 30000.f; // for testing, use 15000.f, otherwise use 30000.f
 
-const float BOSS_ONE_MAX_WALK_DURATION_MS = 2000.f; // use 1000.f for testing purposes, otherwise use 5000.f
+const float BOSS_ONE_MAX_WALK_DURATION_MS = 5000.f; // use 1000.f for testing purposes, otherwise use 5000.f
 const float BOSS_ONE_MAX_EXHAUSTED_DURATION_MS = 10000.f;
 const float BOSS_ONE_MAX_RECOVER_DURATION_MS = 2000.f;
 const float BOSS_ONE_MAX_DAMAGED_DURATION_MS = 2000.f;
@@ -156,7 +161,7 @@ const float BOSS_ONE_REGULAR_PROJECTILE_VELOCITY = WINDOW_WIDTH_PX / 5.f;
 
 const float BOSS_ONE_FAST_PROJECTILE_VELOCITY = BOSS_ONE_REGULAR_PROJECTILE_VELOCITY * 2.f;
 
-const float BOSS_ONE_DELAYED_PROJECTILE_SPEED = 400.f;
+const float BOSS_ONE_DELAYED_PROJECTILE_SPEED = 500.f;
 // const float BOSS_ONE_DELAYED_PROJECTILE_Y_POSITION = WINDOW_HEIGHT_PX / 4.f;
 const float BOSS_ONE_DELAYED_PROJECTILE_Y_POSITION = 350.f; // for testing purposes
 // const float BOSS_ONE_FIRST_DELAYED_PROJECTILE_X_POSITION = WINDOW_WIDTH_PX * 0.25f;
@@ -172,6 +177,7 @@ const float BOSS_ONE_THIRD_DELAYED_PROJECTILE_TIMER_MS = 4500.f;
 const float BOSS_ONE_DASH_VELOCITY = 400.f; // use 100.f for testing purposes, otherwise, the boss should be able to cross the screen in one second
 const float BOSS_ONE_DASH_DURATION_MS = 4000.f;
 
+const float BOSS_ONE_GROUND_SLAM_INIT_DURATION_MS = 500.f;
 const float BOSS_ONE_GROUND_SLAM_RISE_VELOCITY = -100.f; // for testing purposes, use -50.f, otherwise, the boss should take about 1~2 seconds to rise
 const float BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY = 300.f; // for testing purposes, use 300.f, otherwise, the boss should slam down in 0.25~0.5 seconds
 const float BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION = 350.f; // for testing purposes, use 600.f, otherwise, the boss should be at the 1/3 point from the top
@@ -179,7 +185,7 @@ const float BOSS_ONE_FIRST_GROUND_SLAM_FOLLOW_DURATION_MS = 3000.f;
 const float BOSS_ONE_SECOND_GROUND_SLAM_FOLLOW_DURATION_MS = 2000.f;
 const float BOSS_ONE_THIRD_GROUND_SLAM_FOLLOW_DURATION_MS = 5000.f;
 const float BOSS_ONE_GROUND_SLAM_LAND_DURATION_MS = 1000.f;
-const float BOSS_ONE_GROUND_SLAM_IMPACT_WIDTH_PX = 100.f; // for testing purposes, use 20.f, otherwise, 100.f
+const float BOSS_ONE_GROUND_SLAM_IMPACT_WIDTH_PX = 32.f; // for testing purposes, use 20.f, otherwise, 100.f
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f

@@ -42,7 +42,7 @@ void boss_one_delayed_projectile_attack(Entity& boss_entity, Boss& boss, Motion&
 
 void boss_one_dash_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms);
 
-void boss_one_dash_attack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms);
+void boss_one_ground_slam_init_1_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms);
 
 void boss_one_ground_slam_rise_1_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms);
 
@@ -52,6 +52,8 @@ void boss_one_ground_slam_slam_1_step(Entity& boss_entity, Boss& boss, Motion& b
 
 void boss_one_ground_slam_land_1_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms);
 
+void boss_one_ground_slam_init_2_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms);
+
 void boss_one_ground_slam_rise_2_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms);
 
 void boss_one_ground_slam_follow_2_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms);
@@ -59,6 +61,8 @@ void boss_one_ground_slam_follow_2_step(Entity& boss_entity, Boss& boss, Motion&
 void boss_one_ground_slam_slam_2_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms);
 
 void boss_one_ground_slam_land_2_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms);
+
+void boss_one_ground_slam_init_3_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms);
 
 void boss_one_ground_slam_rise_3_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms);
 

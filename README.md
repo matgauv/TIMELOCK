@@ -144,6 +144,7 @@
 
 
 ## Other Notes:
+- DEBUG CONTROLS: `N` will enter `no-clip` mode, `M` will enter fly mode (use arrow keys to fly). Use for exploring the level when needed, make sure to disable both before playing again!
 - Background music source: https://www.youtube.com/watch?v=gfnQIaFBKIE
 - Slowdown & speedup sound effect source: https://www.youtube.com/watch?v=z_epWpdsHJc
 - How to run on linux/mac (and compile with debug symbols):

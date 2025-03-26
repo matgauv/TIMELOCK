@@ -5519,24 +5519,6 @@
 			},
 			{
 				"id": "Pendulum",
-				"iid": "652928e0-e920-11ef-abe9-0b85fe057ed1",
-				"layer": "Components",
-				"x": 5084,
-				"y": 256,
-				"width": 16,
-				"height": 16,
-				"color": 12635100,
-				"customFields": {
-					"bob_radius": 30,
-					"initial_angle": 45,
-					"length": {
-						"cx": 317,
-						"cy": 36
-					}
-				}
-			},
-			{
-				"id": "Pendulum",
 				"iid": "9870e800-e920-11ef-abe9-7df6acf58e9e",
 				"layer": "Components",
 				"x": 4065,
@@ -5550,6 +5532,24 @@
 					"length": {
 						"cx": 254,
 						"cy": 33
+					}
+				}
+			},
+			{
+				"id": "Pendulum",
+				"iid": "e5943580-e920-11ef-a607-f57a5ddc5d9c",
+				"layer": "Components",
+				"x": 5072,
+				"y": 256,
+				"width": 16,
+				"height": 16,
+				"color": 12635100,
+				"customFields": {
+					"bob_radius": 30,
+					"initial_angle": 45,
+					"length": {
+						"cx": 317,
+						"cy": 36
 					}
 				}
 			}

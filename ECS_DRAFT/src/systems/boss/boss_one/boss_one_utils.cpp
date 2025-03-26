@@ -88,8 +88,8 @@ void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_nu
     Entity& player_entity = registry.players.entities[0];
     Motion& player_motion = registry.motions.get(player_entity);
 
-    std::cout << "Player position is: (" << player_motion.position.x << ", " << player_motion.position.y << ")" << std::endl;
-    std::cout << "Boss position is: (" << boss_motion.position.x << ", " << boss_motion.position.y << ")" << std::endl;
+    // std::cout << "Player position is: (" << player_motion.position.x << ", " << player_motion.position.y << ")" << std::endl;
+    // std::cout << "Boss position is: (" << boss_motion.position.x << ", " << boss_motion.position.y << ")" << std::endl;
 
     // state transition logic
     switch (boss.boss_state) {

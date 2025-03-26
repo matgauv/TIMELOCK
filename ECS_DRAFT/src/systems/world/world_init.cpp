@@ -364,6 +364,8 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
 
     Harmful& harmful = registry.harmfuls.emplace(entity);
 
+    registry.nonPhysicsColliders.emplace(entity);
+
     registry.renderRequests.insert(
 		entity,
 		{

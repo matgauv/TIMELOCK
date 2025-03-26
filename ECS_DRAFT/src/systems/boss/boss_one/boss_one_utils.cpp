@@ -83,6 +83,12 @@ void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_nu
 
     boss.time_until_exhausted_ms -= elapsed_ms;
 
+    Entity& player_entity = registry.players.entities[0];
+    Motion& player_motion = registry.motions.get(player_entity);
+
+    std::cout << "Player position is: (" << player_motion.position.x << ", " << player_motion.position.y << ")" << std::endl;
+    std::cout << "Boss position is: (" << boss_motion.position.x << ", " << boss_motion.position.y << ")" << std::endl;
+
     // state transition logic
     switch (boss.boss_state) {
         case BOSS_STATE::BOSS1_IDLE_STATE:
@@ -584,7 +590,9 @@ void boss_one_ground_slam_land_1_step(Entity& boss_entity, Boss& boss, Motion& b
     bool is_to_hit_radius_right = player_motion.position.x <= right_bound;
     bool is_not_in_decel_state = gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED;
 
-    if (left_bound <= player_motion.position.x && player_motion.position.x <= right_bound && gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED) {
+    if (left_bound <= player_motion.position.x && player_motion.position.x <= right_bound && 
+        player_motion.position.y >= PLAYER_ON_BOSS_GROUND_POSITION_Y_THRESHOLD &&
+        gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED) {
         PlayerSystem::kill();
     }
 
@@ -724,7 +732,9 @@ void boss_one_ground_slam_land_2_step(Entity& boss_entity, Boss& boss, Motion& b
     bool is_to_hit_radius_right = player_motion.position.x <= right_bound;
     bool is_not_in_decel_state = gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED;
 
-    if (left_bound <= player_motion.position.x && player_motion.position.x <= right_bound && gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED) {
+    if (left_bound <= player_motion.position.x && player_motion.position.x <= right_bound && 
+        player_motion.position.y >= PLAYER_ON_BOSS_GROUND_POSITION_Y_THRESHOLD &&
+        gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED) {
         PlayerSystem::kill();
     }
 
@@ -862,14 +872,16 @@ void boss_one_ground_slam_land_3_step(Entity& boss_entity, Boss& boss, Motion& b
     bool is_to_hit_radius_right = player_motion.position.x <= right_bound;
     bool is_not_in_decel_state = gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED;
 
-    if (left_bound <= player_motion.position.x && player_motion.position.x <= right_bound && gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED) {
+    if (left_bound <= player_motion.position.x && player_motion.position.x <= right_bound && 
+        player_motion.position.y >= PLAYER_ON_BOSS_GROUND_POSITION_Y_THRESHOLD &&
+        gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED) {
         PlayerSystem::kill();
     }
 
     if (boss.timer_ms <= 0.f) {
-        boss.num_of_attack_completed++;
         boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
         boss_motion.velocity.y = 0;
+        boss.timer_ms = BOSS_ONE_MAX_WALK_DURATION_MS;
 
         // update scaling
         boss_motion.scale = vec2(BOSS_ONE_BB_WIDTH_PX, BOSS_ONE_BB_HEIGHT_PX);

@@ -172,12 +172,12 @@ void PhysicsSystem::step(float elapsed_ms) {
 		// TODO: handle boss and wall collisions
 		if (registry.bosses.has(entity)) {
 			vec2 next_pos = motion.position + (motion.velocity * motion.velocityModifier) * step_seconds;
-			if (next_pos.x < 250.f) {
-				motion.position.x = 250.f;
+			if (next_pos.x < 383.f) {
+				motion.position.x = 383.f;
 				motion.position.y += (motion.velocity.y * motion.velocityModifier) * step_seconds;
 				motion.velocity *= -1.0f;
-			} else if (next_pos.x > 1150.f) {
-				motion.position.x = 1150.f;
+			} else if (next_pos.x > 1050.f) {
+				motion.position.x = 1050.f;
 				motion.position.y += (motion.velocity.y * motion.velocityModifier) * step_seconds;
 				motion.velocity *= -1.0f;
 			} else {

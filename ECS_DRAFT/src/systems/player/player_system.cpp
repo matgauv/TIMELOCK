@@ -107,6 +107,10 @@ void PlayerSystem::kill() {
 		registry.onGrounds.remove(e);
 	}
 
+	if (registry.climbing.has(e)) {
+		registry.climbing.remove(e);
+	}
+
 	AnimateRequest& animateRequest = registry.animateRequests.get(e);
 	animateRequest.timer = 0.0;
 	animateRequest.used_animation = ANIMATION_ID::PLAYER_KILL;

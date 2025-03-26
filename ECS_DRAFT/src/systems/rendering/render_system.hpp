@@ -58,7 +58,6 @@ class RenderSystem : public ISystem {
 		level_ground_path("Level_1"),
 		level_ground_path("Level_2"),
 		level_ground_path("Level_3"),
-		level_ground_path("Level_3"),
 		textures_path("tileset.png"),
 		textures_path("tutorial-text/wasd.png"),
 		textures_path("tutorial-text/decel.png"),

@@ -32,7 +32,7 @@ void create_obstacle(ObstacleSpawner& spawner) {
 
         PhysicsObject& phys = registry.physicsObjects.get(spikeball);
         phys.angular_damping = 0.0f;
-        phys.friction = 0.01f;
+        phys.friction = 0.00f;
         phys.angular_velocity = (spawner.velocity.x) / 100.0f;
         phys.apply_air_resistance = false;
         phys.apply_rotation = true;
@@ -78,7 +78,8 @@ void obstacle_spawner_step(float elapsed_ms) {
                 spawner.obstacle_id = 0;
                 spawner.time_left_ms = spawner.lifetime_ms;
             } else {
-                //motion.velocity = spawner.velocity;
+                // last min hacky M3 fix lol TODO change
+                motion.velocity.x = spawner.velocity.x;
             }
         }
 

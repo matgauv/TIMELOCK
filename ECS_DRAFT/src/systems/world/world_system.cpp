@@ -46,6 +46,7 @@ WorldSystem::~WorldSystem() {
 
 	// Close the window
 	glfwDestroyWindow(window);
+	glfwTerminate();
 }
 
 void WorldSystem::init(GLFWwindow* window) {
@@ -298,6 +299,9 @@ void WorldSystem::restart_game() {
 
 // World initialization
 bool WorldSystem::start_and_load_sounds() {
+
+	this->play_sound = false;
+	return true;
 
 	//////////////////////////////////////
 	// Loading music and sounds with SDL

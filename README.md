@@ -1,6 +1,6 @@
 # TIMELOCK : team-03
 
-## M2 Required Elements:
+## M3 Required Elements:
 <table>
   <tr>
    <td><strong># / Task</strong>
@@ -13,109 +13,68 @@
    </td>
   </tr>
   <tr>
-   <td>[1] Decision Tree
-   </td>
-   <td>Improved Gameplay
-   </td>
-   <td><code>ai_system</code>
-   </td>
-   <td>Cannon tower automatically aims and fires at the player if player is in its detection range
-   </td>
-  </tr>
-  <tr>
-   <td>[2] Sprite Animations
-   </td>
-   <td>Improved Gameplay
-   </td>
-   <td><code>animation_system</code>
-   </td>
-   <td>Sprite animations include run/walk and jump for the player, and exit door
-   </td>
-  </tr>
-  <tr>
-   <td>[3] Sprite and Asset Creation
-   </td>
-   <td>Improved Gameplay
-   </td>
-   <td><code>render_system</code>
-   </td>
-   <td>Ground/Ceiling tiles added, as well as other props (spikes, pipes, platforms, wooden crates)
-   </td>
-  </tr>
-  <tr>
-   <td>[4] Mesh Based Collision
-   </td>
-   <td>Improved Gameplay
-   </td>
-   <td><code>physics_system</code>
-   </td>
-   <td>Bolt mesh created for projectile-player collisions. Collisions are computed using SAT (separating axis theorem)
-   </td>
-  </tr>
-  <tr>
-   <td>[5] Gameplay Tutorial
-   </td>
-   <td>Improved Gameplay
-   </td>
-   <td><code>parsing_system and world_init</code>
-   </td>
-   <td>Levels are parsed from JSON. Text is rendered to the screen as sprites.
-   </td>
-  </tr>
-  <tr>
-   <td>[6] FPS counter
-   </td>
-   <td>Improved Gameplay
-   </td>
-   <td><code>world_system</code>
-   </td>
-   <td>Counter is displayed in the title of the window.
-   </td>
-  </tr>
-  <tr>
-   <td>[7]  2-minutes of unique gameplay
+   <td>[1] 5-minutes of unique gameplay
    </td>
    <td>Playability
    </td>
    <td><code>Whole application</code>
    </td>
-   <td>Two tutorial levels are implemented, each averaging about 2 minutes depending on the player. 
-   </td>
-  </tr>
-  <tr>
-   <td>[8]  Stable frame rate and minimal game lag.
-   </td>
-   <td>Stability
-   </td>
-   <td><code>Whole application</code>
-   </td>
-   <td>
-Frame rate is especially good on hardware with dedicated graphics. Frame rate may fluctuate slightly on mobile hardware, but should stay above 60. We intentionally do not fix the frame rate at the moment to better observe how changes hurt performance. However, the physics system is stepped at a fixed rate. 
-   </td>
-  </tr>
-  <tr>
-   <td>[9] No crashes, glitches, or unpredictable behaviour.
-   </td>
-   <td>Stability
-   </td>
-   <td><code>Whole application</code>
-   </td>
    <td>
    </td>
   </tr>
   <tr>
-   <td>[10] Test plan - a list of player or game actions and their expected outcomes.
+   <td>[2] Memory management
+   </td>
+   <td>Robustness
+   </td>
+   <td><code>World System</code> <code>ECS</code>
+   </td>
+   <td>Global list to cache pointers, smart pointers, registry
+   </td>
+  </tr>
+  <tr>
+   <td>[3] User Input 
+   </td>
+   <td>Robustness
+   </td>
+   <td><code>World System</code>
+   </td>
+   <td>Currently no actual invalid input available from the user.
+   </td>
+  </tr>
+  <tr>
+   <td>[4] Mesh Based Collision
+   </td>
+   <td>Robustness
+   </td>
+   <td><code>Whole application</code>
+   </td>
+   <td>
+   </td>
+  </tr>
+  <tr>
+   <td>[5] Stability
+   </td>
+   <td>Stability 
+   </td>
+   <td><code>Whole application</code>
+   </td>
+   <td>Levels are parsed from JSON. Text is rendered to the screen as sprites.
+   </td>
+  </tr>
+  <tr>
+   <td>[6] Test plan - a list of player or game actions and their expected outcomes.
    </td>
    <td>Software Engineering
    </td>
    <td>
    </td>
    <td>
-<code>https://docs.google.com/document/d/1cRzYi9tH3jXyVs-ExeK_9EImm4sDYJd5uW0GMP75GQw/edit?usp=sharing</code>
+<code>https://docs.google.com/document/d/1RFVZJj_J0ug45Zf6cPg0DK9aR9maLVpcoV6uE7CV40g/edit?usp=sharing</code>
    </td>
   </tr>
   <tr>
-   <td>[11] Bug List
+   <td>[7] Bug List
    </td>
    <td>Reporting
    </td>
@@ -126,7 +85,7 @@ Frame rate is especially good on hardware with dedicated graphics. Frame rate ma
    </td>
   </tr>
   <tr>
-   <td>[12] Video
+   <td>[8] Video
    </td>
    <td>Reporting
    </td>
@@ -140,7 +99,7 @@ Frame rate is especially good on hardware with dedicated graphics. Frame rate ma
 
 
 
-# M2 Creative Elements
+# M3 Creative Elements
 
 ** these are the creative elements we wish to have graded for this milestone
 
@@ -158,27 +117,26 @@ Frame rate is especially good on hardware with dedicated graphics. Frame rate ma
    </td>
   </tr>
   <tr>
-   <td>[1] Simple rendering Effects
+   <td>[5] Particle system
    </td>
    <td>Graphics
    </td>
-   <td>Basic
+   <td>Advanced
    </td>
-   <td><code>rendering_system</code>
+   <td><code>Particle_system.hpp</code> <code>rendering_system_utils.cpp</code>
    </td>
-   <td>We use fragment shaders to put an effect on the screen when the player is using the time accelerate and decelerate powers.
-   </td>
+   <td>Particle system supported by instanced rendering   </td>
   </tr>
   <tr>
-   <td>[24] Basic integrated assets
+   <td>[13] Physics based Animations
    </td>
-   <td>Quality & User Experience (UX)
+   <td>Physics & Simulation 
    </td>
-   <td>Basic
+   <td>Advanced
    </td>
-   <td><code>render_system</code>
+   <td><code>physics_simulation.cpp</code>
    </td>
-   <td>Basic assets for the game have been included
+   <td>Impulse based physics for collisions + simple gravity pendulums.
    </td>
   </tr>
 </table>

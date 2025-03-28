@@ -19,7 +19,6 @@ void LevelParsingSystem::step(float elapsed_ms) {
         return;
     }
 
-
     if (level_state.reload_coutdown > 0.0f) {
         if (level_state.shouldLoad) {
             // Instant reload
@@ -27,6 +26,7 @@ void LevelParsingSystem::step(float elapsed_ms) {
         }
         else {
             level_state.reload_coutdown -= elapsed_ms;
+            
 
             // Automatically reload next level
             if (level_state.reload_coutdown < 0.0f) {
@@ -80,6 +80,15 @@ void LevelParsingSystem::step(float elapsed_ms) {
             registry.remove_all_components_of(registry.bosses.entities[0]);
         }
         create_first_boss();
+        assert(registry.gameStates.components.size() <= 1);
+        GameState& gameState = registry.gameStates.components[0];
+        gameState.is_in_boss_fight = false;
+    }
+    else {
+        if (registry.bosses.size() > 0) {
+            registry.remove_all_components_of(registry.bosses.entities[0]);
+        }
+
         assert(registry.gameStates.components.size() <= 1);
         GameState& gameState = registry.gameStates.components[0];
         gameState.is_in_boss_fight = false;

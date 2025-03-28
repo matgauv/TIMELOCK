@@ -123,11 +123,14 @@ void handle_player_door_collision() {
   	// std::cout << "DOOR COLLISION" << std::endl;
 	LevelState& ls = registry.levelStates.components[0];
 
+	// Last level
 	if (ls.curr_level_folder_name == ls.next_level_folder_name) return;
 
 	/*
 	ls.curr_level_folder_name = ls.next_level_folder_name;
 	ls.shouldLoad = true;
 	*/
-	LevelParsingSystem::schedule_reload();
+	if (ls.reload_coutdown < 0.0) {
+		LevelParsingSystem::schedule_reload();
+	}
 }

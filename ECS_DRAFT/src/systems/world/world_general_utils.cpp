@@ -108,10 +108,6 @@ void WorldSystem::destroy_breakable_platform(Entity entity) {
 
 
 void WorldSystem::destroy_projectile(Entity entity) {
-	const Motion& motion = registry.motions.get(entity);
-	const float fragment_size = std::min(std::min(motion.scale.x, motion.scale.y), (float)TILE_TO_PIXELS);
-	const int fragment_count = (int)(motion.scale.x * motion.scale.y / (fragment_size * fragment_size)) + 1;
-
 	PARTICLE_ID particle_id = PARTICLE_ID::COLORED;
 
 	if (registry.screws.has(entity)) {
@@ -120,6 +116,13 @@ void WorldSystem::destroy_projectile(Entity entity) {
 	else if (registry.bolts.has(entity)) {
 		particle_id = PARTICLE_ID::HEX_FRAGMENTS;
 	}
+	else {
+		return;
+	}
+
+	const Motion& motion = registry.motions.get(entity);
+	const float fragment_size = std::min(std::min(motion.scale.x, motion.scale.y), (float)TILE_TO_PIXELS);
+	const int fragment_count = (int)(motion.scale.x * motion.scale.y / (fragment_size * fragment_size)) + 1;
 
 	// Fragments
 	for (int i = 0; i < fragment_count; i++) {

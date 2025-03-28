@@ -23,9 +23,11 @@ void CameraSystem::step(float elapsed_ms) {
 	Camera& cam = registry.cameras.components[0];
 
 	if (gameState.is_in_boss_fight) {
+		// We actually need better tuning of camera motions for boss fight transition
 		const LevelState& levelState = registry.levelStates.components[0];
+		const float scale_factor = min(WINDOW_WIDTH_PX / levelState.dimensions.x, WINDOW_HEIGHT_PX / levelState.dimensions.y);
 		follow(camera_motion, levelState.dimensions * 0.5f, 
-			vec2{WINDOW_WIDTH_PX / levelState.dimensions.x, WINDOW_HEIGHT_PX/levelState.dimensions.y });
+			vec2(scale_factor));
 	}
 	else {
 		// assert(registry.players.entities.size() == 1);
@@ -77,6 +79,15 @@ void CameraSystem::follow(Motion& cam_motion, vec2 target, vec2 scale) {
 	target = restricted_boundary_position(target, cam_motion.scale);
 	vec2 displacement = target - cam_motion.position;
 	const float dist = glm::length(displacement);
+
+	// Lerp scale
+	if (glm::length(scale - cam_motion.scale) < 0.01f) {
+		cam_motion.scale = scale;
+	}
+	else {
+		cam_motion.scale = cam_motion.scale * (1.0f - CAMERA_VEL_LERP_FACTOR) +
+			scale * CAMERA_VEL_LERP_FACTOR;
+	}
 
 	if (dist < 0.5f) {
 		// Snap camera to ideal location if within small range

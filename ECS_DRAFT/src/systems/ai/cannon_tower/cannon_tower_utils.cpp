@@ -35,8 +35,8 @@ void cannon_tower_step(float elapsed_ms) {
 		}
 
 		// Update barrel motion
-		CannonBarrel& barrel = registry.cannonBarrels.get(tower.barrel_entity);
-		Motion& barrel_motion = registry.motions.get(tower.barrel_entity);
+		CannonBarrel& barrel = registry.cannonBarrels.get(Entity(tower.barrel_entity_id));
+		Motion& barrel_motion = registry.motions.get(Entity(tower.barrel_entity_id));
 		const Motion& tower_motion = registry.motions.get(tower_entity);
 
 		barrel_motion.angle = glm::degrees(barrel.angle);
@@ -84,7 +84,7 @@ void aiming_step(Entity tower_entity, CannonTower& tower, float elapsed_ms) {
 	vec2 disp = player_motion.position - tower_motion.position;
 
 
-	CannonBarrel& barrel = registry.cannonBarrels.get(tower.barrel_entity);
+	CannonBarrel& barrel = registry.cannonBarrels.get(Entity(tower.barrel_entity_id));
 	float target_angle = 0.0f;
 	if (glm::length(disp) > 0.0f) {
 		target_angle = atan2f(disp[1], disp[0]);
@@ -114,12 +114,12 @@ void loading_step(Entity tower_entity, CannonTower& tower, float elapsed_ms) {
 		tower.state = CANNON_TOWER_STATE::FIRING;
 		tower.timer = CANNON_TOWER_FIRE_TIME_MS;
 
-		cannon_fire(tower_entity, registry.cannonBarrels.get(tower.barrel_entity).angle);
+		cannon_fire(tower_entity, registry.cannonBarrels.get(Entity(tower.barrel_entity_id)).angle);
 
 		return;
 	}
 
-	Motion& barrel_motion = registry.motions.get(tower.barrel_entity);
+	Motion& barrel_motion = registry.motions.get(Entity(tower.barrel_entity_id));
 
 	// (1-t)^3
 	float t = 1.0f - tower.timer / CANNON_TOWER_LOAD_TIME_MS;
@@ -129,7 +129,7 @@ void loading_step(Entity tower_entity, CannonTower& tower, float elapsed_ms) {
 
 // Currently more like a cooldown state
 void firing_step(Entity tower_entity, CannonTower& tower, float elapsed_ms) {
-	Motion& barrel_motion = registry.motions.get(tower.barrel_entity);
+	Motion& barrel_motion = registry.motions.get((Entity(tower.barrel_entity_id)));
 	if (tower.timer <= 0) {
 		tower.state = CANNON_TOWER_STATE::IDLE;
 		tower.timer = 0;
@@ -189,7 +189,7 @@ void cannon_fire(Entity tower_entity, float angle) {
 	Motion& motion = registry.motions.emplace(proj_entity);
 	motion.angle = 0.f;
 	motion.velocity = CANNON_PROJECTILE_SPEED * dir;
-	motion.position = registry.motions.get(tower_entity).position + dir * registry.motions.get(tower.barrel_entity).scale.x;
+	motion.position = registry.motions.get(tower_entity).position + dir * registry.motions.get(Entity(tower.barrel_entity_id)).scale.x;
 	motion.scale = CANNON_PROJECTILE_SIZE;
 
 	registry.colors.insert(

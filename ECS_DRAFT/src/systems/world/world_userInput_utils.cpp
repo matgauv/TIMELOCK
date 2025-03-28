@@ -66,23 +66,21 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_D) {
 		if (action == GLFW_PRESS) {
 			player_walking(true, false);
+			PlayerSystem::set_direction(false);
 		}
 		else if (action == GLFW_RELEASE) {
 			player_walking(false, false);
 		}
-
-		PlayerSystem::set_direction(false);
 	}
 
 	if (key == GLFW_KEY_A) {
 		if (action == GLFW_PRESS) {
 			player_walking(true, true);
+			PlayerSystem::set_direction(true);
 		}
 		else if (action == GLFW_RELEASE) {
 			player_walking(false, true);
 		}
-
-		PlayerSystem::set_direction(true);
 	}
 
 	Entity& player_entity = registry.players.entities[0];
@@ -144,23 +142,21 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_RIGHT && flag_state.fly) {
 		if (action == GLFW_PRESS) {
 			player_walking(true, false);
+			PlayerSystem::set_direction(false);
 		}
 		else if (action == GLFW_RELEASE) {
 			player_walking(false, false);
 		}
-
-		PlayerSystem::set_direction(false);
 	}
 
 	if (key == GLFW_KEY_LEFT && flag_state.fly) {
 		if (action == GLFW_PRESS) {
 			player_walking(true, true);
+			PlayerSystem::set_direction(true);
 		}
 		else if (action == GLFW_RELEASE) {
 			player_walking(false, true);
 		}
-
-		PlayerSystem::set_direction(true);
 	}
 
 	if (key == GLFW_KEY_DOWN && flag_state.fly) {

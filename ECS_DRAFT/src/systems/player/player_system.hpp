@@ -6,6 +6,7 @@
 #include "../../tinyECS/registry.hpp"
 
 #include "systems/ISystem.hpp"
+#include "systems/physics/physics_utils.h"
 
 // Player System; manages Player statistics
 class PlayerSystem : public ISystem

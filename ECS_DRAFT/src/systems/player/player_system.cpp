@@ -154,12 +154,19 @@ void PlayerSystem::kill() {
 		registry.onGrounds.remove(e);
 	}
 
+	if (registry.climbing.has(e)) {
+		registry.climbing.remove(e);
+	}
+
 	AnimateRequest& animateRequest = registry.animateRequests.get(e);
 	animateRequest.timer = 0.0;
 	animateRequest.used_animation = ANIMATION_ID::PLAYER_KILL;
 }
 
 void PlayerSystem::player_respawn() {
+	LevelState& ls = registry.levelStates.components[0];
+	ls.shouldReparseEntities = true;
+
 	Player& player = registry.players.components[0];
 	player.timer = DEAD_REVIVE_TIME_MS;
 	player.state = PLAYER_STATE::RESPAWNED;
@@ -174,6 +181,13 @@ void PlayerSystem::player_respawn() {
 	AnimateRequest& animateRequest = registry.animateRequests.get(e);
 	animateRequest.timer = 0.0;
 	animateRequest.used_animation = ANIMATION_ID::PLAYER_RESPAWN;
+
+	// If the player is respawning in the boss level, clear the entire level
+	GameState& gameState = registry.gameStates.components[0];
+	if (gameState.is_in_boss_fight == true) {
+		LevelState& levelState = registry.levelStates.components[0];
+		levelState.shouldLoad = true;
+	}
 }
 
 void PlayerSystem::set_standing() {

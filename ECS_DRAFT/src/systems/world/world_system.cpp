@@ -37,6 +37,7 @@ WorldSystem::~WorldSystem() {
 
 	// Close the window
 	glfwDestroyWindow(window);
+	glfwTerminate();
 }
 
 

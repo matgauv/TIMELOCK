@@ -8,6 +8,7 @@
 #include "../world/world_init.hpp"
 
 #include "cannon_tower/cannon_tower_utils.hpp"
+#include "delayed_projectile/delayed_projectile_utils.hpp"
 #include "obstacle_spawner/obstacle_spawner.h"
 #include "pipe/pipe_utils.hpp"
 

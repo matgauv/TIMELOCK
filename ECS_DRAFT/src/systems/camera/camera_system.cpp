@@ -26,7 +26,7 @@ void CameraSystem::step(float elapsed_ms) {
 	}
 
 
-	const Player &player = registry.players.components[0];
+	const Player& player = registry.players.components[0];
 	const Motion& player_motion = registry.motions.get(player_entity);
 	Camera& cam = registry.cameras.components[0];
 	if (player.state == PLAYER_STATE::RESPAWNED) {
@@ -38,21 +38,17 @@ void CameraSystem::step(float elapsed_ms) {
 
 		// Check player facing direction
 		float facing_dir = (registry.renderRequests.get(player_entity).flipped ? -1.0f : 1.0f);
-		float offset = 
+		float offset =
 			std::clamp((facing_dir * player_motion.velocity[0]) / PLAYER_MAX_WALKING_SPEED, 0.0f, 1.0f) *
-			CAMERA_SCREEN_SPACING_FOR_MOTION_RATIO * WINDOW_WIDTH_PX * 
+			CAMERA_SCREEN_SPACING_FOR_MOTION_RATIO * WINDOW_WIDTH_PX *
 			facing_dir;
 
 		// If in the same direction & smaller offset, do not force-set and wait for natural decay
 		if ((offset * cam.horizontal_offset < 0) || (abs(offset) > abs(cam.horizontal_offset))) {
 			cam.horizontal_offset = (1.0f - (CAMERA_VEL_LERP_FACTOR * 0.5f)) * cam.horizontal_offset + CAMERA_VEL_LERP_FACTOR * 0.5f * offset;
 		}
-		/*
-		else if (abs(offset) > abs(cam.horizontal_offset)) {
-			cam.horizontal_offset = offset;
-		}*/
 
-		follow(camera_motion, player_motion.position + vec2{cam.horizontal_offset, 0.0f});
+		follow(camera_motion, player_motion.position + vec2{ cam.horizontal_offset, 0.0f });
 	}
 
 	// Update offset
@@ -91,7 +87,7 @@ void CameraSystem::follow(Motion& cam_motion, vec2 target) {
 			cam_motion.velocity = expected_vel;
 		}
 		else {
-			cam_motion.velocity = 
+			cam_motion.velocity =
 				cam_motion.velocity * (1.0f - CAMERA_VEL_LERP_FACTOR) +
 				expected_vel * CAMERA_VEL_LERP_FACTOR;
 		}
@@ -116,15 +112,15 @@ vec2 CameraSystem::get_camera_offsets(vec2 camera_scale) {
 	return vec2{ cam_x_offset, cam_y_offset };
 }
 
-vec2 CameraSystem::restricted_boundary_position(vec2 raw_target, vec2 camera_scale = {1.0, 1.0}) {
+vec2 CameraSystem::restricted_boundary_position(vec2 raw_target, vec2 camera_scale = { 1.0, 1.0 }) {
 	const LevelState& level_state = registry.levelStates.components[0];
 
 	vec2 camera_offsets = get_camera_offsets(camera_scale);
 	camera_offsets *= CAMERA_BOUNDARY_PADDING;
 
 	float refined_x = (
-		(level_state.dimensions[0] - camera_offsets[0] > camera_offsets[0]) ? 
-		std::clamp(raw_target[0], camera_offsets[0], level_state.dimensions[0] - camera_offsets[0]):
+		(level_state.dimensions[0] - camera_offsets[0] > camera_offsets[0]) ?
+		std::clamp(raw_target[0], camera_offsets[0], level_state.dimensions[0] - camera_offsets[0]) :
 		level_state.dimensions[0] * 0.5f);
 
 	float refined_y = (
@@ -132,5 +128,5 @@ vec2 CameraSystem::restricted_boundary_position(vec2 raw_target, vec2 camera_sca
 		std::clamp(raw_target[1], camera_offsets[1], level_state.dimensions[1] - camera_offsets[1]) :
 		level_state.dimensions[1] * 0.5f);
 
-	return vec2{refined_x, refined_y};
+	return vec2{ refined_x, refined_y };
 }

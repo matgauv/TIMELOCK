@@ -55,6 +55,9 @@ public:
 	ComponentContainer<Breakable> breakables;
 	ComponentContainer<CannonTower> cannonTowers;
 	ComponentContainer<CannonBarrel> cannonBarrels;
+	ComponentContainer<Delayed> delayeds;
+	ComponentContainer<FirstBoss> firstBosses;
+	ComponentContainer<SnoozeButton> snoozeButtons;
 	ComponentContainer<Door> doors;
 	ComponentContainer<Pipe> pipes;
 	ComponentContainer<Particle> particles;
@@ -109,6 +112,9 @@ public:
 		registry_list.push_back(&breakables);
 		registry_list.push_back(&cannonTowers);
 		registry_list.push_back(&cannonBarrels);
+		registry_list.push_back(&delayeds);
+		registry_list.push_back(&firstBosses);
+		registry_list.push_back(&snoozeButtons);
 		registry_list.push_back(&doors);
 		registry_list.push_back(&pipes);
 		registry_list.push_back(&particles);

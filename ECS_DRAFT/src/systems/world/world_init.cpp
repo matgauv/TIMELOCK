@@ -336,7 +336,7 @@ Entity create_tutorial_text(vec2 position, vec2 size, TEXTURE_ASSET_ID texture_i
 
 
     registry.renderRequests.insert(entity, {
-        texture_id,
+		texture_id,
         EFFECT_ASSET_ID::TEXTURED,
         GEOMETRY_BUFFER_ID::SPRITE
         });
@@ -360,14 +360,18 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
 
     TimeControllable& tc = registry.timeControllables.emplace(entity);
     tc.can_become_harmless = true;
-    tc.can_be_accelerated = false;
+    tc.can_be_decelerated = true;
+
+    Harmful& harmful = registry.harmfuls.emplace(entity);
+
+    registry.nonPhysicsColliders.emplace(entity);
 
     registry.renderRequests.insert(
 		entity,
 		{
-			TEXTURE_ASSET_ID::SAMPLE_PROJECTILE,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE
+			TEXTURE_ASSET_ID::HEX,
+			EFFECT_ASSET_ID::HEX,
+			GEOMETRY_BUFFER_ID::HEX
 		}
 	);
 
@@ -376,7 +380,7 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
 	return entity;
 }
 
-Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity)
+Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity, bool harmful)
 {
 	auto entity = Entity();
 	Motion& motion = registry.motions.emplace(entity);
@@ -393,6 +397,12 @@ Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity)
     object.drag_coefficient = 0.01;
 
     registry.bolts.emplace(entity);
+
+    if (harmful) {
+       TimeControllable& tc = registry.timeControllables.emplace(entity);
+       tc.can_become_harmless = true;
+        registry.harmfuls.emplace(entity);
+    }
 
     registry.colors.insert(
         entity, 
@@ -413,25 +423,46 @@ Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity)
 	return entity;
 }
 
-Entity create_first_boss() {
+Entity create_first_boss_test() {
     auto entity = Entity();
 
     Boss& boss = registry.bosses.emplace(entity);
     boss.boss_id = BOSS_ID::FIRST;
-    boss.health = 1000.0f;
-    boss.attack_cooldown_ms = 500.0f;
+    boss.boss_state = BOSS_STATE::BOSS1_IDLE_STATE;
+    boss.can_be_damaged = false;
+    boss.time_until_exhausted_ms = BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS;
+    boss.health = BOSS_ONE_MAX_HEALTH;
 
+    FirstBoss& firstBoss = registry.firstBosses.emplace(entity);
     Motion& motion = registry.motions.emplace(entity);
-    motion.position = vec2(WINDOW_WIDTH_PX / 4 * 3, WINDOW_HEIGHT_PX / 4 * 3);
 
+    // initially idle for testing purposes
+    motion.velocity = vec2(0.f, 0.f);
+    motion.scale = vec2(BOSS_ONE_BB_WIDTH_PX, BOSS_ONE_BB_HEIGHT_PX);
+
+    TimeControllable& tc = registry.timeControllables.emplace(entity);
+
+    // grab player position and use that as the spawning point
+    Entity& player_entity = registry.players.entities[0];
+    Motion& player_motion = registry.motions.get(player_entity);
+
+    // initial position
+    motion.position = vec2(BOSS_ONE_SPAWN_POINT_X, BOSS_ONE_SPAWN_POINT_Y);
+
+    // render request
     registry.renderRequests.insert(
-        entity,
-        {
-            TEXTURE_ASSET_ID::TEXTURE_COUNT,
-            EFFECT_ASSET_ID::TEXTURED,
-            GEOMETRY_BUFFER_ID::SPRITE
-        }
-    );
+		entity,
+		{
+			TEXTURE_ASSET_ID::GREY_CIRCLE,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE
+		}
+	);
+
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    AnimateRequest& animateRequest = registry.animateRequests.emplace(entity);
+    animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_IDLE;
 
     return entity;
 }
@@ -852,6 +883,10 @@ Entity create_gear(vec2 position, vec2 size, bool fixed, float angular_velocity,
 
     PhysicsObject& physics_object = registry.physicsObjects.emplace(entity);
 
+    TimeControllable& tc = registry.timeControllables.emplace(entity);
+    tc.can_be_accelerated = true;
+    tc.can_be_decelerated = true;
+
     if (fixed) {
        physics_object.apply_gravity = false;
        physics_object.friction = 0.5f;
@@ -900,7 +935,8 @@ Entity create_gear(vec2 position, vec2 size, bool fixed, float angular_velocity,
     auto add_tooth = [&](Mesh* tooth_mesh, float angle_rad, bool flip = false) {
         SubMesh tooth = SubMesh{};
         tooth.original_mesh = tooth_mesh;
-        tooth.scale_ratio = {GEAR_TOOTH_WIDTH_RATIO, GEAR_TOOTH_WIDTH_RATIO};
+        tooth.scale_ratio = {GEAR_TOOTH_WIDTH_RATIO, GEAR_TOOTH_HEIGHT_RATIO};
+
 
         tooth.rotation = (flip ? -180.0f : 0.0f);
 
@@ -956,6 +992,10 @@ Entity create_spikeball(vec2 position, vec2 size) {
     physics_object.apply_rotation = true;
 
     CompositeMesh& compositeMesh = registry.compositeMeshes.emplace(entity);
+
+    TimeControllable& tc = registry.timeControllables.emplace(entity);
+    tc.can_be_accelerated = true;
+    tc.can_be_decelerated = true;
 
     float inner_radius = ((size.x * SPIKEBALL_CENTER_RATIO) / 2.0f);
     float spike_height = (size.x) * SPIKE_HEIGHT_RATIO;

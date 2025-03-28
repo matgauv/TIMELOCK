@@ -34,13 +34,15 @@ private:
         {"Level_0", TEXTURE_ASSET_ID::D_TUTORIAL_GROUND},
         {"Level_1", TEXTURE_ASSET_ID::A_TUTORIAL_GROUND},
         {"Level_2", TEXTURE_ASSET_ID::DECEL_LEVEL_GROUND},
-        {"Level_3", TEXTURE_ASSET_ID::BOSS_LEVEL_ONE_GROUND}
+        {"Level_3", TEXTURE_ASSET_ID::BOSS_ONE_LEVEL_GROUND}
     };
+
+    json reparsable_entities = {};
 
     bool parse_json();
     void init_level_background();
     void init_player_and_camera();
-    void init_level_entities();
+    void init_level_entities(json entities);
     void init_platforms(json platforms, bool moving);
     void init_boundaries(json boundaries);
     void init_partof(json partof);

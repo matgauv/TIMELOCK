@@ -49,6 +49,44 @@ struct FlagState {
 	bool no_clip = false;
 };
 
+enum class BOSS_STATE {
+	BOSS1_IDLE_STATE = 0,
+	BOSS1_MOVE_STATE = BOSS1_IDLE_STATE + 1,
+	BOSS1_EXHAUSTED_STATE = BOSS1_MOVE_STATE + 1,
+	BOSS1_RECOVER_STATE = BOSS1_EXHAUSTED_STATE + 1,
+	BOSS1_DAMAGED_STATE = BOSS1_RECOVER_STATE + 1,
+	BOSS1_DEAD_STATE = BOSS1_DAMAGED_STATE + 1,
+	BOSS1_CHOOSE_ATTACK_STATE = BOSS1_DEAD_STATE + 1,
+	BOSS1_REGULAR_PROJECTILE_ATTACK_STATE = BOSS1_CHOOSE_ATTACK_STATE + 1,
+	BOSS1_FAST_PROJECTILE_ATTACK_STATE = BOSS1_REGULAR_PROJECTILE_ATTACK_STATE + 1,
+	BOSS1_DELAYED_PROJECTILE_ATTACK_STATE = BOSS1_FAST_PROJECTILE_ATTACK_STATE + 1,
+	BOSS1_GROUND_SLAM_INIT_1_STATE = BOSS1_DELAYED_PROJECTILE_ATTACK_STATE + 1,
+	BOSS1_GROUND_SLAM_RISE_1_STATE = BOSS1_GROUND_SLAM_INIT_1_STATE + 1,
+	BOSS1_GROUND_SLAM_FOLLOW_1_STATE = BOSS1_GROUND_SLAM_RISE_1_STATE + 1,
+	BOSS1_GROUND_SLAM_SLAM_1_STATE = BOSS1_GROUND_SLAM_FOLLOW_1_STATE + 1,
+	BOSS1_GROUND_SLAM_LAND_1_STATE = BOSS1_GROUND_SLAM_SLAM_1_STATE + 1,
+	BOSS1_GROUND_SLAM_INIT_2_STATE = BOSS1_GROUND_SLAM_LAND_1_STATE + 1,
+	BOSS1_GROUND_SLAM_RISE_2_STATE = BOSS1_GROUND_SLAM_INIT_2_STATE + 1,
+	BOSS1_GROUND_SLAM_FOLLOW_2_STATE = BOSS1_GROUND_SLAM_RISE_2_STATE + 1,
+	BOSS1_GROUND_SLAM_SLAM_2_STATE = BOSS1_GROUND_SLAM_FOLLOW_2_STATE + 1,
+	BOSS1_GROUND_SLAM_LAND_2_STATE = BOSS1_GROUND_SLAM_SLAM_2_STATE + 1,
+	BOSS1_GROUND_SLAM_INIT_3_STATE = BOSS1_GROUND_SLAM_LAND_2_STATE + 1,
+	BOSS1_GROUND_SLAM_RISE_3_STATE = BOSS1_GROUND_SLAM_INIT_3_STATE + 1,
+	BOSS1_GROUND_SLAM_FOLLOW_3_STATE = BOSS1_GROUND_SLAM_RISE_3_STATE + 1,
+	BOSS1_GROUND_SLAM_SLAM_3_STATE = BOSS1_GROUND_SLAM_FOLLOW_3_STATE + 1,
+	BOSS1_GROUND_SLAM_LAND_3_STATE = BOSS1_GROUND_SLAM_SLAM_3_STATE + 1,
+	BOSS1_DASH_ATTACK_STATE = BOSS1_GROUND_SLAM_LAND_3_STATE + 1
+};
+
+enum class BOSS_ATTACK_ID {
+	BOSS1_REGULAR_PROJECTILE = 0,
+	BOSS1_FAST_PROJECTILE = BOSS1_REGULAR_PROJECTILE + 1,
+	BOSS1_DELAYED_PROJECTILE = BOSS1_FAST_PROJECTILE + 1,
+	BOSS1_GROUND_SLAM = BOSS1_DELAYED_PROJECTILE + 1,
+	BOSS1_DASH_ATTACK = BOSS1_GROUND_SLAM + 1,
+	TOTAL_COUNT = BOSS1_DASH_ATTACK + 1
+};
+
 // Player component
 struct Player
 {
@@ -392,6 +430,13 @@ struct WaterDrop
 
 };
 
+// A struct indicating that an attack has some delay before being executed
+struct Delayed
+{
+	float timer_ms; // timer until being fired
+	vec2 velocity; // velocity to use
+};
+
 // A struct indicating that an entity is a spike
 struct Spike
 {
@@ -426,9 +471,43 @@ struct Breakable
 struct Boss
 {
 	BOSS_ID boss_id;
+	BOSS_STATE boss_state;
+	bool can_be_damaged = false; // a flag to indicate that the boss can take damage
 	float health;
-	float attack_cooldown_ms = 500.0f;
+	float timer_ms; // a general timer, set to different values based on the boss state
+	unsigned int num_of_attack_completed;
+	float time_until_exhausted_ms;
+	bool can_damage_player; // a flag to indicate that collision with the boss can damage the player
 };
+
+struct FirstBoss
+{
+	unsigned int num_of_projectiles_created = 0;
+	float projectile_timer_ms = BOSS_ONE_INTER_PROJECTILE_TIMER_MS;
+	bool player_collided_with_snooze_button = false;
+};
+
+// a struct to represent the snooze button for the first boss
+struct SnoozeButton
+{
+
+};
+
+// struct BossAttack
+// {
+// 	BOSS_ATTACK_ID attack_id;
+// 	bool is_in_use; // a flag to indicate that the attack is currently in use
+// 	std::chrono::time_point<std::chrono::high_resolution_clock> attack_start_time;
+// 	float duration_ms; // the total duration of the attack (TODO: might remove this field)
+// 	float cooldown_ms;
+// 	std::vector<float> in_between_delay_ms; // the amount of delay between each part of the attack
+// 	float in_between_timer_ms; // the timer before the next attack, should directly come from the in_between_delay_ms
+// 	vec2 velocity_modifier;
+// 	unsigned int num_of_attack_created;
+// 	unsigned int num_of_attack_completed;
+// 	unsigned int max_num_of_attacks;
+// };
+
 
 // A struct indicating that an entity is tile
 struct Tile
@@ -494,8 +573,8 @@ enum class TEXTURE_ASSET_ID {
 	D_TUTORIAL_GROUND = BARREL + 1,
 	A_TUTORIAL_GROUND = D_TUTORIAL_GROUND + 1,
 	DECEL_LEVEL_GROUND = A_TUTORIAL_GROUND +1,
-	BOSS_LEVEL_ONE_GROUND = DECEL_LEVEL_GROUND + 1,
-	TILE = BOSS_LEVEL_ONE_GROUND + 1,
+	BOSS_ONE_LEVEL_GROUND = DECEL_LEVEL_GROUND + 1,
+	TILE = BOSS_ONE_LEVEL_GROUND + 1,
 	WASD = TILE + 1,
 	DECEL = WASD + 1,
 	DECEL2 = DECEL + 1,
@@ -509,7 +588,25 @@ enum class TEXTURE_ASSET_ID {
 	COYOTE_PARTICLES = BREAKABLE_FRAGMENTS + 1,
 	SCREW_FRAGMENTS = COYOTE_PARTICLES + 1,
 	HEX_FRAGMENTS = SCREW_FRAGMENTS + 1,
-	TEXTURE_COUNT = HEX_FRAGMENTS + 1,
+	BOSS_ONE_IDLE_LEFT = HEX_FRAGMENTS + 1,
+	BOSS_ONE_IDEL_RIGHT = BOSS_ONE_IDLE_LEFT + 1,
+	BOSS_ONE_EXHAUSTED = BOSS_ONE_IDEL_RIGHT + 1,
+	BOSS_ONE_DAMAGED = BOSS_ONE_EXHAUSTED + 1,
+	BOSS_ONE_RECOVERED = BOSS_ONE_DAMAGED + 1,
+	BOSS_ONE_PROJECTILE_LEFT = BOSS_ONE_RECOVERED + 1,
+	BOSS_ONE_PROJECTILE_RIGHT = BOSS_ONE_PROJECTILE_LEFT + 1,
+	BOSS_ONE_DELAYED_PROJECTILE = BOSS_ONE_PROJECTILE_RIGHT + 1,
+	BOSS_ONE_SNOOZE_BUTTON = BOSS_ONE_DELAYED_PROJECTILE + 1,
+	BOSS_ONE_WALK = BOSS_ONE_SNOOZE_BUTTON + 1,
+	BOSS_ONE_DASH = BOSS_ONE_WALK + 1,
+	BOSS_ONE_DASH_LEFT_RIGHT = BOSS_ONE_DASH + 1,
+	BOSS_ONE_GROUND_SLAM_RISE = BOSS_ONE_DASH_LEFT_RIGHT + 1,
+	BOSS_ONE_GROUND_SLAM_FOLLOW = BOSS_ONE_GROUND_SLAM_RISE + 1,
+	BOSS_ONE_GROUND_SLAM_FALL = BOSS_ONE_GROUND_SLAM_FOLLOW + 1,
+	BOSS_ONE_GROUND_SLAM_LAND = BOSS_ONE_GROUND_SLAM_FALL + 1,
+	TUTORIAL_TEXT = BOSS_ONE_GROUND_SLAM_LAND + 1,
+	DECEL_BAR = TUTORIAL_TEXT + 1,
+	TEXTURE_COUNT = DECEL_BAR + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -551,7 +648,21 @@ enum class ANIMATION_ID {
 	COYOTE_PARTICLES = BREAKABLE_FRAGMENTS + 1,
 	SCREW_FRAGMENTS = COYOTE_PARTICLES + 1,
 	HEX_FRAGMENTS = SCREW_FRAGMENTS + 1,
-	ANIMATION_COUNT = HEX_FRAGMENTS + 1
+	BOSS_ONE_IDLE = HEX_FRAGMENTS + 1,
+	BOSS_ONE_WALK = BOSS_ONE_IDLE + 1,
+	BOSS_ONE_EXHAUSTED = BOSS_ONE_WALK + 1,
+	BOSS_ONE_DAMAGED = BOSS_ONE_EXHAUSTED + 1,
+	BOSS_ONE_RECOVERED = BOSS_ONE_DAMAGED + 1,
+	BOSS_ONE_PROJECTILE_LEFT = BOSS_ONE_RECOVERED + 1,
+	BOSS_ONE_PROJECTILE_RIGHT = BOSS_ONE_PROJECTILE_LEFT + 1,
+	BOSS_ONE_DELAYED_PROJECTILE = BOSS_ONE_PROJECTILE_RIGHT + 1,
+	BOSS_ONE_DASH = BOSS_ONE_DELAYED_PROJECTILE + 1,
+	BOSS_ONE_GROUND_SLAM_INIT = BOSS_ONE_DASH + 1,
+	BOSS_ONE_GROUND_SLAM_RISE = BOSS_ONE_GROUND_SLAM_INIT + 1,
+	BOSS_ONE_GROUND_SLAM_FOLLOW = BOSS_ONE_GROUND_SLAM_RISE + 1,
+	BOSS_ONE_GROUND_SLAM_FALL = BOSS_ONE_GROUND_SLAM_FOLLOW + 1,
+	BOSS_ONE_GROUND_SLAM_LAND = BOSS_ONE_GROUND_SLAM_FALL + 1,
+	ANIMATION_COUNT = BOSS_ONE_GROUND_SLAM_LAND + 1
 };
 const int animation_count = (int)ANIMATION_ID::ANIMATION_COUNT;
 
@@ -592,6 +703,7 @@ struct LevelState {
 	TEXTURE_ASSET_ID ground;
 	bool shouldLoad = false;
 	float reload_coutdown = -1.0f;
+	bool shouldReparseEntities = false;
 	vec2 dimensions;
 };
 

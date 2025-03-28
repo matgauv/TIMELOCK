@@ -53,19 +53,21 @@ void PhysicsSystem::step(float elapsed_ms) {
 
 			if (phys.apply_rotation) {
                 // Update angle
-                motion.angle += degrees(phys.angular_velocity * step_seconds);
+				float modified_angular_velocity = get_modified_angular_velocity(motion, phys);
+
+                motion.angle += degrees(modified_angular_velocity * step_seconds);
                 motion.cache_invalidated = true;
 
 				float angle_rad = radians(motion.angle);
 
 				vec2 tangent = { -sin(angle_rad), cos(angle_rad) };
 				float rotationFrictionFactor = 0.5f;
-				vec2 angular_push = tangent * fabs(phys.angular_velocity) * rotationFrictionFactor;
+				vec2 angular_push = tangent * fabs(modified_angular_velocity) * rotationFrictionFactor;
 				if (phys.mass >0.0f) motion.position += angular_push * step_seconds;
 				if (phys.angular_damping > 0.0f) phys.angular_velocity *= (1.0f - phys.angular_damping * step_seconds); // Damping factor
 
 				if (registry.rotatingGears.has(entity)) {
-					phys.angular_velocity = registry.rotatingGears.get(entity).angular_velocity;
+					phys.angular_velocity = registry.rotatingGears.get(entity).angular_velocity; // no need to modify here, should store normal time ang vel
 				}
 			}
 
@@ -81,8 +83,25 @@ void PhysicsSystem::step(float elapsed_ms) {
 		}
 
 		vec2 oldMotion = motion.position;
-		motion.position += (motion.velocity * motion.velocityModifier) * step_seconds;
 
+		// TODO: handle boss and wall collisions
+		if (registry.bosses.has(entity)) {
+			vec2 next_pos = motion.position + (motion.velocity * motion.velocityModifier) * step_seconds;
+			if (next_pos.x < 383.f) {
+				motion.position.x = 383.f;
+				motion.position.y += (motion.velocity.y * motion.velocityModifier) * step_seconds;
+				motion.velocity *= -1.0f;
+			} else if (next_pos.x > 1050.f) {
+				motion.position.x = 1050.f;
+				motion.position.y += (motion.velocity.y * motion.velocityModifier) * step_seconds;
+				motion.velocity *= -1.0f;
+			} else {
+				motion.position = next_pos;
+			}
+
+		} else {
+			motion.position += (motion.velocity * motion.velocityModifier) * step_seconds;
+		}
 
 		// invalidate the cached vertices of the motion moved
 		if (oldMotion != motion.position) {
@@ -178,12 +197,44 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			handle_player_door_collision();
 		}
 
+		// handle player and boss projectile collision
 		if (registry.players.has(one) && registry.projectiles.has(other)) {
 			// TODO: should handle_player_projectile_collision() be handle_player_attack_collision() ?
 			// TODO: should leave all events that kill player to collision with harmful entities
 			handle_player_attack_collision(one, other, collision);
 		} else if (registry.players.has(other) && registry.projectiles.has(one)) {
 			handle_player_attack_collision(other, one, collision);
+		}
+
+		// TODO: handle player and boss collision (temporarily moving this into the boss_one_utils.cpp)
+		// if (registry.players.has(one) && registry.bosses.has(other)) {
+			
+		// 	// kill the player if the boss is harmful (during dash attack)
+		// 	Entity& boss_entity = registry.bosses.entities[0];
+		// 	if (registry.harmfuls.has(boss_entity)) {
+		// 		PlayerSystem::kill();
+		// 	}
+		// } else if (registry.players.has(other) && registry.bosses.has(one)) {
+			
+		// 	// kill the player if the boss is harmful (during dash attack)
+		// 	Entity& boss_entity = registry.bosses.entities[0];
+		// 	if (registry.harmfuls.has(boss_entity)) {
+		// 		PlayerSystem::kill();
+		// 	}
+		// }
+
+		// TODO: handle player and snooze button collision
+		if (registry.players.has(one) && registry.snoozeButtons.has(other)) {
+
+			FirstBoss& firstBoss = registry.firstBosses.components[0];
+			firstBoss.player_collided_with_snooze_button = true;
+			// registry.remove_all_components_of(other); // remove snooze button -> maybe this should be the job of a particular boss state
+
+		} else if (registry.players.has(other) && registry.snoozeButtons.has(one)) {
+
+			FirstBoss& firstBoss = registry.firstBosses.components[0];
+			firstBoss.player_collided_with_snooze_button = true;
+			// registry.remove_all_components_of(one); // remove snooze button -> maybe this should be the job of a particular boss state
 		}
 
 		GameState& gameState = registry.gameStates.components[0];
@@ -198,15 +249,23 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			handle_projectile_collision(other, one);
 		}
 
-		if (registry.players.has(one) && registry.bosses.has(other)) {
-			handle_player_boss_collision(one, other, collision);
-		} else if (registry.players.has(other) && registry.bosses.has(one)) {
-			handle_player_boss_collision(other, one, collision);
-		}
+		// if (registry.players.has(one) && registry.bosses.has(other)) {
+		// 	handle_player_boss_collision(one, other, collision);
+		// } else if (registry.players.has(other) && registry.bosses.has(one)) {
+		// 	handle_player_boss_collision(other, one, collision);
+		// }
 
 		// if player touches boundary or spike, reset the game
-		if (is_collision_between_player_and_boundary(one, other) || is_collision_between_player_and_spike(one, other)) {
+		if (is_collision_between_player_and_boundary(one, other) || is_collision_between_player_and_spike(one, other) || player_harmful_collision(one, other)) {
 			PlayerSystem::kill();
+		}
+
+	//		bolts break on spikes
+		if (registry.bolts.has(one) && registry.spikes.has(other)) {
+			registry.remove_all_components_of(one);
+		}
+		if (registry.bolts.has(other) && registry.spikes.has(one)) {
+			registry.remove_all_components_of(other);
 		}
 
 		if (registry.players.has(one) && registry.ladders.has(other)) {

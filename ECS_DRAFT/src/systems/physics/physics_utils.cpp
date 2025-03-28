@@ -84,6 +84,11 @@ bool is_collision_between_player_and_spike(Entity& one, Entity& other) {
 	(registry.players.has(other) && registry.spikes.has(one));
 }
 
+bool player_harmful_collision(Entity& one, Entity& other) {
+	return (registry.players.has(one) && registry.harmfuls.has(other))
+			|| (registry.players.has(other) && registry.harmfuls.has(one));
+}
+
 void handle_player_breakable_collision(Entity& player_entity, Entity& breakable_entity, Collision collision) {
 	Breakable& breakable = registry.breakables.get(breakable_entity);
 
@@ -136,6 +141,11 @@ std::vector<vec2>& get_vertices(Entity& e) {
 vec2 get_modified_velocity(Motion& m)
 {
 	return {m.velocity.x * m.velocityModifier, m.velocity.y * m.velocityModifier};
+}
+
+float get_modified_angular_velocity(Motion& m, PhysicsObject& physics)
+{
+  return physics.angular_velocity * m.velocityModifier;
 }
 
 std::vector<vec2>& get_axes(Entity& e)

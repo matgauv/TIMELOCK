@@ -21,13 +21,16 @@ void main()
 
 
 	if (silhouette_color.a > 0.0) {
-		float thickness = 0.035;
+		// number of pixels
+		float thickness = 10.0;
+		vec2 texture_scale = textureSize(sampler0, 0);
 		
 		// Test Boundary: if this pixel opaque & close to transparent pixel
 		if (sampled_color.a > 0.95) {
 			// y coordinate of texture needs to be inverted for DDS Textured mesh
 			float dist_to_edge = min(
-				min(texcoord.x, 1.0 - texcoord.x), min(-texcoord.y, 1.0 + texcoord.y)
+				min(texcoord.x, 1.0 - texcoord.x) * texture_scale.x, 
+				min(-texcoord.y, 1.0 + texcoord.y) * texture_scale.y
 			);
 
 			if (dist_to_edge <= thickness) {
@@ -38,7 +41,8 @@ void main()
 						if (i == 0 && j == 0) {
 							continue;
 						}
-						vec4 neighbor_color = vec4(fcolor * vcolor, 1.0) * texture(sampler0, vec2(texcoord.x + i * thickness, texcoord.y + j * thickness));
+						vec4 neighbor_color = vec4(fcolor * vcolor, 1.0) * 
+							texture(sampler0, vec2(texcoord.x + i * thickness / texture_scale.x, texcoord.y + j * thickness / texture_scale.y));
 
 						if (neighbor_color.a < 0.05) {
 							color = silhouette_color;

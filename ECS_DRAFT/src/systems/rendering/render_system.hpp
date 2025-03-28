@@ -40,6 +40,8 @@ class RenderSystem : public ISystem {
 		textures_path("backgrounds/SampleBackground.png"),
 		textures_path("player/PlayerWalking_v1.png"),
 		textures_path("player/PlayerStanding_v1.png"),
+		textures_path("player/PlayerClimb.png"),
+		textures_path("player/PlayerCoyote.png"),
 		textures_path("player/PlayerKill.png"),
 		textures_path("player/PlayerRespawn.png"),
 		textures_path("white_bubble.png"),
@@ -68,7 +70,11 @@ class RenderSystem : public ISystem {
 		textures_path("pendulum_arm.png"),
 		textures_path("gear.png"),
 		textures_path("spikeball.png"),
+		textures_path("screw-platform.png"),
 		textures_path("particles/BreakablePlatform_Fragments.png"),
+		textures_path("particles/CoyoteParticles.png"),
+		textures_path("particles/Screw_Fragments.png"),
+		textures_path("particles/Hex_Fragments.png"),
 		textures_path("boss/lookleft.png"),
 		textures_path("boss/lookright.png"),
 		textures_path("boss/exhausted.png"),
@@ -90,7 +96,7 @@ class RenderSystem : public ISystem {
 	};
 
 	std::array<GLuint, effect_count> effects;
-	//std::array<GLuint, effect_count> vaos;
+
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, effect_count> effect_paths = {
 		shader_path("coloured"),

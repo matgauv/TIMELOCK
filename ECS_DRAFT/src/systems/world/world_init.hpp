@@ -36,7 +36,7 @@ Entity create_time_controllable_breakable_static_platform(vec2 position, vec2 sc
 Entity create_cannon_tower(vec2 pos);
 Entity create_tutorial_text(vec2 position, vec2 size, TEXTURE_ASSET_ID texture_id);
 Entity create_door(vec2 position, bool open, json& tile_id_array, int stride);
-Entity create_pipe_head(vec2 position, vec2 scale, std::string direction, json& tile_id_array, int stride);
+Entity create_pipe_head(vec2 position, vec2 scale, std::string direction, json& tile_id_array, int stride, float time_offset = 0.0f);
 Entity create_chain(vec2 position, vec2 scale);
 Entity create_pendulum(vec2 pivot_position, float length, float initial_angle, float bob_radius);
 Entity create_gear(vec2 position, vec2 size, bool fixed, float angular_velocity, float inital_angle);

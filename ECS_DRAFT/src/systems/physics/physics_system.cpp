@@ -6,6 +6,7 @@
 #include "../world/world_init.hpp"
 #include "../player/player_system.hpp"
 #include <iostream>
+#include "../parser/parsing_system.hpp"
 
 #include <iostream>
 void PhysicsSystem::init(GLFWwindow* window) {

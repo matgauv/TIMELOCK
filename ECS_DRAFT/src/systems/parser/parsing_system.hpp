@@ -2,6 +2,7 @@
 #include "systems/ISystem.hpp"
 #include "json.hpp"
 #include "tinyECS/components.hpp"
+#include "tinyECS/registry.hpp"
 using namespace std;
 using namespace nlohmann;
 
@@ -12,11 +13,18 @@ public:
     void step(float elapsed_ms) override;
     void late_step(float elapsed_ms) override;
 
+    static void schedule_reload() {
+        registry.levelStates.components[0].reload_coutdown = LOAD_LEVEL_COUNTDOWN;
+        registry.screenStates.components[0].scene_transition_factor = 0.0;
+        registry.gameStates.components[0].game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_OUT;
+    }
+
     LevelParsingSystem()
     {
     }
 private:
     GLFWwindow* window = nullptr;
+
     json json_data;
     json tile_id_array;
     int stride;

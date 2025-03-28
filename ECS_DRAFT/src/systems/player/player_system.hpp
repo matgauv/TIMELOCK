@@ -6,6 +6,7 @@
 #include "../../tinyECS/registry.hpp"
 
 #include "systems/ISystem.hpp"
+#include "systems/physics/physics_utils.h"
 
 // Player System; manages Player statistics
 class PlayerSystem : public ISystem
@@ -17,10 +18,10 @@ public:
 
 	void set_spawnpoint(vec2 spawnpoint);
 	void static kill();
-	void static set_walking(bool is_left);
-	void static set_standing(bool is_left);
 	void static set_jumping_validity(bool can_jump);
 	bool static can_jump();
+
+	void static set_direction(bool is_left);
 
 	PlayerSystem()
 	{
@@ -29,4 +30,10 @@ private:
 	GLFWwindow* window = nullptr;
 
 	void static player_respawn();
+
+	void static set_walking();
+	void static set_standing();
+	void static set_climbing();
+	void static set_coyote();
+	void static handle_player_motion();
 };

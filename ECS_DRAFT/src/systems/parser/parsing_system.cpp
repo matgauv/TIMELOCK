@@ -47,6 +47,10 @@ void LevelParsingSystem::step(float elapsed_ms) {
         registry.remove_all_components_of(registry.motions.entities.back());
     }
 
+    // Remove all particles
+    while (registry.particles.entities.size() > 0)
+        registry.remove_all_components_of(registry.particles.entities.back());
+
     // clear all render requests for tiles
     while (registry.renderRequests.entities.size() > 0) {
         registry.remove_all_components_of(registry.renderRequests.entities.back());

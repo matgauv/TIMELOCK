@@ -146,6 +146,10 @@ void WorldSystem::restart_game() {
 	while (registry.motions.entities.size() > 0)
 		registry.remove_all_components_of(registry.motions.entities.back());
 
+	// Remove all particles
+	while (registry.particles.entities.size() > 0)
+		registry.remove_all_components_of(registry.particles.entities.back());
+
 	// debugging for memory/component leaks
 	registry.list_all_components();
 

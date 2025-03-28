@@ -116,35 +116,34 @@ void WorldSystem::destroy_projectile(Entity entity) {
 	else if (registry.bolts.has(entity)) {
 		particle_id = PARTICLE_ID::HEX_FRAGMENTS;
 	}
-	else {
-		return;
-	}
 
-	const Motion& motion = registry.motions.get(entity);
-	const float fragment_size = std::min(std::min(motion.scale.x, motion.scale.y), (float)TILE_TO_PIXELS);
-	const int fragment_count = (int)(motion.scale.x * motion.scale.y / (fragment_size * fragment_size)) + 1;
+	if (particle_id != PARTICLE_ID::COLORED) {
+		const Motion& motion = registry.motions.get(entity);
+		const float fragment_size = std::min(std::min(motion.scale.x, motion.scale.y), (float)TILE_TO_PIXELS);
+		const int fragment_count = (int)(motion.scale.x * motion.scale.y / (fragment_size * fragment_size)) + 1;
 
-	// Fragments
-	for (int i = 0; i < fragment_count; i++) {
-		vec2 fragment_position = random_sample_rectangle(motion.position, motion.scale);
+		// Fragments
+		for (int i = 0; i < fragment_count; i++) {
+			vec2 fragment_position = random_sample_rectangle(motion.position, motion.scale);
 
-		ParticleSystem::spawn_particle(particle_id,
-			fragment_position,
-			0.0f, vec2{ fragment_size, fragment_size },
-			-0.5f * motion.velocity + rand_direction() * 15.0f, // TODO: consider actual collision velocity
-			800.0, 1.0f, { 0.0f, 500.0f });
-	}
+			ParticleSystem::spawn_particle(particle_id,
+				fragment_position,
+				0.0f, vec2{ fragment_size, fragment_size },
+				-0.5f * motion.velocity + rand_direction() * 15.0f, // TODO: consider actual collision velocity
+				800.0, 1.0f, { 0.0f, 500.0f });
+		}
 
-	// Sparks
-	for (int i = 0; i < 30; i++) {
-		vec2 dust_position = random_sample_rectangle(motion.position, motion.scale);
+		// Sparks
+		for (int i = 0; i < 30; i++) {
+			vec2 dust_position = random_sample_rectangle(motion.position, motion.scale);
 
-		ParticleSystem::spawn_particle(vec3(0.8f, rand_float(0.0f, 0.8f), 0.0f),
-			dust_position,
-			0.0f, vec2{ 2.0, 2.0 },
-			-0.75f * motion.velocity + rand_direction() * 30.0f,
-			300.0, 0.8f, { 0.0f, 0.0f }, { 0.0f, 100.0f },
-			0.0, 1.0);
+			ParticleSystem::spawn_particle(vec3(0.8f, rand_float(0.0f, 0.8f), 0.0f),
+				dust_position,
+				0.0f, vec2{ 2.0, 2.0 },
+				-0.75f * motion.velocity + rand_direction() * 30.0f,
+				300.0, 0.8f, { 0.0f, 0.0f }, { 0.0f, 100.0f },
+				0.0, 1.0);
+		}
 	}
 
 	registry.remove_all_components_of(entity);

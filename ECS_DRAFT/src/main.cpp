@@ -15,6 +15,7 @@
 #include "systems/parser/parsing_system.hpp"
 #include "systems/spawnpoint/spawnpoint_system.hpp"
 #include "systems/particle/particle_system.hpp"
+#include "systems/ui/ui_system.hpp"
 
 // Entry point
 int main(int argc, char *argv[])
@@ -55,12 +56,14 @@ int main(int argc, char *argv[])
 	BossSystem boss_system;
 	SpawnPointSystem spawnpoint_system;
 	ParticleSystem particle_system;
+	UiSystem ui_system;
 
 	world_system.setSound(play_sound);
 
 	// register order is the order steps (and then late steps) will be called
 	system_manager.register_system(&parsing_system);
 	system_manager.register_system(&world_system);
+	system_manager.register_system(&ui_system);
 	system_manager.register_system(&player_system);
 	system_manager.register_system(&ai_system);
 	system_manager.register_system(&spawnpoint_system);

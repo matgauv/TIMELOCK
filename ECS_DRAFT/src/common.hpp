@@ -269,6 +269,12 @@ const float COYOTE_PARTICLES_DURATION = 500.0f;
 const float BACKGROUND_WIDTH = 1920.0f;
 const float BACKGROUND_HEIGHT = 1080.0f;
 
+// UI
+const float DECEL_BAR_WIDTH = 175.0f / 2.0f;
+const float DECEL_BAR_HEIGHT = 20.0f / 2.0f;
+const vec2 DECEL_BAR_OFFSET = vec2{ 0.0f, -1.0f * PLAYER_BB_HEIGHT_PX };
+const float DECEL_BAR_DEVIATION = 7.5f;
+
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)
 // We recommend making all components non-copyable by derving from ComponentNonCopyable

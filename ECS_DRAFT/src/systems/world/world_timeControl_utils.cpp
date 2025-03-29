@@ -15,40 +15,58 @@ void WorldSystem::lerpTimeState(float start, float target, Motion& motion, float
 	motion.velocityModifier = lerpToTarget(start, target, time); // actual lerp function is in common.cpp
 }
 
-
-// TODO: setting harmful component in trigger-based control_time function can be redundant;
-// we have to configure newly summoned entities to obey their harmful/harmless rules anyways
-// (e.g., when summoning a projectile during decel, we have to ensure it does not have a harmful component)
-void WorldSystem::control_time(bool accelerate, bool activate) {
+bool WorldSystem::set_time_control_state(bool accelerate, bool activate, bool force_cooldown_reset) {
 	GameState& gameState = registry.gameStates.components[0];
 
 	if (activate) {
 		// don't activate if cooldown hasn't expired!
 		if ((accelerate && gameState.accelerate_timer < 0.0) ||
 			(!accelerate && gameState.decelerate_timer < 0.0)) {
-			return;
+			return false;
 		}
 
 		if (accelerate) {
 			gameState.game_time_control_state = TIME_CONTROL_STATE::ACCELERATED;
 			gameState.accelerate_timer = ACCELERATION_DURATION_MS;
-			playSoundIfEnabled(speed_up_effect);
 		}
 		else {
 			gameState.game_time_control_state = TIME_CONTROL_STATE::DECELERATED;
 			gameState.decelerate_timer = DECELERATION_DURATION_MS;
-			playSoundIfEnabled(slow_down_effect);
 		}
+
+		return true;
 	}
 	else {
+		/*
+		if ((accelerate && gameState.game_time_control_state != TIME_CONTROL_STATE::ACCELERATED) ||
+			(!accelerate && gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED)) {
+			return false;
+		}*/
+
 		gameState.game_time_control_state = TIME_CONTROL_STATE::NORMAL;
 		if (accelerate) {
-			gameState.accelerate_timer = -ACCELERATION_COOLDOWN_MS;
-			playSoundIfEnabled(slow_down_effect);
+			gameState.accelerate_timer = (force_cooldown_reset ? 0.0f :
+				-ACCELERATION_COOLDOWN_MS * std::clamp((ACCELERATION_DURATION_MS - gameState.accelerate_timer) / ACCELERATION_DURATION_MS, 0.0f, 1.0f));
 		}
 		else {
-			gameState.decelerate_timer = -DECELERATION_COOLDOWN_MS;
+			gameState.decelerate_timer = (force_cooldown_reset ? 0.0f : 
+				-DECELERATION_COOLDOWN_MS * std::clamp((DECELERATION_DURATION_MS - gameState.decelerate_timer) / DECELERATION_DURATION_MS, 0.0f, 1.0f));
+		}
+
+		return true;
+	}
+}
+
+// TODO: setting harmful component in trigger-based control_time function can be redundant;
+// we have to configure newly summoned entities to obey their harmful/harmless rules anyways
+// (e.g., when summoning a projectile during decel, we have to ensure it does not have a harmful component)
+void WorldSystem::control_time(bool accelerate, bool activate, bool force_cooldown_reset) {
+	if (set_time_control_state(accelerate, activate, force_cooldown_reset)) {
+		if ((activate && accelerate) || (!activate && !accelerate)) {
 			playSoundIfEnabled(speed_up_effect);
+		}
+		else {
+			playSoundIfEnabled(slow_down_effect);
 		}
 	}
 }

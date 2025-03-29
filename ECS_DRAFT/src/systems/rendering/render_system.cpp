@@ -19,6 +19,11 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	if (!registry.tiles.has(entity)) {
 		Motion& motion = registry.motions.get(entity);
 
+		// No need to render mesh with 0 dimension
+		if (abs(motion.scale.x) < 1e-8 || abs(motion.scale.y) < 1e-8) {
+			return;
+		}
+
 		// if pivot point exists, translate to offset, rotate, translate back, scale (hack for pendulums)
 		if (registry.pivotPoints.has(entity)) {
 			vec2 pivot_offset = registry.pivotPoints.get(entity).offset;
@@ -503,16 +508,12 @@ void RenderSystem::draw()
 	// Assort rendering tasks according to layers
 	
 	std::vector<Entity> parallaxbackgrounds;
-	//std::vector<Entity> parallaxbackgrounds_particles;
 
 	std::vector<Entity> backgrounds;
-	//std::vector<Entity> backgrounds_particles;
 
 	std::vector<Entity> midgrounds;
-	//std::vector<Entity> midgrounds_particles;
 
 	std::vector<Entity> foregrounds;
-	//std::vector<Entity> foregrounds_particles;
 
 	for (Entity entity : registry.layers.entities)
 	{
@@ -536,14 +537,14 @@ void RenderSystem::draw()
 				foregrounds.push_back(entity);
 				break;
 			case LAYER_ID::MIDGROUND:
-				// Render Player last?
-				if (registry.players.has(entity)) {
+				// Render Player/In-game UI (decel bar)/Boss last
+				if (registry.players.has(entity) || 
+					registry.bosses.has(entity) || 
+					registry.snoozeButtons.has(entity)|| 
+					registry.decelerationBars.has(entity)) {
 					continue;
 				}
-				// TODO: may need to adjust rendering order for spawn points and interactive objects as well?
-				if (registry.players.entities[0].id() == entity.id()) {
-					continue;
-				}
+
 				midgrounds.push_back(entity);
 				break;
 			case LAYER_ID::PARALLAXBACKGROUND:
@@ -556,7 +557,6 @@ void RenderSystem::draw()
 				break;
 		}
 	}
-	midgrounds.push_back(registry.players.entities[0]);
 
 	glBindVertexArray(vao_general);
 	for (Entity entity : parallaxbackgrounds)
@@ -571,7 +571,23 @@ void RenderSystem::draw()
 	}
 
 
-	midgrounds.push_back(registry.players.entities[0]);
+	// Render special targets
+	if (registry.players.size() > 0) {
+		midgrounds.push_back(registry.players.entities[0]);
+	}
+
+	if (registry.decelerationBars.size() > 0) {
+		midgrounds.push_back(registry.decelerationBars.entities[0]);
+	}
+
+	if (registry.bosses.size() > 0) {
+		midgrounds.push_back(registry.bosses.entities[0]);
+	}
+
+	if (registry.snoozeButtons.size() > 0) {
+		midgrounds.push_back(registry.snoozeButtons.entities[0]);
+	}
+
 	for (Entity entity : midgrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);

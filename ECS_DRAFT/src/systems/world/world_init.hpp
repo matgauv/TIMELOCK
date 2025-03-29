@@ -14,6 +14,7 @@ inline std::unordered_map<std::string, std::unique_ptr<Mesh>> mesh_cache;
 
 // Creation methods
 Entity create_player(vec2 position, vec2 scale);
+Entity create_deceleration_bar(vec2 position);
 Entity create_physics_object(vec2 position, vec2 scale, float mass);
 Entity create_camera(vec2 position, vec2 scale);
 Entity create_background(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id);

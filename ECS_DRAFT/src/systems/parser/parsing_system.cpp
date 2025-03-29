@@ -105,6 +105,9 @@ void LevelParsingSystem::step(float elapsed_ms) {
     // 3.0 = 1.0 factor + 2 * tolerances
     registry.screenStates.components[0].scene_transition_factor = 3.0;
     registry.gameStates.components[0].game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
+
+    WorldSystem::set_time_control_state(false, false, true);
+    WorldSystem::set_time_control_state(true, false, true);
 }
 
 void LevelParsingSystem::late_step(float elapsed_ms) {
@@ -143,6 +146,7 @@ void LevelParsingSystem::init_player_and_camera() {
     json playerJson = json_data["entities"]["Player"][0];
     vec2 initPos = vec2(playerJson["x"], playerJson["y"]);
     create_player(initPos, { int(playerJson["width"]) * 1.5, int(playerJson["height"]) * 1.5});
+    create_deceleration_bar(initPos + DECEL_BAR_OFFSET);
     create_camera(initPos, { 1.0f, 1.0f });
 
     // TEMP: for now, tutorial text is always shown

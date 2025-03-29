@@ -266,6 +266,9 @@ const int TURBULENCE_OCTAVES = 1;
 
 const float COYOTE_PARTICLES_DURATION = 500.0f;
 
+const float BACKGROUND_WIDTH = 1920.0f;
+const float BACKGROUND_HEIGHT = 1080.0f;
+
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)
 // We recommend making all components non-copyable by derving from ComponentNonCopyable

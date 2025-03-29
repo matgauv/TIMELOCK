@@ -36,8 +36,12 @@ enum class SPAWN_POINT_STATE {
 enum class PLAYER_STATE {
 	// TODO: expand this to all possible states and transfer control to player system
 	RESPAWNED = 0,
-	ALIVE = RESPAWNED + 1,
-	DEAD = ALIVE + 1
+	STANDING = RESPAWNED + 1,
+	WALKING = STANDING + 1,
+	CLIMB = WALKING + 1,
+	COYOTE = CLIMB + 1,
+	// TODO: exiting & entering scene
+	DEAD = COYOTE + 1
 };
 
 struct FlagState {
@@ -89,7 +93,7 @@ struct Player
 	vec2 spawn_point;
 	float timer = 0.0;
 	// Consider expanding the fields with a state variable (idle, walking, in air, dead, etc.)
-	PLAYER_STATE state = PLAYER_STATE::ALIVE;
+	PLAYER_STATE state = PLAYER_STATE::STANDING;
 	// Potentially transfer acceleration/deceleration controls to Player as well
 
 	float jumping_valid_time = -1.0f;
@@ -310,7 +314,7 @@ struct ScreenState
 {
 	float acceleration_factor = -1.0;
 	float deceleration_factor = -1.0;
-	float scene_transition_factor = -1.0;
+	float scene_transition_factor = 3.0; // start from transition in
 };
 
 // A struct that includes the necessary properties of the current game state
@@ -444,9 +448,15 @@ struct Ladder {
 
 };
 
+
 // struct indicating that entity is a Pipe
 struct Pipe {
-	std::string direction;
+	float direction_factor;
+	float timer = 0.0;
+};
+
+struct Screw {
+	float timer = SCREW_LIFE_MS;
 };
 
 // A struct indicating that an entity is breakable
@@ -543,7 +553,9 @@ enum class TEXTURE_ASSET_ID {
 	SAMPLE_BACKGROUND = GREY_CIRCLE + 1,
 	PLAYER_WALKING_V1 = SAMPLE_BACKGROUND + 1,
 	PLAYER_STANDING_V1 = PLAYER_WALKING_V1 + 1,
-	PLAYER_KILL = PLAYER_STANDING_V1 + 1,
+	PLAYER_CLIMB = PLAYER_STANDING_V1 + 1,
+	PLAYER_COYOTE = PLAYER_CLIMB + 1,
+	PLAYER_KILL = PLAYER_COYOTE + 1,
 	PLAYER_RESPAWN = PLAYER_KILL + 1,
 	SAMPLE_PROJECTILE = PLAYER_RESPAWN + 1,
 	OBJECT = SAMPLE_PROJECTILE + 1,
@@ -571,8 +583,12 @@ enum class TEXTURE_ASSET_ID {
 	PENDULUM_ARM = PENDULUM + 1,
 	GEAR = PENDULUM_ARM + 1,
 	SPIKEBALL = GEAR + 1,
-	BREAKABLE_FRAGMENTS = SPIKEBALL + 1,
-	BOSS_ONE_IDLE_LEFT = BREAKABLE_FRAGMENTS + 1,
+	SCREW = SPIKEBALL + 1,
+	BREAKABLE_FRAGMENTS = SCREW + 1,
+	COYOTE_PARTICLES = BREAKABLE_FRAGMENTS + 1,
+	SCREW_FRAGMENTS = COYOTE_PARTICLES + 1,
+	HEX_FRAGMENTS = SCREW_FRAGMENTS + 1,
+	BOSS_ONE_IDLE_LEFT = HEX_FRAGMENTS + 1,
 	BOSS_ONE_IDEL_RIGHT = BOSS_ONE_IDLE_LEFT + 1,
 	BOSS_ONE_EXHAUSTED = BOSS_ONE_IDEL_RIGHT + 1,
 	BOSS_ONE_DAMAGED = BOSS_ONE_EXHAUSTED + 1,
@@ -624,13 +640,19 @@ const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 enum class ANIMATION_ID {
 	PLAYER_WALKING = 0,
 	PLAYER_STANDING = PLAYER_WALKING + 1,
-	PLAYER_KILL = PLAYER_STANDING + 1,
+	PLAYER_CLIMB = PLAYER_STANDING + 1,
+	PLAYER_CLIMB_FREEZE = PLAYER_CLIMB + 1,
+	PLAYER_COYOTE = PLAYER_CLIMB_FREEZE + 1,
+	PLAYER_KILL = PLAYER_COYOTE + 1,
 	PLAYER_RESPAWN = PLAYER_KILL + 1,
 	SPAWNPOINT_ACTIVATE = PLAYER_RESPAWN + 1,
 	SPAWNPOINT_DEACTIVATE = SPAWNPOINT_ACTIVATE + 1,
 	SPAWNPOINT_REACTIVATE = SPAWNPOINT_DEACTIVATE + 1,
 	BREAKABLE_FRAGMENTS = SPAWNPOINT_REACTIVATE + 1,
-	BOSS_ONE_IDLE = BREAKABLE_FRAGMENTS + 1,
+	COYOTE_PARTICLES = BREAKABLE_FRAGMENTS + 1,
+	SCREW_FRAGMENTS = COYOTE_PARTICLES + 1,
+	HEX_FRAGMENTS = SCREW_FRAGMENTS + 1,
+	BOSS_ONE_IDLE = HEX_FRAGMENTS + 1,
 	BOSS_ONE_WALK = BOSS_ONE_IDLE + 1,
 	BOSS_ONE_EXHAUSTED = BOSS_ONE_WALK + 1,
 	BOSS_ONE_DAMAGED = BOSS_ONE_EXHAUSTED + 1,
@@ -684,6 +706,7 @@ struct LevelState {
 	std::string next_level_folder_name;
 	TEXTURE_ASSET_ID ground;
 	bool shouldLoad = false;
+	float reload_coutdown = -1.0f;
 	bool shouldReparseEntities = false;
 	vec2 dimensions;
 };
@@ -695,7 +718,10 @@ enum class PARTICLE_ID {
 	COLORED = 0,
 	SAMPLED_TEXTURE = COLORED + 1,
 	BREAKABLE_FRAGMENTS = SAMPLED_TEXTURE + 1,
-	PARTICLE_TYPE_COUNT = BREAKABLE_FRAGMENTS + 1
+	COYOTE_PARTICLES = BREAKABLE_FRAGMENTS + 1,
+	SCREW_FRAGMENTS = COYOTE_PARTICLES + 1,
+	HEX_FRAGMENTS = SCREW_FRAGMENTS + 1,
+	PARTICLE_TYPE_COUNT = HEX_FRAGMENTS + 1
 };
 
 const int particle_type_count = (int)PARTICLE_ID::PARTICLE_TYPE_COUNT;

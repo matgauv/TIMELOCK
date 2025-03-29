@@ -85,6 +85,13 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
+
+		GLint color_uloc = glGetUniformLocation(program, "silhouette_color");
+		vec4 color;
+		setSilhouetteColor(entity, color);
+
+		glUniform4fv(color_uloc, 1, (float*)&color);
+		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::TILE)
 	{
@@ -115,6 +122,12 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
 
+
+		GLint color_uloc = glGetUniformLocation(program, "silhouette_color");
+		vec4 color = vec4(-1.0f);
+		const GameState& gameState = registry.gameStates.components[0];
+
+		glUniform4fv(color_uloc, 1, (float*)&color);
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::HEX)
@@ -156,25 +169,9 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 
 		GLint color_uloc = glGetUniformLocation(program, "silhouette_color");
-		vec4 color = vec4(-1.0f);
-		const GameState& gameState = registry.gameStates.components[0];
 
-
-		if (registry.timeControllables.has(entity)) {
-			const TimeControllable& tc = registry.timeControllables.get(entity);
-			if (
-				(gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED && tc.can_become_harmless) ||
-				(gameState.game_time_control_state != TIME_CONTROL_STATE::ACCELERATED && tc.can_become_harmful)) {
-				// Green silhouette if (become harmless + decel) OR (become harmful + !accel)
-				color = vec4(0.0f, 1.0f, 0.0f, 1.0f);
-			}
-			else if (
-				(gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED && tc.can_become_harmful) ||
-				(gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED && tc.can_become_harmless)) {
-				// Red silhouette if (become harmful + accel) OR (become harmless + !decel)
-				color = vec4(1.0f, 0.0f, 0.0f, 1.0f);
-			}
-		}
+		vec4 color;
+		setSilhouetteColor(entity, color);
 
 		glUniform4fv(color_uloc, 1, (float*)&color);
 		gl_has_errors();
@@ -231,15 +228,9 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	if (render_request.used_effect != EFFECT_ASSET_ID::HEX)
 	{
 		GLuint tex_u_range_loc = glGetUniformLocation(currProgram, "tex_u_range");
-		vec2 tex_u_range = (registry.animateRequests.has(entity) ?
-			registry.animateRequests.get(entity).tex_u_range : vec2{ 0.0f, 1.0f });
+		vec2 tex_u_range;
 
-		// Flip uv if sprite is horizontally flipped
-		if (render_request.flipped) {
-			float temp = tex_u_range[0];
-			tex_u_range[0] = tex_u_range[1];
-			tex_u_range[1] = temp;
-		}
+		setURange(entity, tex_u_range);
 
 		glUniform2fv(tex_u_range_loc, 1, (float*)&tex_u_range);
 		gl_has_errors();
@@ -339,12 +330,12 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 
 	// TODO
-	glUniform1f(transition_fac_uloc, screen.scene_transition_factor);
+	glUniform1f(transition_fac_uloc, std::min(1.0f, screen.scene_transition_factor));
 	
 	const Entity player_entity = registry.players.entities[0];
 	const Motion& motion = registry.motions.get(player_entity);
-	vec3 augmeted_player_pos = vec3{motion.position.x, motion.position.y, 1.0f};
-	vec3 canonical_player_pos = this->projection_matrix * augmeted_player_pos;
+	vec3 augmented_player_pos = vec3{motion.position.x, motion.position.y, 1.0f};
+	vec3 canonical_player_pos = this->projection_matrix * augmented_player_pos;
 	
 	float focal_point[2] = {
 		(canonical_player_pos[0] + 1.0f) / 2.0f,
@@ -397,11 +388,28 @@ void RenderSystem::step(float elapsed_ms) {
 		}
 	} else {
 		if (screen.scene_transition_factor > 0.0) {
+			// Update tolerance
+			if (screen.scene_transition_factor > 1.0) {
+				screen.scene_transition_factor = max(1.0f, screen.scene_transition_factor - 1.0f);
+				return;
+			}
 			screen.scene_transition_factor = min(1.0f, screen.scene_transition_factor) - elapsed_ms / DEAD_REVIVE_TIME_MS;
-
+			//std::cout << screen.scene_transition_factor << ":" << elapsed_ms << std::endl;
 			if (screen.scene_transition_factor <= 0.0) {
 				screen.scene_transition_factor = -1.0;
 			}
+			/*
+			if (screen.scene_transition_factor > 1.0) {
+				// Newly set: skip this step to avoid large elapsed time
+				screen.scene_transition_factor = 1.0;
+			}
+			else {
+				screen.scene_transition_factor = min(1.0f, screen.scene_transition_factor) - elapsed_ms / DEAD_REVIVE_TIME_MS;
+
+				if (screen.scene_transition_factor <= 0.0) {
+					screen.scene_transition_factor = -1.0;
+				}
+			}*/
 		}
 	}
 }
@@ -461,8 +469,8 @@ void RenderSystem::draw()
 	glViewport(0, 0, w, h);
 	glDepthRange(0.00001, 10);
 	
-	// white background
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	// white background -> black background
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	glClearDepth(10.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

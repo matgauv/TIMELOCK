@@ -4,6 +4,7 @@
 #include "tinyECS/registry.hpp"
 #include "../boss/boss_one/boss_one_utils.hpp"
 #include <fstream>
+#include "systems/ai/pipe/pipe_utils.hpp"
 
 void LevelParsingSystem::init(GLFWwindow *window) {
     this->window = window;
@@ -16,6 +17,27 @@ void LevelParsingSystem::step(float elapsed_ms) {
         init_level_entities(reparsable_entities);
         level_state.shouldReparseEntities = false;
         return;
+    }
+
+    if (level_state.reload_coutdown > 0.0f) {
+        if (level_state.shouldLoad) {
+            // Instant reload
+            level_state.reload_coutdown = -1.0f;
+        }
+        else {
+            level_state.reload_coutdown -= elapsed_ms;
+            
+
+            // Automatically reload next level
+            if (level_state.reload_coutdown < 0.0f) {
+                level_state.reload_coutdown = -1.0f;
+
+                if (level_state.curr_level_folder_name != level_state.next_level_folder_name) {
+                    level_state.curr_level_folder_name = level_state.next_level_folder_name;
+                    level_state.shouldLoad = true;
+                };
+            }
+        }
     }
 
     if (!level_state.shouldLoad) return;
@@ -62,8 +84,23 @@ void LevelParsingSystem::step(float elapsed_ms) {
         GameState& gameState = registry.gameStates.components[0];
         gameState.is_in_boss_fight = false;
     }
+    else {
+        if (registry.bosses.size() > 0) {
+            registry.remove_all_components_of(registry.bosses.entities[0]);
+        }
+
+        assert(registry.gameStates.components.size() <= 1);
+        GameState& gameState = registry.gameStates.components[0];
+        gameState.is_in_boss_fight = false;
+    }
 
     level_state.shouldLoad = false;
+    level_state.reload_coutdown = -1.0f;
+
+    // "Uninitialized value" to pass the first render step with large time_elapse
+    // 3.0 = 1.0 factor + 2 * tolerances
+    registry.screenStates.components[0].scene_transition_factor = 3.0;
+    registry.gameStates.components[0].game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
 }
 
 void LevelParsingSystem::late_step(float elapsed_ms) {
@@ -77,8 +114,9 @@ void LevelParsingSystem::late_step(float elapsed_ms) {
 void LevelParsingSystem::init_level_background() {
     // TODO: static w, h values -- should change (maybe parse from level file).
     LevelState& levelState = registry.levelStates.components[0];
-    float background_w = static_cast<int>(json_data["width"]);
-    float background_h = static_cast<int>(json_data["height"]);
+    float scale_factor = json_data["width"] > json_data["height"] ? ceil(static_cast<float>(json_data["width"]) / 640.0f) : ceil(static_cast<float>(json_data["height"]) / 360.0f);
+    float background_w = 640.0f * scale_factor;
+    float background_h = 360.0f * scale_factor;
     create_parallaxbackground({background_w, background_h}, TEXTURE_ASSET_ID::GEARS_BACKGROUND);
     create_background({background_w, background_h}, TEXTURE_ASSET_ID::METAL_BACKGROUND);
     create_levelground({json_data["width"], json_data["height"]}, levelState.ground);

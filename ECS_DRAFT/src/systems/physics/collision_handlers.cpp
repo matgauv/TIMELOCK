@@ -67,13 +67,17 @@ void handle_player_boss_collision(Entity& player_entity, Entity& boss_entity, Co
 void handle_projectile_collision(Entity& proj_entity, Entity& other_entity) {
 	// If not harmful, don't remove projectile upon player collision
 	if (!registry.harmfuls.has(proj_entity) /* && registry.players.has(other_entity)*/) {
-		return;
+		// Need different approaches for different projectiles
+		if (!registry.screws.has(proj_entity) || registry.players.has(other_entity)) {
+			return;
+		}
 	}
 
 	// Upon colliding with physicsObjects (other projectiles, player) / platforms
 	if (registry.physicsObjects.has(other_entity) || (registry.platforms.has(other_entity))) {
 		// TODO: add more effects to killing projectiles, likely based on types
-		registry.remove_all_components_of(proj_entity);
+		//registry.remove_all_components_of(proj_entity);
+		WorldSystem::destroy_projectile(proj_entity);
 	}
 }
 
@@ -119,8 +123,14 @@ void handle_player_door_collision() {
   	// std::cout << "DOOR COLLISION" << std::endl;
 	LevelState& ls = registry.levelStates.components[0];
 
+	// Last level
 	if (ls.curr_level_folder_name == ls.next_level_folder_name) return;
 
+	/*
 	ls.curr_level_folder_name = ls.next_level_folder_name;
 	ls.shouldLoad = true;
+	*/
+	if (ls.reload_coutdown < 0.0) {
+		LevelParsingSystem::schedule_reload();
+	}
 }

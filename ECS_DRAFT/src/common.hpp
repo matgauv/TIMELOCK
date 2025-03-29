@@ -111,6 +111,8 @@ const float PLAYER_WALK_LADDER_ACCELERATION = PLAYER_WALK_ACCELERATION / 3.0f;
 const float DEAD_REVIVE_TIME_MS = 500.0f;
 
 const float JUMPING_VALID_TIME_MS = 3000.0f;
+const float COYOTE_JUMP_DURATION = 450.0f;
+const float DUST_SUMMONING_SPEED = PLAYER_MAX_WALKING_SPEED * 0.6f;
 
 // Fore, mid, background Depths; used for scaling only
 const float FOREGROUND_DEPTH = 0.5f;
@@ -125,9 +127,9 @@ const float CAMERA_VEL_LERP_FACTOR = 0.05f;
 const float CAMERA_DEFAULT_SCALING = 0.7f;
 const float CAMERA_MIN_SCALING = 0.2f;
 const float CAMERA_MAX_SCALING = 5.0f;
-const float CAMERA_BOUNDARY_PADDING = 0.75f;
+const float CAMERA_BOUNDARY_PADDING = 0.85f;
 const float CAMERA_SCREEN_SPACING_FOR_MOTION_RATIO = 1.0f / 10.0f;
-const float CAMERA_VELOCITY_CLAMP_THRESHOLD = 35.0f;
+const float CAMERA_VELOCITY_CLAMP_THRESHOLD = 40.0f;
 
 // Projectile properties
 const float PROJECTILE_WIDTH_PX = 40.0f;
@@ -239,8 +241,18 @@ const vec2 CANNON_BARREL_SIZE = vec2{ 80, 30 };
 const float CANNON_PROJECTILE_SPEED = 600.0f;
 const vec2 CANNON_PROJECTILE_SIZE = vec2 {30.0f, 30.0f};
 
+// Pipes and Screws
+const float PIPE_FIRING_PERIOD_MS = 8000.0f;
+const float SCREW_SPEED = 300.0f;
+const vec2 SCREW_SIZE = vec2{ 90.0f, 14.0f };
+
+const float SCREW_FLIGHT_LENGTH = 1000.0f; // MODIFY THIS ACCORDING TO LEVEL DESIGN
+const float SCREW_LIFE_MS = SCREW_FLIGHT_LENGTH / SCREW_SPEED * 1000.0f;
+
+
 // door
 const vec2 DOOR_SIZE = vec2 { 2.0f * TILE_TO_PIXELS, 3.0f * TILE_TO_PIXELS };
+const float LOAD_LEVEL_COUNTDOWN = DEAD_REVIVE_TIME_MS + 10.0f;
 
 // Parsing constants
 const float PARSING_CANNON_Y_POS_DIFF = (0.5f * TILE_TO_PIXELS) - (CANNON_TOWER_SIZE.y / 2);
@@ -251,6 +263,8 @@ const float MAX_CAMERA_DISTANCE = 2000.0;
 const float TURBULENCE_GRID_SIZE = MAX_CAMERA_DISTANCE / 32.0f;
 const float TURBULENCE_EVOLUTION_SPEED = 1e-12f;
 const int TURBULENCE_OCTAVES = 1;
+
+const float COYOTE_PARTICLES_DURATION = 500.0f;
 
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)

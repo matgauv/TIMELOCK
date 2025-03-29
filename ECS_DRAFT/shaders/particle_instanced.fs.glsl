@@ -11,8 +11,11 @@ in vec4 color_info;
 // Texture data:
 // Currently we are loading all data and switching to them based on texture id
 // It is an ugly table mapping method, but should be enough for the project
-uniform sampler2D texture1;
-uniform sampler2D texture2;
+uniform sampler2D texture1; // sample texture
+uniform sampler2D texture2; // Breakable platform fragments
+uniform sampler2D texture3; // Coyote particles
+uniform sampler2D texture4; // Screw fragments
+uniform sampler2D texture5; // Hex fragments
 
 // Output color
 layout(location = 0) out  vec4 color;
@@ -32,6 +35,15 @@ void main()
                 break;
             case 2:
                 color = texture(texture2, texcoord);
+                break;
+            case 3:
+                color = texture(texture3, texcoord);
+                break;
+            case 4:
+                color = texture(texture4, texcoord);
+                break;
+            case 5:
+                color = texture(texture5, texcoord);
                 break;
             default:
                 color = vec4(0.0, 0.0, 0.0, 1.0);

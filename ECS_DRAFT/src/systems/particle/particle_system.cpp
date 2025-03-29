@@ -62,6 +62,17 @@ void ParticleSystem::step(float elapsed_ms) {
 				(time_change_s * system_state.turbulence_strength * angle_to_direction(
 					M_PI * 2.0f * sample_from_turbulence(vec3(particle.position / system_state.turbulence_scale, system_time))));
 		}
+
+		// Handle different particles
+		switch (particle.particle_id)
+		{
+			case PARTICLE_ID::COYOTE_PARTICLES:
+				// Velocity decay
+				particle.velocity *= 0.9f;
+				break;
+			default:
+				break;
+		}
 	}
 }
 
@@ -169,6 +180,30 @@ bool ParticleSystem::handle_particle_type(Entity entity, PARTICLE_ID particle_id
 			par.ang_velocity = rand_float(-50.f, 50.f);
 
 			registry.animateRequests.emplace(entity).used_animation = ANIMATION_ID::BREAKABLE_FRAGMENTS;
+			break;
+		}
+		case PARTICLE_ID::SCREW_FRAGMENTS:
+		{
+			Particle& par = registry.particles.get(entity);
+			par.gravity_influence = 0.5f;
+			par.angle = rand_float(-15.f, 15.f);
+			par.ang_velocity = rand_float(-50.f, 50.f);
+
+			registry.animateRequests.emplace(entity).used_animation = ANIMATION_ID::SCREW_FRAGMENTS;
+			break;
+		}
+		case PARTICLE_ID::HEX_FRAGMENTS:
+		{
+			Particle& par = registry.particles.get(entity);
+			par.gravity_influence = 0.5f;
+			par.angle = rand_float(-15.f, 15.f);
+			par.ang_velocity = rand_float(-50.f, 50.f);
+
+			registry.animateRequests.emplace(entity).used_animation = ANIMATION_ID::HEX_FRAGMENTS;
+			break;
+		}
+		case PARTICLE_ID::COYOTE_PARTICLES: {
+			registry.animateRequests.emplace(entity).used_animation = ANIMATION_ID::COYOTE_PARTICLES;
 			break;
 		}
 		default:

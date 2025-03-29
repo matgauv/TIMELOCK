@@ -22,6 +22,6 @@ public:
 private:
 	GLFWwindow* window = nullptr;
 
-	void follow(Motion& cam_motion, vec2 target);
-	void reset(Motion& cam_motion, vec2 target);
+	void follow(Motion& cam_motion, vec2 target, vec2 scale = {1.0, 1.0});
+	void reset(Motion& cam_motion, vec2 target, vec2 scale = { 1.0, 1.0 });
 };

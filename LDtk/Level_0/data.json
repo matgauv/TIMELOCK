@@ -1379,8 +1379,11 @@
 				"height": 16,
 				"color": 16705377,
 				"customFields": {
-					"direction": "right",
-					"length": null
+					"direction": "left",
+					"length": {
+						"cx": 160,
+						"cy": 16
+					}
 				}
 			},
 			{

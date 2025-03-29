@@ -110,7 +110,10 @@ void LevelParsingSystem::init_player_and_camera() {
 		if (json_data["identifier"] == "Level_0") {
             create_tutorial_text({ initPos.x + 2650, initPos.y }, {6000, 1500 }, TEXTURE_ASSET_ID::TUTORIAL_TEXT);
         }
-        else if (json_data["identifier"] == "Level_1") {
+        if (json_data["identifier"] == "Level_4") {
+            create_tutorial_text({ initPos.x + 1750, initPos.y - 140}, { 4000, 600 }, TEXTURE_ASSET_ID::BOSS_TUTORIAL_TEXT);
+        }
+        else if (json_data["identifier"] == "Level_6") {
             create_tutorial_text({ initPos.x + 250, initPos.y - 150 }, { 450, 70 }, TEXTURE_ASSET_ID::ACCEL);
         }
     }

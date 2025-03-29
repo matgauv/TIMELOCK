@@ -56,9 +56,9 @@ class RenderSystem : public ISystem {
 		textures_path("cannontower/CannonTower.png"),
 		textures_path("cannontower/Barrel.png"),
 		level_ground_path("Level_0"),
+		level_ground_path("Level_6"),
 		level_ground_path("Level_1"),
-		level_ground_path("Level_2"),
-		level_ground_path("Level_3"),
+		level_ground_path("Level_5"),
 		textures_path("tileset.png"),
 		textures_path("tutorial-text/wasd.png"),
 		textures_path("tutorial-text/decel.png"),
@@ -87,6 +87,10 @@ class RenderSystem : public ISystem {
 		textures_path("boss/ground-slam-land.png"),
 		textures_path("tutorial-text/tutorial-text.png"),
 		textures_path("decel-bar.png"),
+		level_ground_path("Level_2"),
+		level_ground_path("Level_3"),
+		level_ground_path("Level_4"),
+		textures_path("tutorial-text/boss-text.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

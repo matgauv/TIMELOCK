@@ -59,7 +59,7 @@ private:
 	// control acceleration/deceleration
 	void control_time(bool accelerate, bool activate);
 	void update_time_control_properties(TIME_CONTROL_STATE timeControlState, TimeControllable& tc, const Entity& entity);
-	void lerpTimeState(float start, float factor, Motion& motion, std::chrono::time_point<std::chrono::high_resolution_clock> effectStartTime);
+	void lerpTimeState(float start, float factor, Motion& motion, float effective_time);
 
 	void player_walking(bool walking, bool is_left);
 	void player_jump();

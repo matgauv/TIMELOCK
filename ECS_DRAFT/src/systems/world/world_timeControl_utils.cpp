@@ -1,16 +1,16 @@
 #include "world_system.hpp"
 
 // M1 interpolation implementation
-void WorldSystem::lerpTimeState(float start, float target, Motion& motion, std::chrono::time_point<std::chrono::high_resolution_clock> effectStartTime) {
+void WorldSystem::lerpTimeState(float start, float target, Motion& motion, float effective_time) {
+	float time = 1.0;
 
-	auto now = std::chrono::high_resolution_clock::now();
-	auto duration = now - effectStartTime;
-
-	float diff_ms = std::chrono::duration<float, std::milli>(duration).count();
-
-	float time = diff_ms / ACCELERATION_EMERGE_MS;
-
-	if (time > 1.0) time = 1.0;
+	if ((0.0f < effective_time && effective_time < DECELERATION_DURATION_MS)) {
+		// Lerp effects on activating
+		time = std::min(1.0f, (DECELERATION_DURATION_MS - effective_time) / DECELERATION_EMERGE_MS);
+	} else if (0.0f > effective_time && -effective_time < DECELERATION_COOLDOWN_MS) {
+		// Lerp effects on cooling down
+		time = std::min(1.0f, (DECELERATION_COOLDOWN_MS + effective_time) / DECELERATION_EMERGE_MS);
+	}
 
 	motion.velocityModifier = lerpToTarget(start, target, time); // actual lerp function is in common.cpp
 }
@@ -24,64 +24,33 @@ void WorldSystem::control_time(bool accelerate, bool activate) {
 
 	if (activate) {
 		// don't activate if cooldown hasn't expired!
-		if ((accelerate && gameState.accelerate_cooldown_ms > 0.0) ||
-			(!accelerate && gameState.decelerate_cooldown_ms > 0.0)) {
+		if ((accelerate && gameState.accelerate_timer < 0.0) ||
+			(!accelerate && gameState.decelerate_timer < 0.0)) {
 			return;
 		}
 
 		if (accelerate) {
 			gameState.game_time_control_state = TIME_CONTROL_STATE::ACCELERATED;
-			gameState.accelerate_cooldown_ms = ACCELERATION_COOLDOWN_MS;
+			gameState.accelerate_timer = ACCELERATION_DURATION_MS;
 			playSoundIfEnabled(speed_up_effect);
 		}
 		else {
 			gameState.game_time_control_state = TIME_CONTROL_STATE::DECELERATED;
-			gameState.decelerate_cooldown_ms = DECELERATION_COOLDOWN_MS;
+			gameState.decelerate_timer = DECELERATION_DURATION_MS;
 			playSoundIfEnabled(slow_down_effect);
 		}
-
-		gameState.time_control_start_time = std::chrono::high_resolution_clock::now();
 	}
 	else {
 		gameState.game_time_control_state = TIME_CONTROL_STATE::NORMAL;
 		if (accelerate) {
+			gameState.accelerate_timer = -ACCELERATION_COOLDOWN_MS;
 			playSoundIfEnabled(slow_down_effect);
 		}
 		else {
+			gameState.decelerate_timer = -DECELERATION_COOLDOWN_MS;
 			playSoundIfEnabled(speed_up_effect);
 		}
 	}
-
-	/*
-	for (uint i = 0; i < registry.timeControllables.components.size(); i++) {
-		TimeControllable& tc = registry.timeControllables.components[i];
-		Entity& entity = registry.timeControllables.entities[i];
-
-		// set the target time control factor, `step` will lerp towards whatever we set here
-		if (activate) {
-			tc.target_time_control_factor = accelerate ? ACCELERATE_FACTOR : DECELERATE_FACTOR;
-		}
-		else {
-			tc.target_time_control_factor = NORMAL_FACTOR;
-		}
-
-		// become harmful when activating acceleration and can become harmful or when deactivating deceleration (and became harmless when decellerating)
-		if ((activate && accelerate && tc.can_become_harmful) ||
-			(!activate && !accelerate && tc.can_become_harmless)) {
-			if (!registry.harmfuls.has(entity)) {
-				registry.harmfuls.emplace(entity);
-			}
-		}
-
-		// become harmless when activating deceleration and can become harmless or when deactivating acceleration (and became harmful during acceleration)
-		if ((activate && !accelerate && tc.can_become_harmless) ||
-			(!activate && accelerate && tc.can_become_harmful)) {
-			if (registry.harmfuls.has(entity)) {
-				registry.harmfuls.remove(entity);
-			}
-		}
-	}
-	*/
 }
 
 

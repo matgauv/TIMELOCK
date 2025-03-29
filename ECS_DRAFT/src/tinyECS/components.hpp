@@ -116,7 +116,7 @@ struct CannonTower {
 	CANNON_TOWER_STATE state = CANNON_TOWER_STATE::IDLE;
 	float detection_range = CANNON_TOWER_DETECTION_RANGE;
 	float timer = 0.0f;
-	Entity barrel_entity;
+	unsigned int barrel_entity_id;
 };
 
 struct CannonBarrel {

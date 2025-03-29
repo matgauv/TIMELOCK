@@ -511,7 +511,7 @@ Entity create_cannon_tower(vec2 pos) {
     registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
 
     Entity barrel_entity = Entity();
-    tower.barrel_entity = barrel_entity;
+    tower.barrel_entity_id = barrel_entity.id();
     registry.cannonBarrels.emplace(barrel_entity);
 
     Motion& barrel_motion = registry.motions.emplace(barrel_entity);

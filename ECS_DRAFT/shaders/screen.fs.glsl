@@ -30,6 +30,7 @@ vec2 random2D(vec2 uv) {
 }
 
 vec3 pale_filter(vec3 color, float factor) {
+	// Gray scale formula: https://en.wikipedia.org/wiki/Grayscale
 	float luminance = clamp(dot(vec3(0.299, 0.587, 0.114), color) * 1.4, 0.0, 1.0);
 	vec3 paled_color = vec3(luminance) * vec3(0.77,0.91,0.96);
 	return mix(color, paled_color, factor * 0.4);
@@ -66,6 +67,7 @@ vec4 apply_dec_effect(vec4 in_color)
 	int original_index_y = int(uv_refined.y/GRID_HEIGHT);
 
 	// Sample local group; adjust dimension if grid number changes
+	// Cellular noise (Voronoi): https://thebookofshaders.com/12/
 	for (int i = -2; i <= 2; i++) {
 		for (int j = -1; j <=1; j++) {
 			int grid_x = i + original_index_x;
@@ -78,7 +80,6 @@ vec4 apply_dec_effect(vec4 in_color)
 			}
 
 			vec2 grid_center = vec2((float(grid_x) + 0.5) * GRID_WIDTH, (float(grid_y) + 0.5) * GRID_HEIGHT);
-			// TODO
 
 			vec2 rand_vec = random2D(grid_center);
 			float rand_scalar = random(grid_center);
@@ -118,7 +119,6 @@ vec4 apply_dec_effect(vec4 in_color)
 
 		float color_factor = 2.0 * sin(random(vec2(float(min_pt_index_x), float(min_pt_index_y))) * 6.283 + time * 0.001) - 1.0;
 		vec3 shard_tinted_color = mix(vec3(0.573, 0.812, 1), vec3(0.475, 0.745, 0.961), color_factor);
-		//float color_factor = clamp((length(min_pt - vec2(0.5, 0.5 * aspect_ratio)) - 0.3 * HALF_AXIS)/(0.7*HALF_AXIS), 0.0, 1.0) * 0.5 + 0.3;
 
 		float silhouette_factor_raw = min_dist/GRID_WIDTH * 1.5;
 		float silhouette_factor = clamp(silhouette_factor_raw, 0.0, 1.0);

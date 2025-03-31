@@ -50,6 +50,18 @@ void PlayerSystem::step(float elapsed_ms) {
 		}
 	}
 
+	generate_player_particles();
+
+
+	//std::cout << registry.onGrounds.has(registry.players.entities[0]);
+
+	//Motion& motion = registry.motions.get(registry.players.entities[0]);
+
+	//std::cout << "(" << motion.selfVelocity[0] << "," << motion.selfVelocity[1] << ") : (" << motion.appliedVelocity[0] << "," << motion.appliedVelocity[1] << ")" << std::endl;
+}
+
+void PlayerSystem::generate_player_particles()
+{
 	// Generate running particles
 	const Entity player_entity = registry.players.entities[0];
 	const vec2 player_velocity = registry.motions.get(player_entity).velocity;
@@ -66,23 +78,23 @@ void PlayerSystem::step(float elapsed_ms) {
 	// TODO: check relative velocity
 	if (JUMPING_VALID_TIME_MS - registry.players.components[0].jumping_valid_time < 25.0f
 		&& abs(relative_vel.x) > DUST_SUMMONING_SPEED) {
-		float speed_factor = min(1.0f, (abs(relative_vel.x) - DUST_SUMMONING_SPEED) / (PLAYER_MAX_WALKING_SPEED - DUST_SUMMONING_SPEED));
+		float speed_factor = std::min(1.0f, (abs(relative_vel.x) - DUST_SUMMONING_SPEED) / (PLAYER_MAX_WALKING_SPEED - DUST_SUMMONING_SPEED));
 		float rand_threshold = lerpToTarget(speed_factor, 0.8f, 0.2f);
 
 		float rand_factor = rand_float();
 		if (rand_factor > rand_threshold) {
 			ParticleSystem::spawn_particle(vec3{ 0.35f, 0.35f, 0.35f },
-				random_sample_rectangle(registry.motions.get(player_entity).position + vec2{0.0f, PLAYER_SCALE.y * 0.35f}, { PLAYER_SCALE.x * 0.65f, 2.0f }),
-				0.0f, vec2{ 1.5f, 1.5f } * (1.0f + 0.25f * rand_factor), rand_direction() * 20.0f, 1000.0, 0.8f, {50.0f, 200.0f});
+				random_sample_rectangle(registry.motions.get(player_entity).position + vec2{ 0.0f, PLAYER_SCALE.y * 0.35f }, { PLAYER_SCALE.x * 0.65f, 2.0f }),
+				0.0f, vec2{ 1.5f, 1.5f } *(1.0f + 0.25f * rand_factor), rand_direction() * 20.0f, 1000.0, 0.8f, { 50.0f, 200.0f });
 		}
 	}
 
-
-	//std::cout << registry.onGrounds.has(registry.players.entities[0]);
-
-	//Motion& motion = registry.motions.get(registry.players.entities[0]);
-
-	//std::cout << "(" << motion.selfVelocity[0] << "," << motion.selfVelocity[1] << ") : (" << motion.appliedVelocity[0] << "," << motion.appliedVelocity[1] << ")" << std::endl;
+	// Generate Deceleration Particles
+	if (registry.gameStates.size() > 0 && registry.gameStates.components[0].game_time_control_state == TIME_CONTROL_STATE::DECELERATED) {
+		if (rand_float() > 0.6f) {
+			WorldSystem::generate_deceleration_particle();
+		}
+	}
 }
 
 void PlayerSystem::handle_player_motion() {

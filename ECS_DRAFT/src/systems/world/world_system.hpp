@@ -53,6 +53,8 @@ public:
 	static void destroy_projectile(Entity entity);
 
 	static bool set_time_control_state(bool accelerate, bool activate, bool force_cooldown_reset = false);
+
+	static void generate_deceleration_particle();
 private:
 	// starts and loads music and sound effects
 	bool start_and_load_sounds();

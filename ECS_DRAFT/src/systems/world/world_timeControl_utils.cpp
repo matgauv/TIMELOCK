@@ -68,6 +68,12 @@ void WorldSystem::control_time(bool accelerate, bool activate, bool force_cooldo
 		else {
 			playSoundIfEnabled(slow_down_effect);
 		}
+
+		if (activate && !accelerate) {
+			for (int i = 0; i < 20; i++) {
+				generate_deceleration_particle();
+			}
+		}
 	}
 }
 
@@ -98,5 +104,17 @@ void WorldSystem::update_time_control_properties(TIME_CONTROL_STATE timeControlS
 	}
 	else {
 		tc.target_time_control_factor = NORMAL_FACTOR;
+	}
+}
+
+void WorldSystem::generate_deceleration_particle()
+{
+	if (registry.cameras.size() > 0) {
+		float size_factor = (0.8f + 0.25f * rand_float());
+		vec2 sampled_position = random_sample_rectangle(registry.motions.get(registry.cameras.entities[0]).position, vec2{ WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX });
+
+		ParticleSystem::spawn_particle(vec3{ 0.89f, 0.96f, 1.0f },
+			sampled_position,
+			0.0f, vec2(5.0f)* size_factor, vec2{ 0.0f, -50.0f }, 700.0, 0.7f, { 300.0f, 300.0f }, {0.0, 600.0});
 	}
 }

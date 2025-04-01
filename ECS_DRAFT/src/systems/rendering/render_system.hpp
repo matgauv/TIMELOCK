@@ -101,11 +101,11 @@ class RenderSystem : public ISystem {
 	const std::array<std::string, effect_count> effect_paths = {
 		shader_path("coloured"),
 		shader_path("textured"),
-        shader_path("line"),
         shader_path("screen"),
 		shader_path("hex"),
 		shader_path("tile"),
 		shader_path("particle_instanced"),
+		shader_path("fill"),
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -152,6 +152,10 @@ private:
 	void drawLayer(const std::vector<Entity>& entities);
 	void drawInstances(EFFECT_ASSET_ID effect_id, GEOMETRY_BUFFER_ID geo_id, TEXTURE_ASSET_ID tex_id, const std::vector<Entity>& entities);
 	void drawTexturedMesh(Entity entity, const mat3& projection);
+	void drawTexturedMesh(Entity entity, const mat3& projection, const RenderRequest& render_request);
+	void drawFilledMesh(Entity entity, const mat3& projection);
+
+	void drawBlurredLayer();
 	void drawToScreen();
 
 	GLuint useShader(EFFECT_ASSET_ID shader_id);

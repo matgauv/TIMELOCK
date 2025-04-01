@@ -5,15 +5,22 @@
 #include "render_system.hpp"
 #include "../../tinyECS/registry.hpp"
 
-void RenderSystem::drawTexturedMesh(Entity entity,
-									const mat3 &projection)
-{
+void RenderSystem::drawTexturedMesh(Entity entity, const mat3& projection) {
+	assert(registry.renderRequests.has(entity));
+	const RenderRequest& render_request = registry.renderRequests.get(entity);
+	RenderSystem::drawTexturedMesh(entity, projection, render_request);
+}
 
+void RenderSystem::drawTexturedMesh(Entity entity,
+									const mat3 &projection,
+									const RenderRequest& render_request)
+{
+	assert(render_request.used_effect != EFFECT_ASSET_ID::EFFECT_COUNT);
+	const GLuint program = (GLuint)effects[(GLuint)render_request.used_effect];
 
 	// Transformation code, see Rendering and Transformation in the template
 	// specification for more info Incrementally updates transformation matrix,
 	// thus ORDER IS IMPORTANT
-
 	Transform transform;
 
 	if (!registry.tiles.has(entity)) {
@@ -34,13 +41,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			transform.scale(motion.scale);
 		}
 	}
-
-	assert(registry.renderRequests.has(entity));
-	const RenderRequest &render_request = registry.renderRequests.get(entity);
-
-	const GLuint used_effect_enum = (GLuint)render_request.used_effect;
-	assert(used_effect_enum != (GLuint)EFFECT_ASSET_ID::EFFECT_COUNT);
-	const GLuint program = (GLuint)effects[used_effect_enum];
 
 	// Setting shaders
 	glUseProgram(program);
@@ -86,11 +86,20 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
 
-		GLint color_uloc = glGetUniformLocation(program, "silhouette_color");
-		vec4 color;
-		setSilhouetteColor(entity, color);
+		if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED) {
+			GLint color_uloc = glGetUniformLocation(program, "silhouette_color");
+			vec4 color;
+			setSilhouetteColor(entity, color);
 
-		glUniform4fv(color_uloc, 1, (float*)&color);
+			glUniform4fv(color_uloc, 1, (float*)&color);
+		}
+		else if (render_request.used_effect == EFFECT_ASSET_ID::FILL) {
+			GLint fill_color_uloc = glGetUniformLocation(program, "fill_color");
+			
+			// TODO
+			vec3 fill_color = vec3(1.0);
+			glUniform4fv(fill_color_uloc, 1, (float*)&fill_color);
+		}
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::TILE)
@@ -128,6 +137,22 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		const GameState& gameState = registry.gameStates.components[0];
 
 		glUniform4fv(color_uloc, 1, (float*)&color);
+		gl_has_errors();
+
+		GLuint tile_id_uloc = glGetUniformLocation(program, "tile_id");
+		GLuint tile_pos_uloc = glGetUniformLocation(program, "tile_pos");
+		GLuint tile_offset_uloc = glGetUniformLocation(program, "t_offset");
+
+		Tile& tile_info = registry.tiles.get(entity);
+		Motion& motion = registry.motions.get(tile_info.parent_id);
+
+		// starts from the top left tile of an object.
+		int tile_start_x = motion.position.x - (motion.scale.x / 2) + (0.5 * TILE_TO_PIXELS);
+		int tile_start_y = motion.position.y - (motion.scale.y / 2) + (0.5 * TILE_TO_PIXELS);
+
+		glUniform1i(tile_id_uloc, tile_info.id);
+		glUniform2f(tile_pos_uloc, (float)tile_start_x, (float)tile_start_y);
+		glUniform2f(tile_offset_uloc, (float)(tile_info.offset.x* TILE_TO_PIXELS), (float)(tile_info.offset.y* TILE_TO_PIXELS));
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::HEX)
@@ -176,22 +201,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform4fv(color_uloc, 1, (float*)&color);
 		gl_has_errors();
 	}
-	else if (render_request.used_effect == EFFECT_ASSET_ID::LINE)
-	{
-		GLint in_position_loc = glGetAttribLocation(program, "in_position");
-		GLint in_color_loc = glGetAttribLocation(program, "in_color");
-		gl_has_errors();
-
-		glEnableVertexAttribArray(in_position_loc);
-		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
-							  sizeof(ColoredVertex), (void *)0);
-		gl_has_errors();
-
-		glEnableVertexAttribArray(in_color_loc);
-		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
-							  sizeof(ColoredVertex), (void *)sizeof(vec3));
-		gl_has_errors();
-	}
 	else
 	{
 		assert(false && "Type of render request not supported");
@@ -212,10 +221,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	GLsizei num_indices = size / sizeof(uint16_t);
 	// GLsizei num_triangles = num_indices / 3;
 
-	GLint currProgram;
-	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
 	// Setting uniform values to the currently bound program
-	GLint depth_uloc = glGetUniformLocation(currProgram, "depth");
+	GLint depth_uloc = glGetUniformLocation(program, "depth");
 	LAYER_ID layer = registry.layers.get(entity).layer;
 	float depth = (
 		layer == LAYER_ID::PARALLAXBACKGROUND ? PARALLAXBACKGROUND_DEPTH : (
@@ -227,7 +234,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 	if (render_request.used_effect != EFFECT_ASSET_ID::HEX)
 	{
-		GLuint tex_u_range_loc = glGetUniformLocation(currProgram, "tex_u_range");
+		GLuint tex_u_range_loc = glGetUniformLocation(program, "tex_u_range");
 		vec2 tex_u_range;
 
 		setURange(entity, tex_u_range);
@@ -235,31 +242,13 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform2fv(tex_u_range_loc, 1, (float*)&tex_u_range);
 		gl_has_errors();
 	}
-	if (render_request.used_effect == EFFECT_ASSET_ID::TILE)
-	{
-		GLuint tile_id_uloc = glGetUniformLocation(currProgram, "tile_id");
-		GLuint tile_pos_uloc = glGetUniformLocation(currProgram, "tile_pos");
-		GLuint tile_offset_uloc = glGetUniformLocation(currProgram, "t_offset");
-
-		Tile& tile_info = registry.tiles.get(entity);
-		Motion& motion = registry.motions.get(tile_info.parent_id);
-
-		// starts from the top left tile of an object.
-		int tile_start_x = motion.position.x - (motion.scale.x / 2) + (0.5 * TILE_TO_PIXELS);
-		int tile_start_y = motion.position.y - (motion.scale.y / 2) + (0.5 * TILE_TO_PIXELS);
-
-		glUniform1i(tile_id_uloc, tile_info.id);
-		glUniform2f(tile_pos_uloc, (float)tile_start_x, (float)tile_start_y);
-		glUniform2f(tile_offset_uloc, (float)(tile_info.offset.x * TILE_TO_PIXELS), (float)(tile_info.offset.y * TILE_TO_PIXELS));
-		gl_has_errors();
-	}
 
 
-	GLuint transform_loc = glGetUniformLocation(currProgram, "transform");
+	GLuint transform_loc = glGetUniformLocation(program, "transform");
 	glUniformMatrix3fv(transform_loc, 1, GL_FALSE, (float *)&transform.mat);
 	gl_has_errors();
 
-	GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
+	GLuint projection_loc = glGetUniformLocation(program, "projection");
 	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float *)&projection);
 	gl_has_errors();
 

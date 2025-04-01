@@ -278,27 +278,12 @@ void RenderSystem::drawToScreen()
 	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::SCREEN]);
 	gl_has_errors();
 
-	// Clearing backbuffer
-	int w, h;
-	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, w, h);
-	glDepthRange(0, 10);
-	glClearColor(1.f, 0, 0, 1.0);
-	glClearDepth(1.f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	gl_has_errors();
-	// Enabling alpha channel for textures
-	glDisable(GL_BLEND);
-	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable(GL_DEPTH_TEST);
-
+	bindFrameBuffer(FRAME_BUFFER_ID::SCREEN_BUFFER);
 	// Draw the screen texture on the quad geometry
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]);
 	glBindBuffer(
 		GL_ELEMENT_ARRAY_BUFFER,
 		index_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]); // Note, GL_ELEMENT_ARRAY_BUFFER associates
-																	 // indices to the bound GL_ARRAY_BUFFER
 	gl_has_errors();
 
     // add the "vignette" effect
@@ -457,30 +442,8 @@ void RenderSystem::late_step(float elapsed_ms) {
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
 void RenderSystem::draw()
 {
-	// Getting size of window
-	int w, h;
-	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
-
-	// First render to the custom framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
-	//gl_has_errors();
-	
-	// clear backbuffer
-	glViewport(0, 0, w, h);
-	glDepthRange(0.00001, 10);
-	
-	// white background -> black background
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-	glClearDepth(10.f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable(GL_DEPTH_TEST); // native OpenGL does not work with a depth buffer
-							  // and alpha blending, one would have to sort
-							  // sprites back to front
-	//gl_has_errors();
-
+	bindFrameBuffer(FRAME_BUFFER_ID::INTERMEDIATE_BUFFER);
+	//bindFrameBuffer(FRAME_BUFFER_ID::BLUR_BUFFER);
 
 	// handle meshes
 	// TODO prob handle this somewhere better...

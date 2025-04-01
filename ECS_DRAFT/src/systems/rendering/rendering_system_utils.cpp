@@ -2,6 +2,77 @@
 #include "render_system.hpp"
 #include "../../tinyECS/registry.hpp"
 
+void RenderSystem::bindFrameBuffer(FRAME_BUFFER_ID frame_buffer_id) {
+	// Clearing backbuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// Getting size of window
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
+
+	switch (frame_buffer_id)
+	{
+		case FRAME_BUFFER_ID::SCREEN_BUFFER: {
+			glViewport(0, 0, w, h);
+			glDepthRange(0, 10);
+			glClearColor(1.f, 0, 0, 1.0);
+			glClearDepth(1.f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			gl_has_errors();
+			// Enabling alpha channel for textures
+			glDisable(GL_BLEND);
+			// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glDisable(GL_DEPTH_TEST);
+			// indices to the bound GL_ARRAY_BUFFER
+			break;
+		}
+		case FRAME_BUFFER_ID::INTERMEDIATE_BUFFER: {
+			// First render to the custom framebuffer
+			glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+			gl_has_errors();
+
+			// clear backbuffer
+			glViewport(0, 0, w, h);
+			glDepthRange(0.00001, 10);
+
+			// white background -> black background
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+			glClearDepth(10.f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glDisable(GL_DEPTH_TEST); // native OpenGL does not work with a depth buffer
+			// and alpha blending, one would have to sort
+			// sprites back to front
+			break;
+		}
+		case FRAME_BUFFER_ID::BLUR_BUFFER: {
+			// Bind blur buffer
+			glBindFramebuffer(GL_FRAMEBUFFER, blur_buffer);
+			gl_has_errors();
+
+			// clear blur buffer
+			// down sample
+			glViewport(0, 0, w/2, h/2);
+			glDepthRange(0.00001, 10);
+
+			// transparent background
+			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+			glClearDepth(10.f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glDisable(GL_DEPTH_TEST);
+			break;
+		}
+		default:
+			break;
+	}
+	gl_has_errors();
+}
+
 GLuint RenderSystem::useShader(EFFECT_ASSET_ID shader_id) {
 	assert(shader_id != EFFECT_ASSET_ID::EFFECT_COUNT);
 

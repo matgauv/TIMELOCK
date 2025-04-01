@@ -25,19 +25,18 @@ void RenderSystem::init(GLFWwindow* window_arg)
 	// Create a frame buffer
 	frame_buffer = 0;
 	glGenFramebuffers(1, &frame_buffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+	// glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
 	gl_has_errors();
 
-	/*
-	glGenBuffers(1, &instanced_vbo_static_tiles);
-	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_static_tiles);
-	glBufferData(GL_ARRAY_BUFFER, MAX_INSTANCE_COUNT * (sizeof(float) * 20), nullptr, GL_STREAM_DRAW);
+
+	blur_buffer = 0;
+	glGenFramebuffers(1, &blur_buffer);
+	// glBindFramebuffer(GL_FRAMEBUFFER, blur_buffer);
 	gl_has_errors();
-	*/
+
 
 	glGenBuffers(1, &instanced_vbo_particles);
 	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_particles);
-	//glBufferData(GL_ARRAY_BUFFER, MAX_INSTANCE_COUNT * (sizeof(float) * 20), nullptr, GL_STREAM_DRAW);
 	gl_has_errors();
 
 
@@ -71,7 +70,6 @@ void RenderSystem::init(GLFWwindow* window_arg)
 	initScreenTexture();
     initializeGlTextures();
 	initializeGlEffects();
-	// initializeVAOs();
 	initializeGlGeometryBuffers();
 }
 
@@ -262,9 +260,13 @@ RenderSystem::~RenderSystem()
 	glDeleteBuffers((GLsizei)index_buffers.size(), index_buffers.data());
 	//glDeleteBuffers(1, &instanced_vbo_static_tiles);
 	glDeleteBuffers(1, &instanced_vbo_particles);
+
 	glDeleteTextures((GLsizei)texture_gl_handles.size(), texture_gl_handles.data());
+
 	glDeleteTextures(1, &off_screen_render_buffer_color);
 	glDeleteRenderbuffers(1, &off_screen_render_buffer_depth);
+	glDeleteTextures(1, &blur_buffer_color);
+	glDeleteRenderbuffers(1, &blur_buffer_depth);
 	gl_has_errors();
 
 	for(uint i = 0; i < effect_count; i++) {
@@ -272,6 +274,7 @@ RenderSystem::~RenderSystem()
 	}
 	// delete allocated resources
 	glDeleteFramebuffers(1, &frame_buffer);
+	glDeleteFramebuffers(1, &blur_buffer);
 	gl_has_errors();
 
 	// remove all entities created by the render system
@@ -285,6 +288,8 @@ bool RenderSystem::initScreenTexture()
 	// create a single entry
 	registry.screenStates.emplace(screen_state_entity);
 
+	// Intermediate frame buffer: for most objects in preparation for screen buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
 	int framebuffer_width, framebuffer_height;
 	glfwGetFramebufferSize(const_cast<GLFWwindow*>(window), &framebuffer_width, &framebuffer_height);  // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
 
@@ -303,6 +308,35 @@ bool RenderSystem::initScreenTexture()
 	gl_has_errors();
 
 	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+
+	// Blur buffer: render color-filled textures in preparation for blurring shader
+	glBindFramebuffer(GL_FRAMEBUFFER, blur_buffer);
+	int blurbuffer_width, blurbuffer_height;
+	glfwGetFramebufferSize(const_cast<GLFWwindow*>(window), &blurbuffer_width, &blurbuffer_height);
+
+	// Down sampling
+	blurbuffer_width /= 2;
+	blurbuffer_height /= 2;
+
+	glGenTextures(1, &blur_buffer_color);
+	glBindTexture(GL_TEXTURE_2D, blur_buffer_color);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, blurbuffer_width, blurbuffer_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	gl_has_errors();
+
+	glGenRenderbuffers(1, &blur_buffer_depth);
+	glBindRenderbuffer(GL_RENDERBUFFER, blur_buffer_depth);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, blur_buffer_color, 0);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, blurbuffer_width, blurbuffer_height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, blur_buffer_depth);
+	gl_has_errors();
+
+	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	return true;
 }

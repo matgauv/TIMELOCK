@@ -157,6 +157,7 @@ private:
 	GLuint useShader(EFFECT_ASSET_ID shader_id);
 	void bindGeometryBuffers(GEOMETRY_BUFFER_ID geo_id);
 	void bindTexture(GLenum texture_unit, TEXTURE_ASSET_ID tex_id);
+	void bindFrameBuffer(FRAME_BUFFER_ID frame_buffer_id);
 
 	// Update Screen shader factors
 	void updateDecelerationFactor(GameState& gameState, ScreenState& screen, float elapsed_ms);
@@ -179,6 +180,10 @@ private:
 	GLuint frame_buffer;
 	GLuint off_screen_render_buffer_color;
 	GLuint off_screen_render_buffer_depth;
+
+	GLuint blur_buffer;
+	GLuint blur_buffer_color;
+	GLuint blur_buffer_depth;
 
 	// This may not be a good practice; buffers for instanced rendering
 	//GLuint instanced_vbo_static_tiles;

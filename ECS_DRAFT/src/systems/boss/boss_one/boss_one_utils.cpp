@@ -46,6 +46,9 @@ Entity create_first_boss() {
     AnimateRequest& animateRequest = registry.animateRequests.emplace(entity);
     animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_IDLE;
 
+    HaloRequest& haloRequest = registry.haloRequests.emplace(entity);
+    haloRequest.halo_color = vec4(1.0, 0.0f, 0.0f, 1.0);
+
     return entity;
 }
 

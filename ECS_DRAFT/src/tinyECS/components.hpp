@@ -618,7 +618,8 @@ enum class EFFECT_ASSET_ID {
 	TILE = HEX + 1,
 	PARTICLE_INSTANCED = TILE + 1,
 	FILL = PARTICLE_INSTANCED + 1,
-	EFFECT_COUNT = FILL + 1
+	GAUSSIAN_BLUR = FILL + 1,
+	EFFECT_COUNT = GAUSSIAN_BLUR + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -701,6 +702,10 @@ struct AnimateRequest {
 	ANIMATION_ID used_animation;
 	float timer = 0.0;
 	vec2 tex_u_range = { 0.0, 1.0 };
+};
+
+struct HaloRequest {
+	vec4 halo_color = {0.0f, 0.0f, 0.0f, 0.0f};
 };
 
 struct LevelState {

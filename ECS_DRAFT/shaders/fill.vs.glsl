@@ -22,6 +22,6 @@ void main()
 	texcoord = vec2(
 		tex_u_range[0] + in_texcoord.x * (tex_u_range[1] - tex_u_range[0]),
 		in_texcoord.y);
-	vec3 pos = projection * transform * vec3(in_position.xy, 1.0);
+	vec3 pos = projection * transform * vec3(in_position.xy * 1.2, 1.0);
 	gl_Position = vec4(pos.xy, in_position.z, depth);
 }

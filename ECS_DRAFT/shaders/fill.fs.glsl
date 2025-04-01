@@ -6,7 +6,7 @@ in vec2 texcoord;
 
 // Application data
 uniform sampler2D sampler0;
-uniform vec3 fill_color;
+uniform vec4 fill_color;
 uniform vec3 fcolor;
 
 
@@ -17,5 +17,5 @@ void main()
 {
 	vec4 sampled_color = vec4(fcolor, 1.0) * texture(sampler0, vec2(texcoord.x, texcoord.y));
 	
-	color = vec4(fill_color, sampled_color.a);
+	color = vec4(fill_color.rgb, sampled_color.a * fill_color.a);
 }

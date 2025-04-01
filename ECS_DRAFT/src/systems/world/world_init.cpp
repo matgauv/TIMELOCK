@@ -34,14 +34,8 @@ Entity create_player(vec2 position, vec2 scale) {
     AnimateRequest &animation = registry.animateRequests.emplace(entity);
     animation.used_animation = ANIMATION_ID::PLAYER_STANDING;
 
-    // DEBUGGING ONLY
-    /*
-    Deceleratable& deceleration_config = registry.deceleratables.emplace(entity);
-    deceleration_config.can_become_harmless = false;
-
-    Acceleratable& acceleration_config = registry.acceleratables.emplace(entity);
-    acceleration_config.can_become_harmful = false;
-    */
+    HaloRequest& halo = registry.haloRequests.emplace(entity);
+    halo.halo_color = vec4(1.0f);
 
     return entity;
 }

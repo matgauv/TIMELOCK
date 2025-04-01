@@ -287,8 +287,8 @@ bool RenderSystem::initScreenTexture()
 	glfwGetFramebufferSize(const_cast<GLFWwindow*>(window), &blurbuffer_width, &blurbuffer_height);
 
 	// Down sampling
-	blurbuffer_width /= 2;
-	blurbuffer_height /= 2;
+	blurbuffer_width /= BLUR_FACTOR;
+	blurbuffer_height /= BLUR_FACTOR;
 
 	glGenTextures(1, &blur_buffer_color);
 	glBindTexture(GL_TEXTURE_2D, blur_buffer_color);

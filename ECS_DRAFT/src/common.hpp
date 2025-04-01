@@ -257,6 +257,7 @@ const float LOAD_LEVEL_COUNTDOWN = DEAD_REVIVE_TIME_MS + 10.0f;
 // Parsing constants
 const float PARSING_CANNON_Y_POS_DIFF = (0.5f * TILE_TO_PIXELS) - (CANNON_TOWER_SIZE.y / 2);
 const float PARSING_CHECKPOINT_Y_POS_DIFF = (0.5f * TILE_TO_PIXELS) - (SPAWNPOINT_SCALE.y / 2);
+
 // Particles
 const int PARTICLE_COUNT_LIMIT = 1000;
 const float MAX_CAMERA_DISTANCE = 2000.0;
@@ -268,6 +269,9 @@ const float COYOTE_PARTICLES_DURATION = 500.0f;
 
 const float BACKGROUND_WIDTH = 1920.0f;
 const float BACKGROUND_HEIGHT = 1080.0f;
+
+// Halo
+const float BLUR_FACTOR = 2.0f;
 
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)

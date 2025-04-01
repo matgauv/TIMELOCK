@@ -54,7 +54,7 @@ void RenderSystem::bindFrameBuffer(FRAME_BUFFER_ID frame_buffer_id) {
 
 			// clear blur buffer
 			// down sample
-			glViewport(0, 0, w/2, h/2);
+			glViewport(0, 0, w/ BLUR_FACTOR, h/ BLUR_FACTOR);
 			glDepthRange(0.00001, 10);
 
 			// transparent background
@@ -396,8 +396,62 @@ void RenderSystem::drawInstances(EFFECT_ASSET_ID effect_id, GEOMETRY_BUFFER_ID g
 }
 
 void RenderSystem::drawFilledMesh(Entity entity, const mat3& projection) {
+	assert(registry.renderRequests.has(entity));
+	const RenderRequest& render_request = registry.renderRequests.get(entity);
 
+	RenderRequest fill_request;
+	fill_request.used_effect = EFFECT_ASSET_ID::FILL;
+	fill_request.used_texture = render_request.used_texture;
+	fill_request.used_geometry = render_request.used_geometry;
+	fill_request.flipped = render_request.flipped;
+
+	RenderSystem::drawTexturedMesh(entity, projection, fill_request);
 }
 
 void RenderSystem::drawBlurredLayer() {
+	// Approximate Gaussian blur kernel
+	glm::mat3 kernel = mat3{ 
+		{0.061f, 0.124f, 0.061f},
+		{0.124f, 0.26f, 0.124f},
+		{0.061f, 0.124f, 0.061f} };
+	// Setting shaders
+	const GLuint blur_shader_program = effects[(GLuint)EFFECT_ASSET_ID::GAUSSIAN_BLUR];
+
+	glUseProgram(blur_shader_program);
+	gl_has_errors();
+
+	// Draw the screen texture on the quad geometry
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]);
+	glBindBuffer(
+		GL_ELEMENT_ARRAY_BUFFER,
+		index_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]); // Note, GL_ELEMENT_ARRAY_BUFFER associates
+	gl_has_errors();
+
+	// Set the vertex position and vertex texture coordinates (both stored in the
+	// same VBO)
+	GLint in_position_loc = glGetAttribLocation(blur_shader_program, "in_position");
+	glEnableVertexAttribArray(in_position_loc);
+	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void*)0);
+	gl_has_errors();
+
+	// Bind our texture in Texture Unit 0
+	glActiveTexture(GL_TEXTURE0);
+
+	glBindTexture(GL_TEXTURE_2D, blur_buffer_color);
+	gl_has_errors();
+
+	// Set uniforms
+	GLuint stride_uloc = glGetUniformLocation(blur_shader_program, "stride");
+	glUniform1f(stride_uloc, 8.0f);
+
+	GLuint kernel_loc = glGetUniformLocation(blur_shader_program, "kernel");
+	glUniformMatrix3fv(kernel_loc, 1, GL_FALSE, (float*)&kernel);
+	gl_has_errors();
+
+	// Draw
+	glDrawElements(
+		GL_TRIANGLES, 3, GL_UNSIGNED_SHORT,
+		nullptr); // one triangle = 3 vertices; nullptr indicates that there is
+	// no offset from the bound index buffer
+	gl_has_errors();
 }

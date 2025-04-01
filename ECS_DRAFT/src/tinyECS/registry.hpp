@@ -64,6 +64,7 @@ public:
 	ComponentContainer<ParticleSystemState> particleSystemStates;
 	ComponentContainer<ObstacleSpawner>	obstacleSpawners;
 	ComponentContainer<Screw> screws;
+	ComponentContainer<HaloRequest> haloRequests;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -121,6 +122,7 @@ public:
 		registry_list.push_back(&particleSystemStates);
 		registry_list.push_back(&obstacleSpawners);
 		registry_list.push_back(&screws);
+		registry_list.push_back(&haloRequests);
 	}
 
 	void clear_all_components() {

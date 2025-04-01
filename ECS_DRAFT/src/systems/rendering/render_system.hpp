@@ -106,6 +106,7 @@ class RenderSystem : public ISystem {
 		shader_path("tile"),
 		shader_path("particle_instanced"),
 		shader_path("fill"),
+		shader_path("gaussian_blur"),
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;

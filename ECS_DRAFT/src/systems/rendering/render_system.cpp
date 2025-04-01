@@ -57,7 +57,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 
 	// texture-mapped entities - use data location as in the vertex buffer
-	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED)
+	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED ||
+		render_request.used_effect == EFFECT_ASSET_ID::FILL)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
@@ -97,8 +98,10 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			GLint fill_color_uloc = glGetUniformLocation(program, "fill_color");
 			
 			// TODO
-			vec3 fill_color = vec3(1.0);
-			glUniform4fv(fill_color_uloc, 1, (float*)&fill_color);
+			if (registry.haloRequests.has(entity)) {
+				vec4 fill_color = registry.haloRequests.get(entity).halo_color;
+				glUniform4fv(fill_color_uloc, 1, (float*)&fill_color);
+			}
 		}
 		gl_has_errors();
 	}
@@ -431,9 +434,6 @@ void RenderSystem::late_step(float elapsed_ms) {
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
 void RenderSystem::draw()
 {
-	bindFrameBuffer(FRAME_BUFFER_ID::INTERMEDIATE_BUFFER);
-	//bindFrameBuffer(FRAME_BUFFER_ID::BLUR_BUFFER);
-
 	// handle meshes
 	// TODO prob handle this somewhere better...
 	for (Entity entity : registry.players.entities) {
@@ -450,21 +450,33 @@ void RenderSystem::draw()
 		}
 	}
 
+	// Render Halo
+	bindFrameBuffer(FRAME_BUFFER_ID::BLUR_BUFFER);
+
+	std::vector<Entity> halo_entities;
+	if (registry.bosses.size() > 0) {
+		halo_entities.push_back(registry.bosses.entities[0]);
+	}
+	// TODO: add decel bar after merge
+	if (registry.players.size() > 0) {
+		halo_entities.push_back(registry.players.entities[0]);
+	}
+	for (const Entity halo_entity : halo_entities) {
+		drawFilledMesh(halo_entity, this->projection_matrix);
+	}
+
+	bindFrameBuffer(FRAME_BUFFER_ID::INTERMEDIATE_BUFFER);
 
 	// draw all entities with a render request to the frame buffer
 	// Assort rendering tasks according to layers
 	
 	std::vector<Entity> parallaxbackgrounds;
-	//std::vector<Entity> parallaxbackgrounds_particles;
 
 	std::vector<Entity> backgrounds;
-	//std::vector<Entity> backgrounds_particles;
 
 	std::vector<Entity> midgrounds;
-	//std::vector<Entity> midgrounds_particles;
 
 	std::vector<Entity> foregrounds;
-	//std::vector<Entity> foregrounds_particles;
 
 	for (Entity entity : registry.layers.entities)
 	{
@@ -523,8 +535,15 @@ void RenderSystem::draw()
 	}
 
 
-	midgrounds.push_back(registry.players.entities[0]);
+	// midgrounds.push_back(registry.players.entities[0]);
 	for (Entity entity : midgrounds)
+	{
+		drawTexturedMesh(entity, this->projection_matrix);
+	}
+
+	// Render halo effect
+	drawBlurredLayer();
+	for (Entity entity : halo_entities)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
 	}

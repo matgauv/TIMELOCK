@@ -29,6 +29,36 @@ vec2 random2D(vec2 uv) {
 			dot(uv, vec2(686.139, 9318.4)))));
 }
 
+// Reference: https://thebookofshaders.com/11/
+float perlinNoise(vec2 uv) {
+	float NOISE_SCALE = 16.0;
+	vec2 uv_scaled = uv * NOISE_SCALE;
+
+	vec2 uv_i = floor(uv_scaled);
+	vec2 uv_f = fract(uv_scaled);
+
+	vec2 refined_uv_f = uv_f * uv_f * (2.0 - uv_f);
+
+	return mix(
+		mix(random(mod(uv_i, NOISE_SCALE)), random(mod(uv_i + vec2(1.0, 0.0), NOISE_SCALE)), refined_uv_f.x),
+		mix(random(mod(uv_i + vec2(0.0, 1.0), NOISE_SCALE)), random(mod(uv_i + vec2(1.0, 1.0), NOISE_SCALE)), refined_uv_f.x),
+		refined_uv_f.y
+	);
+}
+
+float toAngle(vec2 uv) {
+	if (abs(uv.x) < 1e-8) {
+		return uv.y > 0 ? 1.571 : 4.712;
+	}
+
+	float angle = atan(uv.y, uv.x);
+
+	if (angle < 0) {
+		angle += 6.283;
+	}
+	return angle;
+}
+
 vec3 pale_filter(vec3 color, float factor) {
 	// Gray scale formula: https://en.wikipedia.org/wiki/Grayscale
 	float luminance = clamp(dot(vec3(0.299, 0.587, 0.114), color) * 1.4, 0.0, 1.0);
@@ -126,9 +156,19 @@ vec4 apply_dec_effect(vec4 in_color)
 		}
 
 		// Apply border transparency
+		// displace sample coordinate radially
+		vec2 disp_from_center = texcoord - 0.5;
+		if (length(disp_from_center) > 1e-8) {
+			disp_from_center = normalize(disp_from_center);
+		}
+		float normalized_angle = toAngle(texcoord - 0.5)/6.283;
+	
+		vec2 radial_disp_coord = 0.04*(perlinNoise(vec2(normalized_angle, time*0.00002)) - 0.5) * disp_from_center + texcoord;
+
 		float transparency_factor = 
 			min(1.0, 
-				min(min(texcoord.x, 1.0 - texcoord.x) * 1.2, min(texcoord.y, 1.0 - texcoord.y) * 1.5 * aspect_ratio) / curr_width);
+				min(min(radial_disp_coord.x, 1.0 - radial_disp_coord.x) * 1.2, 
+					  min(radial_disp_coord.y, 1.0 - radial_disp_coord.y) * 1.5 * aspect_ratio) / curr_width);
 		transparency_factor = clamp(transparency_factor * 1.5 - 0.50,0.0, 1.0);
 
 		// Sample displaced texture

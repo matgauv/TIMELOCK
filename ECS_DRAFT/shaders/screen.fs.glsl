@@ -49,7 +49,6 @@ vec4 apply_dec_effect(vec4 in_color)
 	vec2 texture_scale = textureSize(screen_texture, 0);
 	float aspect_ratio = texture_scale.y/texture_scale.x;
 	vec2 center = 0.5 * vec2(1.0, aspect_ratio);
-	float HALF_AXIS = length(center);
 
 	float GRID_WIDTH = 1.0/float(GRID_WIDE_COUNT);
 	float GRID_HEIGHT = aspect_ratio/float(GRID_HIGH_COUNT);
@@ -126,22 +125,22 @@ vec4 apply_dec_effect(vec4 in_color)
 			silhouette_factor = silhouette_factor * silhouette_factor;
 		}
 
-		// Sample displaced texture
-		vec4 displaced_color = texture(screen_texture, texcoord + deviation / aspect_ratio);
-
-		vec3 shard_color = mix(
-			mix(pale_filter(displaced_color.rgb, effect_factor), shard_tinted_color, 0.5), 
-			vec3(0.87, 0.98, 0.98), silhouette_factor);
-
 		// Apply border transparency
 		float transparency_factor = 
 			min(1.0, 
-				min(min(texcoord.x, 1.0 - texcoord.x), min(texcoord.y, 1.0 - texcoord.y) * 2.0 * aspect_ratio) / curr_width);
+				min(min(texcoord.x, 1.0 - texcoord.x) * 1.2, min(texcoord.y, 1.0 - texcoord.y) * 1.5 * aspect_ratio) / curr_width);
+		transparency_factor = clamp(transparency_factor * 1.5 - 0.50,0.0, 1.0);
+
+		// Sample displaced texture
+		vec4 displaced_color = texture(screen_texture, texcoord + (1.0 - transparency_factor) * deviation / aspect_ratio);
+
+		//vec3 shard_color = mix(shard_tinted_color, vec3(0.87, 0.98, 0.98), silhouette_factor);
+		vec3 shard_color = clamp(shard_tinted_color + vec3(0.87, 0.98, 0.98) * silhouette_factor, 0.0, 1.3);
 
 		base_color = mix(
-		vec4(shard_color, displaced_color.a), 
-		vec4(pale_filter(in_color.rgb, effect_factor), in_color.a), 
-		clamp(transparency_factor * 2.0 - 1.0,0.0, 1.0));
+		vec4(shard_color, 1.0), 
+		vec4(pale_filter(displaced_color.rgb, effect_factor), in_color.a), 
+		transparency_factor);
 	}
 
 	float edge_brightness = 

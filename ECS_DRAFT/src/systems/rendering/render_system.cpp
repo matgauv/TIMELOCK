@@ -450,26 +450,8 @@ void RenderSystem::draw()
 		}
 	}
 
-	// Render Halo
-	bindFrameBuffer(FRAME_BUFFER_ID::BLUR_BUFFER);
-
-	std::vector<Entity> halo_entities;
-	if (registry.bosses.size() > 0) {
-		halo_entities.push_back(registry.bosses.entities[0]);
-	}
-	// TODO: add decel bar after merge
-	if (registry.players.size() > 0) {
-		halo_entities.push_back(registry.players.entities[0]);
-	}
-	for (const Entity halo_entity : halo_entities) {
-		drawFilledMesh(halo_entity, this->projection_matrix);
-	}
-
-	bindFrameBuffer(FRAME_BUFFER_ID::INTERMEDIATE_BUFFER);
-
-	// draw all entities with a render request to the frame buffer
 	// Assort rendering tasks according to layers
-	
+
 	std::vector<Entity> parallaxbackgrounds;
 
 	std::vector<Entity> backgrounds;
@@ -496,33 +478,72 @@ void RenderSystem::draw()
 
 		switch (registry.layers.get(entity).layer)
 		{
-			case LAYER_ID::FOREGROUND:
-				foregrounds.push_back(entity);
-				break;
-			case LAYER_ID::MIDGROUND:
-				// Render Player last?
-				if (registry.players.has(entity)) {
-					continue;
-				}
-				// TODO: may need to adjust rendering order for spawn points and interactive objects as well?
-				if (registry.players.entities[0].id() == entity.id()) {
-					continue;
-				}
-				midgrounds.push_back(entity);
-				break;
-			case LAYER_ID::PARALLAXBACKGROUND:
-				parallaxbackgrounds.push_back(entity);
-				break;
-			case LAYER_ID::BACKGROUND:
-				backgrounds.push_back(entity);
-				break;
-			default:
-				break;
+		case LAYER_ID::FOREGROUND:
+			foregrounds.push_back(entity);
+			break;
+		case LAYER_ID::MIDGROUND:
+			// Render Player last?
+			if (registry.haloRequests.has(entity)) {
+				continue;
+			}
+
+			midgrounds.push_back(entity);
+			break;
+		case LAYER_ID::PARALLAXBACKGROUND:
+			parallaxbackgrounds.push_back(entity);
+			break;
+		case LAYER_ID::BACKGROUND:
+			backgrounds.push_back(entity);
+			break;
+		default:
+			break;
 		}
 	}
-	midgrounds.push_back(registry.players.entities[0]);
 
 	glBindVertexArray(vao_general);
+
+	// Render Halo
+	bindFrameBuffer(FRAME_BUFFER_ID::BLUR_BUFFER_1);
+
+	std::vector<Entity> halo_entities;
+	if (registry.bosses.size() > 0) {
+		halo_entities.push_back(registry.bosses.entities[0]);
+	}
+	// TODO: add decel bar after merge
+	if (registry.players.size() > 0) {
+		halo_entities.push_back(registry.players.entities[0]);
+	}
+	for (const Entity halo_entity : halo_entities) {
+		drawFilledMesh(halo_entity, this->projection_matrix);
+	}
+
+	// Prepare halo effect
+	for (int i = 5; i >= 0; i--) {
+		// Pass-catch
+
+		// Render to blur 2
+		bindFrameBuffer(FRAME_BUFFER_ID::BLUR_BUFFER_2);
+		drawBlurredLayer(blur_buffer_color_1, BLUR_MODE::HORIZONTAL, 1.5f, 1.35f);
+
+		// Render to blur 1
+		bindFrameBuffer(FRAME_BUFFER_ID::BLUR_BUFFER_1);
+		drawBlurredLayer(blur_buffer_color_2, BLUR_MODE::VERTICAL, 1.5f, 1.35f);
+	}
+
+	// Halo effects in blur 1
+
+	// Render foreground to blur 2
+	bindFrameBuffer(FRAME_BUFFER_ID::BLUR_BUFFER_2);
+	for (Entity entity : foregrounds)
+	{
+		drawTexturedMesh(entity, this->projection_matrix);
+	}
+
+	// Start rendering to intermediate buffer
+	bindFrameBuffer(FRAME_BUFFER_ID::INTERMEDIATE_BUFFER);
+
+
+	// draw all entities with a render request to the frame buffer
 	for (Entity entity : parallaxbackgrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
@@ -541,8 +562,8 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, this->projection_matrix);
 	}
 
-	// Render halo effect
-	drawBlurredLayer();
+	drawBlurredLayer(blur_buffer_color_1, BLUR_MODE::TWO_D, 1.5f, 1.2f);
+
 	for (Entity entity : halo_entities)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
@@ -556,10 +577,8 @@ void RenderSystem::draw()
 	glBindVertexArray(0);
 
 	glBindVertexArray(vao_general);
-	for (Entity entity : foregrounds)
-	{
-		drawTexturedMesh(entity, this->projection_matrix);
-	}
+	// Render foreground
+	drawBlurredLayer(blur_buffer_color_2, BLUR_MODE::TWO_D, 1.5f, 1.2f);
 
 
 	// draw framebuffer to screen

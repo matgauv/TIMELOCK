@@ -47,14 +47,34 @@ void RenderSystem::bindFrameBuffer(FRAME_BUFFER_ID frame_buffer_id) {
 			// sprites back to front
 			break;
 		}
-		case FRAME_BUFFER_ID::BLUR_BUFFER: {
+		case FRAME_BUFFER_ID::BLUR_BUFFER_1: {
 			// Bind blur buffer
-			glBindFramebuffer(GL_FRAMEBUFFER, blur_buffer);
+			glBindFramebuffer(GL_FRAMEBUFFER, blur_buffer_1);
 			gl_has_errors();
 
 			// clear blur buffer
 			// down sample
 			glViewport(0, 0, w/ BLUR_FACTOR, h/ BLUR_FACTOR);
+			glDepthRange(0.00001, 10);
+
+			// transparent background
+			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+			glClearDepth(10.f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glDisable(GL_DEPTH_TEST);
+			break;
+		}
+		case FRAME_BUFFER_ID::BLUR_BUFFER_2: {
+			// Bind blur buffer
+			glBindFramebuffer(GL_FRAMEBUFFER, blur_buffer_2);
+			gl_has_errors();
+
+			// clear blur buffer
+			// down sample
+			glViewport(0, 0, w / BLUR_FACTOR, h / BLUR_FACTOR);
 			glDepthRange(0.00001, 10);
 
 			// transparent background
@@ -408,12 +428,8 @@ void RenderSystem::drawFilledMesh(Entity entity, const mat3& projection) {
 	RenderSystem::drawTexturedMesh(entity, projection, fill_request);
 }
 
-void RenderSystem::drawBlurredLayer() {
-	// Approximate Gaussian blur kernel
-	glm::mat3 kernel = mat3{ 
-		{0.061f, 0.124f, 0.061f},
-		{0.124f, 0.26f, 0.124f},
-		{0.061f, 0.124f, 0.061f} };
+void RenderSystem::drawBlurredLayer(GLuint source_texture, BLUR_MODE mode, float width_factor, float strength) {
+
 	// Setting shaders
 	const GLuint blur_shader_program = effects[(GLuint)EFFECT_ASSET_ID::GAUSSIAN_BLUR];
 
@@ -437,15 +453,27 @@ void RenderSystem::drawBlurredLayer() {
 	// Bind our texture in Texture Unit 0
 	glActiveTexture(GL_TEXTURE0);
 
-	glBindTexture(GL_TEXTURE_2D, blur_buffer_color);
+	glBindTexture(GL_TEXTURE_2D, source_texture);
 	gl_has_errors();
 
 	// Set uniforms
 	GLuint stride_uloc = glGetUniformLocation(blur_shader_program, "stride");
-	glUniform1f(stride_uloc, 8.0f);
+	glUniform1f(stride_uloc, width_factor);
 
-	GLuint kernel_loc = glGetUniformLocation(blur_shader_program, "kernel");
-	glUniformMatrix3fv(kernel_loc, 1, GL_FALSE, (float*)&kernel);
+	GLuint strength_uloc = glGetUniformLocation(blur_shader_program, "strength");
+	glUniform1f(strength_uloc, strength);
+
+	GLuint mode_uloc = glGetUniformLocation(blur_shader_program, "blur_mode");
+	glUniform1i(mode_uloc, (int)mode);
+
+	if (mode == BLUR_MODE::TWO_D) {
+		GLuint kernel_loc = glGetUniformLocation(blur_shader_program, "kernel_2D");
+		glUniformMatrix3fv(kernel_loc, 1, GL_FALSE, (float*)&(RenderSystem::gaussian_blur_kernel_2D));
+	}
+	else {
+		GLuint kernel_loc = glGetUniformLocation(blur_shader_program, "kernel_1D");
+		glUniform3fv(kernel_loc, 1, (float*)&(RenderSystem::gaussian_blur_kernel_1D));
+	}
 	gl_has_errors();
 
 	// Draw

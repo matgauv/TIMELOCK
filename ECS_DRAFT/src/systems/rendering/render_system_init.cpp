@@ -29,9 +29,12 @@ void RenderSystem::init(GLFWwindow* window_arg)
 	gl_has_errors();
 
 
-	blur_buffer = 0;
-	glGenFramebuffers(1, &blur_buffer);
-	// glBindFramebuffer(GL_FRAMEBUFFER, blur_buffer);
+	blur_buffer_1 = 0;
+	glGenFramebuffers(1, &blur_buffer_1);
+	gl_has_errors();
+
+	blur_buffer_2 = 0;
+	glGenFramebuffers(1, &blur_buffer_2);
 	gl_has_errors();
 
 
@@ -234,8 +237,10 @@ RenderSystem::~RenderSystem()
 
 	glDeleteTextures(1, &off_screen_render_buffer_color);
 	glDeleteRenderbuffers(1, &off_screen_render_buffer_depth);
-	glDeleteTextures(1, &blur_buffer_color);
-	glDeleteRenderbuffers(1, &blur_buffer_depth);
+	glDeleteTextures(1, &blur_buffer_color_1);
+	glDeleteRenderbuffers(1, &blur_buffer_depth_1);
+	glDeleteTextures(1, &blur_buffer_color_2);
+	glDeleteRenderbuffers(1, &blur_buffer_depth_2);
 	gl_has_errors();
 
 	for(uint i = 0; i < effect_count; i++) {
@@ -243,7 +248,8 @@ RenderSystem::~RenderSystem()
 	}
 	// delete allocated resources
 	glDeleteFramebuffers(1, &frame_buffer);
-	glDeleteFramebuffers(1, &blur_buffer);
+	glDeleteFramebuffers(1, &blur_buffer_1);
+	glDeleteFramebuffers(1, &blur_buffer_2);
 	gl_has_errors();
 
 	// remove all entities created by the render system
@@ -280,9 +286,6 @@ bool RenderSystem::initScreenTexture()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-
-	// Blur buffer: render color-filled textures in preparation for blurring shader
-	glBindFramebuffer(GL_FRAMEBUFFER, blur_buffer);
 	int blurbuffer_width, blurbuffer_height;
 	glfwGetFramebufferSize(const_cast<GLFWwindow*>(window), &blurbuffer_width, &blurbuffer_height);
 
@@ -290,18 +293,41 @@ bool RenderSystem::initScreenTexture()
 	blurbuffer_width /= BLUR_FACTOR;
 	blurbuffer_height /= BLUR_FACTOR;
 
-	glGenTextures(1, &blur_buffer_color);
-	glBindTexture(GL_TEXTURE_2D, blur_buffer_color);
+	// Blur buffer: render color-filled textures in preparation for blurring shader
+	glBindFramebuffer(GL_FRAMEBUFFER, blur_buffer_1);
+
+	glGenTextures(1, &blur_buffer_color_1);
+	glBindTexture(GL_TEXTURE_2D, blur_buffer_color_1);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, blurbuffer_width, blurbuffer_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	gl_has_errors();
 
-	glGenRenderbuffers(1, &blur_buffer_depth);
-	glBindRenderbuffer(GL_RENDERBUFFER, blur_buffer_depth);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, blur_buffer_color, 0);
+	glGenRenderbuffers(1, &blur_buffer_depth_1);
+	glBindRenderbuffer(GL_RENDERBUFFER, blur_buffer_depth_1);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, blur_buffer_color_1, 0);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, blurbuffer_width, blurbuffer_height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, blur_buffer_depth);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, blur_buffer_depth_1);
+	gl_has_errors();
+
+	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// Blur buffer 2
+	glBindFramebuffer(GL_FRAMEBUFFER, blur_buffer_2);
+
+	glGenTextures(1, &blur_buffer_color_2);
+	glBindTexture(GL_TEXTURE_2D, blur_buffer_color_2);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, blurbuffer_width, blurbuffer_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	gl_has_errors();
+
+	glGenRenderbuffers(1, &blur_buffer_depth_2);
+	glBindRenderbuffer(GL_RENDERBUFFER, blur_buffer_depth_2);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, blur_buffer_color_2, 0);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, blurbuffer_width, blurbuffer_height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, blur_buffer_depth_2);
 	gl_has_errors();
 
 	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);

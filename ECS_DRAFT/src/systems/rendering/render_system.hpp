@@ -148,6 +148,16 @@ public:
 
 	Entity get_screen_state_entity() { return screen_state_entity; }
 
+	// Approximate Gaussian blur kernel
+	const glm::mat3 gaussian_blur_kernel_2D = glm::mat3{
+		{0.061f, 0.124f, 0.061f},
+		{0.124f, 0.26f, 0.124f},
+		{0.061f, 0.124f, 0.061f} };
+
+	const glm::vec3 gaussian_blur_kernel_1D = glm::vec3{
+		0.499f, 0.183f, 0.0675f};
+
+
 private:
 	// Internal drawing functions for each entity type
 	void drawLayer(const std::vector<Entity>& entities);
@@ -156,7 +166,7 @@ private:
 	void drawTexturedMesh(Entity entity, const mat3& projection, const RenderRequest& render_request);
 	void drawFilledMesh(Entity entity, const mat3& projection);
 
-	void drawBlurredLayer();
+	void drawBlurredLayer(GLuint source_texture, BLUR_MODE mode, float width_factor, float strength);
 	void drawToScreen();
 
 	GLuint useShader(EFFECT_ASSET_ID shader_id);
@@ -186,9 +196,13 @@ private:
 	GLuint off_screen_render_buffer_color;
 	GLuint off_screen_render_buffer_depth;
 
-	GLuint blur_buffer;
-	GLuint blur_buffer_color;
-	GLuint blur_buffer_depth;
+	GLuint blur_buffer_1;
+	GLuint blur_buffer_color_1;
+	GLuint blur_buffer_depth_1;
+
+	GLuint blur_buffer_2;
+	GLuint blur_buffer_color_2;
+	GLuint blur_buffer_depth_2;
 
 	// This may not be a good practice; buffers for instanced rendering
 	//GLuint instanced_vbo_static_tiles;

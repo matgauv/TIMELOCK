@@ -221,7 +221,7 @@ void boss_one_idle_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, fl
         boss.timer_ms = BOSS_ONE_MAX_WALK_DURATION_MS; // walk for 5 seconds before attacking
         
         // update animate request
-        AnimateRequest& animateRequest = registry.animateRequests.emplace(boss_entity);
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_WALK;
     }
 }
@@ -980,7 +980,7 @@ void chooseLongRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion
         }
 
         // update animate request
-        AnimateRequest& animateRequest = registry.animateRequests.emplace(boss_entity);
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_DASH;
 
     } else if (random_num <= 50) {
@@ -1048,7 +1048,7 @@ void chooseMediumRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_moti
         boss_motion.scale = vec2(BOSS_ONE_GROUND_SLAM_BB_WIDTH_PX, BOSS_ONE_GROUND_SLAM_BB_HEIGHT_PX);
 
         // update animate request
-        AnimateRequest& animateRequest = registry.animateRequests.emplace(boss_entity);
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_INIT;
 
     } else if (random_num <= 80) {
@@ -1098,7 +1098,7 @@ void chooseShortRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motio
         boss_motion.scale = vec2(BOSS_ONE_GROUND_SLAM_BB_WIDTH_PX, BOSS_ONE_GROUND_SLAM_BB_HEIGHT_PX);
 
         // update animate request
-        AnimateRequest& animateRequest = registry.animateRequests.emplace(boss_entity);
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_INIT;
 
     } else {
@@ -1275,6 +1275,6 @@ void choose_ground_slam_test(Entity& boss_entity, Boss& boss, Motion& boss_motio
     boss_motion.scale = vec2(BOSS_ONE_GROUND_SLAM_BB_WIDTH_PX, BOSS_ONE_GROUND_SLAM_BB_HEIGHT_PX);
 
     // update animate request
-    AnimateRequest& animateRequest = registry.animateRequests.emplace(boss_entity);
+    AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
     animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_INIT;
 }

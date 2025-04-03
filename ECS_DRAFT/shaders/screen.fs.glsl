@@ -6,9 +6,20 @@ uniform float acc_emerge_factor;
 uniform float dec_act_factor;
 uniform float dec_emerge_factor;
 
+uniform int GRID_WIDE_COUNT;// = 16;
+uniform int GRID_HIGH_COUNT;// = 9;
+uniform int BOUNDARY_WIDE_COUNT;// = 2;
+uniform int BOUNDARY_HIGH_COUNT;// = 2;
+
+uniform float VIGNETTE_WIDTH; //=1.25
+uniform vec3 PALED_BLUE_TONE;//vec3(0.77,0.91,0.96);
+uniform vec3 SHARD_COLOR_1;// vec3(0.573, 0.812, 1)
+uniform vec3 SHARD_COLOR_2;// vec3(0.475, 0.745, 0.961)
+uniform vec3 SHARD_SILHOUETTE_COLOR;//vec3(0.87, 0.98, 0.98)
+uniform float SHARD_EVOLVING_SPEED;//0.001
+
 uniform float transition_factor;
 uniform vec2 focal_point; // [0, 1]
-uniform float aspect_ratio;
 
 uniform float time;
 
@@ -62,7 +73,7 @@ float toAngle(vec2 uv) {
 vec3 pale_filter(vec3 color, float factor) {
 	// Gray scale formula: https://en.wikipedia.org/wiki/Grayscale
 	float luminance = clamp(dot(vec3(0.299, 0.587, 0.114), color) * 1.4, 0.0, 1.0);
-	vec3 paled_color = vec3(luminance) * vec3(0.77,0.91,0.96);
+	vec3 paled_color = vec3(luminance) * PALED_BLUE_TONE;
 	return mix(color, paled_color, factor * 0.4);
 }
 
@@ -71,11 +82,6 @@ vec4 apply_dec_effect(vec4 in_color)
 	float effect_factor = min(1.0, dec_act_factor / dec_emerge_factor);
 
 	// Ice shard effects
-	int GRID_WIDE_COUNT = 16;
-	int GRID_HIGH_COUNT = 9;
-	int BOUNDARY_WIDE_COUNT = 2;
-	int BOUNDARY_HIGH_COUNT = 2;
-
 	vec2 texture_scale = textureSize(screen_texture, 0);
 	float aspect_ratio = texture_scale.y/texture_scale.x;
 	vec2 center = 0.5 * vec2(1.0, aspect_ratio);
@@ -136,9 +142,7 @@ vec4 apply_dec_effect(vec4 in_color)
 		!((BOUNDARY_WIDE_COUNT <= min_pt_index_x && min_pt_index_x <= GRID_WIDE_COUNT - BOUNDARY_WIDE_COUNT - 1) && 
 		  (BOUNDARY_HIGH_COUNT <= min_pt_index_y && min_pt_index_y <= GRID_HIGH_COUNT - BOUNDARY_HIGH_COUNT - 1)));
 
-	float vignette_width = 0.125;
-
-	float curr_width = vignette_width * min(1.0, dec_act_factor / dec_emerge_factor);
+	float curr_width = VIGNETTE_WIDTH * min(1.0, dec_act_factor / dec_emerge_factor);
 
 	vec4 base_color = vec4(0.0);
 
@@ -146,8 +150,8 @@ vec4 apply_dec_effect(vec4 in_color)
 		base_color = vec4(pale_filter(in_color.rgb, effect_factor), in_color.a);
 	} else {
 
-		float color_factor = 2.0 * sin(random(vec2(float(min_pt_index_x), float(min_pt_index_y))) * 6.283 + time * 0.001) - 1.0;
-		vec3 shard_tinted_color = mix(vec3(0.573, 0.812, 1), vec3(0.475, 0.745, 0.961), color_factor);
+		float color_factor = 2.0 * sin(random(vec2(float(min_pt_index_x), float(min_pt_index_y))) * 6.283 + time * SHARD_EVOLVING_SPEED) - 1.0;
+		vec3 shard_tinted_color = mix(SHARD_COLOR_1, SHARD_COLOR_2, color_factor);
 
 		float silhouette_factor_raw = min_dist/GRID_WIDTH * 1.5;
 		float silhouette_factor = clamp(silhouette_factor_raw, 0.0, 1.0);
@@ -163,7 +167,7 @@ vec4 apply_dec_effect(vec4 in_color)
 		}
 		float normalized_angle = toAngle(texcoord - 0.5)/6.283;
 	
-		vec2 radial_disp_coord = 0.04*(perlinNoise(vec2(normalized_angle, time*0.00002)) - 0.5) * disp_from_center + texcoord;
+		vec2 radial_disp_coord = 0.04*(perlinNoise(vec2(normalized_angle, time*0.0001)) - 0.5) * disp_from_center + texcoord;
 
 		float transparency_factor = 
 			min(1.0, 
@@ -174,8 +178,7 @@ vec4 apply_dec_effect(vec4 in_color)
 		// Sample displaced texture
 		vec4 displaced_color = texture(screen_texture, texcoord + (1.0 - transparency_factor) * deviation / aspect_ratio);
 
-		//vec3 shard_color = mix(shard_tinted_color, vec3(0.87, 0.98, 0.98), silhouette_factor);
-		vec3 shard_color = clamp(shard_tinted_color + vec3(0.87, 0.98, 0.98) * silhouette_factor, 0.0, 1.3);
+		vec3 shard_color = clamp(shard_tinted_color + SHARD_SILHOUETTE_COLOR * silhouette_factor, 0.0, 1.3);
 
 		base_color = mix(
 		vec4(shard_color, 1.0), 
@@ -217,9 +220,11 @@ vec4 apply_acc_effect(vec4 in_color)
 
 
 vec4 apply_transition_effect(vec4 in_color) {
-	// float pixel_width = 
-	vec2 focal_adjusted = vec2(aspect_ratio * focal_point.x, focal_point.y);
-	vec2 uv_adjusted = vec2(aspect_ratio * texcoord.x, texcoord.y);
+	vec2 texture_scale = textureSize(screen_texture, 0);
+	float aspect_ratio = texture_scale.y/texture_scale.x;
+
+	vec2 focal_adjusted = vec2(focal_point.x, aspect_ratio * focal_point.y);
+	vec2 uv_adjusted = vec2(texcoord.x, aspect_ratio * texcoord.y);
 	vec2 disp = focal_adjusted - uv_adjusted;
 
 	// Square of diagonal length

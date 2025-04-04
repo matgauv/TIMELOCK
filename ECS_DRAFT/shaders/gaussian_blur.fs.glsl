@@ -24,7 +24,7 @@ void main()
 			for (int j = -1; j <= 1; j++) {
 				vec4 sampled_color = texture(screen_texture, texcoord + stride*vec2(float(i), float(j)) / tex_size);
 				float weight = kernel_2D[i+1][j+1];
-				in_color.rgb += (sampled_color.rgb * weight);
+				in_color.rgb += (sampled_color.a * sampled_color.rgb * weight);
 				in_color.a += (sampled_color.a * weight);
 			}
 		}
@@ -33,7 +33,7 @@ void main()
 		for (int i = -2; i <= 2; i++) {
 			vec4 sampled_color = texture(screen_texture, texcoord + stride*vec2(float(i), 0.0) / tex_size);
 			float weight = kernel_1D[abs(i)];
-			in_color.rgb += (sampled_color.rgb * weight);
+			in_color.rgb += (sampled_color.a * sampled_color.rgb * weight);
 			in_color.a += (sampled_color.a * weight);
 		}
 	} else {
@@ -41,7 +41,7 @@ void main()
 		for (int j = -2; j <= 2; j++) {
 			vec4 sampled_color = texture(screen_texture, texcoord + stride*vec2(0.0, float(j)) / tex_size);
 			float weight = kernel_1D[abs(j)];
-			in_color.rgb += (sampled_color.rgb * weight);
+			in_color.rgb += (sampled_color.a * sampled_color.rgb * weight);
 			in_color.a += (sampled_color.a * weight);
 		}
 	}

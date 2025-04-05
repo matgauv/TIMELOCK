@@ -101,7 +101,7 @@ void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_nu
     // state transition logic
     switch (boss.boss_state) {
         case BOSS_STATE::BOSS1_IDLE_STATE:
-            boss_one_idle_step(boss_entity, boss, boss_motion, elapsed_ms, rng);
+            boss_one_idle_step(boss_entity, boss, boss_motion, elapsed_ms);
             break;
 
         case BOSS_STATE::BOSS1_MOVE_STATE:

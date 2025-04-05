@@ -20,6 +20,9 @@ void UiSystem::deceleration_bar_step(float elapsed_ms) {
 		const Entity decelbar_entity = registry.decelerationBars.entities[0];
 		DecelerationBar& decelbar = registry.decelerationBars.components[0];
 
+		HaloRequest& halo = registry.haloRequests.get(decelbar_entity);
+
+
 		// update motion
 		Motion& decelbar_motion = registry.motions.get(decelbar_entity);
 		const Motion& player_motion = registry.motions.get(registry.players.entities[0]);
@@ -48,11 +51,14 @@ void UiSystem::deceleration_bar_step(float elapsed_ms) {
 		if (gameState.decelerate_timer >= 0.0 && gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED) {
 			// Deceleration Activated
 			decelbar_anim.timer = std::clamp((DECELERATION_DURATION_MS - gameState.decelerate_timer) / DECELERATION_DURATION_MS, 0.0f, 1.0f);
+			halo.halo_color = PLAYER_ALIVE_HALO;
+			halo.target_color = PLAYER_ALIVE_HALO;
 		}
 		else if (gameState.decelerate_timer < -1e-8) {
 			// Deceleration Cooldown
 			decelbar_anim.timer = std::clamp((1.0f - (DECELERATION_COOLDOWN_MS + gameState.decelerate_timer) / DECELERATION_COOLDOWN_MS), 0.0f, 1.0f);
 			expected_color = vec3(0.45f);
+			halo.target_color = PLAYER_DEAD_HALO;
 		} else {
 			expected_width = 0.0f;
 		}

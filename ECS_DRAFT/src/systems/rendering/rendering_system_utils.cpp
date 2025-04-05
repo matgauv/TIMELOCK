@@ -472,7 +472,7 @@ void RenderSystem::drawBlurredLayer(GLuint source_texture, BLUR_MODE mode, float
 	}
 	else {
 		GLuint kernel_loc = glGetUniformLocation(blur_shader_program, "kernel_1D");
-		glUniform3fv(kernel_loc, 1, (float*)&(RenderSystem::gaussian_blur_kernel_1D));
+		glUniform4fv(kernel_loc, 1, (float*)&(RenderSystem::gaussian_blur_kernel_1D));
 	}
 	gl_has_errors();
 

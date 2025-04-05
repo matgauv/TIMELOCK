@@ -154,8 +154,8 @@ public:
 		{0.124f, 0.26f, 0.124f},
 		{0.061f, 0.124f, 0.061f} };
 
-	const glm::vec3 gaussian_blur_kernel_1D = glm::vec3{
-		0.499f, 0.183f, 0.0675f};
+	const glm::vec4 gaussian_blur_kernel_1D = glm::vec4{
+		0.3991f, 0.242f, 0.054f, 0.00445f};
 
 
 private:

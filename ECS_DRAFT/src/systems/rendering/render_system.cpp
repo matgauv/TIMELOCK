@@ -26,6 +26,11 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	if (!registry.tiles.has(entity)) {
 		Motion& motion = registry.motions.get(entity);
 
+		// No need to render mesh with 0 dimension
+		if (abs(motion.scale.x) < 1e-8 || abs(motion.scale.y) < 1e-8) {
+			return;
+		}
+
 		// if pivot point exists, translate to offset, rotate, translate back, scale (hack for pendulums)
 		if (registry.pivotPoints.has(entity)) {
 			vec2 pivot_offset = registry.pivotPoints.get(entity).offset;
@@ -290,11 +295,40 @@ void RenderSystem::drawToScreen()
 
 	GLuint transition_fac_uloc = glGetUniformLocation(screen_shader_program, "transition_factor");
 	GLuint focal_point_uloc = glGetUniformLocation(screen_shader_program, "focal_point");
-	GLuint aspect_ratio_uloc = glGetUniformLocation(screen_shader_program, "aspect_ratio");
+
+	GLuint grid_wide_count_uloc = glGetUniformLocation(screen_shader_program, "GRID_WIDE_COUNT");
+	glUniform1i(grid_wide_count_uloc, GRID_WIDE_COUNT);
+
+	GLuint grid_high_count_uloc = glGetUniformLocation(screen_shader_program, "GRID_HIGH_COUNT");
+	glUniform1i(grid_high_count_uloc, GRID_HIGH_COUNT);
+
+	GLuint boundary_wide_uloc = glGetUniformLocation(screen_shader_program, "BOUNDARY_WIDE_COUNT");
+	glUniform1i(boundary_wide_uloc, BOUNDARY_WIDE_COUNT);
+
+	GLuint boundary_high_uloc = glGetUniformLocation(screen_shader_program, "BOUNDARY_HIGH_COUNT");
+	glUniform1i(boundary_high_uloc, BOUNDARY_HIGH_COUNT);
+
+	GLuint vignette_width_uloc = glGetUniformLocation(screen_shader_program, "VIGNETTE_WIDTH");
+	glUniform1f(vignette_width_uloc, VIGNETTE_WIDTH);
+
+	GLuint paled_blue_tone_uloc = glGetUniformLocation(screen_shader_program, "PALED_BLUE_TONE");
+	glUniform3fv(paled_blue_tone_uloc, 1, (float*)&PALED_BLUE_TONE);
+
+	GLuint shard_color_1_uloc = glGetUniformLocation(screen_shader_program, "SHARD_COLOR_1");
+	glUniform3fv(shard_color_1_uloc, 1, (float*)&SHARD_COLOR_1);
+
+	GLuint shard_color_2_uloc = glGetUniformLocation(screen_shader_program, "SHARD_COLOR_2");
+	glUniform3fv(shard_color_2_uloc, 1, (float*)&SHARD_COLOR_2);
+
+	GLuint shard_silhouette_uloc = glGetUniformLocation(screen_shader_program, "SHARD_SILHOUETTE_COLOR");
+	glUniform3fv(shard_silhouette_uloc, 1, (float*)&SHARD_SILHOUETTE_COLOR);
+
+	GLuint shard_speed_uloc = glGetUniformLocation(screen_shader_program, "SHARD_EVOLVING_SPEED");
+	glUniform1f(shard_speed_uloc, SHARD_EVOLVING_SPEED);
 
 	GLuint time_uloc = glGetUniformLocation(screen_shader_program, "time");
 
-	glUniform1f(time_uloc, (float)(glfwGetTime() * 1000.0f));
+	glUniform1f(time_uloc, (float)(glfwGetTime() * 1000.0f)); // May need to adjust this if pauses the game when decelerated
 
 	ScreenState &screen = registry.screenStates.get(screen_state_entity);
 
@@ -319,8 +353,6 @@ void RenderSystem::drawToScreen()
 		(canonical_player_pos[1] + 1.0f) / 2.0f
 	};
 	glUniform2fv(focal_point_uloc, 1, focal_point);
-
-	glUniform1f(aspect_ratio_uloc, ((float)WINDOW_WIDTH_PX) / WINDOW_HEIGHT_PX);
 	gl_has_errors();
 
 	// Set the vertex position and vertex texture coordinates (both stored in the
@@ -476,25 +508,24 @@ void RenderSystem::draw()
 
 		switch (registry.layers.get(entity).layer)
 		{
-		case LAYER_ID::FOREGROUND:
-			foregrounds.push_back(entity);
-			break;
-		case LAYER_ID::MIDGROUND:
-			// Render Player last?
-			if (registry.haloRequests.has(entity)) {
-				continue;
-			}
-
-			midgrounds.push_back(entity);
-			break;
-		case LAYER_ID::PARALLAXBACKGROUND:
-			parallaxbackgrounds.push_back(entity);
-			break;
-		case LAYER_ID::BACKGROUND:
-			backgrounds.push_back(entity);
-			break;
-		default:
-			break;
+			case LAYER_ID::FOREGROUND:
+				foregrounds.push_back(entity);
+				break;
+			case LAYER_ID::MIDGROUND:
+				// Render Player last?
+				if (registry.haloRequests.has(entity)) {
+					continue;
+				}
+				midgrounds.push_back(entity);
+				break;
+			case LAYER_ID::PARALLAXBACKGROUND:
+				parallaxbackgrounds.push_back(entity);
+				break;
+			case LAYER_ID::BACKGROUND:
+				backgrounds.push_back(entity);
+				break;
+			default:
+				break;
 		}
 	}
 
@@ -507,25 +538,34 @@ void RenderSystem::draw()
 	if (registry.bosses.size() > 0) {
 		halo_entities.push_back(registry.bosses.entities[0]);
 	}
+
+	if (registry.snoozeButtons.size() > 0) {
+		halo_entities.push_back(registry.snoozeButtons.entities[0]);
+	}
 	// TODO: add decel bar after merge
 	if (registry.players.size() > 0) {
 		halo_entities.push_back(registry.players.entities[0]);
 	}
+
+	if (registry.decelerationBars.size() > 0) {
+		halo_entities.push_back(registry.decelerationBars.entities[0]);
+	}
+
 	for (const Entity halo_entity : halo_entities) {
 		drawFilledMesh(halo_entity, this->projection_matrix);
 	}
 
 	// Prepare halo effect
-	for (int i = 3; i >= 0; i--) {
+	for (int i = 6; i >= 0; i--) {
 		// Pass-catch
 
 		// Render to blur 2
 		bindFrameBuffer(FRAME_BUFFER_ID::BLUR_BUFFER_2);
-		drawBlurredLayer(blur_buffer_color_1, BLUR_MODE::HORIZONTAL, 1.5f, 1.35f);
+		drawBlurredLayer(blur_buffer_color_1, BLUR_MODE::HORIZONTAL, 1.75f, 1.45f);
 
 		// Render to blur 1
 		bindFrameBuffer(FRAME_BUFFER_ID::BLUR_BUFFER_1);
-		drawBlurredLayer(blur_buffer_color_2, BLUR_MODE::VERTICAL, 1.5f, 1.35f);
+		drawBlurredLayer(blur_buffer_color_2, BLUR_MODE::VERTICAL, 1.75f, 1.45f);
 	}
 
 	// Halo effects in blur 1
@@ -554,7 +594,7 @@ void RenderSystem::draw()
 	}
 
 
-	// midgrounds.push_back(registry.players.entities[0]);
+
 	for (Entity entity : midgrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);

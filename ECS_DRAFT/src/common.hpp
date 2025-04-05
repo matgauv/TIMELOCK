@@ -180,7 +180,7 @@ const float BOSS_ONE_BB_WIDTH_PX = 50.f; // TODO: placeholder, we should adjust 
 const float BOSS_ONE_BB_HEIGHT_PX = 50.f; // TODO: placeholder, we should adjust this once the actual texture is ready
 const float BOSS_ONE_GROUND_SLAM_BB_WIDTH_PX = 200.f;
 const float BOSS_ONE_GROUND_SLAM_BB_HEIGHT_PX = 200.f;
-const float BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS = 30000.f; // for testing, use 15000.f, otherwise use 30000.f
+const float BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS = 1000.f; // for testing, use 15000.f, otherwise use 30000.f
 
 const float BOSS_ONE_MAX_WALK_DURATION_MS = 5000.f; // use 1000.f for testing purposes, otherwise use 5000.f
 const float BOSS_ONE_MAX_EXHAUSTED_DURATION_MS = 10000.f;
@@ -269,6 +269,25 @@ const float COYOTE_PARTICLES_DURATION = 500.0f;
 
 const float BACKGROUND_WIDTH = 1920.0f;
 const float BACKGROUND_HEIGHT = 1080.0f;
+
+// UI
+const float DECEL_BAR_WIDTH = 175.0f / 2.0f;
+const float DECEL_BAR_HEIGHT = 20.0f / 2.0f;
+const vec2 DECEL_BAR_OFFSET = vec2{ 0.0f, -1.0f * PLAYER_BB_HEIGHT_PX };
+const float DECEL_BAR_DEVIATION = 7.5f;
+
+// Deceleration Effect
+const int GRID_WIDE_COUNT = 16;
+const int GRID_HIGH_COUNT = 9;
+const int BOUNDARY_WIDE_COUNT = 2;
+const int BOUNDARY_HIGH_COUNT = 2;
+
+const float VIGNETTE_WIDTH = 0.125f;
+const glm::vec3 PALED_BLUE_TONE = glm::vec3(0.77,0.91,0.96);
+const glm::vec3 SHARD_COLOR_1 = glm::vec3(0.573, 0.812, 1);
+const glm::vec3 SHARD_COLOR_2 = glm::vec3(0.475, 0.745, 0.961);
+const glm::vec3 SHARD_SILHOUETTE_COLOR = glm::vec3(0.87, 0.98, 0.98);
+const float SHARD_EVOLVING_SPEED = 0.001f;
 
 // Halo
 const float BLUR_FACTOR = 2.0f;

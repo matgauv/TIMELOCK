@@ -5,7 +5,7 @@ uniform sampler2D screen_texture;
 uniform float stride;
 uniform float strength;
 uniform mat3 kernel_2D;
-uniform vec3 kernel_1D;
+uniform vec4 kernel_1D;
 uniform int blur_mode;
 
 in vec2 texcoord;
@@ -30,7 +30,7 @@ void main()
 		}
 	} else if (blur_mode == 1) {
 		// Horizontal Blur
-		for (int i = -2; i <= 2; i++) {
+		for (int i = -3; i <= 3; i++) {
 			vec4 sampled_color = texture(screen_texture, texcoord + stride*vec2(float(i), 0.0) / tex_size);
 			float weight = kernel_1D[abs(i)];
 			in_color.rgb += (sampled_color.a * sampled_color.rgb * weight);
@@ -38,7 +38,7 @@ void main()
 		}
 	} else {
 		// Vertical Blur
-		for (int j = -2; j <= 2; j++) {
+		for (int j = -3; j <= 3; j++) {
 			vec4 sampled_color = texture(screen_texture, texcoord + stride*vec2(0.0, float(j)) / tex_size);
 			float weight = kernel_1D[abs(j)];
 			in_color.rgb += (sampled_color.a * sampled_color.rgb * weight);

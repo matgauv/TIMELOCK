@@ -77,6 +77,8 @@ Entity create_snooze_button(vec2 boss_position) {
 
     registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
 
+    registry.haloRequests.emplace(entity);
+
     return entity;
 }
 
@@ -211,6 +213,10 @@ void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_nu
 }
 
 void update_boss_halo(const Entity boss_entity, const Boss& boss) {
+    if (!registry.haloRequests.has(boss_entity)) {
+        return;
+    }
+
     HaloRequest& halo_request = registry.haloRequests.get(boss_entity);
 
     if (boss.boss_state == BOSS_STATE::BOSS1_IDLE_STATE) {
@@ -230,6 +236,12 @@ void update_boss_halo(const Entity boss_entity, const Boss& boss) {
         color.a = (0.1f * sinf(boss.timer_ms * 0.006f) + .9f);
         halo_request.halo_color = color;
         halo_request.target_color = color;
+
+        if (registry.snoozeButtons.size() > 0) {
+            HaloRequest& snooze_button_halo = registry.haloRequests.get(registry.snoozeButtons.entities[0]);
+            snooze_button_halo.halo_color = color;
+            snooze_button_halo.target_color = color;
+        }
     }
     else if (boss.boss_state == BOSS_STATE::BOSS1_DASH_ATTACK_STATE) {
         halo_request.target_color = BOSS_DASH_HALO;
@@ -336,6 +348,10 @@ void boss_one_exhausted_step(Entity& boss_entity, Boss& boss, Motion& boss_motio
         boss.health -= PLAYER_ATTACK_DAMAGE;
         firstBoss.player_collided_with_snooze_button = false;
         boss.timer_ms = BOSS_ONE_MAX_DAMAGED_DURATION_MS;
+
+        if (registry.snoozeButtons.size() > 0) {
+            registry.remove_all_components_of(registry.snoozeButtons.entities[0]);
+        }
 
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);

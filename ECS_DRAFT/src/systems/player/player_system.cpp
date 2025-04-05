@@ -69,8 +69,10 @@ void PlayerSystem::generate_player_particles()
 	vec2 platform_velocity = vec2{ 0.0f, 0.0f };
 	if (registry.onGrounds.has(player_entity)) {
 		unsigned int ground_id = registry.onGrounds.get(player_entity).other_id;
-		Motion& platform_motion = registry.motions.get(ground_id);
-		platform_velocity = get_modified_velocity(platform_motion);
+		if (registry.motions.has(ground_id)) {
+			Motion& platform_motion = registry.motions.get(ground_id);
+			platform_velocity = get_modified_velocity(platform_motion);
+		}
 	}
 
 	vec2 relative_vel = player_velocity - platform_velocity;

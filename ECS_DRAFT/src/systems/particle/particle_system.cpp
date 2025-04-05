@@ -29,19 +29,21 @@ void ParticleSystem::step(float elapsed_ms) {
 		const Entity entity = registry.particles.entities[i];
 		Particle &particle = registry.particles.components[i];
 
-		// Eliminate if out of camera range
-		vec2 camera_pos = registry.motions.get(registry.cameras.entities[0]).position;
-		if (glm::length(particle.position - camera_pos) > MAX_CAMERA_DISTANCE) {
-			registry.remove_all_components_of(entity);
-		}
-
 		const float time_change_s = time_factor * elapsed_ms * 0.001f;
-		
-		particle.timer += time_change_s * 1000.0f;
 
-		// Eliminate if dead
-		if (particle.timer > particle.life) {
-			registry.remove_all_components_of(entity);
+		if (particle.particle_id != PARTICLE_ID::CRACKING_RADIAL) {
+			// Eliminate if out of camera range
+			vec2 camera_pos = registry.motions.get(registry.cameras.entities[0]).position;
+			if (glm::length(particle.position - camera_pos) > MAX_CAMERA_DISTANCE) {
+				registry.remove_all_components_of(entity);
+			}
+
+			particle.timer += time_change_s * 1000.0f;
+
+			// Eliminate if dead
+			if (particle.timer > particle.life) {
+				registry.remove_all_components_of(entity);
+			}
 		}
 
 		// Update motion
@@ -80,7 +82,7 @@ void ParticleSystem::late_step(float elapsed_ms) {
 }
 
 // Spawn with arbitrary particle id
-bool ParticleSystem::spawn_particle(
+unsigned int ParticleSystem::spawn_particle(
 	PARTICLE_ID particle_id, 
 	vec2 pos, float angle, vec2 scale, vec2 velocity,
 	float life,
@@ -103,11 +105,15 @@ bool ParticleSystem::spawn_particle(
 		alpha, fade_in_out, shrink_in_out,
 		wind_influence, gravity_influence, turbulence_influence);
 	
-	return handle_particle_type(entity, particle_id);
+	if (handle_particle_type(entity, particle_id)) {
+		return entity.id();
+	}
+
+	return 0;
 }
 
 // Spawn with color
-bool ParticleSystem::spawn_particle(
+unsigned int ParticleSystem::spawn_particle(
 	vec3 color,
 	vec2 pos, float angle, vec2 scale, vec2 velocity,
 	float life,
@@ -132,7 +138,7 @@ bool ParticleSystem::spawn_particle(
 
 	registry.colors.emplace(entity, color);
 
-	return true;
+	return entity.id();
 }
 
 Entity ParticleSystem::set_basic_particle(
@@ -204,6 +210,13 @@ bool ParticleSystem::handle_particle_type(Entity entity, PARTICLE_ID particle_id
 		}
 		case PARTICLE_ID::COYOTE_PARTICLES: {
 			registry.animateRequests.emplace(entity).used_animation = ANIMATION_ID::COYOTE_PARTICLES;
+			break;
+		}
+		case PARTICLE_ID::CRACKING_RADIAL: {
+			Particle& par = registry.particles.get(entity);
+			par.angle = (int)(rand_float(0.0, 4.0)) * 90.0f;
+
+			registry.animateRequests.emplace(entity).used_animation = ANIMATION_ID::CRACKING_RADIAL;
 			break;
 		}
 		default:

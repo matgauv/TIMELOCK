@@ -49,8 +49,11 @@ void player_walk(Entity& entity, Motion& motion, float step_seconds)
 		vec2 platform_velocity = motion.velocity;
 		if (registry.onGrounds.has(entity)) {
 			unsigned int ground_id = registry.onGrounds.get(entity).other_id;
-			Motion& platform_motion = registry.motions.get(ground_id);
-			platform_velocity = get_modified_velocity(platform_motion);
+			// Have to handle the case when player walks off a breakable platform
+			if (registry.motions.has(ground_id)) {
+				Motion& platform_motion = registry.motions.get(ground_id);
+				platform_velocity = get_modified_velocity(platform_motion);
+			}
 		}
 
 		vec2 rel_velocity = motion.velocity - platform_velocity;

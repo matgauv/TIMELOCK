@@ -82,22 +82,42 @@ void WorldSystem::crack_breakable_platform(Entity entity) {
 		breakable.cracking_particles.clear();
 
 		const Motion& motion = registry.motions.get(entity);
-		vec2 fragment_size = vec2{0.0f, 0.0f};
-		int fragment_count = 0;
+		vec2 crack_size = vec2{0.0f, 0.0f};
+		int crack_count = 0;
 		vec2 advance_step = vec2{0.0f, 0.0f };
+		vec2 starting_pos = vec2{ 0.0f, 0.0f };
 
 		if (motion.scale.x > motion.scale.y) {
-			fragment_count = (int)(motion.scale.x/ motion.scale.y);
-			fragment_size = vec2{ motion.scale.x / fragment_count, motion.scale.y};
-			advance_step = vec2{ fragment_size.x, 0.0f };
+			crack_count = (int)(motion.scale.x/ motion.scale.y);
+			crack_size = vec2{ motion.scale.x / crack_count, motion.scale.y};
+			advance_step = vec2{ crack_size.x, 0.0f };
+			starting_pos = vec2{motion.position.x - 0.5f * motion.scale.x + crack_size.x *0.5f, motion.position.y};
 		}
 		else {
-			fragment_count = (int)(motion.scale.y / motion.scale.x);
-			fragment_size = vec2{ motion.scale.y / fragment_count, motion.scale.x };
-			advance_step = vec2{ 0.0f, fragment_size.x};
+			crack_count = (int)(motion.scale.y / motion.scale.x);
+			crack_size = vec2{ motion.scale.y / crack_count, motion.scale.x };
+			advance_step = vec2{ 0.0f, crack_size.x};
+			starting_pos = vec2{motion.position.x, motion.position.y - 0.5f * motion.scale.y + crack_size.y * 0.5f};
 		}
 
-		for () {
+		for (int i = 0; i < crack_count; i++) {
+			vec2 crack_pos = starting_pos + ((float)i) * advance_step;
+
+			unsigned int par_id = ParticleSystem::spawn_particle(PARTICLE_ID::CRACKING_RADIAL,
+				crack_pos,
+				0.0f, crack_size,
+				vec2(0.0f),
+				1.0f, 0.75f);
+
+			breakable.cracking_particles.push_back(par_id);
+		}
+	}
+	else {
+		// Update cracks
+		float break_progress = 1.0f - std::clamp(breakable.health/BREAKABLE_WALL_HEALTH, 0.0f, 1.0f);
+		for (unsigned int par_id : breakable.cracking_particles) {
+			AnimateRequest& anim = registry.animateRequests.get(par_id);
+			anim.timer = break_progress;
 		}
 	}
 }
@@ -130,6 +150,13 @@ void WorldSystem::destroy_breakable_platform(Entity entity) {
 			700.0, 0.8f, { 0.0f, 0.0f }, { 0.0f, 200.0f },
 			0.0, 1.0);
 	}
+
+	// Clear cracks
+	Breakable& breakable = registry.breakables.get(entity);
+	for (unsigned int par_id : breakable.cracking_particles) {
+		registry.remove_all_components_of(Entity(par_id));
+	}
+	breakable.cracking_particles.clear();
 
 	registry.remove_all_components_of(entity);
 }

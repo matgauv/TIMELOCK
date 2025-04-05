@@ -64,6 +64,7 @@ const float NORMAL_FACTOR = 1.0f;
 
 // For Breakable Wall
 const float TIME_CONTROL_VICINITY_THRESHOLD = 150.f;
+const float BREAKABLE_WALL_HEALTH = 1000.f;
 
 // TODO: increase these for game...
 const float ACCELERATION_COOLDOWN_MS = 1500.0f;

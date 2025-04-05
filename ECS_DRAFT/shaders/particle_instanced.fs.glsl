@@ -16,6 +16,7 @@ uniform sampler2D texture2; // Breakable platform fragments
 uniform sampler2D texture3; // Coyote particles
 uniform sampler2D texture4; // Screw fragments
 uniform sampler2D texture5; // Hex fragments
+uniform sampler2D texture6; // Radial Cracking
 
 // Output color
 layout(location = 0) out  vec4 color;
@@ -44,6 +45,9 @@ void main()
                 break;
             case 5:
                 color = texture(texture5, texcoord);
+                break;
+            case 6:
+                color = texture(texture6, texcoord);
                 break;
             default:
                 color = vec4(0.0, 0.0, 0.0, 1.0);

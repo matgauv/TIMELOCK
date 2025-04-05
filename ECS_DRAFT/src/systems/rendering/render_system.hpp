@@ -75,6 +75,7 @@ class RenderSystem : public ISystem {
 		textures_path("particles/CoyoteParticles.png"),
 		textures_path("particles/Screw_Fragments.png"),
 		textures_path("particles/Hex_Fragments.png"),
+		textures_path("particles/Cracking_Radial.png"),
 		textures_path("boss/lookleft.png"),
 		textures_path("boss/lookright.png"),
 		textures_path("boss/exhausted.png"),

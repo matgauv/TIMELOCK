@@ -112,6 +112,10 @@ void handle_player_breakable_collision(Entity& breakable_entity, float elapsed_m
 		}
 	}
 
+	if (breakable.health == BREAKABLE_WALL_HEALTH) {
+
+	}
+
 	breakable.health -= health_decrease_factor * breakable.degrade_speed_per_ms * elapsed_ms;
 
 	if (breakable.health <= 0) {

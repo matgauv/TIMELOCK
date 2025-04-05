@@ -74,6 +74,34 @@ void WorldSystem::degrade_breakable_platform(const Entity& entity, TimeControlla
 	}
 }
 
+void WorldSystem::crack_breakable_platform(Entity entity) {
+	Breakable& breakable = registry.breakables.get(entity);
+
+	if (abs(breakable.health - BREAKABLE_WALL_HEALTH) < 1e-4) {
+		// Generate cracks
+		breakable.cracking_particles.clear();
+
+		const Motion& motion = registry.motions.get(entity);
+		vec2 fragment_size = vec2{0.0f, 0.0f};
+		int fragment_count = 0;
+		vec2 advance_step = vec2{0.0f, 0.0f };
+
+		if (motion.scale.x > motion.scale.y) {
+			fragment_count = (int)(motion.scale.x/ motion.scale.y);
+			fragment_size = vec2{ motion.scale.x / fragment_count, motion.scale.y};
+			advance_step = vec2{ fragment_size.x, 0.0f };
+		}
+		else {
+			fragment_count = (int)(motion.scale.y / motion.scale.x);
+			fragment_size = vec2{ motion.scale.y / fragment_count, motion.scale.x };
+			advance_step = vec2{ 0.0f, fragment_size.x};
+		}
+
+		for () {
+		}
+	}
+}
+
 void WorldSystem::destroy_breakable_platform(Entity entity) {
 	const Motion& motion = registry.motions.get(entity);
 	const float fragment_size = std::min(std::min(motion.scale.x, motion.scale.y), (float)TILE_TO_PIXELS);

@@ -169,7 +169,7 @@ const float PLAYER_BB_WIDTH_PX = 24;
 const float PLAYER_BB_HEIGHT_PX = 24;
 
 // Boss 1 specific properties
-const float BOSS_ONE_SPAWN_POINT_X = 1050.f;
+const float BOSS_ONE_SPAWN_POINT_X = 800.f; // was 1050.f
 const float BOSS_ONE_SPAWN_POINT_Y = 385.f;
 const float BOSS_ONE_ON_GROUND_Y_POSITION = 385.f; // TODO: need to verify this
 const float BOSS_ONE_MAX_HEALTH = 100.f;
@@ -181,6 +181,7 @@ const float BOSS_ONE_BB_HEIGHT_PX = 50.f; // TODO: placeholder, we should adjust
 const float BOSS_ONE_GROUND_SLAM_BB_WIDTH_PX = 200.f;
 const float BOSS_ONE_GROUND_SLAM_BB_HEIGHT_PX = 200.f;
 const float BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS = 30000.f; // for testing, use 15000.f, otherwise use 30000.f
+const int BOSS_ONE_NEXT_ATTACKS_VECTOR_MAX_SIZE = 10;
 
 const float BOSS_ONE_MAX_WALK_DURATION_MS = 5000.f; // use 1000.f for testing purposes, otherwise use 5000.f
 const float BOSS_ONE_MAX_EXHAUSTED_DURATION_MS = 10000.f;

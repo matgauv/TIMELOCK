@@ -375,18 +375,16 @@ void RenderSystem::step(float elapsed_ms) {
 			if (screen.scene_transition_factor <= 0.0) {
 				screen.scene_transition_factor = -1.0;
 			}
-			/*
-			if (screen.scene_transition_factor > 1.0) {
-				// Newly set: skip this step to avoid large elapsed time
-				screen.scene_transition_factor = 1.0;
-			}
-			else {
-				screen.scene_transition_factor = min(1.0f, screen.scene_transition_factor) - elapsed_ms / DEAD_REVIVE_TIME_MS;
+		}
+	}
 
-				if (screen.scene_transition_factor <= 0.0) {
-					screen.scene_transition_factor = -1.0;
-				}
-			}*/
+	// Halos
+	for (HaloRequest& halo : registry.haloRequests.components) {
+		if (glm::length(halo.halo_color - halo.target_color) < HALO_LERP_TOLERANCE) {
+			halo.halo_color = halo.target_color;
+		}
+		else {
+			halo.halo_color = halo.halo_color * HALO_LERP_FACTOR + halo.target_color * (1.0F - HALO_LERP_FACTOR);
 		}
 	}
 }
@@ -518,7 +516,7 @@ void RenderSystem::draw()
 	}
 
 	// Prepare halo effect
-	for (int i = 5; i >= 0; i--) {
+	for (int i = 3; i >= 0; i--) {
 		// Pass-catch
 
 		// Render to blur 2

@@ -50,5 +50,5 @@ void main()
 		in_color.rgb /= in_color.a;
 	}
 
-	color = clamp(strength* in_color, 0.0, 1.0);
+	color = vec4(in_color.rgb, clamp(strength* in_color.a, 0.0, 1.0));
 }

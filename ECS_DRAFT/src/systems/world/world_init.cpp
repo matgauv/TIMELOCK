@@ -35,7 +35,8 @@ Entity create_player(vec2 position, vec2 scale) {
     animation.used_animation = ANIMATION_ID::PLAYER_STANDING;
 
     HaloRequest& halo = registry.haloRequests.emplace(entity);
-    halo.halo_color = vec4(1.0f);
+    halo.halo_color = PLAYER_DEAD_HALO;
+    halo.target_color = PLAYER_ALIVE_HALO;
 
     return entity;
 }

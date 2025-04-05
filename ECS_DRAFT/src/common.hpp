@@ -272,6 +272,18 @@ const float BACKGROUND_HEIGHT = 1080.0f;
 
 // Halo
 const float BLUR_FACTOR = 2.0f;
+const float HALO_LERP_FACTOR = 0.9f;
+const float HALO_LERP_TOLERANCE = 0.01f;
+
+const vec4 PLAYER_ALIVE_HALO = vec4(1.5f, 1.5f, 1.5f, 1.0f);
+const vec4 PLAYER_DEAD_HALO = vec4(0.1f, 0.1f, 0.1f, 1.0f);
+
+const vec4 BOSS_IDLE_HALO = vec4(1.f, 1.f, 0.7f, 1.0f); // light yellow
+const vec4 BOSS_NORMAL_HALO = vec4(1.f, 0.5f, 0.f, 1.0f); // orange
+const vec4 BOSS_ATTACK_HALO = vec4(1.f, 0.0f, 0.0f, 1.0f); // red
+const vec4 BOSS_EXHAUST_HALO = vec4(0.0f, 1.0f, 0.9f, 1.0f); // cyan
+const vec4 BOSS_DAMAGED_HALO = vec4(0.1f, 0.1f, 0.1f, 1.0f); // black
+const vec4 BOSS_DASH_HALO = vec4(0.7f, 0.0f, 1.0f, 1.0f); // purple
 
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)

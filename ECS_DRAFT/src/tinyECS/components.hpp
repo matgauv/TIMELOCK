@@ -713,6 +713,7 @@ struct AnimateRequest {
 
 struct HaloRequest {
 	vec4 halo_color = {0.0f, 0.0f, 0.0f, 0.0f};
+	vec4 target_color = { 0.0f, 0.0f, 0.0f, 0.0f };
 };
 
 struct LevelState {

@@ -257,6 +257,7 @@ const float LOAD_LEVEL_COUNTDOWN = DEAD_REVIVE_TIME_MS + 10.0f;
 // Parsing constants
 const float PARSING_CANNON_Y_POS_DIFF = (0.5f * TILE_TO_PIXELS) - (CANNON_TOWER_SIZE.y / 2);
 const float PARSING_CHECKPOINT_Y_POS_DIFF = (0.5f * TILE_TO_PIXELS) - (SPAWNPOINT_SCALE.y / 2);
+
 // Particles
 const int PARTICLE_COUNT_LIMIT = 1000;
 const float MAX_CAMERA_DISTANCE = 2000.0;
@@ -287,6 +288,21 @@ const glm::vec3 SHARD_COLOR_1 = glm::vec3(0.573, 0.812, 1);
 const glm::vec3 SHARD_COLOR_2 = glm::vec3(0.475, 0.745, 0.961);
 const glm::vec3 SHARD_SILHOUETTE_COLOR = glm::vec3(0.87, 0.98, 0.98);
 const float SHARD_EVOLVING_SPEED = 0.001f;
+
+// Halo
+const float BLUR_FACTOR = 2.0f;
+const float HALO_LERP_FACTOR = 0.9f;
+const float HALO_LERP_TOLERANCE = 0.01f;
+
+const vec4 PLAYER_ALIVE_HALO = vec4(1.5f, 1.5f, 1.5f, 1.0f);
+const vec4 PLAYER_DEAD_HALO = vec4(0.1f, 0.1f, 0.1f, 1.0f);
+
+const vec4 BOSS_IDLE_HALO = vec4(1.f, 1.f, 0.7f, 1.0f); // light yellow
+const vec4 BOSS_NORMAL_HALO = vec4(1.f, 0.5f, 0.f, 1.0f); // orange
+const vec4 BOSS_ATTACK_HALO = vec4(1.f, 0.0f, 0.0f, 1.0f); // red
+const vec4 BOSS_EXHAUST_HALO = vec4(0.0f, 1.0f, 0.9f, 1.0f); // cyan
+const vec4 BOSS_DAMAGED_HALO = vec4(0.1f, 0.1f, 0.1f, 1.0f); // black
+const vec4 BOSS_DASH_HALO = vec4(0.7f, 0.0f, 1.0f, 1.0f); // purple
 
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)

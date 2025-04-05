@@ -644,12 +644,13 @@ const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
 	TEXTURED = COLOURED + 1,
-  	LINE = TEXTURED + 1,
-  	SCREEN = LINE + 1,
+  	SCREEN = TEXTURED + 1,
 	HEX = SCREEN + 1,
 	TILE = HEX + 1,
 	PARTICLE_INSTANCED = TILE + 1,
-	EFFECT_COUNT = PARTICLE_INSTANCED + 1
+	FILL = PARTICLE_INSTANCED + 1,
+	GAUSSIAN_BLUR = FILL + 1,
+	EFFECT_COUNT = GAUSSIAN_BLUR + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -718,6 +719,19 @@ enum class LAYER_ID {
 	FOREGROUND = MIDGROUND + 1
 };
 
+enum class FRAME_BUFFER_ID {
+	SCREEN_BUFFER = 0,
+	INTERMEDIATE_BUFFER = SCREEN_BUFFER + 1,
+	BLUR_BUFFER_1 = INTERMEDIATE_BUFFER + 1,
+	BLUR_BUFFER_2 = BLUR_BUFFER_1 + 1
+};
+
+enum class BLUR_MODE {
+	TWO_D = 0,
+	HORIZONTAL = TWO_D + 1,
+	VERTICAL = HORIZONTAL + 1
+};
+
 struct Layer {
 	LAYER_ID layer = LAYER_ID::MIDGROUND;
 };
@@ -733,6 +747,11 @@ struct AnimateRequest {
 	ANIMATION_ID used_animation;
 	float timer = 0.0;
 	vec2 tex_u_range = { 0.0, 1.0 };
+};
+
+struct HaloRequest {
+	vec4 halo_color = {0.0f, 0.0f, 0.0f, 0.0f};
+	vec4 target_color = { 0.0f, 0.0f, 0.0f, 0.0f };
 };
 
 struct LevelState {

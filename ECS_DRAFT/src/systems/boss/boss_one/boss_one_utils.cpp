@@ -46,6 +46,10 @@ Entity create_first_boss() {
     AnimateRequest& animateRequest = registry.animateRequests.emplace(entity);
     animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_IDLE;
 
+    HaloRequest& haloRequest = registry.haloRequests.emplace(entity);
+    haloRequest.halo_color = BOSS_IDLE_HALO;
+    haloRequest.target_color = BOSS_IDLE_HALO;
+
     return entity;
 }
 
@@ -72,6 +76,8 @@ Entity create_snooze_button(vec2 boss_position) {
 	);
 
     registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    registry.haloRequests.emplace(entity);
 
     return entity;
 }
@@ -203,9 +209,61 @@ void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_nu
 
     // TODO: check if there is any other variable in the boss component that we need to update?
 
+    update_boss_halo(boss_entity, boss);
 }
 
-// Hanldes the logic to transition into the MOVE state
+void update_boss_halo(const Entity boss_entity, const Boss& boss) {
+    if (!registry.haloRequests.has(boss_entity)) {
+        return;
+    }
+
+    HaloRequest& halo_request = registry.haloRequests.get(boss_entity);
+
+    if (boss.boss_state == BOSS_STATE::BOSS1_IDLE_STATE) {
+        halo_request.target_color = BOSS_IDLE_HALO;
+    }
+    else if (
+        boss.boss_state == BOSS_STATE::BOSS1_DAMAGED_STATE ||
+        boss.boss_state == BOSS_STATE::BOSS1_DEAD_STATE) {
+        float factor = std::clamp(boss.timer_ms / BOSS_ONE_MAX_DAMAGED_DURATION_MS, 0.0f, 1.0f) - 0.98f;
+        factor = std::clamp(-16.0f * factor * factor + 1.0f, 0.0f, 1.0f); // -16(x-0.95)^4+1
+
+        halo_request.halo_color = factor * vec4(3.0f) + (1.0f - factor) * BOSS_DAMAGED_HALO;
+        halo_request.target_color = halo_request.halo_color;
+    }
+    else if (boss.boss_state == BOSS_STATE::BOSS1_EXHAUSTED_STATE) {
+        vec4 color = BOSS_EXHAUST_HALO;
+        color.a = (0.1f * sinf(boss.timer_ms * 0.006f) + .9f);
+        halo_request.halo_color = color;
+        halo_request.target_color = color;
+
+        if (registry.snoozeButtons.size() > 0 && registry.haloRequests.has(registry.snoozeButtons.entities[0])) {
+            HaloRequest& snooze_button_halo = registry.haloRequests.get(registry.snoozeButtons.entities[0]);
+            snooze_button_halo.halo_color = color;
+            snooze_button_halo.target_color = color;
+        }
+    }
+    else if (boss.boss_state == BOSS_STATE::BOSS1_DASH_ATTACK_STATE) {
+        halo_request.target_color = BOSS_DASH_HALO;
+    }
+    else if (
+        boss.boss_state == BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE ||
+        boss.boss_state == BOSS_STATE::BOSS1_FAST_PROJECTILE_ATTACK_STATE ||
+        boss.boss_state == BOSS_STATE::BOSS1_REGULAR_PROJECTILE_ATTACK_STATE ||
+        boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_LAND_1_STATE ||
+        boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_LAND_2_STATE ||
+        boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_LAND_3_STATE ||
+        boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_1_STATE ||
+        boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_2_STATE ||
+        boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_3_STATE) {
+        halo_request.target_color = BOSS_ATTACK_HALO;
+    }
+    else {
+        halo_request.target_color = BOSS_NORMAL_HALO;
+    }
+}
+
+// Handles the logic to transition into the MOVE state
 void boss_one_idle_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
 
     // Get player motion
@@ -290,6 +348,13 @@ void boss_one_exhausted_step(Entity& boss_entity, Boss& boss, Motion& boss_motio
         boss.health -= PLAYER_ATTACK_DAMAGE;
         firstBoss.player_collided_with_snooze_button = false;
         boss.timer_ms = BOSS_ONE_MAX_DAMAGED_DURATION_MS;
+
+        /* 
+        // Potential fix for snooze buttoin issue
+        if (registry.snoozeButtons.size() > 0) {
+            registry.remove_all_components_of(registry.snoozeButtons.entities[0]);
+        }
+        */
 
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);

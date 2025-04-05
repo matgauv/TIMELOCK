@@ -2,6 +2,97 @@
 #include "render_system.hpp"
 #include "../../tinyECS/registry.hpp"
 
+void RenderSystem::bindFrameBuffer(FRAME_BUFFER_ID frame_buffer_id) {
+	// Clearing backbuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// Getting size of window
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
+
+	switch (frame_buffer_id)
+	{
+		case FRAME_BUFFER_ID::SCREEN_BUFFER: {
+			glViewport(0, 0, w, h);
+			glDepthRange(0, 10);
+			glClearColor(1.f, 0, 0, 1.0);
+			glClearDepth(1.f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			gl_has_errors();
+			// Enabling alpha channel for textures
+			glDisable(GL_BLEND);
+			// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glDisable(GL_DEPTH_TEST);
+			// indices to the bound GL_ARRAY_BUFFER
+			break;
+		}
+		case FRAME_BUFFER_ID::INTERMEDIATE_BUFFER: {
+			// First render to the custom framebuffer
+			glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+			gl_has_errors();
+
+			// clear backbuffer
+			glViewport(0, 0, w, h);
+			glDepthRange(0.00001, 10);
+
+			// white background -> black background
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+			glClearDepth(10.f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glDisable(GL_DEPTH_TEST); // native OpenGL does not work with a depth buffer
+			// and alpha blending, one would have to sort
+			// sprites back to front
+			break;
+		}
+		case FRAME_BUFFER_ID::BLUR_BUFFER_1: {
+			// Bind blur buffer
+			glBindFramebuffer(GL_FRAMEBUFFER, blur_buffer_1);
+			gl_has_errors();
+
+			// clear blur buffer
+			// down sample
+			glViewport(0, 0, w/ BLUR_FACTOR, h/ BLUR_FACTOR);
+			glDepthRange(0.00001, 10);
+
+			// transparent background
+			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+			glClearDepth(10.f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glDisable(GL_DEPTH_TEST);
+			break;
+		}
+		case FRAME_BUFFER_ID::BLUR_BUFFER_2: {
+			// Bind blur buffer
+			glBindFramebuffer(GL_FRAMEBUFFER, blur_buffer_2);
+			gl_has_errors();
+
+			// clear blur buffer
+			// down sample
+			glViewport(0, 0, w / BLUR_FACTOR, h / BLUR_FACTOR);
+			glDepthRange(0.00001, 10);
+
+			// transparent background
+			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+			glClearDepth(10.f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glDisable(GL_DEPTH_TEST);
+			break;
+		}
+		default:
+			break;
+	}
+	gl_has_errors();
+}
+
 GLuint RenderSystem::useShader(EFFECT_ASSET_ID shader_id) {
 	assert(shader_id != EFFECT_ASSET_ID::EFFECT_COUNT);
 
@@ -324,192 +415,71 @@ void RenderSystem::drawInstances(EFFECT_ASSET_ID effect_id, GEOMETRY_BUFFER_ID g
 	glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, 0, instance_count);
 }
 
+void RenderSystem::drawFilledMesh(Entity entity, const mat3& projection) {
+	assert(registry.renderRequests.has(entity));
+	const RenderRequest& render_request = registry.renderRequests.get(entity);
 
-/*
-// The following are abandoned due to the inefficiency of instanced rendering for every object
+	RenderRequest fill_request;
+	fill_request.used_effect = EFFECT_ASSET_ID::FILL;
+	fill_request.used_texture = render_request.used_texture;
+	fill_request.used_geometry = render_request.used_geometry;
+	fill_request.flipped = render_request.flipped;
 
-// Textured
-struct TexturedInstancedNode {
-	glm::mat3 transform;
-	vec2 tex_u;
-	vec3 fcolor;
-	vec4 silhouette_color;
-};
-
-void RenderSystem::setupTextured(const std::vector<Entity>& entities, GLuint program) {
-	if (entities.size() <= 0) {
-		return;
-	}
-
-	int instance_count = entities.size();
-
-	// Set Vertex Attributes
-	GLint in_position_loc = glGetAttribLocation(program, "in_position");
-	GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
-	//gl_has_errors();
-	assert(in_texcoord_loc >= 0);
-
-	glEnableVertexAttribArray(in_position_loc);
-	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
-		sizeof(TexturedVertex), (void*)0);
-	//gl_has_errors();
-
-	glEnableVertexAttribArray(in_texcoord_loc);
-	glVertexAttribPointer(
-		in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
-		(void*)sizeof(
-			vec3)); // note the stride to skip the preceeding vertex position
-
-	// Set instanced properties
-	TexturedInstancedNode *nodes = new TexturedInstancedNode[instance_count];
-	for (int i = 0; i < instance_count; i++) {
-		assert(registry.motions.has(entities[i]));
-		Entity entity = entities[i];
-
-		setTransform(entity, nodes[i].transform);
-
-		setFColor(entity, nodes[i].fcolor);
-		
-		setURange(entity, nodes[i].tex_u);
-
-		setSilhouetteColor(entity, nodes[i].silhouette_color);
-	}
-
-	glm::size_t NODE_SIZE = sizeof(TexturedInstancedNode);
-
-	glm::size_t new_size = instance_count * NODE_SIZE;
-	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_static_tiles);
-	void* ptr = glMapBufferRange(GL_ARRAY_BUFFER, 0, new_size,
-		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
-	if (ptr) {
-		memcpy(ptr, nodes, new_size);
-		glUnmapBuffer(GL_ARRAY_BUFFER);
-	}
-
-	GLint transform_loc = glGetAttribLocation(program, "transform");
-	GLint urange_loc = glGetAttribLocation(program, "tex_u_range");
-	GLint fcolor_loc = glGetAttribLocation(program, "v_fcolor");
-	GLint silhouette_color_loc = glGetAttribLocation(program, "v_silhouette_color");
-	//gl_has_errors();
-
-	glEnableVertexAttribArray(transform_loc);
-	glVertexAttribPointer(transform_loc, 3, GL_FLOAT, GL_FALSE, NODE_SIZE, (void*)0);
-	glEnableVertexAttribArray(transform_loc + 1);
-	glVertexAttribPointer(transform_loc + 1, 3, GL_FLOAT, GL_FALSE, NODE_SIZE, (void*)(sizeof(vec3)));
-	glEnableVertexAttribArray(transform_loc + 2);
-	glVertexAttribPointer(transform_loc + 2, 3, GL_FLOAT, GL_FALSE, NODE_SIZE, (void*)(2 * sizeof(vec3)));
-
-	glEnableVertexAttribArray(urange_loc);
-	glVertexAttribPointer(urange_loc, 2, GL_FLOAT, GL_FALSE, NODE_SIZE, (void*)offsetof(TexturedInstancedNode, tex_u));
-
-	glEnableVertexAttribArray(fcolor_loc);
-	glVertexAttribPointer(fcolor_loc, 3, GL_FLOAT, GL_FALSE, NODE_SIZE, (void*)offsetof(TexturedInstancedNode, fcolor));
-
-	glEnableVertexAttribArray(silhouette_color_loc);
-	glVertexAttribPointer(silhouette_color_loc, 4, GL_FLOAT, GL_FALSE, NODE_SIZE, (void*)offsetof(TexturedInstancedNode, silhouette_color));
-
-	glVertexAttribDivisor(transform_loc, 1);
-	glVertexAttribDivisor(transform_loc + 1, 1);
-	glVertexAttribDivisor(transform_loc + 2, 1);
-
-	glVertexAttribDivisor(urange_loc, 1);
-	glVertexAttribDivisor(fcolor_loc, 1);
-	glVertexAttribDivisor(silhouette_color_loc, 1);
-	//gl_has_errors();
-
-	delete[] nodes;
+	RenderSystem::drawTexturedMesh(entity, projection, fill_request);
 }
 
+void RenderSystem::drawBlurredLayer(GLuint source_texture, BLUR_MODE mode, float width_factor, float strength) {
 
-// Tile
-struct TileInstancedNode {
-	//glm::mat3 transform;
-	vec2 tex_u;
-	vec2 tile_pos;
-	int tile_id;
-	vec2 t_offset;
-};
+	// Setting shaders
+	const GLuint blur_shader_program = effects[(GLuint)EFFECT_ASSET_ID::GAUSSIAN_BLUR];
 
-void RenderSystem::setupTile(const std::vector<Entity>& entities, GLuint program) {
-	if (entities.size() <= 0) {
-		return;
-	}
+	glUseProgram(blur_shader_program);
+	gl_has_errors();
 
-	int instance_count = entities.size();
+	// Draw the screen texture on the quad geometry
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]);
+	glBindBuffer(
+		GL_ELEMENT_ARRAY_BUFFER,
+		index_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]); // Note, GL_ELEMENT_ARRAY_BUFFER associates
+	gl_has_errors();
 
-	// Set Vertex Attributes
-	GLint in_position_loc = glGetAttribLocation(program, "in_position");
-	GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
-	//gl_has_errors();
-	assert(in_texcoord_loc >= 0);
-
+	// Set the vertex position and vertex texture coordinates (both stored in the
+	// same VBO)
+	GLint in_position_loc = glGetAttribLocation(blur_shader_program, "in_position");
 	glEnableVertexAttribArray(in_position_loc);
-	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
-		sizeof(TexturedVertex), (void*)0);
-	//gl_has_errors();
+	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void*)0);
+	gl_has_errors();
 
-	glEnableVertexAttribArray(in_texcoord_loc);
-	glVertexAttribPointer(
-		in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
-		(void*)sizeof(
-			vec3)); // note the stride to skip the preceeding vertex position
+	// Bind our texture in Texture Unit 0
+	glActiveTexture(GL_TEXTURE0);
 
-	// Set instanced properties
-	TileInstancedNode* nodes = new TileInstancedNode[instance_count];
-	for (int i = 0; i < instance_count; i++) {
-		Entity entity = entities[i];
+	glBindTexture(GL_TEXTURE_2D, source_texture);
+	gl_has_errors();
 
-		//setTransform(entity, nodes[i].transform);
+	// Set uniforms
+	GLuint stride_uloc = glGetUniformLocation(blur_shader_program, "stride");
+	glUniform1f(stride_uloc, width_factor);
 
-		setURange(entity, nodes[i].tex_u);
+	GLuint strength_uloc = glGetUniformLocation(blur_shader_program, "strength");
+	glUniform1f(strength_uloc, strength);
 
-		const Tile& tile_info = registry.tiles.get(entity);
-		const Motion& motion = registry.motions.get(tile_info.parent_id);
-		const int tile_start_x = motion.position.x - (motion.scale.x / 2) + (0.5 * TILE_TO_PIXELS);
+	GLuint mode_uloc = glGetUniformLocation(blur_shader_program, "blur_mode");
+	glUniform1i(mode_uloc, (int)mode);
 
-		nodes[i].tile_pos = { (float)tile_start_x, motion.position.y};
-		nodes[i].tile_id = tile_info.id;
-		nodes[i].t_offset = {(float)(tile_info.offset * TILE_TO_PIXELS), 0.0f};
+	if (mode == BLUR_MODE::TWO_D) {
+		GLuint kernel_loc = glGetUniformLocation(blur_shader_program, "kernel_2D");
+		glUniformMatrix3fv(kernel_loc, 1, GL_FALSE, (float*)&(RenderSystem::gaussian_blur_kernel_2D));
 	}
-
-	glm::size_t NODE_SIZE = sizeof(TileInstancedNode);
-
-
-	glm::size_t new_size = instance_count * NODE_SIZE;
-	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_particles);
-	void* ptr = glMapBufferRange(GL_ARRAY_BUFFER, 0, new_size,
-		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
-	if (ptr) {
-		memcpy(ptr, nodes, new_size);
-		glUnmapBuffer(GL_ARRAY_BUFFER);
+	else {
+		GLuint kernel_loc = glGetUniformLocation(blur_shader_program, "kernel_1D");
+		glUniform4fv(kernel_loc, 1, (float*)&(RenderSystem::gaussian_blur_kernel_1D));
 	}
+	gl_has_errors();
 
-	//GLint transform_loc = glGetAttribLocation(program, "transform");
-	GLint urange_loc = glGetAttribLocation(program, "tex_u_range");
-	GLint tile_pos_loc = glGetAttribLocation(program, "tile_pos");
-	GLint tile_id_loc = glGetAttribLocation(program, "tile_id");
-	GLint t_offset_loc = glGetAttribLocation(program, "t_offset");
-	//gl_has_errors();
-
-	glEnableVertexAttribArray(urange_loc);
-	glVertexAttribPointer(urange_loc, 2, GL_FLOAT, GL_FALSE, NODE_SIZE, (void*)offsetof(TileInstancedNode, tex_u));
-
-	glEnableVertexAttribArray(tile_pos_loc);
-	glVertexAttribPointer(tile_pos_loc, 3, GL_FLOAT, GL_FALSE, NODE_SIZE, (void*)offsetof(TileInstancedNode, tile_pos));
-
-	glEnableVertexAttribArray(tile_id_loc);
-	glVertexAttribPointer(tile_id_loc, 4, GL_FLOAT, GL_FALSE, NODE_SIZE, (void*)offsetof(TileInstancedNode, tile_id));
-
-	glEnableVertexAttribArray(t_offset_loc);
-	glVertexAttribPointer(t_offset_loc, 4, GL_FLOAT, GL_FALSE, NODE_SIZE, (void*)offsetof(TileInstancedNode, t_offset));
-
-
-	glVertexAttribDivisor(urange_loc, 1);
-	glVertexAttribDivisor(tile_pos_loc, 1);
-	glVertexAttribDivisor(tile_id_loc, 1);
-	glVertexAttribDivisor(t_offset_loc, 1);
-	//gl_has_errors();
-
-	delete[] nodes;
+	// Draw
+	glDrawElements(
+		GL_TRIANGLES, 3, GL_UNSIGNED_SHORT,
+		nullptr); // one triangle = 3 vertices; nullptr indicates that there is
+	// no offset from the bound index buffer
+	gl_has_errors();
 }
-*/

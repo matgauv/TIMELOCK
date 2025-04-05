@@ -182,6 +182,9 @@ void PlayerSystem::kill() {
 	AnimateRequest& animateRequest = registry.animateRequests.get(e);
 	animateRequest.timer = 0.0;
 	animateRequest.used_animation = ANIMATION_ID::PLAYER_KILL;
+
+	HaloRequest& halo = registry.haloRequests.get(e);
+	halo.target_color = PLAYER_DEAD_HALO;
 }
 
 void PlayerSystem::player_respawn() {
@@ -209,6 +212,10 @@ void PlayerSystem::player_respawn() {
 		LevelState& levelState = registry.levelStates.components[0];
 		levelState.shouldLoad = true;
 	}
+
+	HaloRequest& halo = registry.haloRequests.get(e);
+	halo.halo_color = PLAYER_DEAD_HALO;
+	halo.target_color = PLAYER_ALIVE_HALO;
 }
 
 void PlayerSystem::set_standing() {

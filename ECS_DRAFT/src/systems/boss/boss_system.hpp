@@ -23,4 +23,6 @@ class BossSystem : public ISystem
 
         std::default_random_engine rng;
 	    std::uniform_real_distribution<float> uniform_dist;
+
+        std::vector<BOSS_ATTACK_ID> nextAttacks;
 };

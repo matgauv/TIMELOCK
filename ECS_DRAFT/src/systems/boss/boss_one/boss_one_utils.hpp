@@ -4,6 +4,7 @@
 #include "../../../tinyECS/component_container.hpp"
 #include "../../../tinyECS/components.hpp"
 #include "../../../tinyECS/registry.hpp"
+#include <random>
 
 // Creates the first boss entity and its relevant components
 Entity create_first_boss();
@@ -12,7 +13,7 @@ Entity create_first_boss();
 Entity create_snooze_button(vec2 boss_position);
 
 // the main step function
-void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_num);
+void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_num, std::default_random_engine& rng);
 
 void boss_one_idle_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms);
 

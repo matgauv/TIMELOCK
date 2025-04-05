@@ -4,6 +4,14 @@
 
 BossSystem::BossSystem() {
     rng = std::default_random_engine(std::random_device()());
+    nextAttacks = std::vector<BOSS_ATTACK_ID>(28); // a vector of size 28 
+    std::cout << "Initializing boss sytem nextAttacks vector" << std::endl;
+    for (int i = 0; i < nextAttacks.size(); i++) {
+        std::cout << "Iteration i = " << i << std::endl;
+        std::cout << "Adding " << i % (int) BOSS_ATTACK_ID::TOTAL_COUNT << " to boss sytem nextAttacks vector" << std::endl;
+        nextAttacks.push_back(static_cast<BOSS_ATTACK_ID>(i % (int) BOSS_ATTACK_ID::TOTAL_COUNT));
+    }
+    std::shuffle(nextAttacks.begin(), nextAttacks.end(), rng);
 }
 
 BossSystem::~BossSystem() {
@@ -37,7 +45,7 @@ void BossSystem::step(float elapsed_ms) {
         // call the appropriate helper function to handle the state changes
         if (boss.boss_id == BOSS_ID::FIRST) {
             unsigned int random_num = (unsigned int) (uniform_dist(rng) * 100);
-            boss_one_step(boss_entity, elapsed_ms, random_num);
+            boss_one_step(boss_entity, elapsed_ms, random_num, rng);
         }
     }
 }

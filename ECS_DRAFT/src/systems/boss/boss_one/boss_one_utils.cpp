@@ -77,7 +77,7 @@ Entity create_snooze_button(vec2 boss_position) {
 }
 
 // Handles the state transition logic by checking the current boss state and then calling the corresponding helper
-void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_num) {
+void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_num, std::default_random_engine& rng) {
     Boss& boss = registry.bosses.get(boss_entity);
     Motion& boss_motion = registry.motions.get(boss_entity);
 

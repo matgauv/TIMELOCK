@@ -294,6 +294,8 @@ void boss_one_exhausted_step(Entity& boss_entity, Boss& boss, Motion& boss_motio
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_DAMAGED;
+
+        CameraSystem::shake_camera(20.0f, 10.0f);
     }
 
     // Otherwise, if the timer is up, then the boss enters RECOVER STATE

@@ -44,12 +44,15 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Activate acceleration
 	if (key == GLFW_KEY_EQUAL && action == GLFW_RELEASE) {
+		/*
 		if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED) {
 			control_time(true, false, false);
 		}
 		else {
 			control_time(true, true, false);
-		}
+		}*/
+
+		CameraSystem::shake_camera(20.0f, 15.0f);
 	}
 
 	// Activate deceleration

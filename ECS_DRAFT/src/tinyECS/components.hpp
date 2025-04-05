@@ -183,6 +183,8 @@ struct MovementPath
 struct Camera
 {
 	float horizontal_offset = 0.0f;
+	float shake_amplitude = 0.0f;
+	float shake_frequency = 1.0f;
 };
 
 // PhysicsObject means that the component will obey physics

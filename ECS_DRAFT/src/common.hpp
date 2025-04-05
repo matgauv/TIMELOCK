@@ -132,6 +132,8 @@ const float CAMERA_BOUNDARY_PADDING = 0.85f;
 const float CAMERA_SCREEN_SPACING_FOR_MOTION_RATIO = 1.0f / 10.0f;
 const float CAMERA_VELOCITY_CLAMP_THRESHOLD = 40.0f;
 
+const float CAMERA_SHAKE_DECAY = 0.9f;
+
 // Projectile properties
 const float PROJECTILE_WIDTH_PX = 40.0f;
 const float PROJECTILE_HEIGHT_PX = 40.0f;
@@ -181,7 +183,7 @@ const float BOSS_ONE_BB_WIDTH_PX = 50.f; // TODO: placeholder, we should adjust 
 const float BOSS_ONE_BB_HEIGHT_PX = 50.f; // TODO: placeholder, we should adjust this once the actual texture is ready
 const float BOSS_ONE_GROUND_SLAM_BB_WIDTH_PX = 200.f;
 const float BOSS_ONE_GROUND_SLAM_BB_HEIGHT_PX = 200.f;
-const float BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS = 30000.f; // for testing, use 15000.f, otherwise use 30000.f
+const float BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS = 3000.f; // for testing, use 15000.f, otherwise use 30000.f
 
 const float BOSS_ONE_MAX_WALK_DURATION_MS = 5000.f; // use 1000.f for testing purposes, otherwise use 5000.f
 const float BOSS_ONE_MAX_EXHAUSTED_DURATION_MS = 10000.f;

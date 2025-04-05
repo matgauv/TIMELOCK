@@ -34,14 +34,41 @@ Entity create_player(vec2 position, vec2 scale) {
     AnimateRequest &animation = registry.animateRequests.emplace(entity);
     animation.used_animation = ANIMATION_ID::PLAYER_STANDING;
 
-    // DEBUGGING ONLY
-    /*
-    Deceleratable& deceleration_config = registry.deceleratables.emplace(entity);
-    deceleration_config.can_become_harmless = false;
+    HaloRequest& halo = registry.haloRequests.emplace(entity);
+    halo.halo_color = PLAYER_DEAD_HALO;
+    halo.target_color = PLAYER_ALIVE_HALO;
 
-    Acceleratable& acceleration_config = registry.acceleratables.emplace(entity);
-    acceleration_config.can_become_harmful = false;
-    */
+    return entity;
+}
+
+Entity create_deceleration_bar(vec2 position) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = vec2{0.0f, DECEL_BAR_HEIGHT};
+    motion.velocity = { 0.0f, 0.0f };
+    motion.angle = 0.0f;
+
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::DECEL_BAR,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+    AnimateRequest& animation = registry.animateRequests.emplace(entity);
+    animation.used_animation = ANIMATION_ID::DECEL_BAR;
+
+    registry.colors.emplace(entity, vec3(1.0f));
+
+    registry.decelerationBars.emplace(entity);
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+    HaloRequest &halo = registry.haloRequests.emplace(entity);
+    halo.halo_color = PLAYER_ALIVE_HALO;
+    halo.target_color = PLAYER_ALIVE_HALO;
 
     return entity;
 }

@@ -204,7 +204,7 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 
 	if (vel_along_normal > 0.0f) return;
 
-	float bounce = min(physA.bounce, physB.bounce);
+	float bounce = std::min(physA.bounce, physB.bounce);
 
 	// compute the impulse from the collision (relative to center of mass)
 	float impulse_magnitude = -(1.0f + bounce) * vel_along_normal;
@@ -271,7 +271,7 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 	if (registry.pendulums.has(entityA) || registry.pendulums.has(entityB)) friction = 1.0f;
 
 	float tangent_impulse_scalar = -rel_tan_velocity / impulse_denom;
-	tangent_impulse_scalar = clamp(tangent_impulse_scalar, -impulse_magnitude * friction, impulse_magnitude * friction); // clamp to coloumb's law
+	tangent_impulse_scalar = std::clamp(tangent_impulse_scalar, -impulse_magnitude * friction, impulse_magnitude * friction); // clamp to coloumb's law
 
 
 	vec2 tangent_impulse = friction_dir * tangent_impulse_scalar;

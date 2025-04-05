@@ -209,11 +209,6 @@ void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_nu
 // Hanldes the logic to transition into the MOVE state
 void boss_one_idle_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms, std::default_random_engine& rng) {
 
-    // Add attack ids to the vector
-    // if (boss.nextAttacks.empty()) {
-    //     refill_nextAttacks(boss, rng);
-    // }
-
     // Get player motion
     Entity& player_entity = registry.players.entities[0];
     Motion& player_motion = registry.motions.get(player_entity);
@@ -943,19 +938,11 @@ void chooseAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float el
     Entity& player_entity = registry.players.entities[0];
     Motion& player_motion = registry.motions.get(player_entity);
 
-    float dist = abs(boss_motion.position.x - player_motion.position.x) / 400.f;
+    // float dist = abs(boss_motion.position.x - player_motion.position.x) / 400.f;
     bool is_in_phase_two = (boss.health / BOSS_ONE_MAX_HEALTH) <= 0.8f;
 
     bool is_player_to_boss_left = boss_motion.position.x >= player_motion.position.x;
-    // std::cout << "dist is: " << dist << ", " << abs(boss_motion.position.x - player_motion.position.x) << std::endl;
 
-    // if (dist < 0.25f) {
-    //     chooseShortRangedAttack(boss_entity, boss, boss_motion, is_in_phase_two, is_player_to_boss_left, random_num);
-    // } else if (dist > 0.55f) {
-    //     chooseLongRangedAttack(boss_entity, boss, boss_motion, is_in_phase_two, is_player_to_boss_left, random_num);
-    // } else {
-    //     chooseMediumRangedAttack(boss_entity, boss, boss_motion, is_in_phase_two, is_player_to_boss_left, random_num);
-    // }
     BOSS_ATTACK_ID id = get_next_attack(boss, rng);
     if (!is_in_phase_two) {
         while (is_phase_two_attack(id)) {
@@ -963,172 +950,7 @@ void chooseAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float el
         }
     }
     transition_to_attack_state(boss_entity, boss, boss_motion, is_player_to_boss_left, id);
-}
 
-// Chooses a long ranged attack and transitions to the next state
-void chooseLongRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_in_phase_two, bool is_player_to_boss_left, unsigned int random_num) {
-
-    // options: dash attack, fast projectile, delayed projectile, regular projectile
-    // if random_num is <= 25, use dash
-    // else if random_num is <= 50, use fast projectile
-    // else if random_num is <= 75, use delayed projectile
-    // otherwise, use regular projectile
-
-    if (is_in_phase_two && random_num <= 25) {
-        boss.boss_state = BOSS_STATE::BOSS1_DASH_ATTACK_STATE;
-        boss_motion.velocity.x = std::copysignf(BOSS_ONE_DASH_VELOCITY, boss_motion.velocity.x);
-        boss.timer_ms = BOSS_ONE_DASH_DURATION_MS;
-
-        // boss becomes harmful during dash attack
-        boss.can_damage_player = true; // TODO: remove this and use Harmful component instead
-
-        // boss becomes time controllable
-        TimeControllable& tc = registry.timeControllables.get(boss_entity);
-        tc.can_be_decelerated = true;
-        tc.can_become_harmless = true;
-
-        // the boss needs to have harmful component and is time controllable?
-        if (!registry.harmfuls.has(boss_entity)) {
-            registry.harmfuls.emplace(boss_entity);
-        }
-
-        // update animate request
-        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
-        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_DASH;
-
-    } else if (random_num <= 50) {
-        boss.boss_state = BOSS_STATE::BOSS1_FAST_PROJECTILE_ATTACK_STATE;
-
-        // stop the boss from moving
-        boss_motion.velocity.x = 0.f;
-
-        // update the scaling
-        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;        
-
-        // update the animate request
-        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
-        animateRequest.used_animation = is_player_to_boss_left ? ANIMATION_ID::BOSS_ONE_PROJECTILE_LEFT : ANIMATION_ID::BOSS_ONE_PROJECTILE_RIGHT;
-
-    } else if (random_num <= 75) {
-        boss.boss_state = BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE;
-        boss.timer_ms = 2000.f;
-
-        FirstBoss& firstBoss = registry.firstBosses.get(boss_entity);
-        firstBoss.num_of_projectiles_created = 0;
-
-        // stop the boss from moving
-        boss_motion.velocity.x = 0.f;
-
-        // update scaling
-        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;        
-
-        // update the animate request
-        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
-        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_DELAYED_PROJECTILE;
-
-    } else {
-        boss.boss_state = BOSS_STATE::BOSS1_REGULAR_PROJECTILE_ATTACK_STATE;
-
-        // stop the boss from moving
-        boss_motion.velocity.x = 0.f;
-
-        // update scaling
-        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;
-
-        // update the animate request
-        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
-        animateRequest.used_animation = is_player_to_boss_left ? ANIMATION_ID::BOSS_ONE_PROJECTILE_LEFT : ANIMATION_ID::BOSS_ONE_PROJECTILE_RIGHT;
-
-    }
-
-}
-
-// Chooses a medium ranged attack and transitions to the next state
-void chooseMediumRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_in_phase_two, bool is_player_to_boss_left, unsigned int random_num) {
-    
-    // options: ground slam, delayed projectile, regular projectile
-    // if random_num <= 50, use ground slam
-    // if random_num <= 80, use delayed projectile
-    // otherwise, use regular projectile
-
-    if (is_in_phase_two && random_num <= 50) {
-        boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_INIT_1_STATE;
-        boss_motion.velocity.x = 0;
-        boss_motion.position.y = BOSS_ONE_ON_GROUND_Y_POSITION - 22.f;
-        boss.timer_ms = BOSS_ONE_GROUND_SLAM_INIT_DURATION_MS;
-
-        // update the scaling
-        boss_motion.scale = vec2(BOSS_ONE_GROUND_SLAM_BB_WIDTH_PX, BOSS_ONE_GROUND_SLAM_BB_HEIGHT_PX);
-
-        // update animate request
-        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
-        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_INIT;
-
-    } else if (random_num <= 80) {
-        boss.boss_state = BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE;
-        boss.timer_ms = 2000.f;
-
-        // stop the boss from moving
-        boss_motion.velocity.x = 0.f;
-
-        // update scaling
-        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;        
-
-        // update the animate request
-        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
-        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_DELAYED_PROJECTILE;
-
-    } else {
-        boss.boss_state = BOSS_STATE::BOSS1_REGULAR_PROJECTILE_ATTACK_STATE;
-
-        // stop the boss from moving
-        boss_motion.velocity.x = 0.f;
-
-        // update scaling
-        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;        
-
-        // update the animate request
-        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
-        animateRequest.used_animation = is_player_to_boss_left ? ANIMATION_ID::BOSS_ONE_PROJECTILE_LEFT : ANIMATION_ID::BOSS_ONE_PROJECTILE_RIGHT;
-
-    }
-}
-
-// Chooses a short ranged attack and transitions to the next state
-void chooseShortRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_in_phase_two, bool is_player_to_boss_left, unsigned int random_num) {
-
-    // options: ground slam, delayed projectile
-    // if random_num <= 60, use ground slam
-    // otherwise, use delayed projectile
-
-    if (is_in_phase_two && random_num <= 60) {
-        boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_INIT_1_STATE;
-        boss_motion.velocity.x = 0;
-        boss_motion.position.y = BOSS_ONE_ON_GROUND_Y_POSITION - 22.f;
-        boss.timer_ms = BOSS_ONE_GROUND_SLAM_INIT_DURATION_MS;
-
-        // update the scaling
-        boss_motion.scale = vec2(BOSS_ONE_GROUND_SLAM_BB_WIDTH_PX, BOSS_ONE_GROUND_SLAM_BB_HEIGHT_PX);
-
-        // update animate request
-        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
-        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_INIT;
-
-    } else {
-        boss.boss_state = BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE;
-        boss.timer_ms = 2000.f;
-
-        // stop the boss from moving
-        boss_motion.velocity.x = 0.f;
-
-        // update the scaling
-        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;
-
-        // update the animate request
-        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
-        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_DELAYED_PROJECTILE;
-
-    }
 }
 
 void boss_one_regular_projectile_attack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
@@ -1304,28 +1126,11 @@ BOSS_ATTACK_ID get_next_attack(Boss& boss, std::default_random_engine& rng) {
 }
 
 void refill_nextAttacks(Boss& boss, std::default_random_engine& rng) {
-    std::cout << "Calling refill_nextAttacks()" << std::endl;
     boss.nextAttacks.clear();
-    for (int i = 0; i < 28; i++) {
-        std::cout << "Iteration i = " << i << std::endl;
-        std::cout << "Adding " << i % (int) BOSS_ATTACK_ID::TOTAL_COUNT << " to boss sytem nextAttacks vector" << std::endl;
+    for (int i = 0; i < BOSS_ONE_NEXT_ATTACKS_VECTOR_MAX_SIZE; i++) {
         boss.nextAttacks.push_back(static_cast<BOSS_ATTACK_ID>(i % (int) BOSS_ATTACK_ID::TOTAL_COUNT));
     }
     std::shuffle(boss.nextAttacks.begin(), boss.nextAttacks.end(), rng);
-}
-
-bool is_short_ranged_attack(BOSS_ATTACK_ID attack_id) {
-    return attack_id == BOSS_ATTACK_ID::BOSS1_GROUND_SLAM || attack_id == BOSS_ATTACK_ID::BOSS1_DELAYED_PROJECTILE;
-}
-
-bool is_medium_ranged_attack(BOSS_ATTACK_ID attack_id) {
-    return attack_id == BOSS_ATTACK_ID::BOSS1_GROUND_SLAM || attack_id == BOSS_ATTACK_ID::BOSS1_DELAYED_PROJECTILE ||
-        attack_id == BOSS_ATTACK_ID::BOSS1_REGULAR_PROJECTILE;
-}
-
-bool is_long_ranged_attack(BOSS_ATTACK_ID attack_id) {
-    return attack_id == BOSS_ATTACK_ID::BOSS1_DASH_ATTACK || attack_id == BOSS_ATTACK_ID::BOSS1_FAST_PROJECTILE ||
-        attack_id == BOSS_ATTACK_ID::BOSS1_DELAYED_PROJECTILE || attack_id == BOSS_ATTACK_ID::BOSS1_REGULAR_PROJECTILE;
 }
 
 bool is_phase_two_attack(BOSS_ATTACK_ID attack_id) {
@@ -1419,4 +1224,188 @@ void transition_to_attack_state(Entity& boss_entity, Boss& boss, Motion& boss_mo
 
     }
 
+}
+
+
+
+// =================== UNUSED HELPER FUNCTIONS ===================
+
+bool is_short_ranged_attack(BOSS_ATTACK_ID attack_id) {
+    return attack_id == BOSS_ATTACK_ID::BOSS1_GROUND_SLAM || attack_id == BOSS_ATTACK_ID::BOSS1_DELAYED_PROJECTILE;
+}
+
+bool is_medium_ranged_attack(BOSS_ATTACK_ID attack_id) {
+    return attack_id == BOSS_ATTACK_ID::BOSS1_GROUND_SLAM || attack_id == BOSS_ATTACK_ID::BOSS1_DELAYED_PROJECTILE ||
+        attack_id == BOSS_ATTACK_ID::BOSS1_REGULAR_PROJECTILE;
+}
+
+bool is_long_ranged_attack(BOSS_ATTACK_ID attack_id) {
+    return attack_id == BOSS_ATTACK_ID::BOSS1_DASH_ATTACK || attack_id == BOSS_ATTACK_ID::BOSS1_FAST_PROJECTILE ||
+        attack_id == BOSS_ATTACK_ID::BOSS1_DELAYED_PROJECTILE || attack_id == BOSS_ATTACK_ID::BOSS1_REGULAR_PROJECTILE;
+}
+
+// Chooses a long ranged attack and transitions to the next state
+void chooseLongRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_in_phase_two, bool is_player_to_boss_left, unsigned int random_num) {
+
+    // options: dash attack, fast projectile, delayed projectile, regular projectile
+    // if random_num is <= 25, use dash
+    // else if random_num is <= 50, use fast projectile
+    // else if random_num is <= 75, use delayed projectile
+    // otherwise, use regular projectile
+
+    if (is_in_phase_two && random_num <= 25) {
+        boss.boss_state = BOSS_STATE::BOSS1_DASH_ATTACK_STATE;
+        boss_motion.velocity.x = std::copysignf(BOSS_ONE_DASH_VELOCITY, boss_motion.velocity.x);
+        boss.timer_ms = BOSS_ONE_DASH_DURATION_MS;
+
+        // boss becomes harmful during dash attack
+        boss.can_damage_player = true; // TODO: remove this and use Harmful component instead
+
+        // boss becomes time controllable
+        TimeControllable& tc = registry.timeControllables.get(boss_entity);
+        tc.can_be_decelerated = true;
+        tc.can_become_harmless = true;
+
+        // the boss needs to have harmful component and is time controllable?
+        if (!registry.harmfuls.has(boss_entity)) {
+            registry.harmfuls.emplace(boss_entity);
+        }
+
+        // update animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_DASH;
+
+    } else if (random_num <= 50) {
+        boss.boss_state = BOSS_STATE::BOSS1_FAST_PROJECTILE_ATTACK_STATE;
+
+        // stop the boss from moving
+        boss_motion.velocity.x = 0.f;
+
+        // update the scaling
+        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;        
+
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = is_player_to_boss_left ? ANIMATION_ID::BOSS_ONE_PROJECTILE_LEFT : ANIMATION_ID::BOSS_ONE_PROJECTILE_RIGHT;
+
+    } else if (random_num <= 75) {
+        boss.boss_state = BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE;
+        boss.timer_ms = 2000.f;
+
+        FirstBoss& firstBoss = registry.firstBosses.get(boss_entity);
+        firstBoss.num_of_projectiles_created = 0;
+
+        // stop the boss from moving
+        boss_motion.velocity.x = 0.f;
+
+        // update scaling
+        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;        
+
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_DELAYED_PROJECTILE;
+
+    } else {
+        boss.boss_state = BOSS_STATE::BOSS1_REGULAR_PROJECTILE_ATTACK_STATE;
+
+        // stop the boss from moving
+        boss_motion.velocity.x = 0.f;
+
+        // update scaling
+        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;
+
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = is_player_to_boss_left ? ANIMATION_ID::BOSS_ONE_PROJECTILE_LEFT : ANIMATION_ID::BOSS_ONE_PROJECTILE_RIGHT;
+
+    }
+
+}
+
+// Chooses a medium ranged attack and transitions to the next state
+void chooseMediumRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_in_phase_two, bool is_player_to_boss_left, unsigned int random_num) {
+    
+    // options: ground slam, delayed projectile, regular projectile
+    // if random_num <= 50, use ground slam
+    // if random_num <= 80, use delayed projectile
+    // otherwise, use regular projectile
+
+    if (is_in_phase_two && random_num <= 50) {
+        boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_INIT_1_STATE;
+        boss_motion.velocity.x = 0;
+        boss_motion.position.y = BOSS_ONE_ON_GROUND_Y_POSITION - 22.f;
+        boss.timer_ms = BOSS_ONE_GROUND_SLAM_INIT_DURATION_MS;
+
+        // update the scaling
+        boss_motion.scale = vec2(BOSS_ONE_GROUND_SLAM_BB_WIDTH_PX, BOSS_ONE_GROUND_SLAM_BB_HEIGHT_PX);
+
+        // update animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_INIT;
+
+    } else if (random_num <= 80) {
+        boss.boss_state = BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE;
+        boss.timer_ms = 2000.f;
+
+        // stop the boss from moving
+        boss_motion.velocity.x = 0.f;
+
+        // update scaling
+        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;        
+
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_DELAYED_PROJECTILE;
+
+    } else {
+        boss.boss_state = BOSS_STATE::BOSS1_REGULAR_PROJECTILE_ATTACK_STATE;
+
+        // stop the boss from moving
+        boss_motion.velocity.x = 0.f;
+
+        // update scaling
+        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;        
+
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = is_player_to_boss_left ? ANIMATION_ID::BOSS_ONE_PROJECTILE_LEFT : ANIMATION_ID::BOSS_ONE_PROJECTILE_RIGHT;
+
+    }
+}
+
+// Chooses a short ranged attack and transitions to the next state
+void chooseShortRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_in_phase_two, bool is_player_to_boss_left, unsigned int random_num) {
+
+    // options: ground slam, delayed projectile
+    // if random_num <= 60, use ground slam
+    // otherwise, use delayed projectile
+
+    if (is_in_phase_two && random_num <= 60) {
+        boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_INIT_1_STATE;
+        boss_motion.velocity.x = 0;
+        boss_motion.position.y = BOSS_ONE_ON_GROUND_Y_POSITION - 22.f;
+        boss.timer_ms = BOSS_ONE_GROUND_SLAM_INIT_DURATION_MS;
+
+        // update the scaling
+        boss_motion.scale = vec2(BOSS_ONE_GROUND_SLAM_BB_WIDTH_PX, BOSS_ONE_GROUND_SLAM_BB_HEIGHT_PX);
+
+        // update animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_INIT;
+
+    } else {
+        boss.boss_state = BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE;
+        boss.timer_ms = 2000.f;
+
+        // stop the boss from moving
+        boss_motion.velocity.x = 0.f;
+
+        // update the scaling
+        boss_motion.scale.x = BOSS_ONE_BB_WIDTH_PX + 20.f;
+
+        // update the animate request
+        AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
+        animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_DELAYED_PROJECTILE;
+
+    }
 }

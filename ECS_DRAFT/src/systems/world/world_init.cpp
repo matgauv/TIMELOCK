@@ -46,6 +46,34 @@ Entity create_player(vec2 position, vec2 scale) {
     return entity;
 }
 
+Entity create_deceleration_bar(vec2 position) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = vec2{0.0f, DECEL_BAR_HEIGHT};
+    motion.velocity = { 0.0f, 0.0f };
+    motion.angle = 0.0f;
+
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::DECEL_BAR,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+    AnimateRequest& animation = registry.animateRequests.emplace(entity);
+    animation.used_animation = ANIMATION_ID::DECEL_BAR;
+
+    registry.colors.emplace(entity, vec3(1.0f));
+
+    registry.decelerationBars.emplace(entity);
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+    return entity;
+}
+
 Entity create_physics_object(vec2 position, vec2 scale, float mass) {
     Entity entity = Entity();
 

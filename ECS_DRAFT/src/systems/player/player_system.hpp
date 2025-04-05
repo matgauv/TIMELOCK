@@ -7,6 +7,7 @@
 
 #include "systems/ISystem.hpp"
 #include "systems/physics/physics_utils.h"
+#include "systems/world/world_system.hpp"
 
 // Player System; manages Player statistics
 class PlayerSystem : public ISystem
@@ -36,4 +37,5 @@ private:
 	void static set_climbing();
 	void static set_coyote();
 	void static handle_player_motion();
+	void generate_player_particles();
 };

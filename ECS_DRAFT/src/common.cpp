@@ -37,7 +37,7 @@ float cubic_interpolation(float source, float target, float t) {
 // Randonly sample a float number
 float rand_float(float min, float max) {
 	assert(min <= max);
-	return min + (max - min) * ((float)rand() / (float)RAND_MAX);
+	return min + (max - min) * ((float)std::max(0, rand()-1) / (float)RAND_MAX);
 }
 
 vec2 rand_direction() {

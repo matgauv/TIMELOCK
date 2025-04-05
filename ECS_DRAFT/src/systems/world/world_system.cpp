@@ -67,23 +67,44 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 	check_scene_transition();
 
 	GameState& gameState = registry.gameStates.components[0];
-	auto now = std::chrono::high_resolution_clock::now();
+	
+	// Update acceleration and deceleration timer
+	if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED) {
+		if (gameState.accelerate_timer > 0.0) {
+			gameState.accelerate_timer -= elapsed_ms_since_last_update;
 
-	if (gameState.time_control_start_time != std::chrono::time_point<std::chrono::high_resolution_clock>{}) {
-		float duration = (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - gameState.time_control_start_time)).count() / 1000;
-
-		if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED && duration >= ACCELERATION_DURATION_MS) {
-			control_time(true, false);
+			if (gameState.accelerate_timer <= 0.0) {
+				control_time(true, false);
+			}
 		}
+	} else { 
+		if (gameState.accelerate_timer < 0.0) {
+			gameState.accelerate_timer += elapsed_ms_since_last_update;
 
-		if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED && duration >= DECELERATION_DURATION_MS) {
-			control_time(false, false);
+			if (gameState.accelerate_timer >= 0.0) {
+				gameState.accelerate_timer = 0.0;
+			}
 		}
 	}
 
-	// Update acceleration and deceleration cooldown time
-	gameState.accelerate_cooldown_ms = std::max(0.f, gameState.accelerate_cooldown_ms - elapsed_ms_since_last_update);
-	gameState.decelerate_cooldown_ms = std::max(0.f, gameState.decelerate_cooldown_ms - elapsed_ms_since_last_update);
+	if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED) {
+		if (gameState.decelerate_timer > 0.0) {
+			gameState.decelerate_timer -= elapsed_ms_since_last_update;
+
+			if (gameState.decelerate_timer <= 0.0) {
+				control_time(false, false);
+			}
+		}
+	} else {
+		if (gameState.decelerate_timer < 0.0) {
+			gameState.decelerate_timer += elapsed_ms_since_last_update;
+
+			if (gameState.decelerate_timer >= 0.0) {
+				gameState.decelerate_timer = 0.0;
+			}
+		}
+	}
+	
 
 
 	// TODO: prob don't need to loop any frame, only when transitions are taking place...
@@ -93,23 +114,18 @@ void WorldSystem::step(float elapsed_ms_since_last_update) {
 		TimeControllable& tc = registry.timeControllables.components[i];
 		Motion& motion = registry.motions.get(entity);
 		float start = NORMAL_FACTOR;
+		float effective_time = 0.0f;
 
 		// this is a bit ugly but covers the 4 cases where we go from accelerated/decelerated to normal/decelerated/accelerated
 		if (motion.velocityModifier < NORMAL_FACTOR && tc.target_time_control_factor != DECELERATE_FACTOR) {
 			start = DECELERATE_FACTOR;
+			effective_time = gameState.decelerate_timer;
 		} else if (motion.velocityModifier > NORMAL_FACTOR && tc.target_time_control_factor != ACCELERATE_FACTOR) {
 			start = ACCELERATE_FACTOR;
+			effective_time = gameState.accelerate_timer;
 		}
 
-		lerpTimeState(start, tc.target_time_control_factor, motion, gameState.time_control_start_time);
-
-		// handles breakable wall degradation here
-		/*
-		if (registry.breakables.has(entity)) {
-			(degrade_breakable_platform(entity, tc, gameState, elapsed_ms_since_last_update);
-		}*/
-
-		// Checks for harmful/harmless transitions should be coordinated by world system constantly
+		lerpTimeState(start, tc.target_time_control_factor, motion, effective_time);
 		
 		update_time_control_properties(gameState.game_time_control_state, tc, entity);
 	}
@@ -146,17 +162,20 @@ void WorldSystem::restart_game() {
 	while (registry.motions.entities.size() > 0)
 		registry.remove_all_components_of(registry.motions.entities.back());
 
+	// Remove all particles
+	while (registry.particles.entities.size() > 0)
+		registry.remove_all_components_of(registry.particles.entities.back());
+
 	// debugging for memory/component leaks
 	registry.list_all_components();
 
 	assert(registry.gameStates.components.size() <= 1);
 	GameState& gameState = registry.gameStates.components[0];
-	gameState.accelerate_cooldown_ms = 0.f;
-	gameState.decelerate_cooldown_ms = 0.f;
+	gameState.accelerate_timer = 0.f;
+	gameState.accelerate_timer = 0.f;
 	gameState.game_time_control_state = TIME_CONTROL_STATE::NORMAL;
 	gameState.game_running_state = GAME_RUNNING_STATE::RUNNING;
 	gameState.game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
-	gameState.time_control_start_time = std::chrono::time_point<std::chrono::high_resolution_clock>{};
 	gameState.is_in_boss_fight = 0;
 
 	LevelState& levelState = registry.levelStates.components[0];

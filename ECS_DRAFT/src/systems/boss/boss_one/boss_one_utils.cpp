@@ -237,7 +237,7 @@ void update_boss_halo(const Entity boss_entity, const Boss& boss) {
         halo_request.halo_color = color;
         halo_request.target_color = color;
 
-        if (registry.snoozeButtons.size() > 0) {
+        if (registry.snoozeButtons.size() > 0 && registry.haloRequests.has(registry.snoozeButtons.entities[0])) {
             HaloRequest& snooze_button_halo = registry.haloRequests.get(registry.snoozeButtons.entities[0]);
             snooze_button_halo.halo_color = color;
             snooze_button_halo.target_color = color;
@@ -349,9 +349,12 @@ void boss_one_exhausted_step(Entity& boss_entity, Boss& boss, Motion& boss_motio
         firstBoss.player_collided_with_snooze_button = false;
         boss.timer_ms = BOSS_ONE_MAX_DAMAGED_DURATION_MS;
 
+        /* 
+        // Potential fix for snooze buttoin issue
         if (registry.snoozeButtons.size() > 0) {
             registry.remove_all_components_of(registry.snoozeButtons.entities[0]);
         }
+        */
 
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);

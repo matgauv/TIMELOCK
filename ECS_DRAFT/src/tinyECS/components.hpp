@@ -478,6 +478,7 @@ struct Boss
 {
 	BOSS_ID boss_id;
 	BOSS_STATE boss_state;
+	std::vector<BOSS_ATTACK_ID> nextAttacks;
 	bool can_be_damaged = false; // a flag to indicate that the boss can take damage
 	float health;
 	float timer_ms; // a general timer, set to different values based on the boss state

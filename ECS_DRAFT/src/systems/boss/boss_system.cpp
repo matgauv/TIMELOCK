@@ -37,7 +37,7 @@ void BossSystem::step(float elapsed_ms) {
         // call the appropriate helper function to handle the state changes
         if (boss.boss_id == BOSS_ID::FIRST) {
             unsigned int random_num = (unsigned int) (uniform_dist(rng) * 100);
-            boss_one_step(boss_entity, elapsed_ms, random_num);
+            boss_one_step(boss_entity, elapsed_ms, random_num, rng);
         }
     }
 }

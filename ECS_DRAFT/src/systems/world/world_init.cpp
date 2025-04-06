@@ -1095,9 +1095,26 @@ Entity create_spawner(std::string type, vec2 size, vec2 velocity, vec2 start_pos
     return entity;
 }
 
+Entity create_loading_screen() {
+    Entity entity = Entity();
 
+    Motion& motion = registry.motions.emplace(entity);
+    motion.scale = {WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX};
+    motion.angle = 0.0f;
+    motion.velocity = {0.0f, 0.0f};
+    motion.position = {WINDOW_WIDTH_PX / 2.0f, WINDOW_HEIGHT_PX / 2.0f };
 
+    registry.loadingScreens.emplace(entity);
 
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::LOADING_SCREEN,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    return entity;
+}
 
 float getDistance(const Motion& one, const Motion& other) {
     return glm::length(one.position - other.position);

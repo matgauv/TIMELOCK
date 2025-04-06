@@ -2,6 +2,9 @@
 #include "../common.hpp"
 #include <iostream>
 #include <chrono>
+
+#include "physics/physics_system.hpp"
+#include "tinyECS/registry.hpp"
 using Clock = std::chrono::high_resolution_clock;
 
 // Debugging
@@ -34,38 +37,48 @@ void SystemsManager::run_game_loop() {
 		float elapsed_ms = (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
-		physics_accumulator += elapsed_ms;
-		physics_accumulator = std::min(physics_accumulator, max_accumulator_ms);
+		GameState& gs = registry.gameStates.components[0];
+		if (gs.game_running_state == GAME_RUNNING_STATE::LOADING) {
+			// only step the parsing system when loading a level.
+			systems[0]->step(elapsed_ms);
+		} else {
+			physics_accumulator += elapsed_ms;
+			physics_accumulator = std::min(physics_accumulator, max_accumulator_ms);
 
-		// step regular systems with the frame time
-		for (ISystem* system : systems) {
-			system->step(elapsed_ms);
-		}
+			// step regular systems with the frame time
+			for (ISystem* system : systems) {
+				system->step(elapsed_ms);
 
-		// step physics systems if enough time has elapsed with fixed frame time
-		while (physics_accumulator >= physics_step) {
-			float substep_dt = physics_step / substep_count;
-
-			// perform the physics step in sub steps for more consistent behaviour
-			for (int i = 0; i < substep_count; ++i) {
-				for (ISystem* system : fixed_systems) {
-					system->step(substep_dt);
+				// stop stepping systems if level load is triggered
+				if (gs.game_running_state == GAME_RUNNING_STATE::LOADING) {
+					break;
 				}
 			}
 
+			if (gs.game_running_state == GAME_RUNNING_STATE::RUNNING) {
+				// step physics systems if enough time has elapsed with fixed frame time
+				while (physics_accumulator >= physics_step) {
+					float substep_dt = physics_step / substep_count;
 
+					// perform the physics step in sub steps for more consistent behaviour
+					for (int i = 0; i < substep_count; ++i) {
+						for (ISystem* system : fixed_systems) {
+							system->step(substep_dt);
+						}
+					}
+					physics_accumulator -= physics_step;
+				}
 
-			physics_accumulator -= physics_step;
+				// late step once (NOT FIXED)
+				for (ISystem* system : fixed_systems) {
+					system->late_step(physics_step);
+				}
+			}
 		}
 
 		// late step regular systems with frame time
 		for (ISystem* system : systems) {
 			system->late_step(elapsed_ms);
-		}
-
-		// late step once (NOT FIXED)
-		for (ISystem* system : fixed_systems) {
-			system->late_step(physics_step);
 		}
 	}
 }

@@ -42,19 +42,40 @@ void LevelParsingSystem::step(float elapsed_ms) {
 
     if (!level_state.shouldLoad) return;
 
+    cout << "REMOVING ALL ENTITIES" << endl;
+
     // clear current level (remove all entities)
-    while (registry.motions.entities.size() > 0) {
-        registry.remove_all_components_of(registry.motions.entities.back());
+    for (int i = registry.motions.size() - 1; i >= 0; i--) {
+        Entity& entity = registry.motions.entities[i];
+        if (registry.loadingScreens.has(entity)) {
+            continue;
+        }
+
+        registry.remove_all_components_of(entity);
+    }
+
+    // clear all render requests for tiles
+    for (int i = registry.renderRequests.size() - 1; i >= 0; i--) {
+        Entity& entity = registry.renderRequests.entities[i];
+        if (registry.loadingScreens.has(entity)) {
+            continue;
+        }
+
+        registry.remove_all_components_of(entity);
     }
 
     // Remove all particles
     while (registry.particles.entities.size() > 0)
         registry.remove_all_components_of(registry.particles.entities.back());
 
-    // clear all render requests for tiles
-    while (registry.renderRequests.entities.size() > 0) {
-        registry.remove_all_components_of(registry.renderRequests.entities.back());
+    GameState& gs = registry.gameStates.components[0];
+    if (gs.game_running_state != GAME_RUNNING_STATE::LOADING) {
+        cout << "SETTING GAME RUNNING STATE TO LOADING" << endl;
+        gs.game_running_state = GAME_RUNNING_STATE::LOADING;
+        return;
     }
+
+    std::cout << "PARSING JSON" << std::endl;
 
     if (!parse_json()) {
         cout << "Error: could not parse JSON" << endl;
@@ -103,11 +124,14 @@ void LevelParsingSystem::step(float elapsed_ms) {
 
     // "Uninitialized value" to pass the first render step with large time_elapse
     // 3.0 = 1.0 factor + 2 * tolerances
-    registry.screenStates.components[0].scene_transition_factor = 3.0;
-    registry.gameStates.components[0].game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
+    // registry.screenStates.components[0].scene_transition_factor = 3.0;
+    // registry.gameStates.components[0].game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
 
     WorldSystem::set_time_control_state(false, false, true);
     WorldSystem::set_time_control_state(true, false, true);
+
+    cout << "DONE PARSING JSON" << endl;
+    gs.game_running_state = GAME_RUNNING_STATE::RUNNING;
 }
 
 void LevelParsingSystem::late_step(float elapsed_ms) {

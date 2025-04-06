@@ -8,6 +8,7 @@ enum class GAME_RUNNING_STATE {
 	PAUSED = RUNNING + 1,
 	OVER = PAUSED + 1,
 	SHOULD_RESET = OVER + 1,
+	LOADING = SHOULD_RESET + 1,
 };
 
 enum class TIME_CONTROL_STATE {
@@ -225,7 +226,6 @@ struct PhysicsObject
 
 
 struct NonPhysicsCollider {
-
 };
 
 struct RotatingGear {
@@ -323,7 +323,7 @@ struct ScreenState
 // - Negative when cooling down; increases;
 // - 0 (or an infinitesimal positive): ready to activate;
 struct GameState {
-	GAME_RUNNING_STATE game_running_state = GAME_RUNNING_STATE::RUNNING;
+	GAME_RUNNING_STATE game_running_state = GAME_RUNNING_STATE::LOADING;
 	TIME_CONTROL_STATE game_time_control_state = TIME_CONTROL_STATE::NORMAL;
 	SCENE_TRANSITION_STATE game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
 	float accelerate_timer = 0.f;
@@ -637,8 +637,9 @@ enum class TEXTURE_ASSET_ID {
 	
 	// UI
 	DECEL_BAR = TUTORIAL_TEXT + 1,
+	LOADING_SCREEN = DECEL_BAR + 1,
 	
-	TEXTURE_COUNT = DECEL_BAR + 1
+	TEXTURE_COUNT = LOADING_SCREEN + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -810,4 +811,9 @@ struct ParticleSystemState {
 
 	float turbulence_strength = 0.0;
 	float turbulence_scale = 1.0;
+};
+
+struct LoadingScreen
+{
+
 };

@@ -4,6 +4,7 @@
 // internal
 #include "render_system.hpp"
 #include "../../tinyECS/registry.hpp"
+#include "systems/world/world_init.hpp"
 
 void RenderSystem::drawTexturedMesh(Entity entity, const mat3& projection) {
 	assert(registry.renderRequests.has(entity));
@@ -342,16 +343,23 @@ void RenderSystem::drawToScreen()
 
 	// TODO
 	glUniform1f(transition_fac_uloc, std::min(1.0f, screen.scene_transition_factor));
-	
-	const Entity player_entity = registry.players.entities[0];
-	const Motion& motion = registry.motions.get(player_entity);
-	vec3 augmented_player_pos = vec3{motion.position.x, motion.position.y, 1.0f};
-	vec3 canonical_player_pos = this->projection_matrix * augmented_player_pos;
-	
+
+
+	vec3 augmented_default_pos = vec3{WINDOW_WIDTH_PX / 2.0f, WINDOW_HEIGHT_PX / 2.0f, 1.0f};
+	vec3 canonical_default_pos = this->projection_matrix * augmented_default_pos;
 	float focal_point[2] = {
-		(canonical_player_pos[0] + 1.0f) / 2.0f,
-		(canonical_player_pos[1] + 1.0f) / 2.0f
+		(canonical_default_pos[0] + 1.0f) / 2.0f,
+		(canonical_default_pos[1] + 1.0f) / 2.0f
 	};
+	if (registry.players.size() > 0) {
+		const Entity player_entity = registry.players.entities[0];
+		const Motion& motion = registry.motions.get(player_entity);
+		vec3 augmented_player_pos = vec3{motion.position.x, motion.position.y, 1.0f};
+		vec3 canonical_player_pos = this->projection_matrix * augmented_player_pos;
+
+		focal_point[0] = (canonical_player_pos[0] + 1.0f) / 2.0f;
+		focal_point[1] = (canonical_player_pos[1] + 1.0f) / 2.0f;
+	}
 	glUniform2fv(focal_point_uloc, 1, focal_point);
 	gl_has_errors();
 
@@ -464,6 +472,17 @@ void RenderSystem::late_step(float elapsed_ms) {
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
 void RenderSystem::draw()
 {
+	GameState& gs = registry.gameStates.components[0];
+	if (gs.game_running_state == GAME_RUNNING_STATE::LOADING) {
+		glBindVertexArray(vao_general);
+		std::cout << "DRAWING LOADING SCREEN" << std::endl;
+		Entity entity = create_loading_screen();
+		drawTexturedMesh(entity, this->projection_matrix);
+		drawToScreen();
+		glfwSwapBuffers(window);
+		return;
+	}
+
 	// handle meshes
 	// TODO prob handle this somewhere better...
 	for (Entity entity : registry.players.entities) {
@@ -635,7 +654,7 @@ mat3 RenderSystem::createProjectionMatrix()
 
 	// assert(registry.cameras.entities.size() == 1);
 	if (registry.cameras.entities.size() < 1) {
-
+		std::cout << "NO CAMERA" << std::endl;
 		float left = 0.f;
 		float top = 0.f;
 		float right = (float)WINDOW_WIDTH_PX;

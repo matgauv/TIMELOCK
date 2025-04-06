@@ -66,6 +66,7 @@ public:
 	ComponentContainer<Screw> screws;
 	ComponentContainer<DecelerationBar> decelerationBars;
 	ComponentContainer<HaloRequest> haloRequests;
+	ComponentContainer<LoadingScreen> loadingScreens;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -125,6 +126,7 @@ public:
 		registry_list.push_back(&screws);
 		registry_list.push_back(&decelerationBars);
 		registry_list.push_back(&haloRequests);
+		registry_list.push_back(&loadingScreens);
 	}
 
 	void clear_all_components() {

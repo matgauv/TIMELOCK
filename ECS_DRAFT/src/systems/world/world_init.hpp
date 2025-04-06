@@ -21,6 +21,7 @@ Entity create_parallaxbackground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture
 Entity create_foreground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id);
 Entity create_levelground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id);
 Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, int stride, bool rounded);
+Entity create_rolling_platform(vec2 position, vec2 scale, float y_velocity);
 Entity create_level_boundary(vec2 position, vec2 scale);
 Entity create_world_boundary(vec2 position, vec2 scale);
 Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 initial_position, json& tile_id_array, int stride, bool rounded);
@@ -42,7 +43,7 @@ Entity create_pendulum(vec2 pivot_position, float length, float initial_angle, f
 Entity create_gear(vec2 position, vec2 size, bool fixed, float angular_velocity, float inital_angle);
 Entity create_spikeball(vec2 position, vec2 size);
 Entity create_spawner(std::string type, vec2 size, vec2 velocity, vec2 start_pos, vec2 end_pos);
-
+Entity create_rolling_thing(vec2 position, vec2 scale);
 
 // Helper methods
 float getDistance(const Motion& one, const Motion& other);

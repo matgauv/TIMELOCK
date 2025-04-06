@@ -8,6 +8,7 @@
 
 void LevelParsingSystem::init(GLFWwindow *window) {
     this->window = window;
+    parse_rolling_thing_json();
 }
 
 void LevelParsingSystem::step(float elapsed_ms) {
@@ -195,8 +196,12 @@ void LevelParsingSystem::init_level_entities(json entities) {
             init_spikeballs(entity_list);
         } else if (entity_type == "Obstacle_spawner") {
             init_spawners(entity_list);
+        } else if (entity_type == "Rolling_thing") {
+            init_rolling_things(entity_list);
         }
     }
+
+
 }
 
 void LevelParsingSystem::init_chains(json chains) {
@@ -274,6 +279,14 @@ void LevelParsingSystem::init_spawners(json gear_spawners) {
         std::string type = customFields["Type"];
 
         create_spawner(type, size, velocity, start_pos, end_pos);
+    }
+}
+
+void LevelParsingSystem::init_rolling_things(json rolling_things) {
+    for (json& rolling_thing : rolling_things) {
+        vec2 position = {rolling_thing["x"], rolling_thing["y"]};
+        vec2 scale = {rolling_thing["customFields"]["width"], rolling_thing["customFields"]["height"]};
+        create_rolling_thing(position, scale);
     }
 }
 
@@ -659,6 +672,30 @@ bool LevelParsingSystem::parse_json() {
     level_file.close();
     return true;
 }
+
+bool LevelParsingSystem::parse_rolling_thing_json() {
+    string filename = PROJECT_SOURCE_DIR + std::string("/data/rolling_thing_platforms.json");
+    ifstream rolling_thing(filename);
+    if (!rolling_thing) {
+        cout << "Error could not open file " << filename << endl;
+        return false;
+    }
+
+    json rolling_thing_json;
+    rolling_thing >> rolling_thing_json;
+
+    // populate the map in the registry TODO: I think there is a way to just directly get this from the json library
+    for (auto& [key, value] : rolling_thing_json.items()) {
+        std::vector<int> int_vector;
+        for (auto& element : value) {
+            int_vector.push_back(element.get<int>());
+        }
+        registry.rolling_thing_data[key] = int_vector;
+    }
+    rolling_thing.close();
+    return true;
+}
+
 
 vec2 LevelParsingSystem::convert_and_centralize_position(json pos, int conversion_factor) {
     return vec2({

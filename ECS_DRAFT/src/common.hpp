@@ -269,6 +269,10 @@ const float COYOTE_PARTICLES_DURATION = 500.0f;
 const float BACKGROUND_WIDTH = 1920.0f;
 const float BACKGROUND_HEIGHT = 1080.0f;
 
+const vec2 ROLLING_PLATFORM_SIZE = vec2{ 23.0f, 15.0f };
+const int ROLLING_PLATFORM_FRAMES_ALIVE = 33;
+const float ROLLING_PLATFORM_SPEED = 4.0f; // px moving down per frame
+
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)
 // We recommend making all components non-copyable by derving from ComponentNonCopyable

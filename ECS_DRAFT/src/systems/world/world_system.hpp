@@ -64,6 +64,7 @@ private:
 	void player_walking(bool walking, bool is_left);
 	void player_jump();
 
+	void update_rolling_things(float elapsed_ms);
 	
 	float mouse_pos_x = 0.0f;
 	float mouse_pos_y = 0.0f;

@@ -1,6 +1,8 @@
 // Header
 #include "world_system.hpp"
 
+#include "systems/animation/animation_system.hpp"
+
 // create the world
 WorldSystem::WorldSystem()
 {

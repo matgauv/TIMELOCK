@@ -40,6 +40,7 @@ private:
     json reparsable_entities = {};
 
     bool parse_json();
+    bool parse_rolling_thing_json();
     void init_level_background();
     void init_player_and_camera();
     void init_level_entities(json entities);
@@ -60,6 +61,8 @@ private:
     void init_gears(json gears);
     void init_spikeballs(json spikeballs);
     void init_spawners(json spawners);
+    void init_rolling_things(json rolling_things);
+
 
     bool extract_full_platform_dimensions(json platform, vec2& dimensions);
     bool extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos, bool& rounded);

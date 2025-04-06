@@ -142,6 +142,9 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 	PhysicsObject& physA = registry.physicsObjects.get(entityA);
 	PhysicsObject& physB = registry.physicsObjects.get(entityB);
 
+	if (physA.ignore_bottom_collision && collision.normal.y < 0.0f) return;
+	if (physB.ignore_bottom_collision && collision.normal.y > 0.0f) return;
+
 	vec2 A_modified_vel = get_modified_velocity(motionA);
 	vec2 B_modified_vel = get_modified_velocity(motionB);
 

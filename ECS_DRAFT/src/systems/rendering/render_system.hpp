@@ -93,6 +93,8 @@ class RenderSystem : public ISystem {
 		textures_path("boss/ground-slam-land.png"),
 		textures_path("tutorial-text/tutorial-text.png"),
 		textures_path("decel-bar.png"),
+		textures_path("rolling_thing_1.png"),
+		textures_path("rolling_thing_2.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

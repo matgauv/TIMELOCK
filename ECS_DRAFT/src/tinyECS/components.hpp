@@ -196,6 +196,8 @@ struct PhysicsObject
 	bool apply_air_resistance = true;
 	bool apply_friction = true;
 
+	bool ignore_bottom_collision = false;
+
 	// Properties to set:
 
 	// general guide is 20-100ish, though you can go beyond. Extremely high or low values can lead to unexpected behaviour.
@@ -494,6 +496,15 @@ struct SnoozeButton
 
 };
 
+struct RollingPlatform {
+	int frames_left;
+};
+
+struct RollingThing {
+	int current_frame;
+	std::vector<unsigned int> platforms;
+};
+
 // struct BossAttack
 // {
 // 	BOSS_ATTACK_ID attack_id;
@@ -607,7 +618,9 @@ enum class TEXTURE_ASSET_ID {
 	BOSS_ONE_GROUND_SLAM_LAND = BOSS_ONE_GROUND_SLAM_FALL + 1,
 	TUTORIAL_TEXT = BOSS_ONE_GROUND_SLAM_LAND + 1,
 	DECEL_BAR = TUTORIAL_TEXT + 1,
-	TEXTURE_COUNT = DECEL_BAR + 1
+	ROLLING_THING_1 = DECEL_BAR + 1,
+	ROLLING_THING_2 = ROLLING_THING_1 + 1,
+	TEXTURE_COUNT = ROLLING_THING_2 + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -663,7 +676,9 @@ enum class ANIMATION_ID {
 	BOSS_ONE_GROUND_SLAM_FOLLOW = BOSS_ONE_GROUND_SLAM_RISE + 1,
 	BOSS_ONE_GROUND_SLAM_FALL = BOSS_ONE_GROUND_SLAM_FOLLOW + 1,
 	BOSS_ONE_GROUND_SLAM_LAND = BOSS_ONE_GROUND_SLAM_FALL + 1,
-	ANIMATION_COUNT = BOSS_ONE_GROUND_SLAM_LAND + 1
+	ROLLING_THING_1 = BOSS_ONE_GROUND_SLAM_LAND + 1,
+	ROLLING_THING_2 = ROLLING_THING_1 + 1,
+	ANIMATION_COUNT = ROLLING_THING_2 + 1
 };
 const int animation_count = (int)ANIMATION_ID::ANIMATION_COUNT;
 

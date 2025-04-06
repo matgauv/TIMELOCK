@@ -55,7 +55,7 @@ const int MAX_INSTANCE_COUNT = 2000;
 // Spawn Points
 const float SPAWNPOINT_DETECTION_RANGE = 80.0;
 const float SPAWNPOINT_CHARGE_TIME_MS = 500.0;
-const vec2 SPAWNPOINT_SCALE = { 25, 60 };
+const vec2 SPAWNPOINT_SCALE = { 42, 55 };
 
 // TIME CONTROL
 const float ACCELERATE_FACTOR = 2.0f;

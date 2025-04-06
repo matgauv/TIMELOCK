@@ -4,6 +4,7 @@
 #include "../../tinyECS/component_container.hpp"
 #include "../../tinyECS/components.hpp"
 #include "../../tinyECS/registry.hpp"
+#include "../particle/particle_system.hpp"
 
 #include "systems/ISystem.hpp"
 

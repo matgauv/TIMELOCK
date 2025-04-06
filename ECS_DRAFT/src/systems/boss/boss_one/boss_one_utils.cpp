@@ -238,57 +238,6 @@ void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_nu
     update_boss_halo(boss_entity, boss);
 }
 
-void update_boss_halo(const Entity boss_entity, const Boss& boss) {
-    if (!registry.haloRequests.has(boss_entity)) {
-        return;
-    }
-
-    HaloRequest& halo_request = registry.haloRequests.get(boss_entity);
-
-    if (boss.boss_state == BOSS_STATE::BOSS1_IDLE_STATE) {
-        halo_request.target_color = BOSS_IDLE_HALO;
-    }
-    else if (
-        boss.boss_state == BOSS_STATE::BOSS1_DAMAGED_STATE ||
-        boss.boss_state == BOSS_STATE::BOSS1_DEAD_STATE) {
-        float factor = std::clamp(boss.timer_ms / BOSS_ONE_MAX_DAMAGED_DURATION_MS, 0.0f, 1.0f) - 0.98f;
-        factor = std::clamp(-16.0f * factor * factor + 1.0f, 0.0f, 1.0f); // -16(x-0.95)^4+1
-
-        halo_request.halo_color = factor * vec4(3.0f) + (1.0f - factor) * BOSS_DAMAGED_HALO;
-        halo_request.target_color = halo_request.halo_color;
-    }
-    else if (boss.boss_state == BOSS_STATE::BOSS1_EXHAUSTED_STATE) {
-        vec4 color = BOSS_EXHAUST_HALO;
-        color.a = (0.1f * sinf(boss.timer_ms * 0.006f) + .9f);
-        halo_request.halo_color = color;
-        halo_request.target_color = color;
-
-        if (registry.snoozeButtons.size() > 0 && registry.haloRequests.has(registry.snoozeButtons.entities[0])) {
-            HaloRequest& snooze_button_halo = registry.haloRequests.get(registry.snoozeButtons.entities[0]);
-            snooze_button_halo.halo_color = color;
-            snooze_button_halo.target_color = color;
-        }
-    }
-    else if (boss.boss_state == BOSS_STATE::BOSS1_DASH_ATTACK_STATE) {
-        halo_request.target_color = BOSS_DASH_HALO;
-    }
-    else if (
-        boss.boss_state == BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE ||
-        boss.boss_state == BOSS_STATE::BOSS1_FAST_PROJECTILE_ATTACK_STATE ||
-        boss.boss_state == BOSS_STATE::BOSS1_REGULAR_PROJECTILE_ATTACK_STATE ||
-        boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_LAND_1_STATE ||
-        boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_LAND_2_STATE ||
-        boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_LAND_3_STATE ||
-        boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_1_STATE ||
-        boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_2_STATE ||
-        boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_3_STATE) {
-        halo_request.target_color = BOSS_ATTACK_HALO;
-    }
-    else {
-        halo_request.target_color = BOSS_NORMAL_HALO;
-    }
-}
-
 void update_boss_health_bar(const Boss& boss) {
     assert(registry.bossHealthBars.entities.size() <= 1);
     Entity& health_bar_entity = registry.bossHealthBars.entities[0];

@@ -42,38 +42,19 @@ void LevelParsingSystem::step(float elapsed_ms) {
 
     if (!level_state.shouldLoad) return;
 
-    cout << "REMOVING ALL ENTITIES" << endl;
-
-    // clear current level (remove all entities)
-    for (int i = registry.motions.size() - 1; i >= 0; i--) {
-        Entity& entity = registry.motions.entities[i];
-        if (registry.loadingScreens.has(entity)) {
-            continue;
-        }
-
-        registry.remove_all_components_of(entity);
+    // remove all entities with motion (flush the current level)
+    while (registry.motions.size() > 0) {
+        registry.remove_all_components_of(registry.motions.entities.back());
     }
 
-    // clear all render requests for tiles
-    for (int i = registry.renderRequests.size() - 1; i >= 0; i--) {
-        Entity& entity = registry.renderRequests.entities[i];
-        if (registry.loadingScreens.has(entity)) {
-            continue;
-        }
-
-        registry.remove_all_components_of(entity);
+    // remove all renderRequests (for tiles)
+    while (registry.renderRequests.size() > 0) {
+        registry.remove_all_components_of(registry.renderRequests.entities.back());
     }
 
     // Remove all particles
     while (registry.particles.entities.size() > 0)
         registry.remove_all_components_of(registry.particles.entities.back());
-
-    GameState& gs = registry.gameStates.components[0];
-    if (gs.game_running_state != GAME_RUNNING_STATE::LOADING) {
-        cout << "SETTING GAME RUNNING STATE TO LOADING" << endl;
-        gs.game_running_state = GAME_RUNNING_STATE::LOADING;
-        return;
-    }
 
     std::cout << "PARSING JSON" << std::endl;
 
@@ -129,9 +110,6 @@ void LevelParsingSystem::step(float elapsed_ms) {
 
     WorldSystem::set_time_control_state(false, false, true);
     WorldSystem::set_time_control_state(true, false, true);
-
-    cout << "DONE PARSING JSON" << endl;
-    gs.game_running_state = GAME_RUNNING_STATE::RUNNING;
 }
 
 void LevelParsingSystem::late_step(float elapsed_ms) {

@@ -472,17 +472,6 @@ void RenderSystem::late_step(float elapsed_ms) {
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
 void RenderSystem::draw()
 {
-	GameState& gs = registry.gameStates.components[0];
-	if (gs.game_running_state == GAME_RUNNING_STATE::LOADING) {
-		glBindVertexArray(vao_general);
-		std::cout << "DRAWING LOADING SCREEN" << std::endl;
-		Entity entity = create_loading_screen();
-		drawTexturedMesh(entity, this->projection_matrix);
-		drawToScreen();
-		glfwSwapBuffers(window);
-		return;
-	}
-
 	// handle meshes
 	// TODO prob handle this somewhere better...
 	for (Entity entity : registry.players.entities) {
@@ -617,14 +606,7 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, this->projection_matrix);
 	}
 
-
-
 	for (Entity entity : midgrounds)
-	{
-		drawTexturedMesh(entity, this->projection_matrix);
-	}
-
-	for (Entity entity : menu_and_pause)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
 	}
@@ -647,6 +629,11 @@ void RenderSystem::draw()
 	// Render foreground
 	drawBlurredLayer(blur_buffer_color_2, BLUR_MODE::TWO_D, 1.5f, 1.2f);
 
+	// draw menus over everything else
+	for (Entity entity : menu_and_pause) {
+		drawTexturedMesh(entity, this->projection_matrix);
+	}
+
 
 	// draw framebuffer to screen
 	drawToScreen();
@@ -664,7 +651,6 @@ mat3 RenderSystem::createProjectionMatrix()
 
 	// assert(registry.cameras.entities.size() == 1);
 	if (registry.cameras.entities.size() < 1) {
-		std::cout << "NO CAMERA" << std::endl;
 		float left = 0.f;
 		float top = 0.f;
 		float right = (float)WINDOW_WIDTH_PX;

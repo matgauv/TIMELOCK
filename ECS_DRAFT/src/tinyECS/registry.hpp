@@ -68,6 +68,7 @@ public:
 	ComponentContainer<HaloRequest> haloRequests;
 	ComponentContainer<LoadingScreen> loadingScreens;
 	ComponentContainer<MenuButton> menuButtons;
+	ComponentContainer<MenuScreen> menuScreens;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -129,6 +130,7 @@ public:
 		registry_list.push_back(&haloRequests);
 		registry_list.push_back(&loadingScreens);
 		registry_list.push_back(&menuButtons);
+		registry_list.push_back(&menuScreens);
 	}
 
 	void clear_all_components() {

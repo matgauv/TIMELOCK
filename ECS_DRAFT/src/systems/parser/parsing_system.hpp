@@ -15,8 +15,8 @@ public:
 
     static void schedule_reload() {
         registry.levelStates.components[0].reload_coutdown = LOAD_LEVEL_COUNTDOWN;
-        // registry.screenStates.components[0].scene_transition_factor = 0.0;
-        // registry.gameStates.components[0].game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_OUT;
+        registry.screenStates.components[0].scene_transition_factor = 0.0;
+        registry.gameStates.components[0].game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_OUT;
     }
 
     LevelParsingSystem()

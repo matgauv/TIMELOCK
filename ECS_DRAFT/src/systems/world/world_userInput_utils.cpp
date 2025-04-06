@@ -7,21 +7,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (registry.players.size() == 0) { return; } // level not loaded. TODO: set flag in the registry once level loading is done
 
-
-	// exit game w/ ESC
-	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
-		glfwSetWindowShouldClose(window, GLFW_TRUE);
-	}
-
-	// Resetting game
-	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
-
-		restart_game();
-		return;
-	}
-
 	if (key == GLFW_KEY_D) {
 		if (action == GLFW_RELEASE) {
 			if (debugging.in_debug_mode) {
@@ -37,11 +22,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// The following actions only available when player is alive
 	// Could extend to case of game pause
 	const Player& player = registry.players.components[0];
-	if (player.state == PLAYER_STATE::RESPAWNED || player.state == PLAYER_STATE::DEAD) {
+	GameState& gameState = registry.gameStates.components[0];
+	if (player.state == PLAYER_STATE::RESPAWNED || player.state == PLAYER_STATE::DEAD || gameState.game_running_state != GAME_RUNNING_STATE::RUNNING) {
 		return;
 	}
-
-	GameState& gameState = registry.gameStates.components[0];
 
 	// Activate acceleration
 	if (key == GLFW_KEY_EQUAL && action == GLFW_RELEASE) {
@@ -195,18 +179,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_P) {
 		if (gameState.game_running_state == GAME_RUNNING_STATE::PAUSED) {
 			// do nothing
-		} else if (gameState.game_running_state == GAME_RUNNING_STATE::MENU) {}
-		else {
+		} else if (gameState.game_running_state == GAME_RUNNING_STATE::MENU) {
+            // do nothing
+		} else {
 			gameState.game_running_state = GAME_RUNNING_STATE::PAUSED;
 
             if (registry.cameras.entities.empty()) { return; }
-
-            Entity& camera_entity = registry.cameras.entities[0];
-            Motion& camera_motion = registry.motions.get(camera_entity);
-
-			create_pause_buttons(camera_motion.position, { 1500.0f, 1500.0f },0,TEXTURE_ASSET_ID::FADE);
-			create_pause_buttons({ camera_motion.position.x, camera_motion.position.y - 35.0f }, { 250.0f, 45.0f }, 0, TEXTURE_ASSET_ID::MENU);
-			create_pause_buttons({ camera_motion.position.x, camera_motion.position.y + 35.0f }, { 250.0f, 45.0f },0, TEXTURE_ASSET_ID::RESUME);
+			create_menu_screen();
 		}
 	}
 }
@@ -221,73 +200,58 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 		return;
 	}
 
-	Entity camera_entity = registry.cameras.entities[0];
-	Motion& camera_motion = registry.motions.get(camera_entity);
-
 	GameState& gameState = registry.gameStates.components[0];
 
-
 	if (gameState.game_running_state == GAME_RUNNING_STATE::PAUSED) {
-		if (mouse_pos_x >= 439 && mouse_pos_x <= 895 && mouse_pos_y >= 229 && mouse_pos_y <= 305) {
-			for (Entity e : registry.menuButtons.entities) {
-				MenuButton& button = registry.menuButtons.get(e);
-				if (button.type == "menu") {
-					registry.remove_all_components_of(e);
-				}
-			}
-			create_pause_buttons({ camera_motion.position.x, camera_motion.position.y - 35.0f }, { 250.0f, 45.0f }, 0, TEXTURE_ASSET_ID::MENU_SELECTED);
-			create_pause_buttons({ camera_motion.position.x, camera_motion.position.y + 35.0f }, { 250.0f, 45.0f }, 0, TEXTURE_ASSET_ID::RESUME);
+		if (registry.menuScreens.size() == 0) {
+			create_menu_screen();
+		}
+
+		MenuScreen& menu_screen = registry.menuScreens.components[0];
+		RenderRequest& menu_button = registry.renderRequests.get(menu_screen.button_ids[1]);
+		RenderRequest& resume_button = registry.renderRequests.get(menu_screen.button_ids[2]);
+
+        if (mouse_pos_x >= 439 && mouse_pos_x <= 895 && mouse_pos_y >= 229 && mouse_pos_y <= 305) {
+            menu_button.used_texture = TEXTURE_ASSET_ID::MENU_SELECTED;
+            resume_button.used_texture = TEXTURE_ASSET_ID::RESUME;
 		}
 		else if (mouse_pos_x >= 439 && mouse_pos_x <= 895 && mouse_pos_y >= 360 && mouse_pos_y <= 438) {
-			for (Entity e : registry.menuButtons.entities) {
-				MenuButton& button = registry.menuButtons.get(e);
-				if (button.type == "resume") {
-					registry.remove_all_components_of(e);
-				}
-			}
-			create_pause_buttons({ camera_motion.position.x, camera_motion.position.y + 35.0f }, { 250.0f, 45.0f }, 0, TEXTURE_ASSET_ID::RESUME_SELECTED);
-			create_pause_buttons({ camera_motion.position.x, camera_motion.position.y - 35.0f }, { 250.0f, 45.0f }, 0, TEXTURE_ASSET_ID::MENU);
+			menu_button.used_texture = TEXTURE_ASSET_ID::MENU;
+			resume_button.used_texture = TEXTURE_ASSET_ID::RESUME_SELECTED;
 		}
 		else {
-			create_pause_buttons({ camera_motion.position.x, camera_motion.position.y + 35.0f }, { 250.0f, 45.0f }, 0, TEXTURE_ASSET_ID::RESUME);
-			create_pause_buttons({ camera_motion.position.x, camera_motion.position.y - 35.0f }, { 250.0f, 45.0f }, 0, TEXTURE_ASSET_ID::MENU);
+			menu_button.used_texture = TEXTURE_ASSET_ID::MENU;
+			resume_button.used_texture = TEXTURE_ASSET_ID::RESUME;
 		}
 
 	}
 
 	if (gameState.game_running_state == GAME_RUNNING_STATE::MENU) {
+		if (registry.menuScreens.size() == 0) {
+			create_menu_screen();
+		}
+
+		MenuScreen& menu_screen = registry.menuScreens.components[0];
+        RenderRequest& screen = registry.renderRequests.get(menu_screen.button_ids[0]);
+		Motion& key_motion = registry.motions.get(menu_screen.button_ids[1]);
+        Motion& camera_motion = registry.motions.get(registry.cameras.entities[0]);
 
 		//if mouse hovers over start button
 		if (mouse_pos_x >= 785 && mouse_pos_x <= 907 && mouse_pos_y >= 192 && mouse_pos_y <= 313) {
-			//remove screen,key,cover and replace with new screen, new key, cover
-			for (Entity e : registry.menuButtons.entities) {
-				MenuButton& button = registry.menuButtons.get(e);
-				if (button.is_active) {
-					registry.remove_all_components_of(e);
-				}
-			}
-			create_pause_buttons(camera_motion.position, { 675.0f, 380.0f }, 0, TEXTURE_ASSET_ID::START_SELECTED);
-			create_pause_buttons({ camera_motion.position.x + 50.0f, camera_motion.position.y -30.0f}, { 120.0f, 50.0f }, -27, TEXTURE_ASSET_ID::KEY);
-			create_pause_buttons({ camera_motion.position.x + 5.0f, camera_motion.position.y - 7.0f }, { 165.0f, 165.0f }, 0, TEXTURE_ASSET_ID::COVER);
+            screen.used_texture = TEXTURE_ASSET_ID::START_SELECTED;
+            key_motion.angle = -27;
+            key_motion.position = { camera_motion.position.x + 50.0f, camera_motion.position.y -30.0f };
 		} // else if mouse hovers over exit button
 		else if (mouse_pos_x >= 745 && mouse_pos_x <= 869 && mouse_pos_y >= 466 && mouse_pos_y <= 580) {
-			//remove screen,key,cover and replace with new screen, new key, cover
-			for (Entity e : registry.menuButtons.entities) {
-				MenuButton& button = registry.menuButtons.get(e);
-				if (button.is_active) {
-					registry.remove_all_components_of(e);
-				}
-			}
-			create_pause_buttons(camera_motion.position, { 675.0f, 380.0f }, 0, TEXTURE_ASSET_ID::EXIT_SELECTED);
-			create_pause_buttons({ camera_motion.position.x + 42.0f, camera_motion.position.y +42.0f}, { 120.0f, 50.0f }, 40, TEXTURE_ASSET_ID::KEY);
-			create_pause_buttons({ camera_motion.position.x + 5.0f, camera_motion.position.y - 7.0f }, { 165.0f, 165.0f }, 0, TEXTURE_ASSET_ID::COVER);
-
+			screen.used_texture = TEXTURE_ASSET_ID::EXIT_SELECTED;
+			key_motion.angle = 40;
+			key_motion.position = { camera_motion.position.x + 42.0f, camera_motion.position.y +42.0f};
 		}
 		//if nothing hovered, return to middle position (regular screen,key,cover)
 		else {
-			create_pause_buttons(camera_motion.position, { 675.0f, 380.0f }, 0, TEXTURE_ASSET_ID::SCREEN);
-			create_pause_buttons({ camera_motion.position.x + 60.0f, camera_motion.position.y }, { 120.0f, 50.0f }, 0, TEXTURE_ASSET_ID::KEY);
-			create_pause_buttons({ camera_motion.position.x + 5.0f, camera_motion.position.y - 7.0f }, { 165.0f, 165.0f }, 0, TEXTURE_ASSET_ID::COVER);
+			screen.used_texture = TEXTURE_ASSET_ID::SCREEN;
+			key_motion.angle = 0;
+			key_motion.position = { camera_motion.position.x + 60.0f, camera_motion.position.y };
 		}
 	}
 }
@@ -311,27 +275,16 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 		//if menu pressed
 		if (mouse_pos_x >= 439 && mouse_pos_x <= 895 && mouse_pos_y >= 229 && mouse_pos_y <= 305 && action == GLFW_PRESS) {
 			//erase pause screen
-			for (Entity e : registry.menuButtons.entities) {
-				MenuButton& button = registry.menuButtons.get(e);
-				if (button.is_active) {
-					registry.remove_all_components_of(e);
-				}
-			}
-			//set game state to menu, render menu
+			remove_menu_screen();
+
+            //set game state to menu
 			gameState.game_running_state = GAME_RUNNING_STATE::MENU;
-			create_pause_buttons(camera_motion.position, { 675.0f, 380.0f }, 0, TEXTURE_ASSET_ID::SCREEN);
-			create_pause_buttons({ camera_motion.position.x+60.0f, camera_motion.position.y }, { 120.0f, 50.0f }, 0, TEXTURE_ASSET_ID::KEY);
-			create_pause_buttons({ camera_motion.position.x+5.0f, camera_motion.position.y -7.0f }, { 165.0f, 165.0f }, 0, TEXTURE_ASSET_ID::COVER);
 		} // if resume pressed
 		else if (mouse_pos_x >= 439 && mouse_pos_x <= 895 && mouse_pos_y >= 360 && mouse_pos_y <= 438 && action == GLFW_PRESS) {
 			//erase pause screen
-			for (Entity e : registry.menuButtons.entities) {
-				MenuButton& button = registry.menuButtons.get(e);
-				if (button.is_active) {
-					registry.remove_all_components_of(e);
-				}
-			}
-			//set game state to running
+			remove_menu_screen();
+
+            //set game state to running
 			gameState.game_running_state = GAME_RUNNING_STATE::RUNNING;
 		}
 
@@ -341,31 +294,22 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 	if (gameState.game_running_state == GAME_RUNNING_STATE::MENU) {
 		//if start pressed
 		if (mouse_pos_x >= 785 && mouse_pos_x <= 907 && mouse_pos_y >= 192 && mouse_pos_y <= 313 && action == GLFW_PRESS) {
-			for (Entity e : registry.menuButtons.entities) {
-				MenuButton& button = registry.menuButtons.get(e);
-				if (button.is_active) {
-					registry.remove_all_components_of(e);
-				}
+			remove_menu_screen();
+
+			if (registry.players.size() == 0) {
+				LevelState& ls = registry.levelStates.components[0];
+				ls.shouldLoad = true;
 			}
+
 			gameState.game_running_state = GAME_RUNNING_STATE::RUNNING;
 		} // else if exit pressed
 		else if (mouse_pos_x >= 745 && mouse_pos_x <= 869 && mouse_pos_y >= 466 && mouse_pos_y <= 580 && action == GLFW_PRESS) {
-			for (Entity e : registry.menuButtons.entities) {
-				MenuButton& button = registry.menuButtons.get(e);
-				if (button.is_active) {
-					registry.remove_all_components_of(e);
-				}
-			}
+			remove_menu_screen();
+
 			// setting to over does nothing? so for now just calling close window
 			gameState.game_running_state = GAME_RUNNING_STATE::OVER;
-			glfwWindowShouldClose(window);
+			glfwSetWindowShouldClose(window, GLFW_TRUE);
 
-		}
-		//if no valid buttons clicked
-		else {
-			create_pause_buttons(camera_motion.position, { 675.0f, 380.0f }, 0, TEXTURE_ASSET_ID::SCREEN);
-			create_pause_buttons({ camera_motion.position.x + 60.0f, camera_motion.position.y }, { 120.0f, 50.0f }, 0, TEXTURE_ASSET_ID::KEY);
-			create_pause_buttons({ camera_motion.position.x + 5.0f, camera_motion.position.y - 7.0f }, { 165.0f, 165.0f }, 0, TEXTURE_ASSET_ID::COVER);
 		}
 	}
 }

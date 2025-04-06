@@ -5,6 +5,7 @@
 
 #include "physics/physics_system.hpp"
 #include "tinyECS/registry.hpp"
+#include "world/world_init.hpp"
 using Clock = std::chrono::high_resolution_clock;
 
 // Debugging
@@ -38,9 +39,18 @@ void SystemsManager::run_game_loop() {
 		t = now;
 
 		GameState& gs = registry.gameStates.components[0];
-		if (gs.game_running_state == GAME_RUNNING_STATE::MENU) {
-			// only step the parsing system when loading a level.
-			systems[0]->step(elapsed_ms);
+		if (gs.game_running_state == GAME_RUNNING_STATE::MENU || gs.game_running_state == GAME_RUNNING_STATE::PAUSED) {
+			if (registry.cameras.size() == 0) {
+				// mock camera to load the menu screen
+				create_camera({0, 0}, {1, 1});
+			}
+
+			if (registry.menuScreens.size() == 0) {
+				create_menu_screen();
+			}
+
+			// step the render system
+			systems[systems.size() - 1]->step(elapsed_ms);
 		} else {
 			physics_accumulator += elapsed_ms;
 			physics_accumulator = std::min(physics_accumulator, max_accumulator_ms);
@@ -50,19 +60,17 @@ void SystemsManager::run_game_loop() {
 				system->step(elapsed_ms);
 			}
 
-			if (gs.game_running_state == GAME_RUNNING_STATE::RUNNING) {
-				// step physics systems if enough time has elapsed with fixed frame time
-				while (physics_accumulator >= physics_step) {
-					float substep_dt = physics_step / substep_count;
+			// step physics systems if enough time has elapsed with fixed frame time
+			while (physics_accumulator >= physics_step) {
+				float substep_dt = physics_step / substep_count;
 
-					// perform the physics step in sub steps for more consistent behaviour
-					for (int i = 0; i < substep_count; ++i) {
-						for (ISystem* system : fixed_systems) {
-							system->step(substep_dt);
-						}
+				// perform the physics step in sub steps for more consistent behaviour
+				for (int i = 0; i < substep_count; ++i) {
+					for (ISystem* system : fixed_systems) {
+						system->step(substep_dt);
 					}
-					physics_accumulator -= physics_step;
 				}
+				physics_accumulator -= physics_step;
 
 				// late step once (NOT FIXED)
 				for (ISystem* system : fixed_systems) {

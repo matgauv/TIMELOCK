@@ -1148,6 +1148,35 @@ Entity create_pause_buttons(vec2 pos, vec2 scale, float angle, TEXTURE_ASSET_ID 
     return entity;
 }
 
+Entity create_menu_screen() {
+    Entity entity = Entity();
+    MenuScreen& menu_screen = registry.menuScreens.emplace(entity);
+    GameState& gs = registry.gameStates.components[0];
+    Motion& camera_motion = registry.motions.get(registry.cameras.entities[0]);
+
+    if (gs.game_running_state == GAME_RUNNING_STATE::MENU) {
+        menu_screen.button_ids.push_back(create_pause_buttons(camera_motion.position, { 675.0f, 380.0f }, 0, TEXTURE_ASSET_ID::SCREEN).id());
+        menu_screen.button_ids.push_back(create_pause_buttons({ camera_motion.position.x+60.0f, camera_motion.position.y }, { 120.0f, 50.0f }, 0, TEXTURE_ASSET_ID::KEY).id());
+        menu_screen.button_ids.push_back(create_pause_buttons({ camera_motion.position.x+5.0f, camera_motion.position.y -7.0f }, { 165.0f, 165.0f }, 0, TEXTURE_ASSET_ID::COVER).id());
+    } else if (gs.game_running_state == GAME_RUNNING_STATE::PAUSED) {
+        menu_screen.button_ids.push_back(create_pause_buttons(camera_motion.position, { 1500.0f, 1500.0f },0,TEXTURE_ASSET_ID::FADE).id());
+        menu_screen.button_ids.push_back(create_pause_buttons({ camera_motion.position.x, camera_motion.position.y - 35.0f }, { 250.0f, 45.0f }, 0, TEXTURE_ASSET_ID::MENU).id());
+        menu_screen.button_ids.push_back(create_pause_buttons({ camera_motion.position.x, camera_motion.position.y + 35.0f }, { 250.0f, 45.0f },0, TEXTURE_ASSET_ID::RESUME).id());
+    }
+
+    return entity;
+}
+
+void remove_menu_screen() {
+    while (!registry.menuButtons.entities.empty()) {
+        registry.remove_all_components_of(registry.menuButtons.entities.back());
+    }
+
+    while (!registry.menuScreens.entities.empty()) {
+        registry.remove_all_components_of(registry.menuScreens.entities.back());
+    }
+}
+
 float getDistance(const Motion& one, const Motion& other) {
     return glm::length(one.position - other.position);
 }

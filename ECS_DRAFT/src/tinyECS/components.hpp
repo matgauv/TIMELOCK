@@ -836,3 +836,7 @@ struct MenuButton {
 	vec2 size;
 	std::string type;
 };
+
+struct MenuScreen {
+	std::vector<unsigned int> button_ids;
+};

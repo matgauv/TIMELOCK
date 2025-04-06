@@ -45,8 +45,10 @@ Entity create_spikeball(vec2 position, vec2 size);
 Entity create_spawner(std::string type, vec2 size, vec2 velocity, vec2 start_pos, vec2 end_pos);
 Entity create_loading_screen();
 Entity create_pause_buttons(vec2 pos, vec2 scale, float angle, TEXTURE_ASSET_ID texture_id);
+Entity create_menu_screen();
 
 
 // Helper methods
+void remove_menu_screen();
 float getDistance(const Motion& one, const Motion& other);
 int get_tile_index(int pos_x, int pos_y, int offset_x, int offset_y, int stride);

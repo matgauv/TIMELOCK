@@ -485,6 +485,7 @@ struct Boss
 	unsigned int num_of_attack_completed;
 	float time_until_exhausted_ms;
 	bool can_damage_player; // a flag to indicate that collision with the boss can damage the player
+	unsigned int num_of_delayed_projectiles;
 };
 
 struct FirstBoss

@@ -183,7 +183,7 @@ const float BOSS_ONE_BB_WIDTH_PX = 50.f; // TODO: placeholder, we should adjust 
 const float BOSS_ONE_BB_HEIGHT_PX = 50.f; // TODO: placeholder, we should adjust this once the actual texture is ready
 const float BOSS_ONE_GROUND_SLAM_BB_WIDTH_PX = 200.f;
 const float BOSS_ONE_GROUND_SLAM_BB_HEIGHT_PX = 200.f;
-const float BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS = 30000.f; // for testing, use 15000.f, otherwise use 30000.f
+const float BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS = 3000.f; // for testing, use 15000.f, otherwise use 30000.f
 const int BOSS_ONE_NEXT_ATTACKS_VECTOR_MAX_SIZE = 10;
 
 const float BOSS_ONE_MAX_WALK_DURATION_MS = 5000.f; // use 1000.f for testing purposes, otherwise use 5000.f
@@ -226,6 +226,8 @@ const float BOSS_ONE_THIRD_GROUND_SLAM_FOLLOW_DURATION_MS = 5000.f;
 const float BOSS_ONE_GROUND_SLAM_LAND_DURATION_MS = 1000.f;
 const float BOSS_ONE_GROUND_SLAM_IMPACT_WIDTH_PX = 32.f; // for testing purposes, use 20.f, otherwise, 100.f
 const float PLAYER_ON_BOSS_GROUND_POSITION_Y_THRESHOLD = 392.f;
+
+const float BOSS_EXHALE_PERIOD_MS = std::floor(BOSS_ONE_MAX_EXHAUSTED_DURATION_MS / 12.0f);
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f
@@ -306,6 +308,7 @@ const vec4 BOSS_NORMAL_HALO = vec4(1.f, 0.5f, 0.f, 1.0f); // orange
 const vec4 BOSS_ATTACK_HALO = vec4(1.f, 0.0f, 0.0f, 1.0f); // red
 const vec4 BOSS_EXHAUST_HALO = vec4(0.0f, 1.0f, 0.9f, 1.0f); // cyan
 const vec4 BOSS_DAMAGED_HALO = vec4(0.1f, 0.1f, 0.1f, 1.0f); // black
+const vec4 BOSS_RECOVER_HALO = BOSS_IDLE_HALO; // light yellow
 const vec4 BOSS_DASH_HALO = vec4(0.7f, 0.0f, 1.0f, 1.0f); // purple
 
 // The 'Transform' component handles transformations passed to the Vertex shader

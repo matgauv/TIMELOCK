@@ -234,7 +234,7 @@ void update_boss_halo(const Entity boss_entity, const Boss& boss) {
     }
     else if (boss.boss_state == BOSS_STATE::BOSS1_EXHAUSTED_STATE) {
         vec4 color = BOSS_EXHAUST_HALO;
-        color.a = (0.1f * sinf(boss.timer_ms * 0.006f) + .9f);
+        color.a = (0.1f * sinf(boss.timer_ms * 2.0f * M_PI / BOSS_EXHALE_PERIOD_MS) + .9f);
         halo_request.halo_color = color;
         halo_request.target_color = color;
 
@@ -244,7 +244,9 @@ void update_boss_halo(const Entity boss_entity, const Boss& boss) {
             snooze_button_halo.target_color = color;
         }
     }
-    else if (boss.boss_state == BOSS_STATE::BOSS1_DASH_ATTACK_STATE) {
+    else if (boss.boss_state == BOSS_STATE::BOSS1_RECOVER_STATE) {
+        halo_request.target_color = BOSS_RECOVER_HALO;
+    } else if (boss.boss_state == BOSS_STATE::BOSS1_DASH_ATTACK_STATE) {
         halo_request.target_color = BOSS_DASH_HALO;
     }
     else if (
@@ -350,18 +352,37 @@ void boss_one_exhausted_step(Entity& boss_entity, Boss& boss, Motion& boss_motio
         firstBoss.player_collided_with_snooze_button = false;
         boss.timer_ms = BOSS_ONE_MAX_DAMAGED_DURATION_MS;
 
-        /* 
-        // Potential fix for snooze buttoin issue
-        if (registry.snoozeButtons.size() > 0) {
+
+        CameraSystem::shake_camera(20.0f, 10.0f);
+
+        // Emit Particles
+        // Broken parts
+        for (int i = 0; i < 15; i++) {
+            vec2 position = random_sample_ellipse(boss_motion.position, boss_motion.scale);
+
+            ParticleSystem::spawn_particle(PARTICLE_ID::BROKEN_PARTS,
+                position, 0.0f,
+                rand_float(0.8f, 1.2f) * vec2(16.0f), vec2{ 5.f*(position.x - boss_motion.position.x), rand_float(-75.0f, -40.0f) },
+                800.0f, 0.9f, { 0.0f, 300.0f });
+        }
+
+        // Potential fix for snooze button issue
+        if (registry.snoozeButtons.size() > 0 && registry.motions.has(registry.snoozeButtons.entities[0])) {
+            const vec2 snooze_button_pos = registry.motions.get(registry.snoozeButtons.entities[0]).position;
+            // Emit particles
+            for (int i = 0; i < 30; i++) {
+                ParticleSystem::spawn_particle(BOSS_EXHAUST_HALO,
+                    snooze_button_pos, 0.0f,
+                    vec2(2.0f), rand_direction() * 50.0f,
+                    500.0f, 1.0f, { 0.0f, 0.0f }, {50.0f, 50.0f});
+            }
+
             registry.remove_all_components_of(registry.snoozeButtons.entities[0]);
         }
-        */
 
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_DAMAGED;
-
-        CameraSystem::shake_camera(20.0f, 10.0f);
     }
 
     // Otherwise, if the timer is up, then the boss enters RECOVER STATE
@@ -373,6 +394,15 @@ void boss_one_exhausted_step(Entity& boss_entity, Boss& boss, Motion& boss_motio
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_RECOVERED;
+    }
+
+    // Breath particles
+    if ((BOSS_EXHALE_PERIOD_MS - ((int)boss.timer_ms % (int)BOSS_EXHALE_PERIOD_MS)) < 50.0f) {
+        // Reuse Coyote particle
+        ParticleSystem::spawn_particle(PARTICLE_ID::EXHALE,
+            boss_motion.position + vec2{0.0, 12.0f}, 0.0f, rand_float(0.5f, 1.0f) * vec2(16.0f),
+            vec2{ rand_float(-25.0f, 25.0f), rand_float(10.0f, 15.0f) }, 1200.0f, 0.35f,
+            { 50.0f, 800.0f }, {20.0f, 0.0f});
     }
 }
 
@@ -396,6 +426,14 @@ void boss_one_recover_step(Entity& boss_entity, Boss& boss, Motion& boss_motion,
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_WALK;
+    }
+
+    // Emit particles
+    if (rand_float() < 0.1f) {
+        ParticleSystem::spawn_particle(BOSS_RECOVER_HALO,
+            random_sample_rectangle(boss_motion.position + vec2{0.0f, boss_motion.scale.y * 0.4f }, vec2{ boss_motion.scale.x, 30.0f }), 0.0f,
+            vec2(1.2f, rand_float(15.f, 20.f)), vec2{0.0f, rand_float(-60.0f, -35.f)},
+            800.0f, 0.8f, { 200.0f, 300.0f });
     }
 }
 
@@ -424,6 +462,16 @@ void boss_one_damaged_step(Entity& boss_entity, Boss& boss, Motion& boss_motion,
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_RECOVERED;
+    }
+
+    // Emit particles
+    if (rand_float() < 0.1f) {
+        vec2 position = random_sample_ellipse(boss_motion.position, boss_motion.scale);
+
+        ParticleSystem::spawn_particle(PARTICLE_ID::BROKEN_PARTS,
+            position, 0.0f,
+            rand_float(0.8f, 1.2f) * vec2(12.0f), vec2{ 5.f*(position.x - boss_motion.position.x), rand_float(-75.0f, -40.0f) },
+            800.0f, 0.8f, { 0.0f, 300.0f });
     }
 }
 
@@ -539,6 +587,9 @@ void boss_one_dash_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, fl
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_WALK;
     }
+
+    // Shake camera
+    CameraSystem::shake_camera(5.0f, 10.0f);
 }
 
 void boss_one_ground_slam_init_1_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {

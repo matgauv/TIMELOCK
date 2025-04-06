@@ -4,7 +4,6 @@
 #include <cmath>
 #include "../../player/player_system.hpp"
 
-
 Entity create_first_boss() {
     auto entity = Entity();
 
@@ -213,59 +212,6 @@ void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_nu
     update_boss_halo(boss_entity, boss);
 }
 
-void update_boss_halo(const Entity boss_entity, const Boss& boss) {
-    if (!registry.haloRequests.has(boss_entity)) {
-        return;
-    }
-
-    HaloRequest& halo_request = registry.haloRequests.get(boss_entity);
-
-    if (boss.boss_state == BOSS_STATE::BOSS1_IDLE_STATE) {
-        halo_request.target_color = BOSS_IDLE_HALO;
-    }
-    else if (
-        boss.boss_state == BOSS_STATE::BOSS1_DAMAGED_STATE ||
-        boss.boss_state == BOSS_STATE::BOSS1_DEAD_STATE) {
-        float factor = std::clamp(boss.timer_ms / BOSS_ONE_MAX_DAMAGED_DURATION_MS, 0.0f, 1.0f) - 0.98f;
-        factor = std::clamp(-16.0f * factor * factor + 1.0f, 0.0f, 1.0f); // -16(x-0.95)^4+1
-
-        halo_request.halo_color = factor * vec4(3.0f) + (1.0f - factor) * BOSS_DAMAGED_HALO;
-        halo_request.target_color = halo_request.halo_color;
-    }
-    else if (boss.boss_state == BOSS_STATE::BOSS1_EXHAUSTED_STATE) {
-        vec4 color = BOSS_EXHAUST_HALO;
-        color.a = (0.1f * sinf(boss.timer_ms * 2.0f * M_PI / BOSS_EXHALE_PERIOD_MS) + .9f);
-        halo_request.halo_color = color;
-        halo_request.target_color = color;
-
-        if (registry.snoozeButtons.size() > 0 && registry.haloRequests.has(registry.snoozeButtons.entities[0])) {
-            HaloRequest& snooze_button_halo = registry.haloRequests.get(registry.snoozeButtons.entities[0]);
-            snooze_button_halo.halo_color = color;
-            snooze_button_halo.target_color = color;
-        }
-    }
-    else if (boss.boss_state == BOSS_STATE::BOSS1_RECOVER_STATE) {
-        halo_request.target_color = BOSS_RECOVER_HALO;
-    } else if (boss.boss_state == BOSS_STATE::BOSS1_DASH_ATTACK_STATE) {
-        halo_request.target_color = BOSS_DASH_HALO;
-    }
-    else if (
-        boss.boss_state == BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE ||
-        boss.boss_state == BOSS_STATE::BOSS1_FAST_PROJECTILE_ATTACK_STATE ||
-        boss.boss_state == BOSS_STATE::BOSS1_REGULAR_PROJECTILE_ATTACK_STATE ||
-        boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_LAND_1_STATE ||
-        boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_LAND_2_STATE ||
-        boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_LAND_3_STATE ||
-        boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_1_STATE ||
-        boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_2_STATE ||
-        boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_3_STATE) {
-        halo_request.target_color = BOSS_ATTACK_HALO;
-    }
-    else {
-        halo_request.target_color = BOSS_NORMAL_HALO;
-    }
-}
-
 // Handles the logic to transition into the MOVE state
 void boss_one_idle_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
 
@@ -358,12 +304,7 @@ void boss_one_exhausted_step(Entity& boss_entity, Boss& boss, Motion& boss_motio
         // Emit Particles
         // Broken parts
         for (int i = 0; i < 15; i++) {
-            vec2 position = random_sample_ellipse(boss_motion.position, boss_motion.scale);
-
-            ParticleSystem::spawn_particle(PARTICLE_ID::BROKEN_PARTS,
-                position, 0.0f,
-                rand_float(0.8f, 1.2f) * vec2(16.0f), vec2{ 5.f*(position.x - boss_motion.position.x), rand_float(-75.0f, -40.0f) },
-                800.0f, 0.9f, { 0.0f, 300.0f });
+            emit_broken_parts(boss_motion);
         }
 
         // Potential fix for snooze button issue
@@ -432,8 +373,8 @@ void boss_one_recover_step(Entity& boss_entity, Boss& boss, Motion& boss_motion,
     if (rand_float() < 0.1f) {
         ParticleSystem::spawn_particle(BOSS_RECOVER_HALO,
             random_sample_rectangle(boss_motion.position + vec2{0.0f, boss_motion.scale.y * 0.4f }, vec2{ boss_motion.scale.x, 30.0f }), 0.0f,
-            vec2(1.2f, rand_float(15.f, 20.f)), vec2{0.0f, rand_float(-60.0f, -35.f)},
-            800.0f, 0.8f, { 200.0f, 300.0f });
+            vec2(0.8f, rand_float(15.f, 25.f)), vec2{0.0f, rand_float(-60.0f, -35.f)},
+            700.0f, 0.8f, { 200.0f, 300.0f });
     }
 }
 
@@ -466,12 +407,7 @@ void boss_one_damaged_step(Entity& boss_entity, Boss& boss, Motion& boss_motion,
 
     // Emit particles
     if (rand_float() < 0.1f) {
-        vec2 position = random_sample_ellipse(boss_motion.position, boss_motion.scale);
-
-        ParticleSystem::spawn_particle(PARTICLE_ID::BROKEN_PARTS,
-            position, 0.0f,
-            rand_float(0.8f, 1.2f) * vec2(12.0f), vec2{ 5.f*(position.x - boss_motion.position.x), rand_float(-75.0f, -40.0f) },
-            800.0f, 0.8f, { 0.0f, 300.0f });
+        emit_broken_parts(boss_motion);
     }
 }
 
@@ -589,7 +525,7 @@ void boss_one_dash_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, fl
     }
 
     // Shake camera
-    CameraSystem::shake_camera(5.0f, 10.0f);
+    CameraSystem::shake_camera(2.0f, 10.0f);
 }
 
 void boss_one_ground_slam_init_1_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
@@ -690,6 +626,8 @@ void boss_one_ground_slam_slam_1_step(Entity& boss_entity, Boss& boss, Motion& b
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_LAND;
+
+        slam_effect(boss_motion);
     }
 }
 
@@ -832,6 +770,8 @@ void boss_one_ground_slam_slam_2_step(Entity& boss_entity, Boss& boss, Motion& b
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_LAND;
+
+        slam_effect(boss_motion);
     }
 }
 
@@ -972,6 +912,8 @@ void boss_one_ground_slam_slam_3_step(Entity& boss_entity, Boss& boss, Motion& b
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_LAND;
+
+        slam_effect(boss_motion);
     }
 }
 
@@ -1095,8 +1037,20 @@ void boss_one_regular_projectile_attack(Entity& boss_entity, Boss& boss, Motion&
             vec2 velocity = vec2(BOSS_ONE_REGULAR_PROJECTILE_VELOCITY * direction, 0.f);
             create_projectile(pos, size, velocity);
 
+            // Particle effects
+            emit_elliptical_particles(pos, vec2{ 0.6f, 1.0f }, 0.0f, 30, 150.0f, vec2(0.0f), vec3{ 1.0f, 0.0, 0.0 }, 2.0f, 500.0f);
+
             firstBoss.num_of_projectiles_created++;
             firstBoss.projectile_timer_ms = BOSS_ONE_INTER_PROJECTILE_TIMER_MS;
+    }
+    else {
+        Entity& player_entity = registry.players.entities[0];
+        Motion& player_motion = registry.motions.get(player_entity);
+
+        int direction = (player_motion.position.x <= boss_motion.position.x) ? -1 : 1;
+
+        emit_gathering_particle(boss_motion.position + vec2{ direction * BOSS_ONE_BB_WIDTH_PX / 2 , 5.0f },
+            rand_float(15.0f, 25.0f), rand_float(300.0f, 400.0f), vec3{ 0.3f, 0.0f, 0.0f });
     }
 }
 
@@ -1124,8 +1078,20 @@ void boss_one_fast_projectile_attack(Entity& boss_entity, Boss& boss, Motion& bo
             vec2 velocity = vec2(BOSS_ONE_FAST_PROJECTILE_VELOCITY * direction, 0.f);
             create_projectile(pos, size, velocity);
 
+            // Particle effects
+            emit_elliptical_particles(pos, vec2{ 0.6f, 1.0f }, 0.0f, 30, 150.0f, vec2(0.0f), vec3{ 1.0f, 0.0, 0.0 }, 2.0f, 500.0f);
+
             firstBoss.num_of_projectiles_created++;
             firstBoss.projectile_timer_ms = BOSS_ONE_INTER_PROJECTILE_TIMER_MS;
+    }
+    else {
+        Entity& player_entity = registry.players.entities[0];
+        Motion& player_motion = registry.motions.get(player_entity);
+
+        int direction = (player_motion.position.x <= boss_motion.position.x) ? -1 : 1;
+
+        emit_gathering_particle(boss_motion.position + vec2{ direction * BOSS_ONE_BB_WIDTH_PX / 2 , 5.0f}, 
+            rand_float(15.0f, 25.0f), rand_float(200.0f, 300.0f), vec3{0.6f, 0.0f, 0.0f});
     }
 }
 

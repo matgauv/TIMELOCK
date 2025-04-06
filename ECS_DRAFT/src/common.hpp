@@ -183,7 +183,7 @@ const float BOSS_ONE_BB_WIDTH_PX = 50.f; // TODO: placeholder, we should adjust 
 const float BOSS_ONE_BB_HEIGHT_PX = 50.f; // TODO: placeholder, we should adjust this once the actual texture is ready
 const float BOSS_ONE_GROUND_SLAM_BB_WIDTH_PX = 200.f;
 const float BOSS_ONE_GROUND_SLAM_BB_HEIGHT_PX = 200.f;
-const float BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS = 3000.f; // for testing, use 15000.f, otherwise use 30000.f
+const float BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS = 10000.f; // for testing, use 15000.f, otherwise use 30000.f
 const int BOSS_ONE_NEXT_ATTACKS_VECTOR_MAX_SIZE = 10;
 
 const float BOSS_ONE_MAX_WALK_DURATION_MS = 5000.f; // use 1000.f for testing purposes, otherwise use 5000.f
@@ -272,6 +272,8 @@ const float TURBULENCE_EVOLUTION_SPEED = 1e-12f;
 const int TURBULENCE_OCTAVES = 1;
 
 const float COYOTE_PARTICLES_DURATION = 500.0f;
+
+const float SLAM_CRACKING_SIZE = 48.0f;
 
 const float BACKGROUND_WIDTH = 1920.0f;
 const float BACKGROUND_HEIGHT = 1080.0f;

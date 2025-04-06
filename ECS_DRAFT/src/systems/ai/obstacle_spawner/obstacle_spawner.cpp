@@ -37,7 +37,7 @@ void create_obstacle(ObstacleSpawner& spawner) {
         phys.apply_air_resistance = false;
         phys.apply_rotation = true;
         phys.apply_gravity = true;
-        phys.mass = 100.0f;
+        phys.mass = 50.0f;
         phys.bounce = 0.4f;
 
         Motion& motion = registry.motions.get(spikeball);

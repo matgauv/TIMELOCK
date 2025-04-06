@@ -4,6 +4,7 @@
 #include "../../../tinyECS/component_container.hpp"
 #include "../../../tinyECS/components.hpp"
 #include "../../../tinyECS/registry.hpp"
+#include "../../particle/particle_system.hpp"
 
 void delayed_projectile_step(float elapsed_ms);
 

@@ -64,6 +64,7 @@ const float NORMAL_FACTOR = 1.0f;
 
 // For Breakable Wall
 const float TIME_CONTROL_VICINITY_THRESHOLD = 150.f;
+const float BREAKABLE_WALL_HEALTH = 1000.f;
 
 // TODO: increase these for game...
 const float ACCELERATION_COOLDOWN_MS = 1500.0f;
@@ -131,10 +132,15 @@ const float CAMERA_BOUNDARY_PADDING = 0.85f;
 const float CAMERA_SCREEN_SPACING_FOR_MOTION_RATIO = 1.0f / 10.0f;
 const float CAMERA_VELOCITY_CLAMP_THRESHOLD = 40.0f;
 
+const float CAMERA_SHAKE_DECAY = 0.9f;
+
 // Projectile properties
 const float PROJECTILE_WIDTH_PX = 40.0f;
 const float PROJECTILE_HEIGHT_PX = 40.0f;
 const float PROJECTILE_SPEED = (float) WINDOW_WIDTH_PX / 5.f; // projectile should travel across the entire screen in 5 seconds
+
+const float DELAYED_PROJ_SIGNAL_START_MS = 425.0f;
+const float DELAYED_PROJ_SIGNAL_DURATION_MS = 300.0f;
 
 // General boss battle related properties
 const float PLAYER_ATTACK_DAMAGE = 20.0f;
@@ -180,7 +186,7 @@ const float BOSS_ONE_BB_WIDTH_PX = 50.f; // TODO: placeholder, we should adjust 
 const float BOSS_ONE_BB_HEIGHT_PX = 50.f; // TODO: placeholder, we should adjust this once the actual texture is ready
 const float BOSS_ONE_GROUND_SLAM_BB_WIDTH_PX = 200.f;
 const float BOSS_ONE_GROUND_SLAM_BB_HEIGHT_PX = 200.f;
-const float BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS = 30000.f; // for testing, use 10000.f, otherwise use 30000.f
+const float BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS = 30000.f; // for testing, use 15000.f, otherwise use 30000.f
 const int BOSS_ONE_NEXT_ATTACKS_VECTOR_MAX_SIZE = 10;
 const float BOSS_ONE_HEALTH_BAR_WIDTH = 500.f;
 const float BOSS_ONE_HEALTH_BAR_HEIGHT = 50.f;
@@ -231,7 +237,7 @@ const float BOSS_ONE_DASH_DURATION_MS = 4000.f;
 
 const float BOSS_ONE_GROUND_SLAM_INIT_DURATION_MS = 500.f;
 const float BOSS_ONE_GROUND_SLAM_RISE_VELOCITY = -100.f; // for testing purposes, use -50.f, otherwise, the boss should take about 1~2 seconds to rise
-const float BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY = 300.f; // for testing purposes, use 300.f, otherwise, the boss should slam down in 0.25~0.5 seconds
+const float BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY = 700.f; // for testing purposes, use 300.f, otherwise, the boss should slam down in 0.25~0.5 seconds
 const float BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION = 275.f; // for testing purposes, use 600.f, otherwise, the boss should be at the 1/3 point from the top
 const float BOSS_ONE_FIRST_GROUND_SLAM_FOLLOW_DURATION_MS = 3000.f;
 const float BOSS_ONE_SECOND_GROUND_SLAM_FOLLOW_DURATION_MS = 2000.f;
@@ -239,6 +245,8 @@ const float BOSS_ONE_THIRD_GROUND_SLAM_FOLLOW_DURATION_MS = 5000.f;
 const float BOSS_ONE_GROUND_SLAM_LAND_DURATION_MS = 1000.f;
 const float BOSS_ONE_GROUND_SLAM_IMPACT_WIDTH_PX = 32.f; // for testing purposes, use 20.f, otherwise, 100.f
 const float PLAYER_ON_BOSS_GROUND_POSITION_Y_THRESHOLD = 392.f;
+
+const float BOSS_EXHALE_PERIOD_MS = std::floor(BOSS_ONE_MAX_EXHAUSTED_DURATION_MS / 12.0f);
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f
@@ -284,6 +292,8 @@ const int TURBULENCE_OCTAVES = 1;
 
 const float COYOTE_PARTICLES_DURATION = 500.0f;
 
+const float SLAM_CRACKING_SIZE = 48.0f;
+
 const float BACKGROUND_WIDTH = 1920.0f;
 const float BACKGROUND_HEIGHT = 1080.0f;
 
@@ -317,8 +327,10 @@ const vec4 PLAYER_DEAD_HALO = vec4(0.1f, 0.1f, 0.1f, 1.0f);
 const vec4 BOSS_IDLE_HALO = vec4(1.f, 1.f, 0.7f, 1.0f); // light yellow
 const vec4 BOSS_NORMAL_HALO = vec4(1.f, 0.5f, 0.f, 1.0f); // orange
 const vec4 BOSS_ATTACK_HALO = vec4(1.f, 0.0f, 0.0f, 1.0f); // red
+const vec4 BOSS_SUMMONING_HALO = vec4(1.f, 1.0f, 0.3f, 1.0f); // bright yellow
 const vec4 BOSS_EXHAUST_HALO = vec4(0.0f, 1.0f, 0.9f, 1.0f); // cyan
 const vec4 BOSS_DAMAGED_HALO = vec4(0.1f, 0.1f, 0.1f, 1.0f); // black
+const vec4 BOSS_RECOVER_HALO = BOSS_IDLE_HALO; // light yellow
 const vec4 BOSS_DASH_HALO = vec4(0.7f, 0.0f, 1.0f, 1.0f); // purple
 
 // The 'Transform' component handles transformations passed to the Vertex shader

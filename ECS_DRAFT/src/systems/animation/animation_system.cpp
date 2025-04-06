@@ -30,6 +30,7 @@ void AnimationSystem::step(float elapsed_ms) {
 
 		updateTimer(animateRequest, animationConfig, timeFactor * elapsed_ms);
 
+		/*
 		// Update Render Request
 		if (renderRequest_registry.has(entity)) {
 			RenderRequest& renderRequest = renderRequest_registry.get(entity);
@@ -41,7 +42,7 @@ void AnimationSystem::step(float elapsed_ms) {
 			int frame = min((int)(animateRequest.timer / animationConfig.ms_per_frame), animationConfig.frame_count - 1);
 			float start_u_coord = (float)frame / (float)animationConfig.frame_count;
 			animateRequest.tex_u_range = {start_u_coord, start_u_coord + 1./animationConfig.frame_count};
-		}
+		}*/
 	}
 }
 
@@ -68,5 +69,26 @@ void AnimationSystem::updateTimer(AnimateRequest& animateRequest, const Animatio
 }
 
 void AnimationSystem::late_step(float elapsed_ms) {
-	(void)elapsed_ms;
+	auto& animateRequest_registry = registry.animateRequests;
+	auto& renderRequest_registry = registry.renderRequests;
+
+	for (int i = 0; i < animateRequest_registry.size(); i++) {
+		Entity entity = animateRequest_registry.entities[i];
+		AnimateRequest& animateRequest = animateRequest_registry.components[i];
+
+		const AnimationConfig& animationConfig = this->animation_collections.at(animateRequest.used_animation);
+
+		// Update Render Request
+		if (renderRequest_registry.has(entity)) {
+			RenderRequest& renderRequest = renderRequest_registry.get(entity);
+			if (renderRequest.used_texture != animationConfig.sprite_texture) {
+				renderRequest.used_texture = animationConfig.sprite_texture;
+			}
+
+			// Calculate Frame
+			int frame = min((int)(animateRequest.timer / animationConfig.ms_per_frame), animationConfig.frame_count - 1);
+			float start_u_coord = (float)frame / (float)animationConfig.frame_count;
+			animateRequest.tex_u_range = { start_u_coord, start_u_coord + 1. / animationConfig.frame_count };
+		}
+	}
 }

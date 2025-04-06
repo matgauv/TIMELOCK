@@ -48,6 +48,7 @@ public:
 	void setSound(bool play_sound) {this->play_sound = play_sound; }
 
 	// Should likely aggregate these into a utils class
+	static void crack_breakable_platform(Entity entity);
 	static void destroy_breakable_platform(Entity entity);
 
 	static void destroy_projectile(Entity entity);

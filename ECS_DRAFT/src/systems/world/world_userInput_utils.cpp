@@ -44,12 +44,15 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Activate acceleration
 	if (key == GLFW_KEY_EQUAL && action == GLFW_RELEASE) {
+		/*
 		if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED) {
 			control_time(true, false, false);
 		}
 		else {
 			control_time(true, true, false);
-		}
+		}*/
+
+		CameraSystem::shake_camera(20.0f, 15.0f);
 	}
 
 	// Activate deceleration
@@ -114,21 +117,33 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
 		LevelState& levelState = registry.levelStates.components[0];
 		levelState.curr_level_folder_name = "Level_1";
-		levelState.ground = TEXTURE_ASSET_ID::A_TUTORIAL_GROUND;
+		levelState.ground = TEXTURE_ASSET_ID::DECEL_LEVEL_1_GROUND;
 		levelState.shouldLoad = true;
 	}
 
 	if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
 		LevelState& levelState = registry.levelStates.components[0];
 		levelState.curr_level_folder_name = "Level_2";
-		levelState.ground = TEXTURE_ASSET_ID::DECEL_LEVEL_GROUND;
+		levelState.ground = TEXTURE_ASSET_ID::DECEL_LEVEL_2_GROUND;
 		levelState.shouldLoad = true;
 	}
 
 	if (key == GLFW_KEY_4 && action == GLFW_PRESS) {
 		LevelState& levelState = registry.levelStates.components[0];
 		levelState.curr_level_folder_name = "Level_3";
-		levelState.ground = TEXTURE_ASSET_ID::DECEL_LEVEL_GROUND;
+		levelState.ground = TEXTURE_ASSET_ID::DECEL_LEVEL_3_GROUND;
+		levelState.shouldLoad = true;
+	}
+	if (key == GLFW_KEY_5 && action == GLFW_PRESS) {
+		LevelState& levelState = registry.levelStates.components[0];
+		levelState.curr_level_folder_name = "Level_4";
+		levelState.ground = TEXTURE_ASSET_ID::BOSS_TUTORIAL_GROUND;
+		levelState.shouldLoad = true;
+	}
+	if (key == GLFW_KEY_6 && action == GLFW_PRESS) {
+		LevelState& levelState = registry.levelStates.components[0];
+		levelState.curr_level_folder_name = "Level_5";
+		levelState.ground = TEXTURE_ASSET_ID::BOSS_ONE_LEVEL_GROUND;
 		levelState.shouldLoad = true;
 	}
 

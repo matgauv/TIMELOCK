@@ -87,6 +87,7 @@ enum class BOSS_ATTACK_ID {
 	TOTAL_COUNT = BOSS1_DASH_ATTACK + 1
 };
 
+
 // Player component
 struct Player
 {
@@ -183,6 +184,8 @@ struct MovementPath
 struct Camera
 {
 	float horizontal_offset = 0.0f;
+	float shake_amplitude = 0.0f;
+	float shake_frequency = 1.0f;
 };
 
 // PhysicsObject means that the component will obey physics
@@ -438,6 +441,7 @@ struct Delayed
 {
 	float timer_ms; // timer until being fired
 	vec2 velocity; // velocity to use
+	bool signaled = false; // summon signal
 };
 
 // A struct indicating that an entity is a spike
@@ -468,6 +472,7 @@ struct Breakable
 	float health;
 	float degrade_speed_per_ms; // should be negative
 	bool should_break_instantly; 
+	std::vector<unsigned int> cracking_particles;
 };
 
 // A struct indicating that an entity is an enemy boss
@@ -597,8 +602,8 @@ enum class TEXTURE_ASSET_ID {
 	// Backgrounds
 	D_TUTORIAL_GROUND = BARREL + 1,
 	A_TUTORIAL_GROUND = D_TUTORIAL_GROUND + 1,
-	DECEL_LEVEL_GROUND = A_TUTORIAL_GROUND +1,
-	BOSS_ONE_LEVEL_GROUND = DECEL_LEVEL_GROUND + 1,
+	DECEL_LEVEL_1_GROUND = A_TUTORIAL_GROUND +1,
+	BOSS_ONE_LEVEL_GROUND = DECEL_LEVEL_1_GROUND + 1,
 	
 	TILE = BOSS_ONE_LEVEL_GROUND + 1,
 	
@@ -620,9 +625,14 @@ enum class TEXTURE_ASSET_ID {
 	COYOTE_PARTICLES = BREAKABLE_FRAGMENTS + 1,
 	SCREW_FRAGMENTS = COYOTE_PARTICLES + 1,
 	HEX_FRAGMENTS = SCREW_FRAGMENTS + 1,
+	CRACKING_RADIAL = HEX_FRAGMENTS + 1,
+	CRACKING_DOWNWARD = CRACKING_RADIAL + 1,
+	EXHALE = CRACKING_DOWNWARD + 1,
+	BROKEN_PARTS = EXHALE + 1,
+	CROSS_STAR = BROKEN_PARTS + 1,
 	
 	// Boss
-	BOSS_ONE_IDLE_LEFT = HEX_FRAGMENTS + 1,
+	BOSS_ONE_IDLE_LEFT = CROSS_STAR + 1,
 	BOSS_ONE_IDEL_RIGHT = BOSS_ONE_IDLE_LEFT + 1,
 	BOSS_ONE_EXHAUSTED = BOSS_ONE_IDEL_RIGHT + 1,
 	BOSS_ONE_DAMAGED = BOSS_ONE_EXHAUSTED + 1,
@@ -648,8 +658,11 @@ enum class TEXTURE_ASSET_ID {
 	
 	// UI
 	DECEL_BAR = TUTORIAL_TEXT + 1,
-	
-	TEXTURE_COUNT = DECEL_BAR + 1
+	DECEL_LEVEL_2_GROUND = DECEL_BAR + 1,
+	DECEL_LEVEL_3_GROUND = DECEL_LEVEL_2_GROUND + 1,
+	BOSS_TUTORIAL_GROUND = DECEL_LEVEL_3_GROUND + 1,
+	BOSS_TUTORIAL_TEXT = BOSS_TUTORIAL_GROUND + 1,
+	TEXTURE_COUNT = BOSS_TUTORIAL_TEXT + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -694,8 +707,12 @@ enum class ANIMATION_ID {
 	COYOTE_PARTICLES = BREAKABLE_FRAGMENTS + 1,
 	SCREW_FRAGMENTS = COYOTE_PARTICLES + 1,
 	HEX_FRAGMENTS = SCREW_FRAGMENTS + 1,
+	CRACKING_RADIAL = HEX_FRAGMENTS + 1,
+	CRACKING_DOWNWARD = CRACKING_RADIAL + 1,
+	EXHALE = CRACKING_DOWNWARD + 1,
+	BROKEN_PARTS = EXHALE + 1,
 
-	BOSS_ONE_IDLE = HEX_FRAGMENTS + 1,
+	BOSS_ONE_IDLE = BROKEN_PARTS + 1,
 	BOSS_ONE_WALK = BOSS_ONE_IDLE + 1,
 	BOSS_ONE_EXHAUSTED = BOSS_ONE_WALK + 1,
 	BOSS_ONE_DAMAGED = BOSS_ONE_EXHAUSTED + 1,
@@ -786,7 +803,12 @@ enum class PARTICLE_ID {
 	COYOTE_PARTICLES = BREAKABLE_FRAGMENTS + 1,
 	SCREW_FRAGMENTS = COYOTE_PARTICLES + 1,
 	HEX_FRAGMENTS = SCREW_FRAGMENTS + 1,
-	PARTICLE_TYPE_COUNT = HEX_FRAGMENTS + 1
+	CRACKING_RADIAL = HEX_FRAGMENTS + 1,
+	CRACKING_DOWNWARD = CRACKING_RADIAL + 1,
+	EXHALE = CRACKING_DOWNWARD + 1,
+	BROKEN_PARTS = EXHALE + 1,
+	CROSS_STAR = BROKEN_PARTS + 1,
+	PARTICLE_TYPE_COUNT = CROSS_STAR + 1
 };
 
 const int particle_type_count = (int)PARTICLE_ID::PARTICLE_TYPE_COUNT;

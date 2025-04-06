@@ -19,9 +19,14 @@ public:
 	}
 	static vec2 restricted_boundary_position(vec2 raw_target, vec2 camera_scale);
 	static vec2 get_camera_offsets(vec2 camera_scale);
+
+	static void shake_camera(float amplitude, float frequency);
 private:
 	GLFWwindow* window = nullptr;
 
 	void follow(Motion& cam_motion, vec2 target, vec2 scale = {1.0, 1.0});
 	void reset(Motion& cam_motion, vec2 target, vec2 scale = { 1.0, 1.0 });
+
+	float seeded_pseudo_rand_1D(float input);
+	float sample_from_perlin_noise(float input);
 };

@@ -4,6 +4,8 @@
 #include "../../../tinyECS/component_container.hpp"
 #include "../../../tinyECS/components.hpp"
 #include "../../../tinyECS/registry.hpp"
+#include "boss_one_vfx_utils.hpp"
+
 #include <random>
 
 // Creates the first boss entity and its relevant components

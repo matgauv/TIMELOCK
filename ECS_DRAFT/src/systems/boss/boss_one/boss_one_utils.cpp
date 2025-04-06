@@ -498,6 +498,22 @@ void boss_one_delayed_projectile_step(Entity& boss_entity, Boss& boss, Motion& b
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_WALK;
     }
+    else {
+        float ANGLE_RIGHT = M_PI *7.0f/ 4.0f;
+        float ANGLE_LEFT = M_PI *5.0f/ 4.0f;
+
+        float angle_offset = M_PI / 3.0f * sinf(boss.timer_ms * 0.01f);
+
+        vec2 direction_right = angle_to_direction(ANGLE_RIGHT + angle_offset);
+        ParticleSystem::spawn_particle(BOSS_SUMMONING_HALO,
+            boss_motion.position + vec2{ boss_motion.scale.x/3.0f, -5.0f }, 0.0, vec2(2.5f), 
+            direction_right * 65.0f + 10.0f * rand_direction(), 500.0f, 0.8f, {0.0, 250.0f}, {50.0f, 0.0f});
+
+        vec2 direction_left = angle_to_direction(ANGLE_LEFT - angle_offset);
+        ParticleSystem::spawn_particle(BOSS_SUMMONING_HALO,
+            boss_motion.position + vec2{ -boss_motion.scale.x / 3.0f, -5.0f }, 0.0, vec2(2.5f), 
+            direction_left * 65.0f + 10.0f * rand_direction(), 500.0f, 0.8f, { 0.0, 250.0f }, { 50.0f, 0.0f });
+    }
 
 }
 
@@ -1038,18 +1054,18 @@ void boss_one_regular_projectile_attack(Entity& boss_entity, Boss& boss, Motion&
             create_projectile(pos, size, velocity);
 
             // Particle effects
-            emit_elliptical_particles(pos, vec2{ 0.6f, 1.0f }, 0.0f, 30, 150.0f, vec2(0.0f), vec3{ 1.0f, 0.0, 0.0 }, 2.0f, 500.0f);
+            emit_elliptical_particles(pos, vec2{ 0.6f, 1.0f }, 0.0f, 30, 100.0f, vec2(0.0f), vec3{ 1.0f, 0.0, 0.0 }, 2.0f, 350.0f);
 
             firstBoss.num_of_projectiles_created++;
             firstBoss.projectile_timer_ms = BOSS_ONE_INTER_PROJECTILE_TIMER_MS;
     }
-    else {
+    else if (firstBoss.num_of_projectiles_created == 0){
         Entity& player_entity = registry.players.entities[0];
         Motion& player_motion = registry.motions.get(player_entity);
 
         int direction = (player_motion.position.x <= boss_motion.position.x) ? -1 : 1;
 
-        emit_gathering_particle(boss_motion.position + vec2{ direction * BOSS_ONE_BB_WIDTH_PX / 2 , 5.0f },
+        emit_gathering_particle(boss_motion.position + vec2{ direction * BOSS_ONE_BB_WIDTH_PX / 2 , 8.0f },
             rand_float(15.0f, 25.0f), rand_float(300.0f, 400.0f), vec3{ 0.3f, 0.0f, 0.0f });
     }
 }
@@ -1079,18 +1095,18 @@ void boss_one_fast_projectile_attack(Entity& boss_entity, Boss& boss, Motion& bo
             create_projectile(pos, size, velocity);
 
             // Particle effects
-            emit_elliptical_particles(pos, vec2{ 0.6f, 1.0f }, 0.0f, 30, 150.0f, vec2(0.0f), vec3{ 1.0f, 0.0, 0.0 }, 2.0f, 500.0f);
+            emit_elliptical_particles(pos, vec2{ 0.6f, 1.0f }, 0.0f, 30, 100.0f, vec2(0.0f), vec3{ 1.0f, 0.0, 0.0 }, 2.0f, 350.0f);
 
             firstBoss.num_of_projectiles_created++;
             firstBoss.projectile_timer_ms = BOSS_ONE_INTER_PROJECTILE_TIMER_MS;
     }
-    else {
+    else if (firstBoss.num_of_projectiles_created == 0) {
         Entity& player_entity = registry.players.entities[0];
         Motion& player_motion = registry.motions.get(player_entity);
 
         int direction = (player_motion.position.x <= boss_motion.position.x) ? -1 : 1;
 
-        emit_gathering_particle(boss_motion.position + vec2{ direction * BOSS_ONE_BB_WIDTH_PX / 2 , 5.0f}, 
+        emit_gathering_particle(boss_motion.position + vec2{ direction * BOSS_ONE_BB_WIDTH_PX / 2 , 8.0f}, 
             rand_float(15.0f, 25.0f), rand_float(200.0f, 300.0f), vec3{0.6f, 0.0f, 0.0f});
     }
 }
@@ -1114,6 +1130,9 @@ void create_delayed_projectile(vec2 pos, float timer_ms) {
     // add Delayed component
     Delayed& delayed = registry.delayeds.emplace(entity);
     delayed.timer_ms = timer_ms;
+
+    // Particle effects
+    emit_elliptical_particles(pos, vec2(1.0f), 0.0f, 45, 80.0f, vec2(0.0f), BOSS_SUMMONING_HALO, 3.0f, 350.0f);
 }
 
 void choose_regular_projectile_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_player_to_boss_left) {

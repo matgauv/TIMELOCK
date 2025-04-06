@@ -20,6 +20,7 @@ uniform sampler2D texture6; // Radial Cracking
 uniform sampler2D texture7; // Downward Cracking
 uniform sampler2D texture8; // Exhale
 uniform sampler2D texture9; // Broken Parts
+uniform sampler2D texture10; // Cross Star
 
 // Output color
 layout(location = 0) out  vec4 color;
@@ -60,6 +61,9 @@ void main()
                 break;
             case 9:
                 color = texture(texture9, texcoord);
+                break;
+            case 10:
+                color = texture(texture10, texcoord);
                 break;
             default:
                 color = vec4(0.0, 0.0, 0.0, 1.0);

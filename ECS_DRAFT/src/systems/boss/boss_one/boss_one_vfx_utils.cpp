@@ -38,7 +38,6 @@ void update_boss_halo(const Entity boss_entity, const Boss& boss) {
         halo_request.target_color = BOSS_DASH_HALO;
     }
     else if (
-        boss.boss_state == BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE ||
         boss.boss_state == BOSS_STATE::BOSS1_FAST_PROJECTILE_ATTACK_STATE ||
         boss.boss_state == BOSS_STATE::BOSS1_REGULAR_PROJECTILE_ATTACK_STATE ||
         boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_LAND_1_STATE ||
@@ -48,6 +47,9 @@ void update_boss_halo(const Entity boss_entity, const Boss& boss) {
         boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_2_STATE ||
         boss.boss_state == BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_3_STATE) {
         halo_request.target_color = BOSS_ATTACK_HALO;
+    }
+    else if ( boss.boss_state == BOSS_STATE::BOSS1_DELAYED_PROJECTILE_ATTACK_STATE){
+        halo_request.target_color = BOSS_SUMMONING_HALO;
     }
     else {
         halo_request.target_color = BOSS_NORMAL_HALO;
@@ -105,7 +107,7 @@ void emit_gathering_particle(vec2 center, float radius, float life, vec3 color) 
 // Consider migrate to world system
 void emit_elliptical_particles(vec2 center, vec2 dimension, float angle_rad, int count, float local_speed, vec2 global_velocity, vec3 color, float size, float life) {
     for (int i = 0; i < count; i++) {
-        vec2 disp_dir = random_sample_ellipse(vec2(0.0f), dimension, angle_rad);
+        vec2 disp_dir = rotate_2D(rand_direction() * dimension, angle_rad);
 
         vec2 velocity = local_speed * disp_dir + global_velocity;
 

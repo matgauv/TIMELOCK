@@ -440,6 +440,7 @@ struct Delayed
 {
 	float timer_ms; // timer until being fired
 	vec2 velocity; // velocity to use
+	bool signaled = false; // summon signal
 };
 
 // A struct indicating that an entity is a spike
@@ -622,9 +623,10 @@ enum class TEXTURE_ASSET_ID {
 	CRACKING_DOWNWARD = CRACKING_RADIAL + 1,
 	EXHALE = CRACKING_DOWNWARD + 1,
 	BROKEN_PARTS = EXHALE + 1,
+	CROSS_STAR = BROKEN_PARTS + 1,
 	
 	// Boss
-	BOSS_ONE_IDLE_LEFT = BROKEN_PARTS + 1,
+	BOSS_ONE_IDLE_LEFT = CROSS_STAR + 1,
 	BOSS_ONE_IDEL_RIGHT = BOSS_ONE_IDLE_LEFT + 1,
 	BOSS_ONE_EXHAUSTED = BOSS_ONE_IDEL_RIGHT + 1,
 	BOSS_ONE_DAMAGED = BOSS_ONE_EXHAUSTED + 1,
@@ -794,7 +796,8 @@ enum class PARTICLE_ID {
 	CRACKING_DOWNWARD = CRACKING_RADIAL + 1,
 	EXHALE = CRACKING_DOWNWARD + 1,
 	BROKEN_PARTS = EXHALE + 1,
-	PARTICLE_TYPE_COUNT = BROKEN_PARTS + 1
+	CROSS_STAR = BROKEN_PARTS + 1,
+	PARTICLE_TYPE_COUNT = CROSS_STAR + 1
 };
 
 const int particle_type_count = (int)PARTICLE_ID::PARTICLE_TYPE_COUNT;

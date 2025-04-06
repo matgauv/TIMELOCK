@@ -28,6 +28,14 @@ void delayed_projectile_step(float elapsed_ms) {
 
             registry.delayeds.remove(entity);
         }
+        else if (!delayed.signaled&& delayed.timer_ms <= DELAYED_PROJ_SIGNAL_START_MS) {
+            Motion& motion = registry.motions.get(entity);
+
+            ParticleSystem::spawn_particle(PARTICLE_ID::CROSS_STAR,
+                motion.position, 0.0f, motion.scale * 4.0f, vec2(0.0f), DELAYED_PROJ_SIGNAL_DURATION_MS, 1.0f,
+                { 0.1f * DELAYED_PROJ_SIGNAL_DURATION_MS, 0.0f }, { 0.1f * DELAYED_PROJ_SIGNAL_DURATION_MS, 0.9f * DELAYED_PROJ_SIGNAL_DURATION_MS });
+            delayed.signaled = true;
+        }
     }
 }
 

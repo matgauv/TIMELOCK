@@ -139,6 +139,9 @@ const float PROJECTILE_WIDTH_PX = 40.0f;
 const float PROJECTILE_HEIGHT_PX = 40.0f;
 const float PROJECTILE_SPEED = (float) WINDOW_WIDTH_PX / 5.f; // projectile should travel across the entire screen in 5 seconds
 
+const float DELAYED_PROJ_SIGNAL_START_MS = 600.0f;
+const float DELAYED_PROJ_SIGNAL_DURATION_MS = 300.0f;
+
 // General boss battle related properties
 const float PLAYER_ATTACK_DAMAGE = 20.0f;
 
@@ -183,7 +186,7 @@ const float BOSS_ONE_BB_WIDTH_PX = 50.f; // TODO: placeholder, we should adjust 
 const float BOSS_ONE_BB_HEIGHT_PX = 50.f; // TODO: placeholder, we should adjust this once the actual texture is ready
 const float BOSS_ONE_GROUND_SLAM_BB_WIDTH_PX = 200.f;
 const float BOSS_ONE_GROUND_SLAM_BB_HEIGHT_PX = 200.f;
-const float BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS = 10000.f; // for testing, use 15000.f, otherwise use 30000.f
+const float BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS = 30000.f; // for testing, use 15000.f, otherwise use 30000.f
 const int BOSS_ONE_NEXT_ATTACKS_VECTOR_MAX_SIZE = 10;
 
 const float BOSS_ONE_MAX_WALK_DURATION_MS = 5000.f; // use 1000.f for testing purposes, otherwise use 5000.f
@@ -320,6 +323,7 @@ const vec4 PLAYER_DEAD_HALO = vec4(0.1f, 0.1f, 0.1f, 1.0f);
 const vec4 BOSS_IDLE_HALO = vec4(1.f, 1.f, 0.7f, 1.0f); // light yellow
 const vec4 BOSS_NORMAL_HALO = vec4(1.f, 0.5f, 0.f, 1.0f); // orange
 const vec4 BOSS_ATTACK_HALO = vec4(1.f, 0.0f, 0.0f, 1.0f); // red
+const vec4 BOSS_SUMMONING_HALO = vec4(1.f, 1.0f, 0.3f, 1.0f); // bright yellow
 const vec4 BOSS_EXHAUST_HALO = vec4(0.0f, 1.0f, 0.9f, 1.0f); // cyan
 const vec4 BOSS_DAMAGED_HALO = vec4(0.1f, 0.1f, 0.1f, 1.0f); // black
 const vec4 BOSS_RECOVER_HALO = BOSS_IDLE_HALO; // light yellow

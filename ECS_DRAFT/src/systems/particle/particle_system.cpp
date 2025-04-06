@@ -241,6 +241,12 @@ bool ParticleSystem::handle_particle_type(Entity entity, PARTICLE_ID particle_id
 			registry.animateRequests.emplace(entity).used_animation = ANIMATION_ID::BROKEN_PARTS;
 			break;
 		}
+		case PARTICLE_ID::CROSS_STAR: {
+			Particle& par = registry.particles.get(entity);
+			par.angle = rand_float(0.0f, 360.0f);
+			par.ang_velocity = rand_float(-180.0f, 180.0f);
+			break;
+		}
 		default:
 			success = false;
 			break;

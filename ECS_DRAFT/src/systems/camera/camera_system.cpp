@@ -25,7 +25,7 @@ void CameraSystem::step(float elapsed_ms) {
 	if (gameState.is_in_boss_fight) {
 		// We actually need better tuning of camera motions for boss fight transition
 		const LevelState& levelState = registry.levelStates.components[0];
-		const float scale_factor = min(WINDOW_WIDTH_PX / levelState.dimensions.x, WINDOW_HEIGHT_PX / levelState.dimensions.y);
+		const float scale_factor = min(WINDOW_WIDTH_PX / levelState.dimensions.x, WINDOW_HEIGHT_PX / levelState.dimensions.y) * 1.03f;
 		follow(camera_motion, levelState.dimensions * 0.5f, 
 			vec2(scale_factor));
 	}

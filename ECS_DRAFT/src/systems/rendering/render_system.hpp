@@ -79,6 +79,7 @@ class RenderSystem : public ISystem {
 		textures_path("particles/Cracking_Downward.png"),
 		textures_path("particles/Exhale.png"),
 		textures_path("particles/Broken_Parts.png"),
+		textures_path("particles/Cross_Star.png"),
 		textures_path("boss/lookleft.png"),
 		textures_path("boss/lookright.png"),
 		textures_path("boss/exhausted.png"),

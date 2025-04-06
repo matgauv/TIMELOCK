@@ -29,19 +29,21 @@ void ParticleSystem::step(float elapsed_ms) {
 		const Entity entity = registry.particles.entities[i];
 		Particle &particle = registry.particles.components[i];
 
-		// Eliminate if out of camera range
-		vec2 camera_pos = registry.motions.get(registry.cameras.entities[0]).position;
-		if (glm::length(particle.position - camera_pos) > MAX_CAMERA_DISTANCE) {
-			registry.remove_all_components_of(entity);
-		}
-
 		const float time_change_s = time_factor * elapsed_ms * 0.001f;
-		
-		particle.timer += time_change_s * 1000.0f;
 
-		// Eliminate if dead
-		if (particle.timer > particle.life) {
-			registry.remove_all_components_of(entity);
+		if (particle.particle_id != PARTICLE_ID::CRACKING_RADIAL) {
+			// Eliminate if out of camera range
+			vec2 camera_pos = registry.motions.get(registry.cameras.entities[0]).position;
+			if (glm::length(particle.position - camera_pos) > MAX_CAMERA_DISTANCE) {
+				registry.remove_all_components_of(entity);
+			}
+
+			particle.timer += time_change_s * 1000.0f;
+
+			// Eliminate if dead
+			if (particle.timer > particle.life) {
+				registry.remove_all_components_of(entity);
+			}
 		}
 
 		// Update motion
@@ -49,15 +51,15 @@ void ParticleSystem::step(float elapsed_ms) {
 		particle.angle += (time_change_s * particle.ang_velocity);
 		particle.angle = fmod(fmod(particle.angle, 360.0f) + 360.0f, 360.0f);
 
-		if (particle.wind_influence > 1e-4) {
+		if (abs(particle.wind_influence) > 1e-4) {
 			particle.position += (time_change_s * system_state.wind_field * particle.wind_influence);
 		}
 
-		if (particle.gravity_influence > 1e-4) {
+		if (abs(particle.gravity_influence) > 1e-4) {
 			particle.velocity += (time_change_s * system_state.gravity_field * particle.gravity_influence);
 		}
 
-		if (particle.turbulence_influence > 1e-4 && system_state.turbulence_strength > 1e-4 && system_state.turbulence_scale > 1e-2) {
+		if (abs(particle.turbulence_influence) > 1e-4 && system_state.turbulence_strength > 1e-4 && system_state.turbulence_scale > 1e-2) {
 			particle.velocity += 
 				(time_change_s * system_state.turbulence_strength * angle_to_direction(
 					M_PI * 2.0f * sample_from_turbulence(vec3(particle.position / system_state.turbulence_scale, system_time))));
@@ -80,7 +82,7 @@ void ParticleSystem::late_step(float elapsed_ms) {
 }
 
 // Spawn with arbitrary particle id
-bool ParticleSystem::spawn_particle(
+unsigned int ParticleSystem::spawn_particle(
 	PARTICLE_ID particle_id, 
 	vec2 pos, float angle, vec2 scale, vec2 velocity,
 	float life,
@@ -103,11 +105,15 @@ bool ParticleSystem::spawn_particle(
 		alpha, fade_in_out, shrink_in_out,
 		wind_influence, gravity_influence, turbulence_influence);
 	
-	return handle_particle_type(entity, particle_id);
+	if (handle_particle_type(entity, particle_id)) {
+		return entity.id();
+	}
+
+	return 0;
 }
 
 // Spawn with color
-bool ParticleSystem::spawn_particle(
+unsigned int ParticleSystem::spawn_particle(
 	vec3 color,
 	vec2 pos, float angle, vec2 scale, vec2 velocity,
 	float life,
@@ -132,7 +138,7 @@ bool ParticleSystem::spawn_particle(
 
 	registry.colors.emplace(entity, color);
 
-	return true;
+	return entity.id();
 }
 
 Entity ParticleSystem::set_basic_particle(
@@ -204,6 +210,41 @@ bool ParticleSystem::handle_particle_type(Entity entity, PARTICLE_ID particle_id
 		}
 		case PARTICLE_ID::COYOTE_PARTICLES: {
 			registry.animateRequests.emplace(entity).used_animation = ANIMATION_ID::COYOTE_PARTICLES;
+			break;
+		}
+		case PARTICLE_ID::CRACKING_RADIAL: {
+			Particle& par = registry.particles.get(entity);
+			par.angle = (int)(rand_float(0.0, 4.0)) * 90.0f;
+
+			registry.animateRequests.emplace(entity).used_animation = ANIMATION_ID::CRACKING_RADIAL;
+			break;
+		}
+		case PARTICLE_ID::CRACKING_DOWNWARD: {
+			registry.animateRequests.emplace(entity).used_animation = ANIMATION_ID::CRACKING_DOWNWARD;
+			break;
+		}
+		case PARTICLE_ID::EXHALE: {
+			Particle& par = registry.particles.get(entity);
+			par.angle = rand_float(0.0f, 360.0f);
+			par.ang_velocity = rand_float(10.0, 20.0f) * glm::sign(par.velocity.x);
+			par.gravity_influence = -0.05f;
+
+			registry.animateRequests.emplace(entity).used_animation = ANIMATION_ID::EXHALE;
+			break;
+		}
+		case PARTICLE_ID::BROKEN_PARTS: {
+			Particle& par = registry.particles.get(entity);
+			par.angle = rand_float(0.0f, 360.0f);
+			par.ang_velocity = rand_float(-20.0f, 20.0f);
+			par.gravity_influence = 0.3f;
+
+			registry.animateRequests.emplace(entity).used_animation = ANIMATION_ID::BROKEN_PARTS;
+			break;
+		}
+		case PARTICLE_ID::CROSS_STAR: {
+			Particle& par = registry.particles.get(entity);
+			par.angle = rand_float(0.0f, 360.0f);
+			par.ang_velocity = rand_float(-180.0f, 180.0f);
 			break;
 		}
 		default:

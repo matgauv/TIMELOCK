@@ -9,6 +9,7 @@ enum class GAME_RUNNING_STATE {
 	OVER = PAUSED + 1,
 	SHOULD_RESET = OVER + 1,
 	LOADING = SHOULD_RESET + 1,
+	MENU = LOADING + 1,
 };
 
 enum class TIME_CONTROL_STATE {
@@ -323,7 +324,7 @@ struct ScreenState
 // - Negative when cooling down; increases;
 // - 0 (or an infinitesimal positive): ready to activate;
 struct GameState {
-	GAME_RUNNING_STATE game_running_state = GAME_RUNNING_STATE::LOADING;
+	GAME_RUNNING_STATE game_running_state = GAME_RUNNING_STATE::MENU;
 	TIME_CONTROL_STATE game_time_control_state = TIME_CONTROL_STATE::NORMAL;
 	SCENE_TRANSITION_STATE game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
 	float accelerate_timer = 0.f;
@@ -638,8 +639,17 @@ enum class TEXTURE_ASSET_ID {
 	// UI
 	DECEL_BAR = TUTORIAL_TEXT + 1,
 	LOADING_SCREEN = DECEL_BAR + 1,
-	
-	TEXTURE_COUNT = LOADING_SCREEN + 1
+	MENU = LOADING_SCREEN + 1,
+	MENU_SELECTED = MENU + 1,
+	RESUME = MENU_SELECTED + 1,
+	RESUME_SELECTED = RESUME + 1,
+	FADE = RESUME_SELECTED + 1,
+	COVER = FADE + 1,
+	KEY = COVER + 1,
+	SCREEN = KEY + 1,
+	START_SELECTED = SCREEN + 1,
+	EXIT_SELECTED = START_SELECTED + 1,
+	TEXTURE_COUNT = EXIT_SELECTED + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -718,7 +728,8 @@ enum class LAYER_ID {
 	PARALLAXBACKGROUND = 0,
 	BACKGROUND = PARALLAXBACKGROUND + 1,
 	MIDGROUND = BACKGROUND + 1,
-	FOREGROUND = MIDGROUND + 1
+	FOREGROUND = MIDGROUND + 1,
+	MENU_AND_PAUSE = FOREGROUND + 1,
 };
 
 enum class FRAME_BUFFER_ID {
@@ -816,4 +827,12 @@ struct ParticleSystemState {
 struct LoadingScreen
 {
 
+};
+
+struct MenuButton {
+	bool is_active;
+	bool mouse_over;
+	vec2 position;
+	vec2 size;
+	std::string type;
 };

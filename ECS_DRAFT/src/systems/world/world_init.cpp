@@ -1116,6 +1116,38 @@ Entity create_loading_screen() {
     return entity;
 }
 
+
+Entity create_pause_buttons(vec2 pos, vec2 scale, float angle, TEXTURE_ASSET_ID texture_id) {
+
+    Entity entity = Entity();
+
+    MenuButton& button = registry.menuButtons.emplace(entity);
+    button.position = pos;
+    button.is_active = true;
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = pos;
+    motion.scale = scale;
+    motion.angle = angle;
+
+    if (texture_id == TEXTURE_ASSET_ID::MENU) {
+        button.type = "menu";
+    }
+    if (texture_id == TEXTURE_ASSET_ID::RESUME) {
+        button.type = "resume";
+    }
+
+    registry.renderRequests.insert(entity, {
+        texture_id,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+    registry.layers.insert(entity, { LAYER_ID::MENU_AND_PAUSE});
+
+    return entity;
+}
+
 float getDistance(const Motion& one, const Motion& other) {
     return glm::length(one.position - other.position);
 }

@@ -38,7 +38,7 @@ void SystemsManager::run_game_loop() {
 		t = now;
 
 		GameState& gs = registry.gameStates.components[0];
-		if (gs.game_running_state == GAME_RUNNING_STATE::LOADING) {
+		if (gs.game_running_state == GAME_RUNNING_STATE::MENU) {
 			// only step the parsing system when loading a level.
 			systems[0]->step(elapsed_ms);
 		} else {
@@ -48,11 +48,6 @@ void SystemsManager::run_game_loop() {
 			// step regular systems with the frame time
 			for (ISystem* system : systems) {
 				system->step(elapsed_ms);
-
-				// stop stepping systems if level load is triggered
-				if (gs.game_running_state == GAME_RUNNING_STATE::LOADING) {
-					break;
-				}
 			}
 
 			if (gs.game_running_state == GAME_RUNNING_STATE::RUNNING) {

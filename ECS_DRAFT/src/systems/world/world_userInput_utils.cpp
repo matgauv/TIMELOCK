@@ -1,4 +1,5 @@
 #include "world_system.hpp"
+#include "world_init.hpp"
 
 // on key callback
 // on key callback
@@ -189,6 +190,25 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		flag_state.fly = !flag_state.fly;
 		std::cout << "Fly set to: " << flag_state.fly << std::endl;
 	}
+
+	//pause screen
+	if (key == GLFW_KEY_P) {
+		if (gameState.game_running_state == GAME_RUNNING_STATE::PAUSED) {
+			// do nothing
+		} else if (gameState.game_running_state == GAME_RUNNING_STATE::MENU) {}
+		else {
+			gameState.game_running_state = GAME_RUNNING_STATE::PAUSED;
+
+            if (registry.cameras.entities.empty()) { return; }
+
+            Entity& camera_entity = registry.cameras.entities[0];
+            Motion& camera_motion = registry.motions.get(camera_entity);
+
+			create_pause_buttons(camera_motion.position, { 1500.0f, 1500.0f },0,TEXTURE_ASSET_ID::FADE);
+			create_pause_buttons({ camera_motion.position.x, camera_motion.position.y - 35.0f }, { 250.0f, 45.0f }, 0, TEXTURE_ASSET_ID::MENU);
+			create_pause_buttons({ camera_motion.position.x, camera_motion.position.y + 35.0f }, { 250.0f, 45.0f },0, TEXTURE_ASSET_ID::RESUME);
+		}
+	}
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
@@ -196,12 +216,157 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	// record the current mouse position
 	mouse_pos_x = mouse_position.x;
 	mouse_pos_y = mouse_position.y;
+
+    if (registry.cameras.entities.empty()) {
+		return;
+	}
+
+	Entity camera_entity = registry.cameras.entities[0];
+	Motion& camera_motion = registry.motions.get(camera_entity);
+
+	GameState& gameState = registry.gameStates.components[0];
+
+
+	if (gameState.game_running_state == GAME_RUNNING_STATE::PAUSED) {
+		if (mouse_pos_x >= 439 && mouse_pos_x <= 895 && mouse_pos_y >= 229 && mouse_pos_y <= 305) {
+			for (Entity e : registry.menuButtons.entities) {
+				MenuButton& button = registry.menuButtons.get(e);
+				if (button.type == "menu") {
+					registry.remove_all_components_of(e);
+				}
+			}
+			create_pause_buttons({ camera_motion.position.x, camera_motion.position.y - 35.0f }, { 250.0f, 45.0f }, 0, TEXTURE_ASSET_ID::MENU_SELECTED);
+			create_pause_buttons({ camera_motion.position.x, camera_motion.position.y + 35.0f }, { 250.0f, 45.0f }, 0, TEXTURE_ASSET_ID::RESUME);
+		}
+		else if (mouse_pos_x >= 439 && mouse_pos_x <= 895 && mouse_pos_y >= 360 && mouse_pos_y <= 438) {
+			for (Entity e : registry.menuButtons.entities) {
+				MenuButton& button = registry.menuButtons.get(e);
+				if (button.type == "resume") {
+					registry.remove_all_components_of(e);
+				}
+			}
+			create_pause_buttons({ camera_motion.position.x, camera_motion.position.y + 35.0f }, { 250.0f, 45.0f }, 0, TEXTURE_ASSET_ID::RESUME_SELECTED);
+			create_pause_buttons({ camera_motion.position.x, camera_motion.position.y - 35.0f }, { 250.0f, 45.0f }, 0, TEXTURE_ASSET_ID::MENU);
+		}
+		else {
+			create_pause_buttons({ camera_motion.position.x, camera_motion.position.y + 35.0f }, { 250.0f, 45.0f }, 0, TEXTURE_ASSET_ID::RESUME);
+			create_pause_buttons({ camera_motion.position.x, camera_motion.position.y - 35.0f }, { 250.0f, 45.0f }, 0, TEXTURE_ASSET_ID::MENU);
+		}
+
+	}
+
+	if (gameState.game_running_state == GAME_RUNNING_STATE::MENU) {
+
+		//if mouse hovers over start button
+		if (mouse_pos_x >= 785 && mouse_pos_x <= 907 && mouse_pos_y >= 192 && mouse_pos_y <= 313) {
+			//remove screen,key,cover and replace with new screen, new key, cover
+			for (Entity e : registry.menuButtons.entities) {
+				MenuButton& button = registry.menuButtons.get(e);
+				if (button.is_active) {
+					registry.remove_all_components_of(e);
+				}
+			}
+			create_pause_buttons(camera_motion.position, { 675.0f, 380.0f }, 0, TEXTURE_ASSET_ID::START_SELECTED);
+			create_pause_buttons({ camera_motion.position.x + 50.0f, camera_motion.position.y -30.0f}, { 120.0f, 50.0f }, -27, TEXTURE_ASSET_ID::KEY);
+			create_pause_buttons({ camera_motion.position.x + 5.0f, camera_motion.position.y - 7.0f }, { 165.0f, 165.0f }, 0, TEXTURE_ASSET_ID::COVER);
+		} // else if mouse hovers over exit button
+		else if (mouse_pos_x >= 745 && mouse_pos_x <= 869 && mouse_pos_y >= 466 && mouse_pos_y <= 580) {
+			//remove screen,key,cover and replace with new screen, new key, cover
+			for (Entity e : registry.menuButtons.entities) {
+				MenuButton& button = registry.menuButtons.get(e);
+				if (button.is_active) {
+					registry.remove_all_components_of(e);
+				}
+			}
+			create_pause_buttons(camera_motion.position, { 675.0f, 380.0f }, 0, TEXTURE_ASSET_ID::EXIT_SELECTED);
+			create_pause_buttons({ camera_motion.position.x + 42.0f, camera_motion.position.y +42.0f}, { 120.0f, 50.0f }, 40, TEXTURE_ASSET_ID::KEY);
+			create_pause_buttons({ camera_motion.position.x + 5.0f, camera_motion.position.y - 7.0f }, { 165.0f, 165.0f }, 0, TEXTURE_ASSET_ID::COVER);
+
+		}
+		//if nothing hovered, return to middle position (regular screen,key,cover)
+		else {
+			create_pause_buttons(camera_motion.position, { 675.0f, 380.0f }, 0, TEXTURE_ASSET_ID::SCREEN);
+			create_pause_buttons({ camera_motion.position.x + 60.0f, camera_motion.position.y }, { 120.0f, 50.0f }, 0, TEXTURE_ASSET_ID::KEY);
+			create_pause_buttons({ camera_motion.position.x + 5.0f, camera_motion.position.y - 7.0f }, { 165.0f, 165.0f }, 0, TEXTURE_ASSET_ID::COVER);
+		}
+	}
 }
 
 void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 	// on button press
 	if (action == GLFW_PRESS) {
 		std::cout << "mouse position: " << mouse_pos_x << ", " << mouse_pos_y << std::endl;
+	}
+
+    if (registry.cameras.entities.empty()) {
+		return;
+	}
+
+	GameState& gameState = registry.gameStates.components[0];
+	Entity camera_entity = registry.cameras.entities[0];
+	Motion& camera_motion = registry.motions.get(camera_entity);
+
+	// ----------PAUSE SCREEN-------------
+	if (gameState.game_running_state == GAME_RUNNING_STATE::PAUSED) {
+		//if menu pressed
+		if (mouse_pos_x >= 439 && mouse_pos_x <= 895 && mouse_pos_y >= 229 && mouse_pos_y <= 305 && action == GLFW_PRESS) {
+			//erase pause screen
+			for (Entity e : registry.menuButtons.entities) {
+				MenuButton& button = registry.menuButtons.get(e);
+				if (button.is_active) {
+					registry.remove_all_components_of(e);
+				}
+			}
+			//set game state to menu, render menu
+			gameState.game_running_state = GAME_RUNNING_STATE::MENU;
+			create_pause_buttons(camera_motion.position, { 675.0f, 380.0f }, 0, TEXTURE_ASSET_ID::SCREEN);
+			create_pause_buttons({ camera_motion.position.x+60.0f, camera_motion.position.y }, { 120.0f, 50.0f }, 0, TEXTURE_ASSET_ID::KEY);
+			create_pause_buttons({ camera_motion.position.x+5.0f, camera_motion.position.y -7.0f }, { 165.0f, 165.0f }, 0, TEXTURE_ASSET_ID::COVER);
+		} // if resume pressed
+		else if (mouse_pos_x >= 439 && mouse_pos_x <= 895 && mouse_pos_y >= 360 && mouse_pos_y <= 438 && action == GLFW_PRESS) {
+			//erase pause screen
+			for (Entity e : registry.menuButtons.entities) {
+				MenuButton& button = registry.menuButtons.get(e);
+				if (button.is_active) {
+					registry.remove_all_components_of(e);
+				}
+			}
+			//set game state to running
+			gameState.game_running_state = GAME_RUNNING_STATE::RUNNING;
+		}
+
+	}
+
+	//-------------- MENU--------------
+	if (gameState.game_running_state == GAME_RUNNING_STATE::MENU) {
+		//if start pressed
+		if (mouse_pos_x >= 785 && mouse_pos_x <= 907 && mouse_pos_y >= 192 && mouse_pos_y <= 313 && action == GLFW_PRESS) {
+			for (Entity e : registry.menuButtons.entities) {
+				MenuButton& button = registry.menuButtons.get(e);
+				if (button.is_active) {
+					registry.remove_all_components_of(e);
+				}
+			}
+			gameState.game_running_state = GAME_RUNNING_STATE::RUNNING;
+		} // else if exit pressed
+		else if (mouse_pos_x >= 745 && mouse_pos_x <= 869 && mouse_pos_y >= 466 && mouse_pos_y <= 580 && action == GLFW_PRESS) {
+			for (Entity e : registry.menuButtons.entities) {
+				MenuButton& button = registry.menuButtons.get(e);
+				if (button.is_active) {
+					registry.remove_all_components_of(e);
+				}
+			}
+			// setting to over does nothing? so for now just calling close window
+			gameState.game_running_state = GAME_RUNNING_STATE::OVER;
+			glfwWindowShouldClose(window);
+
+		}
+		//if no valid buttons clicked
+		else {
+			create_pause_buttons(camera_motion.position, { 675.0f, 380.0f }, 0, TEXTURE_ASSET_ID::SCREEN);
+			create_pause_buttons({ camera_motion.position.x + 60.0f, camera_motion.position.y }, { 120.0f, 50.0f }, 0, TEXTURE_ASSET_ID::KEY);
+			create_pause_buttons({ camera_motion.position.x + 5.0f, camera_motion.position.y - 7.0f }, { 165.0f, 165.0f }, 0, TEXTURE_ASSET_ID::COVER);
+		}
 	}
 }
 

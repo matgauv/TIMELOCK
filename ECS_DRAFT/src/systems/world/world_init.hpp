@@ -44,6 +44,7 @@ Entity create_gear(vec2 position, vec2 size, bool fixed, float angular_velocity,
 Entity create_spikeball(vec2 position, vec2 size);
 Entity create_spawner(std::string type, vec2 size, vec2 velocity, vec2 start_pos, vec2 end_pos);
 Entity create_loading_screen();
+Entity create_pause_buttons(vec2 pos, vec2 scale, float angle, TEXTURE_ASSET_ID texture_id);
 
 
 // Helper methods

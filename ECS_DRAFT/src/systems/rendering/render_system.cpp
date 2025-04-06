@@ -236,8 +236,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	float depth = (
 		layer == LAYER_ID::PARALLAXBACKGROUND ? PARALLAXBACKGROUND_DEPTH : (
 		layer == LAYER_ID::BACKGROUND ? BACKGROUND_DEPTH : (
-		layer == LAYER_ID::MIDGROUND ? MIDGROUND_DEPTH :
-			FOREGROUND_DEPTH)));
+		layer == LAYER_ID::MIDGROUND ? MIDGROUND_DEPTH : (
+			layer == LAYER_ID::MENU_AND_PAUSE ? MIDGROUND_DEPTH : FOREGROUND_DEPTH))));
 	glUniform1fv(depth_uloc, 1, (float*)&depth);
 	gl_has_errors();
 
@@ -509,6 +509,8 @@ void RenderSystem::draw()
 
 	std::vector<Entity> foregrounds;
 
+	std::vector<Entity> menu_and_pause;
+
 	for (Entity entity : registry.layers.entities)
 	{
 		// Check for rendering necessity
@@ -527,6 +529,9 @@ void RenderSystem::draw()
 
 		switch (registry.layers.get(entity).layer)
 		{
+			case LAYER_ID::MENU_AND_PAUSE:
+				menu_and_pause.push_back(entity);
+				break;
 			case LAYER_ID::FOREGROUND:
 				foregrounds.push_back(entity);
 				break;
@@ -615,6 +620,11 @@ void RenderSystem::draw()
 
 
 	for (Entity entity : midgrounds)
+	{
+		drawTexturedMesh(entity, this->projection_matrix);
+	}
+
+	for (Entity entity : menu_and_pause)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
 	}

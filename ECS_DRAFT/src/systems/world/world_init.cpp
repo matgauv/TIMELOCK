@@ -645,8 +645,8 @@ Entity create_breakable_static_platform(vec2 position, vec2 scale, bool should_b
 
     // TODO: need to add a proper texture for this
     registry.renderRequests.insert(entity, {
-            is_time_controllable? TEXTURE_ASSET_ID::OBJECT : TEXTURE_ASSET_ID::GREY_CIRCLE,
-            EFFECT_ASSET_ID::TEXTURED,
+            TEXTURE_ASSET_ID::BREAKABLE,
+            EFFECT_ASSET_ID::MATTE,
             GEOMETRY_BUFFER_ID::SPRITE
     });
 

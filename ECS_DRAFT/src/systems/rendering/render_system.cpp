@@ -12,8 +12,8 @@ void RenderSystem::drawTexturedMesh(Entity entity, const mat3& projection) {
 }
 
 void RenderSystem::drawTexturedMesh(Entity entity,
-									const mat3 &projection,
-									const RenderRequest& render_request)
+	const mat3& projection,
+	const RenderRequest& render_request)
 {
 	assert(render_request.used_effect != EFFECT_ASSET_ID::EFFECT_COUNT);
 	const GLuint program = (GLuint)effects[(GLuint)render_request.used_effect];
@@ -40,7 +40,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			transform.rotate(radians(motion.angle));
 			transform.translate(-pivot_offset);
 			transform.scale(motion.scale);
-		} else {
+		}
+		else {
 			transform.translate(motion.position);
 			transform.rotate(radians(motion.angle));
 			transform.scale(motion.scale);
@@ -72,13 +73,13 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		glEnableVertexAttribArray(in_position_loc);
 		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
-							  sizeof(TexturedVertex), (void *)0);
+			sizeof(TexturedVertex), (void*)0);
 		gl_has_errors();
 
 		glEnableVertexAttribArray(in_texcoord_loc);
 		glVertexAttribPointer(
 			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
-			(void *)sizeof(
+			(void*)sizeof(
 				vec3)); // note the stride to skip the preceeding vertex position
 
 		// Enabling and binding texture to slot 0
@@ -101,7 +102,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		}
 		else if (render_request.used_effect == EFFECT_ASSET_ID::FILL) {
 			GLint fill_color_uloc = glGetUniformLocation(program, "fill_color");
-			
+
 			// TODO
 			if (registry.haloRequests.has(entity)) {
 				vec4 fill_color = registry.haloRequests.get(entity).halo_color;
@@ -160,7 +161,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		glUniform1i(tile_id_uloc, tile_info.id);
 		glUniform2f(tile_pos_uloc, (float)tile_start_x, (float)tile_start_y);
-		glUniform2f(tile_offset_uloc, (float)(tile_info.offset.x* TILE_TO_PIXELS), (float)(tile_info.offset.y* TILE_TO_PIXELS));
+		glUniform2f(tile_offset_uloc, (float)(tile_info.offset.x * TILE_TO_PIXELS), (float)(tile_info.offset.y * TILE_TO_PIXELS));
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::HEX)
@@ -209,6 +210,38 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform4fv(color_uloc, 1, (float*)&color);
 		gl_has_errors();
 	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::MATTE)
+	{
+		GLint in_position_loc = glGetAttribLocation(program, "in_position");
+
+		gl_has_errors();
+
+		GLint check;
+		glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &check);
+
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+			sizeof(TexturedVertex), (void*)offsetof(TexturedVertex, position));
+		gl_has_errors();
+
+		// Enabling and binding texture to slot 0
+		glActiveTexture(GL_TEXTURE0);
+		gl_has_errors();
+
+		assert(registry.renderRequests.has(entity));
+		GLuint texture_id = texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
+
+		glBindTexture(GL_TEXTURE_2D, texture_id);
+		gl_has_errors();
+
+
+		GLint scale_uloc = glGetUniformLocation(program, "uv_scale");
+
+		const vec2 scale = vec2(1.0f);
+
+		glUniform2fv(scale_uloc, 1, (float*)&scale);
+		gl_has_errors();
+	}
 	else
 	{
 		assert(false && "Type of render request not supported");
@@ -240,7 +273,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	glUniform1fv(depth_uloc, 1, (float*)&depth);
 	gl_has_errors();
 
-	if (render_request.used_effect != EFFECT_ASSET_ID::HEX)
+	if (render_request.used_effect != EFFECT_ASSET_ID::HEX &&
+		render_request.used_effect != EFFECT_ASSET_ID::MATTE)
 	{
 		GLuint tex_u_range_loc = glGetUniformLocation(program, "tex_u_range");
 		vec2 tex_u_range;

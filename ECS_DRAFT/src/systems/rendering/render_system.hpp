@@ -51,6 +51,7 @@ class RenderSystem : public ISystem {
 		textures_path("backgrounds/metal.png"),
 		textures_path("chain.png"),
 		textures_path("hex.png"),
+		textures_path("Breakable.png"),
 		textures_path("spawnpoint/SpawnPoint_unvisited.png"),
 		textures_path("spawnpoint/SpawnPoint_activate.png"),
 		textures_path("spawnpoint/SpawnPoint_deactivate.png"),
@@ -116,6 +117,7 @@ class RenderSystem : public ISystem {
 		shader_path("particle_instanced"),
 		shader_path("fill"),
 		shader_path("gaussian_blur"),
+		shader_path("matte"),
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;

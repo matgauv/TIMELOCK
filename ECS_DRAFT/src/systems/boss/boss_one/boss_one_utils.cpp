@@ -84,6 +84,31 @@ Entity create_snooze_button(vec2 boss_position) {
     return entity;
 }
 
+Entity create_boss_health_bar() {
+    auto entity = Entity();
+
+    registry.bossHealthBars.emplace(entity);
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.velocity = vec2(0.f, 0.f);
+    motion.scale = vec2(BOSS_ONE_HEALTH_BAR_WIDTH, BOSS_ONE_HEALTH_BAR_HEIGHT);
+    motion.position = vec2(BOSS_ONE_HEALTH_BAR_X, BOSS_ONE_HEALTH_BAR_Y);
+
+    // render request
+    registry.renderRequests.insert(
+        entity,
+        {
+            TEXTURE_ASSET_ID::BOSS_ONE_HEALTH_BAR_100,
+            EFFECT_ASSET_ID::TEXTURED,
+            GEOMETRY_BUFFER_ID::SPRITE
+        }
+    );
+    
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    return entity;
+}
+
 // Handles the state transition logic by checking the current boss state and then calling the corresponding helper
 void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_num, std::default_random_engine& rng) {
     Boss& boss = registry.bosses.get(boss_entity);
@@ -265,6 +290,26 @@ void update_boss_halo(const Entity boss_entity, const Boss& boss) {
     }
 }
 
+void update_boss_health_bar(const Boss& boss) {
+    assert(registry.bossHealthBars.entities.size() <= 1);
+    Entity& health_bar_entity = registry.bossHealthBars.entities[0];
+    RenderRequest& renderRequest = registry.renderRequests.get(health_bar_entity);
+
+    if (boss.health == BOSS_ONE_MAX_HEALTH) {
+        renderRequest.used_texture = TEXTURE_ASSET_ID::BOSS_ONE_HEALTH_BAR_100;
+    } else if (boss.health == 80.f) {
+        renderRequest.used_texture = TEXTURE_ASSET_ID::BOSS_ONE_HEALTH_BAR_80;
+    } else if (boss.health == 60.f) {
+        renderRequest.used_texture = TEXTURE_ASSET_ID::BOSS_ONE_HEALTH_BAR_60;
+    } else if (boss.health == 40.f) {
+        renderRequest.used_texture = TEXTURE_ASSET_ID::BOSS_ONE_HEALTH_BAR_40;
+    } else if (boss.health == 20.f) {
+        renderRequest.used_texture = TEXTURE_ASSET_ID::BOSS_ONE_HEALTH_BAR_20;
+    } else {
+        registry.remove_all_components_of(health_bar_entity);
+    }
+}
+
 // Handles the logic to transition into the MOVE state
 void boss_one_idle_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
 
@@ -279,6 +324,9 @@ void boss_one_idle_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, fl
     if (dist <= 200.f) {
         boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
         boss.timer_ms = BOSS_ONE_MAX_WALK_DURATION_MS; // walk for 5 seconds before attacking
+
+        // create the boss health bar
+        create_boss_health_bar();
         
         // update animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
@@ -355,6 +403,9 @@ void boss_one_exhausted_step(Entity& boss_entity, Boss& boss, Motion& boss_motio
         if (registry.snoozeButtons.size() > 0) {
             registry.remove_all_components_of(registry.snoozeButtons.entities[0]);
         }
+
+        // update the health bar
+        update_boss_health_bar(boss);
 
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);

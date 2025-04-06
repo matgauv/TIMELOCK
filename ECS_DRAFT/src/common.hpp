@@ -182,6 +182,10 @@ const float BOSS_ONE_GROUND_SLAM_BB_WIDTH_PX = 200.f;
 const float BOSS_ONE_GROUND_SLAM_BB_HEIGHT_PX = 200.f;
 const float BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS = 30000.f; // for testing, use 10000.f, otherwise use 30000.f
 const int BOSS_ONE_NEXT_ATTACKS_VECTOR_MAX_SIZE = 10;
+const float BOSS_ONE_HEALTH_BAR_WIDTH = 500.f;
+const float BOSS_ONE_HEALTH_BAR_HEIGHT = 50.f;
+const float BOSS_ONE_HEALTH_BAR_X = 700.f;
+const float BOSS_ONE_HEALTH_BAR_Y = BOSS_ONE_SPAWN_POINT_Y + 70.f;
 
 const float BOSS_ONE_MAX_WALK_DURATION_MS = 5000.f; // use 1000.f for testing purposes, otherwise use 5000.f
 const float BOSS_ONE_MAX_EXHAUSTED_DURATION_MS = 10000.f;

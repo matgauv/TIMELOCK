@@ -139,7 +139,7 @@ const float PROJECTILE_WIDTH_PX = 40.0f;
 const float PROJECTILE_HEIGHT_PX = 40.0f;
 const float PROJECTILE_SPEED = (float) WINDOW_WIDTH_PX / 5.f; // projectile should travel across the entire screen in 5 seconds
 
-const float DELAYED_PROJ_SIGNAL_START_MS = 600.0f;
+const float DELAYED_PROJ_SIGNAL_START_MS = 425.0f;
 const float DELAYED_PROJ_SIGNAL_DURATION_MS = 300.0f;
 
 // General boss battle related properties
@@ -233,7 +233,7 @@ const float BOSS_ONE_DASH_DURATION_MS = 4000.f;
 
 const float BOSS_ONE_GROUND_SLAM_INIT_DURATION_MS = 500.f;
 const float BOSS_ONE_GROUND_SLAM_RISE_VELOCITY = -100.f; // for testing purposes, use -50.f, otherwise, the boss should take about 1~2 seconds to rise
-const float BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY = 300.f; // for testing purposes, use 300.f, otherwise, the boss should slam down in 0.25~0.5 seconds
+const float BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY = 700.f; // for testing purposes, use 300.f, otherwise, the boss should slam down in 0.25~0.5 seconds
 const float BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION = 275.f; // for testing purposes, use 600.f, otherwise, the boss should be at the 1/3 point from the top
 const float BOSS_ONE_FIRST_GROUND_SLAM_FOLLOW_DURATION_MS = 3000.f;
 const float BOSS_ONE_SECOND_GROUND_SLAM_FOLLOW_DURATION_MS = 2000.f;

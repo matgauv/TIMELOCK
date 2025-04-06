@@ -62,7 +62,7 @@ void CameraSystem::step(float elapsed_ms) {
 	}
 
 	// Apply shake
-	if (cam.shake_amplitude > 1.0f && cam.shake_frequency > 1e-4) {
+	if (cam.shake_amplitude > 0.5f && cam.shake_frequency > 1e-4) {
 		// Sample from perlin noise
 		float time_s = glfwGetTime();
 		float time_factor = time_s * cam.shake_frequency;
@@ -82,10 +82,10 @@ void CameraSystem::step(float elapsed_ms) {
 	}
 
 	// Shake decay
-	if (cam.shake_amplitude > 1.0f && cam.shake_frequency > 1e-4) {
+	if (cam.shake_amplitude > 0.5f && cam.shake_frequency > 1e-4) {
 		cam.shake_amplitude *= CAMERA_SHAKE_DECAY;
 		
-		if (cam.shake_amplitude <= 1.0f) {
+		if (cam.shake_amplitude <= 0.5f) {
 			cam.shake_amplitude = 0.0f;
 			cam.shake_frequency = 0.0f;
 		}

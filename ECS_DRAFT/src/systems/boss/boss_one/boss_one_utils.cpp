@@ -522,6 +522,8 @@ void boss_one_dash_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, fl
 
     // Decrement the timer
     boss.timer_ms -= elapsed_ms;
+    float factor = std::clamp((BOSS_ONE_DASH_DURATION_MS - boss.timer_ms) / 350.0f, 0.0f, 1.0f);
+    factor *= factor;
 
     // Transitions to MOVE state if timer is up
     if (boss.timer_ms <= 0.f) {
@@ -539,9 +541,21 @@ void boss_one_dash_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, fl
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_WALK;
     }
+    else {
+        boss_motion.velocity.x = std::copysignf(lerpToTarget(BOSS_ONE_MIN_X_VELOCITY, BOSS_ONE_DASH_VELOCITY, factor), boss_motion.velocity.x);
+
+        // Emit particles
+        bool left = boss_motion.velocity.x < 0.0f;
+        vec2 position = random_sample_ellipse(boss_motion.position + vec2{ BOSS_ONE_BB_WIDTH_PX * 0.5f, 0.0f }, vec2{ BOSS_ONE_BB_WIDTH_PX * 0.5f, BOSS_ONE_BB_HEIGHT_PX});
+        float angle = (left ? 180.0f : 0.0f) + rand_float(-5.f, 5.f);
+
+        ParticleSystem::spawn_particle(BOSS_DASH_HALO,
+            position, angle, vec2{ factor * 25.0f, 1.5f } * rand_float(0.8f, 1.2f), 
+            angle_to_direction(angle) * rand_float(-10.0f, -5.0f), 200.0f, 0.8f, {50.0f, 100.0f}, {50.0f, 50.f});
+    }
 
     // Shake camera
-    CameraSystem::shake_camera(2.0f, 10.0f);
+    CameraSystem::shake_camera(lerpToTarget(0.5f, 2.0f, factor), 10.0f);
 }
 
 void boss_one_ground_slam_init_1_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
@@ -564,7 +578,7 @@ void boss_one_ground_slam_rise_1_step(Entity& boss_entity, Boss& boss, Motion& b
 
     if (boss_motion.position.y <= BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION) {
         boss_motion.position.y = BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION;
-        boss_motion.velocity.y = 0;
+        //boss_motion.velocity.y = 0;
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_FOLLOW_1_STATE;
         boss.timer_ms = BOSS_ONE_FIRST_GROUND_SLAM_FOLLOW_DURATION_MS;
 
@@ -582,7 +596,7 @@ void boss_one_ground_slam_follow_1_step(Entity& boss_entity, Boss& boss, Motion&
 
     if (boss.timer_ms <= 0.f) {
         boss_motion.velocity.x = 0;
-        boss_motion.velocity.y = BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY;
+        boss_motion.velocity.y = -1.2f * BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY;
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_1_STATE;
 
         // boss becomes harmful
@@ -599,11 +613,20 @@ void boss_one_ground_slam_follow_1_step(Entity& boss_entity, Boss& boss, Motion&
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_FALL;
 
+        ParticleSystem::spawn_particle(PARTICLE_ID::CROSS_STAR,
+            boss_motion.position, 0.0f, boss_motion.scale * 1.5f, vec2(0.0f), DELAYED_PROJ_SIGNAL_DURATION_MS, 1.0f,
+            { 0.1f * DELAYED_PROJ_SIGNAL_DURATION_MS, 0.0f }, { 0.1f * DELAYED_PROJ_SIGNAL_DURATION_MS, 0.9f * DELAYED_PROJ_SIGNAL_DURATION_MS });
     } else {
         Entity& player_entity = registry.players.entities[0];
         Motion& player_motion = registry.motions.get(player_entity);
     
         boss_motion.velocity.x = 10.f * calculate_boss_one_x_velocity(boss_motion.position.x, player_motion.position.x);
+
+        float factor = std::clamp(boss.timer_ms/BOSS_ONE_FIRST_GROUND_SLAM_FOLLOW_DURATION_MS, 0.0f, 1.0f);
+        for (int i = 0; i < 1; i++) {
+            factor *= factor;
+        }
+        boss_motion.velocity.y = lerpToTarget(0.0f, BOSS_ONE_GROUND_SLAM_RISE_VELOCITY, factor);
     }
 }
 
@@ -630,6 +653,14 @@ void boss_one_ground_slam_slam_1_step(Entity& boss_entity, Boss& boss, Motion& b
         
         if (registry.harmfuls.has(boss_entity)) {
             PlayerSystem::kill();
+        }
+    }
+
+    if (boss_motion.velocity.y < BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY) {
+        boss_motion.velocity.y += (8.0f * BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY * elapsed_ms / 1000.0f);
+
+        if (boss_motion.velocity.y >= BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY) {
+            boss_motion.velocity.y = BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY;
         }
     }
 
@@ -709,7 +740,7 @@ void boss_one_ground_slam_rise_2_step(Entity& boss_entity, Boss& boss, Motion& b
 
     if (boss_motion.position.y <= BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION) {
         boss_motion.position.y = BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION;
-        boss_motion.velocity.y = 0;
+        //boss_motion.velocity.y = 0;
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_FOLLOW_2_STATE;
         boss.timer_ms = BOSS_ONE_SECOND_GROUND_SLAM_FOLLOW_DURATION_MS;
 
@@ -727,7 +758,7 @@ void boss_one_ground_slam_follow_2_step(Entity& boss_entity, Boss& boss, Motion&
 
     if (boss.timer_ms <= 0.f) {
         boss_motion.velocity.x = 0;
-        boss_motion.velocity.y = BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY;
+        boss_motion.velocity.y = -1.2f * BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY;
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_2_STATE;
 
         // boss becomes harmful
@@ -744,11 +775,20 @@ void boss_one_ground_slam_follow_2_step(Entity& boss_entity, Boss& boss, Motion&
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_FALL;
 
+        ParticleSystem::spawn_particle(PARTICLE_ID::CROSS_STAR,
+            boss_motion.position, 0.0f, boss_motion.scale * 1.5f, vec2(0.0f), DELAYED_PROJ_SIGNAL_DURATION_MS, 1.0f,
+            { 0.1f * DELAYED_PROJ_SIGNAL_DURATION_MS, 0.0f }, { 0.1f * DELAYED_PROJ_SIGNAL_DURATION_MS, 0.9f * DELAYED_PROJ_SIGNAL_DURATION_MS });
     } else {
         Entity& player_entity = registry.players.entities[0];
         Motion& player_motion = registry.motions.get(player_entity);
     
         boss_motion.velocity.x = 10.f * calculate_boss_one_x_velocity(boss_motion.position.x, player_motion.position.x);
+
+        float factor = std::clamp(boss.timer_ms / BOSS_ONE_SECOND_GROUND_SLAM_FOLLOW_DURATION_MS, 0.0f, 1.0f);
+        for (int i = 0; i < 1; i++) {
+            factor *= factor;
+        }
+        boss_motion.velocity.y = lerpToTarget(0.0f, BOSS_ONE_GROUND_SLAM_RISE_VELOCITY, factor);
     }
 }
 
@@ -774,6 +814,14 @@ void boss_one_ground_slam_slam_2_step(Entity& boss_entity, Boss& boss, Motion& b
         
         if (registry.harmfuls.has(boss_entity)) {
             PlayerSystem::kill();
+        }
+    }
+
+    if (boss_motion.velocity.y < BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY) {
+        boss_motion.velocity.y += (8.0f * BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY * elapsed_ms / 1000.0f);
+
+        if (boss_motion.velocity.y >= BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY) {
+            boss_motion.velocity.y = BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY;
         }
     }
 
@@ -852,7 +900,7 @@ void boss_one_ground_slam_rise_3_step(Entity& boss_entity, Boss& boss, Motion& b
 
     if (boss_motion.position.y <= BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION) {
         boss_motion.position.y = BOSS_ONE_GROUND_SLAM_RISE_FINAL_Y_POSITION;
-        boss_motion.velocity.y = 0;
+        //boss_motion.velocity.y = 0;
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_FOLLOW_3_STATE;
         boss.timer_ms = BOSS_ONE_THIRD_GROUND_SLAM_FOLLOW_DURATION_MS;
 
@@ -870,7 +918,7 @@ void boss_one_ground_slam_follow_3_step(Entity& boss_entity, Boss& boss, Motion&
 
     if (boss.timer_ms <= 0.f) {
         boss_motion.velocity.x = 0;
-        boss_motion.velocity.y = BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY;
+        boss_motion.velocity.y = -1.2f * BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY;
         boss.boss_state = BOSS_STATE::BOSS1_GROUND_SLAM_SLAM_3_STATE;
 
          // boss becomes harmful
@@ -886,11 +934,20 @@ void boss_one_ground_slam_follow_3_step(Entity& boss_entity, Boss& boss, Motion&
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_GROUND_SLAM_FALL;
 
+        ParticleSystem::spawn_particle(PARTICLE_ID::CROSS_STAR,
+            boss_motion.position, 0.0f, boss_motion.scale * 1.5f, vec2(0.0f), DELAYED_PROJ_SIGNAL_DURATION_MS, 1.0f,
+            { 0.1f * DELAYED_PROJ_SIGNAL_DURATION_MS, 0.0f }, { 0.1f * DELAYED_PROJ_SIGNAL_DURATION_MS, 0.9f * DELAYED_PROJ_SIGNAL_DURATION_MS });
     } else {
         Entity& player_entity = registry.players.entities[0];
         Motion& player_motion = registry.motions.get(player_entity);
     
         boss_motion.velocity.x = 10.f * calculate_boss_one_x_velocity(boss_motion.position.x, player_motion.position.x);
+
+        float factor = std::clamp(boss.timer_ms / BOSS_ONE_THIRD_GROUND_SLAM_FOLLOW_DURATION_MS, 0.0f, 1.0f);
+        for (int i = 0; i < 1; i++) {
+            factor *= factor;
+        }
+        boss_motion.velocity.y = lerpToTarget(0.0f, BOSS_ONE_GROUND_SLAM_RISE_VELOCITY, factor);
     }
 }
 
@@ -916,6 +973,14 @@ void boss_one_ground_slam_slam_3_step(Entity& boss_entity, Boss& boss, Motion& b
         
         if (registry.harmfuls.has(boss_entity)) {
             PlayerSystem::kill();
+        }
+    }
+
+    if (boss_motion.velocity.y < BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY) {
+        boss_motion.velocity.y += (8.0f * BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY * elapsed_ms / 1000.0f);
+
+        if (boss_motion.velocity.y >= BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY) {
+            boss_motion.velocity.y = BOSS_ONE_GROUND_SLAM_SLAM_VELOCITY;
         }
     }
 
@@ -993,11 +1058,16 @@ float calculate_boss_one_x_velocity(float boss_x, float player_x) {
     // Calculate a tentative velocity using the multiplier
     float velocity = dist * BOSS_ONE_X_VELOCITY_MULTIPLIER;
 
+    /*
     // Clamp the velocity at the set minimum if velocity is too small
     if (abs(velocity) < BOSS_ONE_MIN_X_VELOCITY) {
         velocity = std::copysignf(BOSS_ONE_MIN_X_VELOCITY, dist);
 
-    } else if (abs(velocity) > BOSS_ONE_MAX_X_VELOCITY) {
+    }*/
+    if (abs(dist) < BOSS_ONE_MIN_X_VELOCITY) {
+        velocity = 0.0f;
+    }
+    else if (abs(velocity) > BOSS_ONE_MAX_X_VELOCITY) {
         // Clamp the velocity at the set maximum if the velocity is too large in either direction
         velocity = std::copysignf(BOSS_ONE_MAX_X_VELOCITY, dist);
     }
@@ -1241,7 +1311,7 @@ void transition_to_attack_state(Entity& boss_entity, Boss& boss, Motion& boss_mo
     if (id == BOSS_ATTACK_ID::BOSS1_DASH_ATTACK) {
 
         boss.boss_state = BOSS_STATE::BOSS1_DASH_ATTACK_STATE;
-        boss_motion.velocity.x = std::copysignf(BOSS_ONE_DASH_VELOCITY, boss_motion.velocity.x);
+        boss_motion.velocity.x = std::copysignf(BOSS_ONE_MIN_X_VELOCITY, boss_motion.velocity.x);
         boss.timer_ms = BOSS_ONE_DASH_DURATION_MS;
 
         // boss becomes harmful during dash attack
@@ -1260,6 +1330,10 @@ void transition_to_attack_state(Entity& boss_entity, Boss& boss, Motion& boss_mo
         // update animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_DASH;
+
+        ParticleSystem::spawn_particle(PARTICLE_ID::CROSS_STAR,
+            boss_motion.position, 0.0f, boss_motion.scale * 1.5f, vec2(0.0f), DELAYED_PROJ_SIGNAL_DURATION_MS, 1.0f,
+            { 0.1f * DELAYED_PROJ_SIGNAL_DURATION_MS, 0.0f }, { 0.1f * DELAYED_PROJ_SIGNAL_DURATION_MS, 0.9f * DELAYED_PROJ_SIGNAL_DURATION_MS });
 
     } else if (id == BOSS_ATTACK_ID::BOSS1_REGULAR_PROJECTILE) {
 

@@ -87,6 +87,7 @@ enum class BOSS_ATTACK_ID {
 	TOTAL_COUNT = BOSS1_DASH_ATTACK + 1
 };
 
+
 // Player component
 struct Player
 {

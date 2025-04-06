@@ -367,6 +367,11 @@ void boss_one_exhausted_step(Entity& boss_entity, Boss& boss, Motion& boss_motio
         boss.can_be_damaged = false;
         boss.timer_ms = BOSS_ONE_MAX_RECOVER_DURATION_MS;
 
+        // Remove the snooze button if the player does not hit it in time
+        if (registry.snoozeButtons.size() > 0) {
+            registry.remove_all_components_of(registry.snoozeButtons.entities[0]);
+        }
+
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_RECOVERED;

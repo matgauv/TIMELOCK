@@ -533,6 +533,11 @@ struct DecelerationBar {
 	float shrink_factor = 0.0;
 };
 
+// a struct representing the boss health bar
+struct BossHealthBar {
+
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture

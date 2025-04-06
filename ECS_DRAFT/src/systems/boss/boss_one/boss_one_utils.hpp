@@ -4,6 +4,8 @@
 #include "../../../tinyECS/component_container.hpp"
 #include "../../../tinyECS/components.hpp"
 #include "../../../tinyECS/registry.hpp"
+#include "boss_one_vfx_utils.hpp"
+
 #include <random>
 
 // Creates the first boss entity and its relevant components
@@ -11,6 +13,9 @@ Entity create_first_boss();
 
 // Creates the snooze button for the boss in EXHAUSTED state
 Entity create_snooze_button(vec2 boss_position);
+
+// Creates the health bar
+Entity create_boss_health_bar();
 
 // the main step function
 void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_num, std::default_random_engine& rng);
@@ -86,6 +91,8 @@ void chooseShortRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motio
 void create_delayed_projectile(vec2 pos, float timer_ms);
 
 void update_boss_halo(const Entity boss_entity, const Boss& boss);
+
+void update_boss_health_bar(const Boss& boss);
 
 // helper functions for testing purposes
 void choose_regular_projectile_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_player_to_boss_left);

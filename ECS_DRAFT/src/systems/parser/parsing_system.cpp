@@ -82,6 +82,9 @@ void LevelParsingSystem::step(float elapsed_ms) {
     init_player_and_camera();
 
     if (level_state.ground == TEXTURE_ASSET_ID::BOSS_ONE_LEVEL_GROUND) {
+        for (Entity& e : registry.snoozeButtons.entities) {
+            registry.remove_all_components_of(e);
+        }
         if (registry.bosses.size() == 1) {
             registry.remove_all_components_of(registry.bosses.entities[0]);
         }
@@ -158,7 +161,10 @@ void LevelParsingSystem::init_player_and_camera() {
 		if (json_data["identifier"] == "Level_0") {
             create_tutorial_text({ initPos.x + 2650, initPos.y }, {6000, 1500 }, TEXTURE_ASSET_ID::TUTORIAL_TEXT);
         }
-        else if (json_data["identifier"] == "Level_1") {
+        if (json_data["identifier"] == "Level_4") {
+            create_tutorial_text({ initPos.x + 1750, initPos.y - 140}, { 4000, 600 }, TEXTURE_ASSET_ID::BOSS_TUTORIAL_TEXT);
+        }
+        else if (json_data["identifier"] == "Level_6") {
             create_tutorial_text({ initPos.x + 250, initPos.y - 150 }, { 450, 70 }, TEXTURE_ASSET_ID::ACCEL);
         }
     }

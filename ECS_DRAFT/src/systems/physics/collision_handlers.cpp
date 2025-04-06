@@ -112,6 +112,8 @@ void handle_player_breakable_collision(Entity& breakable_entity, float elapsed_m
 		}
 	}
 
+	WorldSystem::crack_breakable_platform(breakable_entity);
+
 	breakable.health -= health_decrease_factor * breakable.degrade_speed_per_ms * elapsed_ms;
 
 	if (breakable.health <= 0) {

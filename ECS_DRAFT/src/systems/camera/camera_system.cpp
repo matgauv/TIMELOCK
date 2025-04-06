@@ -25,7 +25,7 @@ void CameraSystem::step(float elapsed_ms) {
 	if (gameState.is_in_boss_fight) {
 		// We actually need better tuning of camera motions for boss fight transition
 		const LevelState& levelState = registry.levelStates.components[0];
-		const float scale_factor = min(WINDOW_WIDTH_PX / levelState.dimensions.x, WINDOW_HEIGHT_PX / levelState.dimensions.y);
+		const float scale_factor = min(WINDOW_WIDTH_PX / levelState.dimensions.x, WINDOW_HEIGHT_PX / levelState.dimensions.y) * 1.03f;
 		follow(camera_motion, levelState.dimensions * 0.5f, 
 			vec2(scale_factor));
 	}
@@ -61,12 +61,34 @@ void CameraSystem::step(float elapsed_ms) {
 		}
 	}
 
+	// Apply shake
+	if (cam.shake_amplitude > 0.5f && cam.shake_frequency > 1e-4) {
+		// Sample from perlin noise
+		float time_s = glfwGetTime();
+		float time_factor = time_s * cam.shake_frequency;
+
+		float amplitude = cam.shake_amplitude * sample_from_perlin_noise(time_factor);
+		float angle = 2.f * M_PI * sample_from_perlin_noise(time_factor);
+
+		camera_motion.position += (amplitude * angle_to_direction(angle));
+	}
+
 	// Update offset
 	if (abs(cam.horizontal_offset) < 0.5f) {
 		cam.horizontal_offset = 0.0f;
 	}
 	else {
 		cam.horizontal_offset *= (1.0f - CAMERA_VEL_LERP_FACTOR * 0.1f);
+	}
+
+	// Shake decay
+	if (cam.shake_amplitude > 0.5f && cam.shake_frequency > 1e-4) {
+		cam.shake_amplitude *= CAMERA_SHAKE_DECAY;
+		
+		if (cam.shake_amplitude <= 0.5f) {
+			cam.shake_amplitude = 0.0f;
+			cam.shake_frequency = 0.0f;
+		}
 	}
 }
 
@@ -120,6 +142,8 @@ void CameraSystem::reset(Motion& cam_motion, vec2 target, vec2 scale) {
 	cam_motion.scale = scale;
 
 	registry.cameras.components[0].horizontal_offset = 0.0f;
+	registry.cameras.components[0].shake_amplitude = 0.0f;
+	registry.cameras.components[0].shake_frequency = 0.0f;
 }
 
 vec2 CameraSystem::get_camera_offsets(vec2 camera_scale) {
@@ -150,4 +174,33 @@ vec2 CameraSystem::restricted_boundary_position(vec2 raw_target, vec2 camera_sca
 		level_state.dimensions[1] * 0.5f);
 
 	return vec2{ refined_x, refined_y };
+}
+
+void CameraSystem::shake_camera(float amplitude, float frequency) {
+	if (registry.cameras.size() > 0) {
+		Camera& cam = registry.cameras.components[0];
+
+		cam.shake_amplitude = amplitude;
+		cam.shake_frequency = frequency;
+	}
+}
+
+float CameraSystem::seeded_pseudo_rand_1D(float input) {
+	// Similar implementation in particle system
+	float raw_result = 619.54f * abs(sinf(input * -45.116f));
+
+	return glm::fract(raw_result) * 2.0f - 1.0f;
+}
+
+float CameraSystem::sample_from_perlin_noise(float input) {
+	float input_i = (int)input;
+	float input_f = input - input_i;
+
+	float factor = input_f * input_f * (3.0f - input_f);
+
+	float value = lerpToTarget(
+		seeded_pseudo_rand_1D(input_i), seeded_pseudo_rand_1D(input_i + 1), factor
+	);
+
+	return value;
 }

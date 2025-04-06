@@ -639,7 +639,7 @@ Entity create_breakable_static_platform(vec2 position, vec2 scale, bool should_b
     phys.apply_rotation = false;
 
     Breakable& breakable = registry.breakables.emplace(entity);
-    breakable.health = 1000.f;
+    breakable.health = BREAKABLE_WALL_HEALTH;
     breakable.degrade_speed_per_ms = degrade_speed;
     breakable.should_break_instantly = should_break_instantly;
 

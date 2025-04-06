@@ -1,0 +1,13 @@
+{
+	"maps": [
+		{ "fileName": "0001_Level_0.tmx", "x": 1200, "y": 2544 },
+		{ "fileName": "0002_Accel.tmx", "x": 13296, "y": 15120 },
+		{ "fileName": "0003_Old_decel.tmx", "x": 4416, "y": 13808 },
+		{ "fileName": "0004_Level_3.tmx", "x": 23280, "y": 2464 },
+		{ "fileName": "0005_Level_2.tmx", "x": 16384, "y": 2640 },
+		{ "fileName": "0006_Level_1.tmx", "x": 8576, "y": 2464 },
+		{ "fileName": "0007_Level_5.tmx", "x": 34256, "y": 3152 },
+		{ "fileName": "0008_Level_4.tmx", "x": 29632, "y": 3104 }
+	],
+	"type": "world"
+}

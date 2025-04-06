@@ -80,6 +80,9 @@ void LevelParsingSystem::step(float elapsed_ms) {
     init_player_and_camera();
 
     if (level_state.ground == TEXTURE_ASSET_ID::BOSS_ONE_LEVEL_GROUND) {
+        for (Entity& e : registry.snoozeButtons.entities) {
+            registry.remove_all_components_of(e);
+        }
         if (registry.bosses.size() == 1) {
             registry.remove_all_components_of(registry.bosses.entities[0]);
         }

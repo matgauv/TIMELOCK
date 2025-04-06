@@ -22,7 +22,7 @@ float calculate_moment_of_inertia(Entity& entity) {
 				vec2 offset = submesh.world_pos - motion.position;
 				float distance_sq = dot(offset, offset);
 				// Moment of inertia for this submesh (rectangle) + parallel axis term
-				float submesh_mass = phys.mass;
+				float submesh_mass = phys.mass * submesh.scale_ratio.x;
 				total += (1.0f/12.0f) * submesh_mass * (size.x*size.x + size.y*size.y)
 					   + submesh_mass * distance_sq;
 			}

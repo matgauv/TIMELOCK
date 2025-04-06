@@ -97,6 +97,7 @@ struct Player
 	// Potentially transfer acceleration/deceleration controls to Player as well
 
 	float jumping_valid_time = -1.0f;
+	bool w_is_held = false;
 };
 
 struct SpawnPoint

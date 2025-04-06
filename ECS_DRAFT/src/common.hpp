@@ -101,7 +101,7 @@ const float DISTANCE_TO_DROP_BOLT = 200.0f;
 const vec2 PLAYER_SCALE = { 50.0f, 50.0f };
 const float PLAYER_MAX_FALLING_SPEED = 1000.0f;
 const float PLAYER_MAX_WALKING_SPEED = 220.0f;
-const float PLAYER_CLIMBING_SPEED = 150.0f;
+const float PLAYER_CLIMBING_SPEED = 400.0f;
 const float LADDER_TOP_OUT_THRESH = TILE_TO_PIXELS / 4.0f;
 const float PLAYER_STATIC_FRICTION = 0.7f;
 

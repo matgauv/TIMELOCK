@@ -85,23 +85,24 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	Entity& player_entity = registry.players.entities[0];
 	if (key == GLFW_KEY_W) {
-		if (registry.climbing.has(player_entity)) {
-			Climbing& climbing = registry.climbing.get(player_entity);
-			climbing.is_up = true;
+		if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+			if (registry.climbing.has(player_entity)) {
+				Climbing& climbing = registry.climbing.get(player_entity);
+				climbing.is_up = true;
+			}
+			else {
+				player_jump();
+			}
+			registry.players.components[0].w_is_held = true;
+		} else {
+			if (registry.climbing.has(player_entity)) {
+				Climbing& climbing = registry.climbing.get(player_entity);
+				climbing.is_up = false;
+			}
+			registry.players.components[0].w_is_held = false;
 		}
-		else {
-			player_jump();
-		}
-
-
 	}
 
-	if (action == GLFW_RELEASE && key == GLFW_KEY_W) {
-		if (registry.climbing.has(player_entity)) {
-			Climbing& climbing = registry.climbing.get(player_entity);
-			climbing.is_up = false;
-		}
-	}
 
 
 	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {

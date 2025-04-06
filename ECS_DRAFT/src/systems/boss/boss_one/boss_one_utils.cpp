@@ -15,6 +15,7 @@ Entity create_first_boss() {
     boss.time_until_exhausted_ms = BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS;
     boss.health = BOSS_ONE_MAX_HEALTH;
     boss.nextAttacks;
+    boss.num_of_delayed_projectiles = 3;
 
     FirstBoss& firstBoss = registry.firstBosses.emplace(entity);
     Motion& motion = registry.motions.emplace(entity);
@@ -323,9 +324,9 @@ void boss_one_move_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, fl
     // if (boss.timer_ms <= 0.f) {
     //     // choose_dash_attack_test(boss_entity, boss, boss_motion);
     //     // choose_regular_projectile_attack_test(boss_entity, boss, boss_motion, is_player_to_boss_left);
-    //     // choose_delayed_projectile_attack_test(boss_entity, boss, boss_motion);
+    //     choose_delayed_projectile_attack_test(boss_entity, boss, boss_motion);
     //     // choose_fast_projectile_attack_test(boss_entity, boss, boss_motion, is_player_to_boss_left);
-    //     choose_ground_slam_test(boss_entity, boss, boss_motion);
+    //     // choose_ground_slam_test(boss_entity, boss, boss_motion);
     // }
 }
 
@@ -350,12 +351,10 @@ void boss_one_exhausted_step(Entity& boss_entity, Boss& boss, Motion& boss_motio
         firstBoss.player_collided_with_snooze_button = false;
         boss.timer_ms = BOSS_ONE_MAX_DAMAGED_DURATION_MS;
 
-        /* 
         // Potential fix for snooze buttoin issue
         if (registry.snoozeButtons.size() > 0) {
             registry.remove_all_components_of(registry.snoozeButtons.entities[0]);
         }
-        */
 
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
@@ -368,6 +367,11 @@ void boss_one_exhausted_step(Entity& boss_entity, Boss& boss, Motion& boss_motio
         boss.can_be_damaged = false;
         boss.timer_ms = BOSS_ONE_MAX_RECOVER_DURATION_MS;
 
+        // Remove the snooze button if the player does not hit it in time
+        if (registry.snoozeButtons.size() > 0) {
+            registry.remove_all_components_of(registry.snoozeButtons.entities[0]);
+        }
+
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
         animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_RECOVERED;
@@ -379,11 +383,6 @@ void boss_one_recover_step(Entity& boss_entity, Boss& boss, Motion& boss_motion,
 
     // Decrement the timer
     boss.timer_ms -= elapsed_ms;
-
-    // Remove the snooze button
-    for (Entity& button_entity : registry.snoozeButtons.entities) {
-        registry.remove_all_components_of(button_entity);
-    }
 
     if (boss.timer_ms <= 0.f) {
         boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
@@ -403,11 +402,6 @@ void boss_one_damaged_step(Entity& boss_entity, Boss& boss, Motion& boss_motion,
     // Decrement timer
     boss.timer_ms -= elapsed_ms;
 
-    // Remove the snooze button
-    for (Entity& button_entity : registry.snoozeButtons.entities) {
-        registry.remove_all_components_of(button_entity);
-    }
-
     // If boss health has reached 0, transition to DEAD state
     if (boss.health <= 0.f) {
         boss.boss_state = BOSS_STATE::BOSS1_DEAD_STATE;
@@ -416,6 +410,10 @@ void boss_one_damaged_step(Entity& boss_entity, Boss& boss, Motion& boss_motion,
 
     // Otherwise, if timer is up, transition to RECOVER state
     if (boss.timer_ms <= 0.f) {
+        // update the max number of delayed projectile
+        unsigned int num = boss.num_of_delayed_projectiles + 1;
+        boss.num_of_delayed_projectiles = std::min(BOSS_ONE_MAX_NUM_DELAYED_PROJECTILE, num);
+        
         boss.boss_state = BOSS_STATE::BOSS1_RECOVER_STATE;
         boss.timer_ms = BOSS_ONE_MAX_RECOVER_DURATION_MS;
 
@@ -1080,16 +1078,12 @@ void boss_one_delayed_projectile_attack(Entity& boss_entity, Boss& boss, Motion&
     assert(registry.firstBosses.components.size() <= 1);
     FirstBoss& firstBoss = registry.firstBosses.get(boss_entity);
 
-    // create three delayed projectiles
-    if (firstBoss.num_of_projectiles_created < 3) {
-        vec2 pos_1 = vec2(BOSS_ONE_FIRST_DELAYED_PROJECTILE_X_POSITION, BOSS_ONE_DELAYED_PROJECTILE_Y_POSITION);
-        vec2 pos_2 = vec2(BOSS_ONE_SECOND_DELAYED_PROJECTILE_X_POSITION, BOSS_ONE_DELAYED_PROJECTILE_Y_POSITION);
-        vec2 pos_3 = vec2(BOSS_ONE_THIRD_DELAYED_PROJECTILE_X_POSITION, BOSS_ONE_DELAYED_PROJECTILE_Y_POSITION);
+    // create delayed projectiles
+    while (firstBoss.num_of_projectiles_created < boss.num_of_delayed_projectiles) {
+        vec2 pos = vec2(BOSS_ONE_DELAYED_PROJECTILE_X_POSITIONS[firstBoss.num_of_projectiles_created], BOSS_ONE_DELAYED_PROJECTILE_Y_POSITION);
         vec2 size = vec2(BOSS_ONE_PROJECTILE_WIDTH_PX, BOSS_ONE_PROJECTILE_HEIGHT_PX);
-        create_delayed_projectile(pos_1, BOSS_ONE_FIRST_DELAYED_PROJECTILE_TIMER_MS);
-        create_delayed_projectile(pos_2, BOSS_ONE_SECOND_DELAYED_PROJECTILE_TIMER_MS);
-        create_delayed_projectile(pos_3, BOSS_ONE_THIRD_DELAYED_PROJECTILE_TIMER_MS);
-        firstBoss.num_of_projectiles_created = 3;
+        create_delayed_projectile(pos, BOSS_ONE_DELAYED_PROJECTILE_TIMERS_MS[firstBoss.num_of_projectiles_created]);
+        firstBoss.num_of_projectiles_created++;
     }
 }
 

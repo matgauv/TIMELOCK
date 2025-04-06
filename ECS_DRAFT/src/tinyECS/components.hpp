@@ -538,6 +538,11 @@ struct DecelerationBar {
 	float shrink_factor = 0.0;
 };
 
+// a struct representing the boss health bar
+struct BossHealthBar {
+	
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -643,8 +648,13 @@ enum class TEXTURE_ASSET_ID {
 	BOSS_ONE_GROUND_SLAM_FOLLOW = BOSS_ONE_GROUND_SLAM_RISE + 1,
 	BOSS_ONE_GROUND_SLAM_FALL = BOSS_ONE_GROUND_SLAM_FOLLOW + 1,
 	BOSS_ONE_GROUND_SLAM_LAND = BOSS_ONE_GROUND_SLAM_FALL + 1,
+	BOSS_ONE_HEALTH_BAR_20 = BOSS_ONE_GROUND_SLAM_LAND + 1,
+	BOSS_ONE_HEALTH_BAR_40 = BOSS_ONE_HEALTH_BAR_20 + 1,
+	BOSS_ONE_HEALTH_BAR_60 = BOSS_ONE_HEALTH_BAR_40 + 1,
+	BOSS_ONE_HEALTH_BAR_80 = BOSS_ONE_HEALTH_BAR_60 + 1,
+	BOSS_ONE_HEALTH_BAR_100 = BOSS_ONE_HEALTH_BAR_80 + 1,
 	
-	TUTORIAL_TEXT = BOSS_ONE_GROUND_SLAM_LAND + 1,
+	TUTORIAL_TEXT = BOSS_ONE_HEALTH_BAR_100 + 1,
 	
 	// UI
 	DECEL_BAR = TUTORIAL_TEXT + 1,

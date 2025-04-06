@@ -169,7 +169,7 @@ const float PLAYER_BB_WIDTH_PX = 24;
 const float PLAYER_BB_HEIGHT_PX = 24;
 
 // Boss 1 specific properties
-const float BOSS_ONE_SPAWN_POINT_X = 1050.f;
+const float BOSS_ONE_SPAWN_POINT_X = 800.f; // was 1050.f
 const float BOSS_ONE_SPAWN_POINT_Y = 385.f;
 const float BOSS_ONE_ON_GROUND_Y_POSITION = 385.f; // TODO: need to verify this
 const float BOSS_ONE_MAX_HEALTH = 100.f;
@@ -180,7 +180,8 @@ const float BOSS_ONE_BB_WIDTH_PX = 50.f; // TODO: placeholder, we should adjust 
 const float BOSS_ONE_BB_HEIGHT_PX = 50.f; // TODO: placeholder, we should adjust this once the actual texture is ready
 const float BOSS_ONE_GROUND_SLAM_BB_WIDTH_PX = 200.f;
 const float BOSS_ONE_GROUND_SLAM_BB_HEIGHT_PX = 200.f;
-const float BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS = 30000.f; // for testing, use 15000.f, otherwise use 30000.f
+const float BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS = 30000.f; // for testing, use 10000.f, otherwise use 30000.f
+const int BOSS_ONE_NEXT_ATTACKS_VECTOR_MAX_SIZE = 10;
 
 const float BOSS_ONE_MAX_WALK_DURATION_MS = 5000.f; // use 1000.f for testing purposes, otherwise use 5000.f
 const float BOSS_ONE_MAX_EXHAUSTED_DURATION_MS = 10000.f;
@@ -196,18 +197,30 @@ const float BOSS_ONE_REGULAR_PROJECTILE_VELOCITY = WINDOW_WIDTH_PX / 5.f;
 
 const float BOSS_ONE_FAST_PROJECTILE_VELOCITY = BOSS_ONE_REGULAR_PROJECTILE_VELOCITY * 2.f;
 
+const unsigned int BOSS_ONE_MAX_NUM_DELAYED_PROJECTILE = 6;
 const float BOSS_ONE_DELAYED_PROJECTILE_SPEED = 500.f;
-// const float BOSS_ONE_DELAYED_PROJECTILE_Y_POSITION = WINDOW_HEIGHT_PX / 4.f;
-const float BOSS_ONE_DELAYED_PROJECTILE_Y_POSITION = 275.f; // for testing purposes
-// const float BOSS_ONE_FIRST_DELAYED_PROJECTILE_X_POSITION = WINDOW_WIDTH_PX * 0.25f;
-const float BOSS_ONE_FIRST_DELAYED_PROJECTILE_X_POSITION = 500.f; // for testing purposes
-const float BOSS_ONE_FIRST_DELAYED_PROJECTILE_TIMER_MS = 2500.f;
-// const float BOSS_ONE_SECOND_DELAYED_PROJECTILE_X_POSITION = WINDOW_WIDTH_PX * 0.5f;
-const float BOSS_ONE_SECOND_DELAYED_PROJECTILE_X_POSITION = 750.f; // for testing purposes
-const float BOSS_ONE_SECOND_DELAYED_PROJECTILE_TIMER_MS = 4000.f;
-// const float BOSS_ONE_THIRD_DELAYED_PROJECTILE_X_POSITION = WINDOW_WIDTH_PX * 0.75f;
-const float BOSS_ONE_THIRD_DELAYED_PROJECTILE_X_POSITION = 1000.f; // for testing purposes
-const float BOSS_ONE_THIRD_DELAYED_PROJECTILE_TIMER_MS = 4500.f;
+const float BOSS_ONE_DELAYED_PROJECTILE_Y_POSITION = 275.f;
+const float BOSS_ONE_DELAYED_PROJECTILE_X_POSITION_0 = 400.f;
+const float BOSS_ONE_DELAYED_PROJECTILE_TIMER_MS_0 = 2500.f;
+const float BOSS_ONE_DELAYED_PROJECTILE_X_POSITION_1 = 520.f;
+const float BOSS_ONE_DELAYED_PROJECTILE_TIMER_MS_1 = 4000.f;
+const float BOSS_ONE_DELAYED_PROJECTILE_X_POSITION_2 = 640.f;
+const float BOSS_ONE_DELAYED_PROJECTILE_TIMER_MS_2 = 4500.f;
+const float BOSS_ONE_DELAYED_PROJECTILE_X_POSITION_3 = 760.f;
+const float BOSS_ONE_DELAYED_PROJECTILE_TIMER_MS_3 = 1000.f;
+const float BOSS_ONE_DELAYED_PROJECTILE_X_POSITION_4 = 880.f;
+const float BOSS_ONE_DELAYED_PROJECTILE_TIMER_MS_4 = 3000.f;
+const float BOSS_ONE_DELAYED_PROJECTILE_X_POSITION_5 = 1000.f;
+const float BOSS_ONE_DELAYED_PROJECTILE_TIMER_MS_5 = 2500.f;
+
+const std::vector<float> BOSS_ONE_DELAYED_PROJECTILE_X_POSITIONS = {BOSS_ONE_DELAYED_PROJECTILE_X_POSITION_1, BOSS_ONE_DELAYED_PROJECTILE_X_POSITION_2,
+	BOSS_ONE_DELAYED_PROJECTILE_X_POSITION_3, BOSS_ONE_DELAYED_PROJECTILE_X_POSITION_4, BOSS_ONE_DELAYED_PROJECTILE_X_POSITION_0,
+	BOSS_ONE_DELAYED_PROJECTILE_X_POSITION_5};
+
+const std::vector<float> BOSS_ONE_DELAYED_PROJECTILE_TIMERS_MS = {BOSS_ONE_DELAYED_PROJECTILE_TIMER_MS_0, BOSS_ONE_DELAYED_PROJECTILE_TIMER_MS_1,
+		BOSS_ONE_DELAYED_PROJECTILE_TIMER_MS_2, BOSS_ONE_DELAYED_PROJECTILE_TIMER_MS_3, BOSS_ONE_DELAYED_PROJECTILE_TIMER_MS_4,
+		BOSS_ONE_DELAYED_PROJECTILE_TIMER_MS_5};
+
 
 const float BOSS_ONE_DASH_VELOCITY = 400.f; // use 100.f for testing purposes, otherwise, the boss should be able to cross the screen in one second
 const float BOSS_ONE_DASH_DURATION_MS = 4000.f;
@@ -257,6 +270,7 @@ const float LOAD_LEVEL_COUNTDOWN = DEAD_REVIVE_TIME_MS + 10.0f;
 // Parsing constants
 const float PARSING_CANNON_Y_POS_DIFF = (0.5f * TILE_TO_PIXELS) - (CANNON_TOWER_SIZE.y / 2);
 const float PARSING_CHECKPOINT_Y_POS_DIFF = (0.5f * TILE_TO_PIXELS) - (SPAWNPOINT_SCALE.y / 2);
+
 // Particles
 const int PARTICLE_COUNT_LIMIT = 1000;
 const float MAX_CAMERA_DISTANCE = 2000.0;
@@ -272,6 +286,40 @@ const float BACKGROUND_HEIGHT = 1080.0f;
 const vec2 ROLLING_PLATFORM_SIZE = vec2{ 23.0f, 15.0f };
 const int ROLLING_PLATFORM_FRAMES_ALIVE = 33;
 const float ROLLING_PLATFORM_SPEED = 4.0f; // px moving down per frame
+
+// UI
+const float DECEL_BAR_WIDTH = 175.0f / 2.0f;
+const float DECEL_BAR_HEIGHT = 20.0f / 2.0f;
+const vec2 DECEL_BAR_OFFSET = vec2{ 0.0f, -1.0f * PLAYER_BB_HEIGHT_PX };
+const float DECEL_BAR_DEVIATION = 7.5f;
+
+// Deceleration Effect
+const int GRID_WIDE_COUNT = 16;
+const int GRID_HIGH_COUNT = 9;
+const int BOUNDARY_WIDE_COUNT = 2;
+const int BOUNDARY_HIGH_COUNT = 2;
+
+const float VIGNETTE_WIDTH = 0.125f;
+const glm::vec3 PALED_BLUE_TONE = glm::vec3(0.77,0.91,0.96);
+const glm::vec3 SHARD_COLOR_1 = glm::vec3(0.573, 0.812, 1);
+const glm::vec3 SHARD_COLOR_2 = glm::vec3(0.475, 0.745, 0.961);
+const glm::vec3 SHARD_SILHOUETTE_COLOR = glm::vec3(0.87, 0.98, 0.98);
+const float SHARD_EVOLVING_SPEED = 0.001f;
+
+// Halo
+const float BLUR_FACTOR = 2.0f;
+const float HALO_LERP_FACTOR = 0.9f;
+const float HALO_LERP_TOLERANCE = 0.01f;
+
+const vec4 PLAYER_ALIVE_HALO = vec4(1.5f, 1.5f, 1.5f, 1.0f);
+const vec4 PLAYER_DEAD_HALO = vec4(0.1f, 0.1f, 0.1f, 1.0f);
+
+const vec4 BOSS_IDLE_HALO = vec4(1.f, 1.f, 0.7f, 1.0f); // light yellow
+const vec4 BOSS_NORMAL_HALO = vec4(1.f, 0.5f, 0.f, 1.0f); // orange
+const vec4 BOSS_ATTACK_HALO = vec4(1.f, 0.0f, 0.0f, 1.0f); // red
+const vec4 BOSS_EXHAUST_HALO = vec4(0.0f, 1.0f, 0.9f, 1.0f); // cyan
+const vec4 BOSS_DAMAGED_HALO = vec4(0.1f, 0.1f, 0.1f, 1.0f); // black
+const vec4 BOSS_DASH_HALO = vec4(0.7f, 0.0f, 1.0f, 1.0f); // purple
 
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)

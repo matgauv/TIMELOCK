@@ -64,7 +64,7 @@ void AnimationSystem::updateTimer(AnimateRequest& animateRequest, const Animatio
 	else if (animationConfig.animation_type == ANIMATION_TYPE_ID::FREEZE_ON_RANDOM) {
 		// Uninitialized
 		if (animateRequest.timer <= 0.0) {
-			animateRequest.timer = rand_float(0.1f, animationConfig.duration_ms);
+			animateRequest.timer = rand_float(1e-4f, animationConfig.duration_ms);
 		}
 	}
 

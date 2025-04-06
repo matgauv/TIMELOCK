@@ -4,6 +4,7 @@
 #include "../../../tinyECS/component_container.hpp"
 #include "../../../tinyECS/components.hpp"
 #include "../../../tinyECS/registry.hpp"
+#include <random>
 
 // Creates the first boss entity and its relevant components
 Entity create_first_boss();
@@ -12,7 +13,7 @@ Entity create_first_boss();
 Entity create_snooze_button(vec2 boss_position);
 
 // the main step function
-void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_num);
+void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_num, std::default_random_engine& rng);
 
 void boss_one_idle_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms);
 
@@ -26,7 +27,7 @@ void boss_one_damaged_step(Entity& boss_entity, Boss& boss, Motion& boss_motion,
 
 void boss_one_dead_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms);
 
-void boss_one_choose_attack_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms, unsigned int random_num);
+void boss_one_choose_attack_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms, unsigned int random_num, std::default_random_engine& rng);
 
 void boss_one_regular_projectile_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms);
 
@@ -74,7 +75,7 @@ void boss_one_ground_slam_land_3_step(Entity& boss_entity, Boss& boss, Motion& b
 
 float calculate_boss_one_x_velocity(float boss_x, float player_x);
 
-void chooseAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elpased_ms, unsigned int random_num);
+void chooseAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elpased_ms, unsigned int random_num, std::default_random_engine& rng);
 
 void chooseLongRangedAttack(Entity& boss_entity, Boss& boss, Motion& moss_motion, bool is_in_phase_two, bool is_player_to_boss_left, unsigned int random_num);
 
@@ -83,6 +84,8 @@ void chooseMediumRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_moti
 void chooseShortRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_in_phase_two, bool is_player_to_boss_left, unsigned int random_num);
 
 void create_delayed_projectile(vec2 pos, float timer_ms);
+
+void update_boss_halo(const Entity boss_entity, const Boss& boss);
 
 // helper functions for testing purposes
 void choose_regular_projectile_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_player_to_boss_left);
@@ -94,3 +97,17 @@ void choose_delayed_projectile_attack_test(Entity& boss_entity, Boss& boss, Moti
 void choose_dash_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion);
 
 void choose_ground_slam_test(Entity& boss_entity, Boss& boss, Motion& boss_motion);
+
+BOSS_ATTACK_ID get_next_attack(Boss& boss, std::default_random_engine& rng);
+
+void refill_nextAttacks(Boss& boss, std::default_random_engine& rng);
+
+bool is_short_ranged_attack(BOSS_ATTACK_ID attack_id);
+
+bool is_medium_ranged_attack(BOSS_ATTACK_ID attack_id);
+
+bool is_long_ranged_attack(BOSS_ATTACK_ID attack_id);
+
+bool is_phase_two_attack(BOSS_ATTACK_ID attack_id);
+
+void transition_to_attack_state(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_player_to_boss_left, BOSS_ATTACK_ID id);

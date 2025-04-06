@@ -52,14 +52,18 @@ public:
 
 	static void destroy_projectile(Entity entity);
 
+	static bool set_time_control_state(bool accelerate, bool activate, bool force_cooldown_reset = false);
+
+	static void generate_deceleration_particle();
 private:
 	// starts and loads music and sound effects
 	bool start_and_load_sounds();
 
 	// control acceleration/deceleration
-	void control_time(bool accelerate, bool activate);
+	void control_time(bool accelerate, bool activate, bool force_cooldown_reset = false);
+
 	void update_time_control_properties(TIME_CONTROL_STATE timeControlState, TimeControllable& tc, const Entity& entity);
-	void lerpTimeState(float start, float factor, Motion& motion, std::chrono::time_point<std::chrono::high_resolution_clock> effectStartTime);
+	void lerpTimeState(float start, float factor, Motion& motion, float effective_time);
 
 	void player_walking(bool walking, bool is_left);
 	void player_jump();

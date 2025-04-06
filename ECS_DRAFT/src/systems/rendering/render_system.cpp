@@ -5,19 +5,31 @@
 #include "render_system.hpp"
 #include "../../tinyECS/registry.hpp"
 
-void RenderSystem::drawTexturedMesh(Entity entity,
-									const mat3 &projection)
-{
+void RenderSystem::drawTexturedMesh(Entity entity, const mat3& projection) {
+	assert(registry.renderRequests.has(entity));
+	const RenderRequest& render_request = registry.renderRequests.get(entity);
+	RenderSystem::drawTexturedMesh(entity, projection, render_request);
+}
 
+void RenderSystem::drawTexturedMesh(Entity entity,
+									const mat3 &projection,
+									const RenderRequest& render_request)
+{
+	assert(render_request.used_effect != EFFECT_ASSET_ID::EFFECT_COUNT);
+	const GLuint program = (GLuint)effects[(GLuint)render_request.used_effect];
 
 	// Transformation code, see Rendering and Transformation in the template
 	// specification for more info Incrementally updates transformation matrix,
 	// thus ORDER IS IMPORTANT
-
 	Transform transform;
 
 	if (!registry.tiles.has(entity)) {
 		Motion& motion = registry.motions.get(entity);
+
+		// No need to render mesh with 0 dimension
+		if (abs(motion.scale.x) < 1e-8 || abs(motion.scale.y) < 1e-8) {
+			return;
+		}
 
 		// if pivot point exists, translate to offset, rotate, translate back, scale (hack for pendulums)
 		if (registry.pivotPoints.has(entity)) {
@@ -35,13 +47,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		}
 	}
 
-	assert(registry.renderRequests.has(entity));
-	const RenderRequest &render_request = registry.renderRequests.get(entity);
-
-	const GLuint used_effect_enum = (GLuint)render_request.used_effect;
-	assert(used_effect_enum != (GLuint)EFFECT_ASSET_ID::EFFECT_COUNT);
-	const GLuint program = (GLuint)effects[used_effect_enum];
-
 	// Setting shaders
 	glUseProgram(program);
 	gl_has_errors();
@@ -57,7 +62,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 
 	// texture-mapped entities - use data location as in the vertex buffer
-	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED)
+	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED ||
+		render_request.used_effect == EFFECT_ASSET_ID::FILL)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
@@ -86,11 +92,22 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
 
-		GLint color_uloc = glGetUniformLocation(program, "silhouette_color");
-		vec4 color;
-		setSilhouetteColor(entity, color);
+		if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED) {
+			GLint color_uloc = glGetUniformLocation(program, "silhouette_color");
+			vec4 color;
+			setSilhouetteColor(entity, color);
 
-		glUniform4fv(color_uloc, 1, (float*)&color);
+			glUniform4fv(color_uloc, 1, (float*)&color);
+		}
+		else if (render_request.used_effect == EFFECT_ASSET_ID::FILL) {
+			GLint fill_color_uloc = glGetUniformLocation(program, "fill_color");
+			
+			// TODO
+			if (registry.haloRequests.has(entity)) {
+				vec4 fill_color = registry.haloRequests.get(entity).halo_color;
+				glUniform4fv(fill_color_uloc, 1, (float*)&fill_color);
+			}
+		}
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::TILE)
@@ -128,6 +145,22 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		const GameState& gameState = registry.gameStates.components[0];
 
 		glUniform4fv(color_uloc, 1, (float*)&color);
+		gl_has_errors();
+
+		GLuint tile_id_uloc = glGetUniformLocation(program, "tile_id");
+		GLuint tile_pos_uloc = glGetUniformLocation(program, "tile_pos");
+		GLuint tile_offset_uloc = glGetUniformLocation(program, "t_offset");
+
+		Tile& tile_info = registry.tiles.get(entity);
+		Motion& motion = registry.motions.get(tile_info.parent_id);
+
+		// starts from the top left tile of an object.
+		int tile_start_x = motion.position.x - (motion.scale.x / 2) + (0.5 * TILE_TO_PIXELS);
+		int tile_start_y = motion.position.y - (motion.scale.y / 2) + (0.5 * TILE_TO_PIXELS);
+
+		glUniform1i(tile_id_uloc, tile_info.id);
+		glUniform2f(tile_pos_uloc, (float)tile_start_x, (float)tile_start_y);
+		glUniform2f(tile_offset_uloc, (float)(tile_info.offset.x* TILE_TO_PIXELS), (float)(tile_info.offset.y* TILE_TO_PIXELS));
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::HEX)
@@ -176,22 +209,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform4fv(color_uloc, 1, (float*)&color);
 		gl_has_errors();
 	}
-	else if (render_request.used_effect == EFFECT_ASSET_ID::LINE)
-	{
-		GLint in_position_loc = glGetAttribLocation(program, "in_position");
-		GLint in_color_loc = glGetAttribLocation(program, "in_color");
-		gl_has_errors();
-
-		glEnableVertexAttribArray(in_position_loc);
-		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
-							  sizeof(ColoredVertex), (void *)0);
-		gl_has_errors();
-
-		glEnableVertexAttribArray(in_color_loc);
-		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
-							  sizeof(ColoredVertex), (void *)sizeof(vec3));
-		gl_has_errors();
-	}
 	else
 	{
 		assert(false && "Type of render request not supported");
@@ -212,10 +229,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	GLsizei num_indices = size / sizeof(uint16_t);
 	// GLsizei num_triangles = num_indices / 3;
 
-	GLint currProgram;
-	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
 	// Setting uniform values to the currently bound program
-	GLint depth_uloc = glGetUniformLocation(currProgram, "depth");
+	GLint depth_uloc = glGetUniformLocation(program, "depth");
 	LAYER_ID layer = registry.layers.get(entity).layer;
 	float depth = (
 		layer == LAYER_ID::PARALLAXBACKGROUND ? PARALLAXBACKGROUND_DEPTH : (
@@ -227,7 +242,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 	if (render_request.used_effect != EFFECT_ASSET_ID::HEX)
 	{
-		GLuint tex_u_range_loc = glGetUniformLocation(currProgram, "tex_u_range");
+		GLuint tex_u_range_loc = glGetUniformLocation(program, "tex_u_range");
 		vec2 tex_u_range;
 
 		setURange(entity, tex_u_range);
@@ -235,31 +250,13 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform2fv(tex_u_range_loc, 1, (float*)&tex_u_range);
 		gl_has_errors();
 	}
-	if (render_request.used_effect == EFFECT_ASSET_ID::TILE)
-	{
-		GLuint tile_id_uloc = glGetUniformLocation(currProgram, "tile_id");
-		GLuint tile_pos_uloc = glGetUniformLocation(currProgram, "tile_pos");
-		GLuint tile_offset_uloc = glGetUniformLocation(currProgram, "t_offset");
-
-		Tile& tile_info = registry.tiles.get(entity);
-		Motion& motion = registry.motions.get(tile_info.parent_id);
-
-		// starts from the top left tile of an object.
-		int tile_start_x = motion.position.x - (motion.scale.x / 2) + (0.5 * TILE_TO_PIXELS);
-		int tile_start_y = motion.position.y - (motion.scale.y / 2) + (0.5 * TILE_TO_PIXELS);
-
-		glUniform1i(tile_id_uloc, tile_info.id);
-		glUniform2f(tile_pos_uloc, (float)tile_start_x, (float)tile_start_y);
-		glUniform2f(tile_offset_uloc, (float)(tile_info.offset.x * TILE_TO_PIXELS), (float)(tile_info.offset.y * TILE_TO_PIXELS));
-		gl_has_errors();
-	}
 
 
-	GLuint transform_loc = glGetUniformLocation(currProgram, "transform");
+	GLuint transform_loc = glGetUniformLocation(program, "transform");
 	glUniformMatrix3fv(transform_loc, 1, GL_FALSE, (float *)&transform.mat);
 	gl_has_errors();
 
-	GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
+	GLuint projection_loc = glGetUniformLocation(program, "projection");
 	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float *)&projection);
 	gl_has_errors();
 
@@ -278,27 +275,12 @@ void RenderSystem::drawToScreen()
 	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::SCREEN]);
 	gl_has_errors();
 
-	// Clearing backbuffer
-	int w, h;
-	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, w, h);
-	glDepthRange(0, 10);
-	glClearColor(1.f, 0, 0, 1.0);
-	glClearDepth(1.f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	gl_has_errors();
-	// Enabling alpha channel for textures
-	glDisable(GL_BLEND);
-	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable(GL_DEPTH_TEST);
-
+	bindFrameBuffer(FRAME_BUFFER_ID::SCREEN_BUFFER);
 	// Draw the screen texture on the quad geometry
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]);
 	glBindBuffer(
 		GL_ELEMENT_ARRAY_BUFFER,
 		index_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]); // Note, GL_ELEMENT_ARRAY_BUFFER associates
-																	 // indices to the bound GL_ARRAY_BUFFER
 	gl_has_errors();
 
     // add the "vignette" effect
@@ -313,11 +295,40 @@ void RenderSystem::drawToScreen()
 
 	GLuint transition_fac_uloc = glGetUniformLocation(screen_shader_program, "transition_factor");
 	GLuint focal_point_uloc = glGetUniformLocation(screen_shader_program, "focal_point");
-	GLuint aspect_ratio_uloc = glGetUniformLocation(screen_shader_program, "aspect_ratio");
+
+	GLuint grid_wide_count_uloc = glGetUniformLocation(screen_shader_program, "GRID_WIDE_COUNT");
+	glUniform1i(grid_wide_count_uloc, GRID_WIDE_COUNT);
+
+	GLuint grid_high_count_uloc = glGetUniformLocation(screen_shader_program, "GRID_HIGH_COUNT");
+	glUniform1i(grid_high_count_uloc, GRID_HIGH_COUNT);
+
+	GLuint boundary_wide_uloc = glGetUniformLocation(screen_shader_program, "BOUNDARY_WIDE_COUNT");
+	glUniform1i(boundary_wide_uloc, BOUNDARY_WIDE_COUNT);
+
+	GLuint boundary_high_uloc = glGetUniformLocation(screen_shader_program, "BOUNDARY_HIGH_COUNT");
+	glUniform1i(boundary_high_uloc, BOUNDARY_HIGH_COUNT);
+
+	GLuint vignette_width_uloc = glGetUniformLocation(screen_shader_program, "VIGNETTE_WIDTH");
+	glUniform1f(vignette_width_uloc, VIGNETTE_WIDTH);
+
+	GLuint paled_blue_tone_uloc = glGetUniformLocation(screen_shader_program, "PALED_BLUE_TONE");
+	glUniform3fv(paled_blue_tone_uloc, 1, (float*)&PALED_BLUE_TONE);
+
+	GLuint shard_color_1_uloc = glGetUniformLocation(screen_shader_program, "SHARD_COLOR_1");
+	glUniform3fv(shard_color_1_uloc, 1, (float*)&SHARD_COLOR_1);
+
+	GLuint shard_color_2_uloc = glGetUniformLocation(screen_shader_program, "SHARD_COLOR_2");
+	glUniform3fv(shard_color_2_uloc, 1, (float*)&SHARD_COLOR_2);
+
+	GLuint shard_silhouette_uloc = glGetUniformLocation(screen_shader_program, "SHARD_SILHOUETTE_COLOR");
+	glUniform3fv(shard_silhouette_uloc, 1, (float*)&SHARD_SILHOUETTE_COLOR);
+
+	GLuint shard_speed_uloc = glGetUniformLocation(screen_shader_program, "SHARD_EVOLVING_SPEED");
+	glUniform1f(shard_speed_uloc, SHARD_EVOLVING_SPEED);
 
 	GLuint time_uloc = glGetUniformLocation(screen_shader_program, "time");
 
-	glUniform1f(time_uloc, (float)(glfwGetTime() * 1000.0f));
+	glUniform1f(time_uloc, (float)(glfwGetTime() * 1000.0f)); // May need to adjust this if pauses the game when decelerated
 
 	ScreenState &screen = registry.screenStates.get(screen_state_entity);
 
@@ -342,8 +353,6 @@ void RenderSystem::drawToScreen()
 		(canonical_player_pos[1] + 1.0f) / 2.0f
 	};
 	glUniform2fv(focal_point_uloc, 1, focal_point);
-
-	glUniform1f(aspect_ratio_uloc, ((float)WINDOW_WIDTH_PX) / WINDOW_HEIGHT_PX);
 	gl_has_errors();
 
 	// Set the vertex position and vertex texture coordinates (both stored in the
@@ -398,18 +407,16 @@ void RenderSystem::step(float elapsed_ms) {
 			if (screen.scene_transition_factor <= 0.0) {
 				screen.scene_transition_factor = -1.0;
 			}
-			/*
-			if (screen.scene_transition_factor > 1.0) {
-				// Newly set: skip this step to avoid large elapsed time
-				screen.scene_transition_factor = 1.0;
-			}
-			else {
-				screen.scene_transition_factor = min(1.0f, screen.scene_transition_factor) - elapsed_ms / DEAD_REVIVE_TIME_MS;
+		}
+	}
 
-				if (screen.scene_transition_factor <= 0.0) {
-					screen.scene_transition_factor = -1.0;
-				}
-			}*/
+	// Halos
+	for (HaloRequest& halo : registry.haloRequests.components) {
+		if (glm::length(halo.halo_color - halo.target_color) < HALO_LERP_TOLERANCE) {
+			halo.halo_color = halo.target_color;
+		}
+		else {
+			halo.halo_color = halo.halo_color * HALO_LERP_FACTOR + halo.target_color * (1.0F - HALO_LERP_FACTOR);
 		}
 	}
 }
@@ -457,31 +464,6 @@ void RenderSystem::late_step(float elapsed_ms) {
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
 void RenderSystem::draw()
 {
-	// Getting size of window
-	int w, h;
-	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
-
-	// First render to the custom framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
-	//gl_has_errors();
-	
-	// clear backbuffer
-	glViewport(0, 0, w, h);
-	glDepthRange(0.00001, 10);
-	
-	// white background -> black background
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-	glClearDepth(10.f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable(GL_DEPTH_TEST); // native OpenGL does not work with a depth buffer
-							  // and alpha blending, one would have to sort
-							  // sprites back to front
-	//gl_has_errors();
-
-
 	// handle meshes
 	// TODO prob handle this somewhere better...
 	for (Entity entity : registry.players.entities) {
@@ -498,21 +480,15 @@ void RenderSystem::draw()
 		}
 	}
 
-
-	// draw all entities with a render request to the frame buffer
 	// Assort rendering tasks according to layers
-	
+
 	std::vector<Entity> parallaxbackgrounds;
-	//std::vector<Entity> parallaxbackgrounds_particles;
 
 	std::vector<Entity> backgrounds;
-	//std::vector<Entity> backgrounds_particles;
 
 	std::vector<Entity> midgrounds;
-	//std::vector<Entity> midgrounds_particles;
 
 	std::vector<Entity> foregrounds;
-	//std::vector<Entity> foregrounds_particles;
 
 	for (Entity entity : registry.layers.entities)
 	{
@@ -537,11 +513,7 @@ void RenderSystem::draw()
 				break;
 			case LAYER_ID::MIDGROUND:
 				// Render Player last?
-				if (registry.players.has(entity)) {
-					continue;
-				}
-				// TODO: may need to adjust rendering order for spawn points and interactive objects as well?
-				if (registry.players.entities[0].id() == entity.id()) {
+				if (registry.haloRequests.has(entity)) {
 					continue;
 				}
 				midgrounds.push_back(entity);
@@ -556,9 +528,60 @@ void RenderSystem::draw()
 				break;
 		}
 	}
-	midgrounds.push_back(registry.players.entities[0]);
 
 	glBindVertexArray(vao_general);
+
+	// Render Halo
+	bindFrameBuffer(FRAME_BUFFER_ID::BLUR_BUFFER_1);
+
+	std::vector<Entity> halo_entities;
+	if (registry.bosses.size() > 0) {
+		halo_entities.push_back(registry.bosses.entities[0]);
+	}
+
+	if (registry.snoozeButtons.size() > 0) {
+		halo_entities.push_back(registry.snoozeButtons.entities[0]);
+	}
+	// TODO: add decel bar after merge
+	if (registry.players.size() > 0) {
+		halo_entities.push_back(registry.players.entities[0]);
+	}
+
+	if (registry.decelerationBars.size() > 0) {
+		halo_entities.push_back(registry.decelerationBars.entities[0]);
+	}
+
+	for (const Entity halo_entity : halo_entities) {
+		drawFilledMesh(halo_entity, this->projection_matrix);
+	}
+
+	// Prepare halo effect
+	for (int i = 6; i >= 0; i--) {
+		// Pass-catch
+
+		// Render to blur 2
+		bindFrameBuffer(FRAME_BUFFER_ID::BLUR_BUFFER_2);
+		drawBlurredLayer(blur_buffer_color_1, BLUR_MODE::HORIZONTAL, 1.75f, 1.45f);
+
+		// Render to blur 1
+		bindFrameBuffer(FRAME_BUFFER_ID::BLUR_BUFFER_1);
+		drawBlurredLayer(blur_buffer_color_2, BLUR_MODE::VERTICAL, 1.75f, 1.45f);
+	}
+
+	// Halo effects in blur 1
+
+	// Render foreground to blur 2
+	bindFrameBuffer(FRAME_BUFFER_ID::BLUR_BUFFER_2);
+	for (Entity entity : foregrounds)
+	{
+		drawTexturedMesh(entity, this->projection_matrix);
+	}
+
+	// Start rendering to intermediate buffer
+	bindFrameBuffer(FRAME_BUFFER_ID::INTERMEDIATE_BUFFER);
+
+
+	// draw all entities with a render request to the frame buffer
 	for (Entity entity : parallaxbackgrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
@@ -571,8 +594,15 @@ void RenderSystem::draw()
 	}
 
 
-	midgrounds.push_back(registry.players.entities[0]);
+
 	for (Entity entity : midgrounds)
+	{
+		drawTexturedMesh(entity, this->projection_matrix);
+	}
+
+	drawBlurredLayer(blur_buffer_color_1, BLUR_MODE::TWO_D, 1.5f, 1.2f);
+
+	for (Entity entity : halo_entities)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
 	}
@@ -585,10 +615,8 @@ void RenderSystem::draw()
 	glBindVertexArray(0);
 
 	glBindVertexArray(vao_general);
-	for (Entity entity : foregrounds)
-	{
-		drawTexturedMesh(entity, this->projection_matrix);
-	}
+	// Render foreground
+	drawBlurredLayer(blur_buffer_color_2, BLUR_MODE::TWO_D, 1.5f, 1.2f);
 
 
 	// draw framebuffer to screen

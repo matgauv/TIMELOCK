@@ -69,6 +69,8 @@ public:
 	ComponentContainer<RollingPlatform> rollingPlatforms;
 
 	std::unordered_map<std::string, std::vector<int>> rolling_thing_data;
+	ComponentContainer<DecelerationBar> decelerationBars;
+	ComponentContainer<HaloRequest> haloRequests;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -128,6 +130,8 @@ public:
 		registry_list.push_back(&screws);
 		registry_list.push_back(&rollingThings);
 		registry_list.push_back(&rollingPlatforms);
+		registry_list.push_back(&decelerationBars);
+		registry_list.push_back(&haloRequests);
 	}
 
 	void clear_all_components() {

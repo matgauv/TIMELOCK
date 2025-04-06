@@ -7,7 +7,7 @@ void WorldSystem::check_player_killed() {
 	// Disable time control during dead & respawn
 	if (player.state == PLAYER_STATE::DEAD || player.state == PLAYER_STATE::RESPAWNED) {
 		if (gameState.game_time_control_state != TIME_CONTROL_STATE::NORMAL) {
-			control_time(false, false);
+			control_time(false, false, true);
 		}
 	}
 }

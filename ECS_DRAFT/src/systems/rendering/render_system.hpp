@@ -107,6 +107,17 @@ class RenderSystem : public ISystem {
 		level_ground_path("Level_3"),
 		level_ground_path("Level_4"),
 		textures_path("tutorial-text/boss-text.png"),
+		textures_path("load-screen.png"),
+		textures_path("buttons/menu.png"),
+		textures_path("buttons/menu-selected.png"),
+		textures_path("buttons/resume.png"),
+		textures_path("buttons/resume-selected.png"),
+		textures_path("fade.png"),
+		textures_path("start-screen/center-cover.png"),
+		textures_path("start-screen/key.png"),
+		textures_path("start-screen/screen.png"),
+		textures_path("start-screen/start-selected.png"),
+		textures_path("start-screen/exit-selected.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

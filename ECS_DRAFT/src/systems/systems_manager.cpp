@@ -2,6 +2,10 @@
 #include "../common.hpp"
 #include <iostream>
 #include <chrono>
+
+#include "physics/physics_system.hpp"
+#include "tinyECS/registry.hpp"
+#include "world/world_init.hpp"
 using Clock = std::chrono::high_resolution_clock;
 
 // Debugging
@@ -34,38 +38,50 @@ void SystemsManager::run_game_loop() {
 		float elapsed_ms = (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
-		physics_accumulator += elapsed_ms;
-		physics_accumulator = std::min(physics_accumulator, max_accumulator_ms);
-
-		// step regular systems with the frame time
-		for (ISystem* system : systems) {
-			system->step(elapsed_ms);
-		}
-
-		// step physics systems if enough time has elapsed with fixed frame time
-		while (physics_accumulator >= physics_step) {
-			float substep_dt = physics_step / substep_count;
-
-			// perform the physics step in sub steps for more consistent behaviour
-			for (int i = 0; i < substep_count; ++i) {
-				for (ISystem* system : fixed_systems) {
-					system->step(substep_dt);
-				}
+		GameState& gs = registry.gameStates.components[0];
+		if (gs.game_running_state == GAME_RUNNING_STATE::MENU || gs.game_running_state == GAME_RUNNING_STATE::PAUSED) {
+			if (registry.cameras.size() == 0) {
+				// mock camera to load the menu screen
+				create_camera({0, 0}, {1, 1});
 			}
 
+			if (registry.menuScreens.size() == 0) {
+				create_menu_screen();
+			}
 
+			// step the render system
+			systems[systems.size() - 1]->step(elapsed_ms);
+		} else {
+			physics_accumulator += elapsed_ms;
+			physics_accumulator = std::min(physics_accumulator, max_accumulator_ms);
 
-			physics_accumulator -= physics_step;
+			// step regular systems with the frame time
+			for (ISystem* system : systems) {
+				system->step(elapsed_ms);
+			}
+
+			// step physics systems if enough time has elapsed with fixed frame time
+			while (physics_accumulator >= physics_step) {
+				float substep_dt = physics_step / substep_count;
+
+				// perform the physics step in sub steps for more consistent behaviour
+				for (int i = 0; i < substep_count; ++i) {
+					for (ISystem* system : fixed_systems) {
+						system->step(substep_dt);
+					}
+				}
+				physics_accumulator -= physics_step;
+
+				// late step once (NOT FIXED)
+				for (ISystem* system : fixed_systems) {
+					system->late_step(physics_step);
+				}
+			}
 		}
 
 		// late step regular systems with frame time
 		for (ISystem* system : systems) {
 			system->late_step(elapsed_ms);
-		}
-
-		// late step once (NOT FIXED)
-		for (ISystem* system : fixed_systems) {
-			system->late_step(physics_step);
 		}
 	}
 }

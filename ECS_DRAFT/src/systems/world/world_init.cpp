@@ -1095,9 +1095,87 @@ Entity create_spawner(std::string type, vec2 size, vec2 velocity, vec2 start_pos
     return entity;
 }
 
+Entity create_loading_screen() {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.scale = {WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX};
+    motion.angle = 0.0f;
+    motion.velocity = {0.0f, 0.0f};
+    motion.position = {WINDOW_WIDTH_PX / 2.0f, WINDOW_HEIGHT_PX / 2.0f };
+
+    registry.loadingScreens.emplace(entity);
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::LOADING_SCREEN,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    return entity;
+}
 
 
+Entity create_pause_buttons(vec2 pos, vec2 scale, float angle, TEXTURE_ASSET_ID texture_id) {
 
+    Entity entity = Entity();
+
+    MenuButton& button = registry.menuButtons.emplace(entity);
+    button.position = pos;
+    button.is_active = true;
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = pos;
+    motion.scale = scale;
+    motion.angle = angle;
+
+    if (texture_id == TEXTURE_ASSET_ID::MENU) {
+        button.type = "menu";
+    }
+    if (texture_id == TEXTURE_ASSET_ID::RESUME) {
+        button.type = "resume";
+    }
+
+    registry.renderRequests.insert(entity, {
+        texture_id,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+    registry.layers.insert(entity, { LAYER_ID::MENU_AND_PAUSE});
+
+    return entity;
+}
+
+Entity create_menu_screen() {
+    Entity entity = Entity();
+    MenuScreen& menu_screen = registry.menuScreens.emplace(entity);
+    GameState& gs = registry.gameStates.components[0];
+    Motion& camera_motion = registry.motions.get(registry.cameras.entities[0]);
+
+    if (gs.game_running_state == GAME_RUNNING_STATE::MENU) {
+        menu_screen.button_ids.push_back(create_pause_buttons(camera_motion.position, { 675.0f, 380.0f }, 0, TEXTURE_ASSET_ID::SCREEN).id());
+        menu_screen.button_ids.push_back(create_pause_buttons({ camera_motion.position.x+60.0f, camera_motion.position.y }, { 120.0f, 50.0f }, 0, TEXTURE_ASSET_ID::KEY).id());
+        menu_screen.button_ids.push_back(create_pause_buttons({ camera_motion.position.x+5.0f, camera_motion.position.y -7.0f }, { 165.0f, 165.0f }, 0, TEXTURE_ASSET_ID::COVER).id());
+    } else if (gs.game_running_state == GAME_RUNNING_STATE::PAUSED) {
+        menu_screen.button_ids.push_back(create_pause_buttons(camera_motion.position, { 1500.0f, 1500.0f },0,TEXTURE_ASSET_ID::FADE).id());
+        menu_screen.button_ids.push_back(create_pause_buttons({ camera_motion.position.x, camera_motion.position.y - 35.0f }, { 250.0f, 45.0f }, 0, TEXTURE_ASSET_ID::MENU).id());
+        menu_screen.button_ids.push_back(create_pause_buttons({ camera_motion.position.x, camera_motion.position.y + 35.0f }, { 250.0f, 45.0f },0, TEXTURE_ASSET_ID::RESUME).id());
+    }
+
+    return entity;
+}
+
+void remove_menu_screen() {
+    while (!registry.menuButtons.entities.empty()) {
+        registry.remove_all_components_of(registry.menuButtons.entities.back());
+    }
+
+    while (!registry.menuScreens.entities.empty()) {
+        registry.remove_all_components_of(registry.menuScreens.entities.back());
+    }
+}
 
 float getDistance(const Motion& one, const Motion& other) {
     return glm::length(one.position - other.position);

@@ -66,6 +66,9 @@ public:
 	ComponentContainer<Screw> screws;
 	ComponentContainer<DecelerationBar> decelerationBars;
 	ComponentContainer<HaloRequest> haloRequests;
+	ComponentContainer<LoadingScreen> loadingScreens;
+	ComponentContainer<MenuButton> menuButtons;
+	ComponentContainer<MenuScreen> menuScreens;
 	ComponentContainer<BossHealthBar> bossHealthBars;
 
 	// constructor that adds all containers for looping over them
@@ -126,6 +129,9 @@ public:
 		registry_list.push_back(&screws);
 		registry_list.push_back(&decelerationBars);
 		registry_list.push_back(&haloRequests);
+		registry_list.push_back(&loadingScreens);
+		registry_list.push_back(&menuButtons);
+		registry_list.push_back(&menuScreens);
 		registry_list.push_back(&bossHealthBars);
 	}
 

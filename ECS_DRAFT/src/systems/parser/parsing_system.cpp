@@ -42,19 +42,19 @@ void LevelParsingSystem::step(float elapsed_ms) {
 
     if (!level_state.shouldLoad) return;
 
-    // clear current level (remove all entities)
-    while (registry.motions.entities.size() > 0) {
+    // remove all entities with motion (flush the current level)
+    while (registry.motions.size() > 0) {
         registry.remove_all_components_of(registry.motions.entities.back());
+    }
+
+    // remove all renderRequests (for tiles)
+    while (registry.renderRequests.size() > 0) {
+        registry.remove_all_components_of(registry.renderRequests.entities.back());
     }
 
     // Remove all particles
     while (registry.particles.entities.size() > 0)
         registry.remove_all_components_of(registry.particles.entities.back());
-
-    // clear all render requests for tiles
-    while (registry.renderRequests.entities.size() > 0) {
-        registry.remove_all_components_of(registry.renderRequests.entities.back());
-    }
 
     if (!parse_json()) {
         cout << "Error: could not parse JSON" << endl;
@@ -111,6 +111,11 @@ void LevelParsingSystem::step(float elapsed_ms) {
 
     WorldSystem::set_time_control_state(false, false, true);
     WorldSystem::set_time_control_state(true, false, true);
+
+    GameState& game_state = registry.gameStates.components[0];
+    if (game_state.game_running_state != GAME_RUNNING_STATE::RUNNING) {
+        game_state.game_running_state = GAME_RUNNING_STATE::RUNNING;
+    }
 }
 
 void LevelParsingSystem::late_step(float elapsed_ms) {

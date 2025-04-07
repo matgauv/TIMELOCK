@@ -56,8 +56,6 @@ void LevelParsingSystem::step(float elapsed_ms) {
     while (registry.particles.entities.size() > 0)
         registry.remove_all_components_of(registry.particles.entities.back());
 
-    std::cout << "PARSING JSON" << std::endl;
-
     if (!parse_json()) {
         cout << "Error: could not parse JSON" << endl;
         return;

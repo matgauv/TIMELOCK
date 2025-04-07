@@ -113,7 +113,7 @@
    </td>
    <td>Advanced
    </td>
-   <td><code>Particle_system.hpp</code> <code>rendering_system_utils.cpp</code>
+   <td>
    </td>
    <td></td>
   </tr>

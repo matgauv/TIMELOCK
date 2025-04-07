@@ -113,9 +113,9 @@
    </td>
    <td>Advanced
    </td>
-   <td>
+   <td><code>collision_detections.cpp</code>
    </td>
-   <td></td>
+   <td>Collision detection logic between player and spike ball, and between player and gears</td>
   </tr>
   <tr>
    <td>[27] Story elements

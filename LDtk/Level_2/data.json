@@ -466,6 +466,36 @@
 					"size": 7,
 					"rounded": true
 				}
+			},
+			{
+				"id": "Platform",
+				"iid": "36e8af00-1030-11f0-ae03-4110b0be13d6",
+				"layer": "Components",
+				"x": 4144,
+				"y": 1168,
+				"width": 16,
+				"height": 16,
+				"color": 12470831,
+				"customFields": {
+					"platform": false,
+					"size": 0,
+					"rounded": false
+				}
+			},
+			{
+				"id": "Platform",
+				"iid": "74cb6d30-1030-11f0-ae03-99b388f98855",
+				"layer": "Components",
+				"x": 256,
+				"y": 1392,
+				"width": 16,
+				"height": 16,
+				"color": 12470831,
+				"customFields": {
+					"platform": false,
+					"size": 0,
+					"rounded": false
+				}
 			}
 		],
 		"Boundary": [
@@ -1659,14 +1689,14 @@
 				"height": 16,
 				"color": 5925256,
 				"customFields": {
-					"x_velocity": 20,
+					"x_velocity": 30,
 					"y_velocity": 5,
 					"end_point": {
 						"cx": 20,
 						"cy": 63
 					},
-					"width": 75,
-					"height": 75,
+					"width": 80,
+					"height": 80,
 					"start_point": {
 						"cx": 17,
 						"cy": 23
@@ -1765,6 +1795,21 @@
 				"height": 16,
 				"color": 16711748,
 				"customFields" : {}
+			}
+		],
+		"Door": [
+			{
+				"id": "Door",
+				"iid": "f4dd4c90-1030-11f0-b134-698c85a1680d",
+				"layer": "Components",
+				"x": 2400,
+				"y": 432,
+				"width": 16,
+				"height": 16,
+				"color": 14120515,
+				"customFields": {
+					"open": false
+				}
 			}
 		]
 	}

@@ -39,11 +39,13 @@ private:
         {"Level_4", TEXTURE_ASSET_ID::BOSS_TUTORIAL_GROUND},
         {"Level_5", TEXTURE_ASSET_ID::BOSS_ONE_LEVEL_GROUND},
         {"Level_6", TEXTURE_ASSET_ID::A_TUTORIAL_GROUND},
+        {"Level_9", TEXTURE_ASSET_ID::DECEL_LEVEL_9_GROUND}
     };
 
     json reparsable_entities = {};
 
     bool parse_json();
+    bool parse_rolling_thing_json();
     void init_level_background();
     void init_player_and_camera();
     void init_level_entities(json entities);
@@ -64,6 +66,8 @@ private:
     void init_gears(json gears);
     void init_spikeballs(json spikeballs);
     void init_spawners(json spawners);
+    void init_rolling_things(json rolling_things);
+
     void init_clock_holes(json clock_holes);
 
     bool extract_full_platform_dimensions(json platform, vec2& dimensions);

@@ -39,12 +39,14 @@ class RenderSystem : public ISystem {
         textures_path("black.png"),
 		textures_path("greyCircle.png"),
 		textures_path("backgrounds/SampleBackground.png"),
+
 		textures_path("player/PlayerWalking_v1.png"),
 		textures_path("player/PlayerStanding_v1.png"),
 		textures_path("player/PlayerClimb.png"),
 		textures_path("player/PlayerCoyote.png"),
 		textures_path("player/PlayerKill.png"),
 		textures_path("player/PlayerRespawn.png"),
+
 		textures_path("white_bubble.png"),
 		textures_path("greenbox.png"),
 		textures_path("transparent1px.png"),
@@ -55,35 +57,44 @@ class RenderSystem : public ISystem {
 		textures_path("Breakable.png"),
 		textures_path("bolt2.png"),
 		textures_path("bolt3.png"),
+
 		textures_path("spawnpoint/SpawnPoint_unvisited.png"),
 		textures_path("spawnpoint/SpawnPoint_activate.png"),
 		textures_path("spawnpoint/SpawnPoint_deactivate.png"),
 		textures_path("spawnpoint/SpawnPoint_reactivate.png"),
+
 		textures_path("cannontower/CannonTower.png"),
 		textures_path("cannontower/Barrel.png"),
+
 		level_ground_path("Level_0"),
 		level_ground_path("Level_6"),
 		level_ground_path("Level_1"),
 		level_ground_path("Level_5"),
+
 		textures_path("tileset.png"),
+
 		textures_path("tutorial-text/wasd.png"),
 		textures_path("tutorial-text/decel.png"),
 		textures_path("tutorial-text/decel2.png"),
 		textures_path("tutorial-text/accel.png"),
+
 		textures_path("pendulum.png"),
 		textures_path("pendulum_arm.png"),
 		textures_path("gear.png"),
 		textures_path("spikeball.png"),
 		textures_path("screw-platform.png"),
+
 		textures_path("particles/BreakablePlatform_Fragments.png"),
 		textures_path("particles/CoyoteParticles.png"),
 		textures_path("particles/Screw_Fragments.png"),
 		textures_path("particles/Hex_Fragments.png"),
+
 		textures_path("particles/Cracking_Radial.png"),
 		textures_path("particles/Cracking_Downward.png"),
 		textures_path("particles/Exhale.png"),
 		textures_path("particles/Broken_Parts.png"),
 		textures_path("particles/Cross_Star.png"),
+
 		textures_path("boss/lookleft.png"),
 		textures_path("boss/lookright.png"),
 		textures_path("boss/exhausted.png"),
@@ -105,12 +116,22 @@ class RenderSystem : public ISystem {
 		textures_path("boss/60percent.png"),
 		textures_path("boss/80percent.png"),
 		textures_path("boss/100percent.png"),
+
 		textures_path("tutorial-text/tutorial-text.png"),
+
 		textures_path("decel-bar.png"),
+
+		textures_path("rolling_thing_1.png"),
+		textures_path("rolling_thing_2.png"),
+		textures_path("rolling_thing_3.png"),
+		textures_path("rolling_thing_4.png"),
+
 		level_ground_path("Level_2"),
 		level_ground_path("Level_3"),
 		level_ground_path("Level_4"),
+
 		textures_path("tutorial-text/boss-text.png"),
+
 		textures_path("load-screen.png"),
 		textures_path("buttons/menu.png"),
 		textures_path("buttons/menu-selected.png"),
@@ -122,10 +143,12 @@ class RenderSystem : public ISystem {
 		textures_path("start-screen/screen.png"),
 		textures_path("start-screen/start-selected.png"),
 		textures_path("start-screen/exit-selected.png"),
+
 		textures_path("cutscenes/outro_1.png"),
 		textures_path("cutscenes/outro_2.png"),
 		textures_path("cutscenes/outro_3.png"),
 		textures_path("cutscenes/outro_4.png"),
+
 		textures_path("cutscenes/intro_1.png"),
 		textures_path("cutscenes/intro_2.png"),
 		textures_path("cutscenes/intro_3.png"),
@@ -135,6 +158,8 @@ class RenderSystem : public ISystem {
 		textures_path("cutscenes/intro_7.png"),
 		textures_path("cutscenes/intro_8.png"),
 		textures_path("cutscenes/intro_9.png"),
+		level_ground_path("Level_9"),
+
 		textures_path("cutscenes/_composite.png"),
 
 	};

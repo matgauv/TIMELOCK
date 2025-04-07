@@ -1,5 +1,7 @@
 #include "player_mechanics.h"
 
+#include <iostream>
+
 
 void player_climb(Entity& entity, Motion& motion, float step_seconds) {
 	if (!registry.climbing.has(entity)) return;
@@ -7,17 +9,19 @@ void player_climb(Entity& entity, Motion& motion, float step_seconds) {
 	Climbing& climbing = registry.climbing.get(entity);
 
 	if (climbing.is_up) {
-		motion.velocity.y = lerp(motion.velocity.y, -PLAYER_CLIMBING_SPEED, step_seconds * 1.5f);
 
 		if (motion.velocity.y < -PLAYER_CLIMBING_SPEED) {
 			motion.velocity.y = -PLAYER_CLIMBING_SPEED;
+		} else {
+			motion.velocity.y = lerp(motion.velocity.y, -PLAYER_CLIMBING_SPEED, step_seconds * 2.0);
 		}
 
 	} else {
-		motion.velocity.y = lerp(motion.velocity.y, PLAYER_CLIMBING_SPEED, step_seconds * 1.5f);
 
 		if (motion.velocity.y > PLAYER_CLIMBING_SPEED) {
 			motion.velocity.y = PLAYER_CLIMBING_SPEED;
+		} else {
+			motion.velocity.y = lerp(motion.velocity.y, PLAYER_CLIMBING_SPEED, step_seconds * 2.0);
 		}
 	}
 }

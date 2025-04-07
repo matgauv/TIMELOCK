@@ -83,6 +83,11 @@ void RenderSystem::initializeVAOs() {
 
 void RenderSystem::initializeGlTextures()
 {
+
+	GLint maxTextureSize = 0;
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+	printf("Maximum texture size: %d\n", maxTextureSize);
+
     glGenTextures((GLsizei)texture_gl_handles.size(), texture_gl_handles.data());
 
     for(uint i = 0; i < texture_paths.size(); i++)

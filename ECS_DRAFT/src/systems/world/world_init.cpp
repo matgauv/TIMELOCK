@@ -1135,6 +1135,65 @@ Entity create_loading_screen() {
     return entity;
 }
 
+Entity create_rolling_thing(vec2 position, vec2 scale) {
+    Entity entity = Entity();
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, 0};
+    motion.angle = 0;
+
+    RollingThing& rolling_thing = registry.rollingThings.emplace(entity);
+    rolling_thing.current_frame = 0;
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::ROLLING_THING_1,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+
+    TimeControllable& tc = registry.timeControllables.emplace(entity);
+    tc.can_be_accelerated = true;
+    tc.can_be_decelerated = true;
+
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    AnimateRequest& animation = registry.animateRequests.emplace(entity);
+    animation.used_animation = ANIMATION_ID::ROLLING_THING_1;
+    return entity;
+}
+
+Entity create_rolling_platform(vec2 position, vec2 scale, float y_velocity) {
+    Entity entity = Entity();
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, y_velocity};
+    motion.angle = 0;
+
+    registry.platforms.emplace(entity);
+
+    PhysicsObject& physics_object = registry.physicsObjects.emplace(entity);
+    physics_object.apply_gravity = false;
+    physics_object.drag_coefficient = 0.0f;
+    physics_object.apply_air_resistance = false;
+    physics_object.apply_rotation = false;
+    physics_object.mass = 0.0f;
+    physics_object.ignore_bottom_collision = true;
+
+    TimeControllable& tc = registry.timeControllables.emplace(entity);
+    tc.can_be_accelerated = true;
+    tc.can_be_decelerated = true;
+
+    // registry.renderRequests.insert(entity, {
+    //     TEXTURE_ASSET_ID::BLACK,
+    //     EFFECT_ASSET_ID::TEXTURED,
+    //     GEOMETRY_BUFFER_ID::SPRITE
+    // });
+    // registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    return entity;
+}
 
 Entity create_pause_buttons(vec2 pos, vec2 scale, float angle, TEXTURE_ASSET_ID texture_id) {
 
@@ -1229,7 +1288,7 @@ Entity create_outro_cutscene() {
 
     AnimateRequest& animation = registry.animateRequests.emplace(entity);
     animation.used_animation = ANIMATION_ID::OUTRO_1;
-    
+
     registry.colors.emplace(entity, vec3(1.0f));
 
     registry.layers.insert(entity, { LAYER_ID::CUTSCENE });

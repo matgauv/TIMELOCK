@@ -17,6 +17,9 @@ void handle_player_ladder_collision(Entity& player_entity, Entity& ladder_entity
             registry.climbing.emplace(player_entity);
         }
 
+    	Climbing& climbing = registry.climbing.get(player_entity);
+    	climbing.is_up = registry.players.components[0].w_is_held;
+
         player_motion.velocity.x *= 0.999f;
 
         if (player_bottom < ladder_top + LADDER_TOP_OUT_THRESH) {

@@ -142,6 +142,8 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 	PhysicsObject& physA = registry.physicsObjects.get(entityA);
 	PhysicsObject& physB = registry.physicsObjects.get(entityB);
 
+
+
 	vec2 A_modified_vel = get_modified_velocity(motionA);
 	vec2 B_modified_vel = get_modified_velocity(motionB);
 
@@ -151,6 +153,9 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 	if (dot(normal, posDiff) < 0) {
 		normal = -normal;
 	}
+
+	if (physA.ignore_bottom_collision && normal.y < 0.5f) return;
+	if (physB.ignore_bottom_collision && normal.y < 0.5f) return;
 
 	// prepare inverse masses
 	float a_inv_mass = physA.mass > 0.0f ? (1.0f / physA.mass) : 0.0f;
@@ -184,7 +189,19 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 	}
 
 	// approximate contact as midpoint between two motions TODO: more robust?
-	vec2 contact_point = 0.5f * (motionA.position + motionB.position);
+	vec2 contact_point;
+	bool a_is_platform = registry.platforms.has(entityA);
+	bool b_is_platform = registry.platforms.has(entityB);
+
+	if (a_is_platform || b_is_platform) {
+		if (a_is_platform) {
+			contact_point = motionB.position + collision.overlap * 0.5f;
+		} else {
+			contact_point = motionA.position + collision.overlap * 0.5f;
+		}
+	} else {
+		contact_point = 0.5f * (motionA.position + motionB.position);
+	}
 
 	// vectors from center of mass (assuming center for all objects)
 	vec2 contact_offset_a = contact_point - motionA.position;
@@ -281,12 +298,12 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 
 
 	// angular friction
-	if (physA.apply_rotation && physA.angular_damping > 0.0f) {
+	if (physA.apply_rotation) {
 		float tangential_lever_a = contact_offset_a.x * friction_dir.y - contact_offset_a.y * friction_dir.x;
 		physA.angular_velocity -= tangent_impulse_scalar * tangential_lever_a * a_inv_inertia;
 		handle_rotational_dynamics(entityA, entityB, collision.normal, step_seconds);
 	}
-	if (physB.apply_rotation && physB.angular_damping > 0.0f) {
+	if (physB.apply_rotation) {
 		float tangential_lever_b = contact_offset_b.x * friction_dir.y - contact_offset_b.y * friction_dir.x;
 		physB.angular_velocity += tangent_impulse_scalar * tangential_lever_b * b_inv_inertia;
 		handle_rotational_dynamics(entityB, entityA, -collision.normal, step_seconds);

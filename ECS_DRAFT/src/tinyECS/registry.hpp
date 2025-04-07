@@ -1,4 +1,5 @@
 #pragma once
+#include <json.hpp>
 #include <vector>
 
 #include "component_container.hpp"
@@ -64,6 +65,10 @@ public:
 	ComponentContainer<ParticleSystemState> particleSystemStates;
 	ComponentContainer<ObstacleSpawner>	obstacleSpawners;
 	ComponentContainer<Screw> screws;
+	ComponentContainer<RollingThing> rollingThings;
+	ComponentContainer<RollingPlatform> rollingPlatforms;
+
+	std::unordered_map<std::string, std::vector<int>> rolling_thing_data;
 	ComponentContainer<DecelerationBar> decelerationBars;
 	ComponentContainer<HaloRequest> haloRequests;
 	ComponentContainer<LoadingScreen> loadingScreens;
@@ -129,6 +134,8 @@ public:
 		registry_list.push_back(&particleSystemStates);
 		registry_list.push_back(&obstacleSpawners);
 		registry_list.push_back(&screws);
+		registry_list.push_back(&rollingThings);
+		registry_list.push_back(&rollingPlatforms);
 		registry_list.push_back(&decelerationBars);
 		registry_list.push_back(&haloRequests);
 		registry_list.push_back(&loadingScreens);

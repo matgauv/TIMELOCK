@@ -22,6 +22,7 @@ Entity create_parallaxbackground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture
 Entity create_foreground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id);
 Entity create_levelground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id);
 Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, int stride, bool rounded);
+Entity create_rolling_platform(vec2 position, vec2 scale, float y_velocity);
 Entity create_level_boundary(vec2 position, vec2 scale);
 Entity create_world_boundary(vec2 position, vec2 scale);
 Entity create_clock_hole(vec2 position, vec2 scale);
@@ -49,6 +50,7 @@ Entity create_pause_buttons(vec2 pos, vec2 scale, float angle, TEXTURE_ASSET_ID 
 Entity create_menu_screen();
 Entity create_intro_cutscene();
 Entity create_outro_cutscene();
+Entity create_rolling_thing(vec2 position, vec2 scale);
 
 // Helper methods
 void remove_menu_screen();

@@ -39,6 +39,8 @@ void SystemsManager::run_game_loop() {
 		t = now;
 
 		GameState& gs = registry.gameStates.components[0];
+
+
 		if (gs.game_running_state == GAME_RUNNING_STATE::MENU || gs.game_running_state == GAME_RUNNING_STATE::PAUSED) {
 			if (registry.cameras.size() == 0) {
 				// mock camera to load the menu screen
@@ -52,22 +54,40 @@ void SystemsManager::run_game_loop() {
 			// step the render system
 			systems[systems.size() - 1]->step(elapsed_ms);
 		}
-		else if (gs.game_running_state == GAME_RUNNING_STATE::INTRO || gs.game_running_state == GAME_RUNNING_STATE::OUTRO) {
-			//if (registry.cameras.size() == 0) {
-			//	// mock camera to load the menu screen
-			//	create_camera({ 0, 0 }, { 1, 1 });
-			//}
-
-			if (gs.game_running_state == GAME_RUNNING_STATE::INTRO) {
+		else if (gs.game_running_state == GAME_RUNNING_STATE::INTRO) 
+		{
+			if (registry.cutScenes.size() == 0) {
 				create_intro_cutscene();
 			}
-			else if (gs.game_running_state == GAME_RUNNING_STATE::OUTRO) {
+
+			systems[systems.size() - 1]->step(elapsed_ms);
+			systems[systems.size() - 2]->step(elapsed_ms);
+
+			Entity entity = registry.cutScenes.entities[0];
+			CutScene& cutscene = registry.cutScenes.get(entity);
+
+			if (cutscene.state == 0) {
+				registry.remove_all_components_of(entity);
+				gs.game_running_state = GAME_RUNNING_STATE::RUNNING;
+			}
+		}
+		else if (gs.game_running_state == GAME_RUNNING_STATE::OUTRO) {
+			
+			if (registry.cutScenes.size() == 0) {
 				create_outro_cutscene();
 			}
-			std::cout << "elapsed_ms: " << elapsed_ms << std::endl;
+
 			// step the render/animation system
 			systems[systems.size() - 1]->step(elapsed_ms);
 			systems[systems.size() - 2]->step(elapsed_ms);
+
+			Entity entity = registry.cutScenes.entities[0];
+			CutScene& cutscene = registry.cutScenes.get(entity);
+			if (cutscene.state == 0) {
+
+				registry.remove_all_components_of(entity);
+				gs.game_running_state = GAME_RUNNING_STATE::MENU;
+			}
 		}
 		else {
 

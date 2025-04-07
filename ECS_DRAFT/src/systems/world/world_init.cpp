@@ -1175,6 +1175,10 @@ void remove_menu_screen() {
     while (!registry.menuScreens.entities.empty()) {
         registry.remove_all_components_of(registry.menuScreens.entities.back());
     }
+
+    while (!registry.cameras.entities.empty()) {
+        registry.remove_all_components_of(registry.cameras.entities.back());
+    }
 }
 
 float getDistance(const Motion& one, const Motion& other) {
@@ -1190,6 +1194,7 @@ int get_tile_index(int pos_x, int pos_y, int offset_x, int offset_y, int stride)
 
 Entity create_outro_cutscene() {
     Entity entity = Entity();
+    CutScene& cut_scene = registry.cutScenes.emplace(entity);
 
     Motion& motion = registry.motions.emplace(entity);
     motion.scale = { WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX };
@@ -1198,13 +1203,13 @@ Entity create_outro_cutscene() {
     motion.position = { WINDOW_WIDTH_PX / 2.0f, WINDOW_HEIGHT_PX / 2.0f };
 
     registry.renderRequests.insert(entity, {
-        TEXTURE_ASSET_ID::OUTRO,
+        TEXTURE_ASSET_ID::OUTRO_1,
         EFFECT_ASSET_ID::TEXTURED,
         GEOMETRY_BUFFER_ID::SPRITE
         });
 
     AnimateRequest& animation = registry.animateRequests.emplace(entity);
-    animation.used_animation = ANIMATION_ID::OUTRO;
+    animation.used_animation = ANIMATION_ID::OUTRO_1;
     
     registry.colors.emplace(entity, vec3(1.0f));
 
@@ -1215,6 +1220,7 @@ Entity create_outro_cutscene() {
 
 Entity create_intro_cutscene() {
     Entity entity = Entity();
+    CutScene& cut_scene = registry.cutScenes.emplace(entity);
 
     Motion& motion = registry.motions.emplace(entity);
     motion.scale = { WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX };
@@ -1223,13 +1229,13 @@ Entity create_intro_cutscene() {
     motion.position = { WINDOW_WIDTH_PX / 2.0f, WINDOW_HEIGHT_PX / 2.0f };
 
     registry.renderRequests.insert(entity, {
-        TEXTURE_ASSET_ID::INTRO,
+        TEXTURE_ASSET_ID::INTRO_1,
         EFFECT_ASSET_ID::TEXTURED,
         GEOMETRY_BUFFER_ID::SPRITE
         });
 
     AnimateRequest& animation = registry.animateRequests.emplace(entity);
-    animation.used_animation = ANIMATION_ID::INTRO;
+    animation.used_animation = ANIMATION_ID::INTRO_1;
 
     registry.colors.emplace(entity, vec3(1.0f));
 

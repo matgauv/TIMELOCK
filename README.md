@@ -33,7 +33,7 @@
    </td>
   </tr>
   <tr>
-   <td>[3] User Input 
+   <td>[3] User Experience 
    </td>
    <td>Robustness
    </td>

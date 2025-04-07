@@ -333,8 +333,14 @@ void RenderSystem::drawToScreen()
 
 	ScreenState &screen = registry.screenStates.get(screen_state_entity);
 
-	glUniform1f(dec_act_fac_uloc, screen.deceleration_factor);
-	glUniform1f(acc_act_fac_uloc, screen.acceleration_factor);
+	GameState& game_state = registry.gameStates.components[0];
+	if (game_state.game_running_state != GAME_RUNNING_STATE::RUNNING) {
+		glUniform1f(dec_act_fac_uloc, -1.0f);
+		glUniform1f(acc_act_fac_uloc, -1.0f);
+	} else {
+		glUniform1f(dec_act_fac_uloc, screen.deceleration_factor);
+		glUniform1f(acc_act_fac_uloc, screen.acceleration_factor);
+	}
 	gl_has_errors();
 
 	glUniform1f(acc_emerge_fac_uloc, ACCELERATION_EMERGE_MS/ACCELERATION_DURATION_MS);

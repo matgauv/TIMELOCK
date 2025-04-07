@@ -13,7 +13,7 @@
    </td>
   </tr>
   <tr>
-   <td>[1] 5-minutes of unique gameplay
+   <td>[1] 10-minutes of unique gameplay
    </td>
    <td>Playability
    </td>
@@ -23,13 +23,13 @@
    </td>
   </tr>
   <tr>
-   <td>[2] Memory management
+   <td>[2] Stability
    </td>
-   <td>Robustness
+   <td>Stability
    </td>
-   <td><code>World System</code> <code>ECS</code>
+   <td><code>Whole application</code>
    </td>
-   <td>Global list to cache pointers, smart pointers, registry
+   <td>
    </td>
   </tr>
   <tr>
@@ -37,13 +37,13 @@
    </td>
    <td>Robustness
    </td>
-   <td><code>World System</code>
+   <td><code>Whole application</code>
    </td>
-   <td>Currently no actual invalid input available from the user.
+   <td>
    </td>
   </tr>
   <tr>
-   <td>[4] Mesh Based Collision
+   <td>[4] Robustness
    </td>
    <td>Robustness
    </td>
@@ -53,28 +53,7 @@
    </td>
   </tr>
   <tr>
-   <td>[5] Stability
-   </td>
-   <td>Stability 
-   </td>
-   <td><code>Whole application</code>
-   </td>
-   <td>Levels are parsed from JSON. Text is rendered to the screen as sprites.
-   </td>
-  </tr>
-  <tr>
-   <td>[6] Test plan - a list of player or game actions and their expected outcomes.
-   </td>
-   <td>Software Engineering
-   </td>
-   <td>
-   </td>
-   <td>
-<code>https://docs.google.com/document/d/1RFVZJj_J0ug45Zf6cPg0DK9aR9maLVpcoV6uE7CV40g/edit?usp=sharing</code>
-   </td>
-  </tr>
-  <tr>
-   <td>[7] Bug List
+   <td>[5] Bug List
    </td>
    <td>Reporting
    </td>
@@ -85,7 +64,18 @@
    </td>
   </tr>
   <tr>
-   <td>[8] Video
+   <td>[6] Test plan - a list of player or game actions and their expected outcomes.
+   </td>
+   <td>Software Engineering
+   </td>
+   <td>
+   </td>
+   <td>
+<code>https://docs.google.com/document/d/1hXkuZfs6yKLm8KzTLnPzLKjcXIdfgNQv9B_2E65kXTw/edit?usp=sharing</code>
+   </td>
+  </tr>
+  <tr>
+   <td>[7] Video
    </td>
    <td>Reporting
    </td>
@@ -117,26 +107,26 @@
    </td>
   </tr>
   <tr>
-   <td>[5] Particle system
+   <td>[10] Precis Collisions
    </td>
-   <td>Graphics
+   <td>Physics & Simulation
    </td>
    <td>Advanced
    </td>
    <td><code>Particle_system.hpp</code> <code>rendering_system_utils.cpp</code>
    </td>
-   <td>Particle system supported by instanced rendering   </td>
+   <td></td>
   </tr>
   <tr>
-   <td>[13] Physics based Animations
+   <td>[27] Story elements
    </td>
-   <td>Physics & Simulation 
+   <td>Quality & User Experience 
    </td>
-   <td>Advanced
+   <td>Basic
    </td>
-   <td><code>physics_simulation.cpp</code>
+   <td>
    </td>
-   <td>Impulse based physics for collisions + simple gravity pendulums.
+   <td>Narrative driven cut-scenes for intro and outro
    </td>
   </tr>
 </table>

@@ -234,7 +234,7 @@ vec4 apply_transition_effect(vec4 in_color) {
 	float threshold_squared = refined_factor * refined_factor * (aspect_ratio * aspect_ratio + 1.0);
 	
 	if (disp.x*disp.x + disp.y * disp.y > threshold_squared) {
-		return texture2D(loading_texture, vec2(texcoord.x, 1.0-texcoord.y));
+		return texture(loading_texture, vec2(texcoord.x, 1.0-texcoord.y));
 	}
 	else {
 		return in_color;

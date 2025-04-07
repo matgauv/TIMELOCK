@@ -321,22 +321,17 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 	if (gameState.game_running_state == GAME_RUNNING_STATE::MENU) {
 		//if start pressed
 		if (mouse_pos_x >= 785 && mouse_pos_x <= 907 && mouse_pos_y >= 192 && mouse_pos_y <= 313 && action == GLFW_PRESS) {
-
-			//if (registry.players.size() == 0) {
-			//	LevelState& ls = registry.levelStates.components[0];
-			//	ls.shouldLoad = true;
-			//}
+			remove_menu_screen();
 
 			// if level is already loaded, we should just resume as normal, otherwise play intro sequence.
 			if (registry.players.size() > 0) {
 				gameState.game_running_state = GAME_RUNNING_STATE::RUNNING;
 			} else {
 				gameState.game_running_state = GAME_RUNNING_STATE::INTRO;
+				if (registry.cameras.size() > 0) {
+					registry.remove_all_components_of(registry.cameras.entities[0]);
+				}
 			}
-
-			remove_menu_screen();
-
-
 		} // else if exit pressed
 		else if (mouse_pos_x >= 745 && mouse_pos_x <= 869 && mouse_pos_y >= 466 && mouse_pos_y <= 580 && action == GLFW_PRESS) {
 			remove_menu_screen();

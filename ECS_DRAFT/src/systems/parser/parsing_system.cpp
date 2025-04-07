@@ -111,6 +111,11 @@ void LevelParsingSystem::step(float elapsed_ms) {
 
     WorldSystem::set_time_control_state(false, false, true);
     WorldSystem::set_time_control_state(true, false, true);
+
+    GameState& game_state = registry.gameStates.components[0];
+    if (game_state.game_running_state != GAME_RUNNING_STATE::RUNNING) {
+        game_state.game_running_state = GAME_RUNNING_STATE::RUNNING;
+    }
 }
 
 void LevelParsingSystem::late_step(float elapsed_ms) {

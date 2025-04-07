@@ -373,7 +373,7 @@ Entity create_tutorial_text(vec2 position, vec2 size, TEXTURE_ASSET_ID texture_i
     return entity;
 }
 
-Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
+Entity create_projectile(vec2 pos, vec2 size, vec2 velocity, bool delayed)
 {
 	auto entity = Entity();
 
@@ -396,7 +396,7 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
     registry.renderRequests.insert(
 		entity,
 		{
-			TEXTURE_ASSET_ID::HEX,
+			delayed ? TEXTURE_ASSET_ID::BOLT2 : TEXTURE_ASSET_ID::BOLT3,
 			EFFECT_ASSET_ID::HEX,
 			GEOMETRY_BUFFER_ID::HEX
 		}

@@ -1195,7 +1195,7 @@ void boss_one_delayed_projectile_attack(Entity& boss_entity, Boss& boss, Motion&
 }
 
 void create_delayed_projectile(vec2 pos, float timer_ms) {
-    Entity entity = create_projectile(pos, vec2(BOSS_ONE_PROJECTILE_WIDTH_PX, BOSS_ONE_PROJECTILE_HEIGHT_PX), vec2(0.f, 0.f));
+    Entity entity = create_projectile(pos, vec2(BOSS_ONE_PROJECTILE_WIDTH_PX, BOSS_ONE_PROJECTILE_HEIGHT_PX), vec2(0.f, 0.f), true);
 
     // add Delayed component
     Delayed& delayed = registry.delayeds.emplace(entity);

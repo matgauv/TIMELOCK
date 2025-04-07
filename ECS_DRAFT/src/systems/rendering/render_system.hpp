@@ -52,6 +52,8 @@ class RenderSystem : public ISystem {
 		textures_path("chain.png"),
 		textures_path("hex.png"),
 		textures_path("Breakable.png"),
+		textures_path("bolt2.png"),
+		textures_path("bolt3.png"),
 		textures_path("spawnpoint/SpawnPoint_unvisited.png"),
 		textures_path("spawnpoint/SpawnPoint_activate.png"),
 		textures_path("spawnpoint/SpawnPoint_deactivate.png"),

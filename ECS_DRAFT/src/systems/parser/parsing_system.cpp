@@ -214,9 +214,23 @@ void LevelParsingSystem::init_level_entities(json entities) {
             init_spikeballs(entity_list);
         } else if (entity_type == "Obstacle_spawner") {
             init_spawners(entity_list);
+        } else if (entity_type == "Clock_hole") {
+            init_clock_holes(entity_list);
         }
     }
 }
+
+void LevelParsingSystem::init_clock_holes(json clock_holes) {
+    for (json& clock_hole : clock_holes) {
+        vec2 dimensions;
+        vec2 position;
+        if (!extract_boundary_attributes(clock_hole, dimensions, position)) {
+            continue;
+        }
+        create_clock_hole(position, dimensions);
+    }
+}
+
 
 void LevelParsingSystem::init_chains(json chains) {
     LevelState& ls = registry.levelStates.components[0];

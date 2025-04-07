@@ -269,6 +269,21 @@ Entity create_world_boundary(vec2 position, vec2 scale) {
     return entity;
 }
 
+Entity create_clock_hole(vec2 position, vec2 scale) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, 0};
+    motion.angle = 0;
+
+    registry.nonPhysicsColliders.emplace(entity);
+    registry.clockHoles.emplace(entity);
+
+    return entity;
+}
+
 Entity create_camera(vec2 position, vec2 scale) {
     Entity entity = Entity();
     registry.cameras.emplace(entity);

@@ -874,3 +874,7 @@ struct MenuButton {
 struct MenuScreen {
 	std::vector<unsigned int> button_ids;
 };
+
+struct ClockHole {
+
+};

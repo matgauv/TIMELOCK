@@ -32,6 +32,8 @@ public:
 	static void set_gravity(float strength, vec2 direction);
 	static void set_turbulence(float strength, float scale);
 
+	static void emit_elliptical_particles(vec2 center, vec2 dimension, float angle_rad, int count, float local_speed, vec2 global_velocity, vec3 color, float size, float life);
+
 	ParticleSystem()
 	{
 	}

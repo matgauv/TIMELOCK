@@ -71,7 +71,7 @@ public:
 	ComponentContainer<MenuScreen> menuScreens;
 	ComponentContainer<BossHealthBar> bossHealthBars;
 	ComponentContainer<CutScene> cutScenes;
-
+	ComponentContainer<ClockHole> clockHoles;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -136,6 +136,7 @@ public:
 		registry_list.push_back(&menuScreens);
 		registry_list.push_back(&bossHealthBars);
 		registry_list.push_back(&cutScenes);
+		registry_list.push_back(&clockHoles);
 	}
 
 	void clear_all_components() {

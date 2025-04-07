@@ -56,8 +56,6 @@ void LevelParsingSystem::step(float elapsed_ms) {
     while (registry.particles.entities.size() > 0)
         registry.remove_all_components_of(registry.particles.entities.back());
 
-    std::cout << "PARSING JSON" << std::endl;
-
     if (!parse_json()) {
         cout << "Error: could not parse JSON" << endl;
         return;
@@ -108,11 +106,16 @@ void LevelParsingSystem::step(float elapsed_ms) {
 
     // "Uninitialized value" to pass the first render step with large time_elapse
     // 3.0 = 1.0 factor + 2 * tolerances
-    // registry.screenStates.components[0].scene_transition_factor = 3.0;
-    // registry.gameStates.components[0].game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
+    registry.screenStates.components[0].scene_transition_factor = 3.0;
+    registry.gameStates.components[0].game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
 
     WorldSystem::set_time_control_state(false, false, true);
     WorldSystem::set_time_control_state(true, false, true);
+
+    GameState& game_state = registry.gameStates.components[0];
+    if (game_state.game_running_state != GAME_RUNNING_STATE::RUNNING) {
+        game_state.game_running_state = GAME_RUNNING_STATE::RUNNING;
+    }
 }
 
 void LevelParsingSystem::late_step(float elapsed_ms) {
@@ -211,9 +214,23 @@ void LevelParsingSystem::init_level_entities(json entities) {
             init_spikeballs(entity_list);
         } else if (entity_type == "Obstacle_spawner") {
             init_spawners(entity_list);
+        } else if (entity_type == "Clock_hole") {
+            init_clock_holes(entity_list);
         }
     }
 }
+
+void LevelParsingSystem::init_clock_holes(json clock_holes) {
+    for (json& clock_hole : clock_holes) {
+        vec2 dimensions;
+        vec2 position;
+        if (!extract_boundary_attributes(clock_hole, dimensions, position)) {
+            continue;
+        }
+        create_clock_hole(position, dimensions);
+    }
+}
+
 
 void LevelParsingSystem::init_chains(json chains) {
     LevelState& ls = registry.levelStates.components[0];

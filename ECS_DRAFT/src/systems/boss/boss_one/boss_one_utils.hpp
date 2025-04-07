@@ -90,7 +90,6 @@ void chooseShortRangedAttack(Entity& boss_entity, Boss& boss, Motion& boss_motio
 
 void create_delayed_projectile(vec2 pos, float timer_ms);
 
-void update_boss_halo(const Entity boss_entity, const Boss& boss);
 
 void update_boss_health_bar(const Boss& boss);
 

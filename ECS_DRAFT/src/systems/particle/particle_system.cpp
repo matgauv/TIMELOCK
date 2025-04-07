@@ -124,6 +124,15 @@ unsigned int ParticleSystem::spawn_particle(
 		return false;
 	}
 
+	if (registry.cameras.size() <= 0 || !registry.motions.has(registry.cameras.entities[0])) {
+		return false;
+	}
+
+	const vec2 cam_pos = registry.motions.get(registry.cameras.entities[0]).position;
+	if (glm::length(cam_pos - pos) > MAX_CAMERA_DISTANCE) {
+		return false;
+	}
+
 	if (fade_in_out[0] < 0 || fade_in_out[1] < 0 || (fade_in_out[0] + fade_in_out[1] > life) ||
 		shrink_in_out[0] < 0 || shrink_in_out[1] < 0 || (shrink_in_out[0] + shrink_in_out[1] > life)) {
 		return false;

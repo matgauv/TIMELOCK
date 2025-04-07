@@ -88,7 +88,7 @@ void handle_player_attack_collision(Entity& player_entity, Entity& attack_entity
 	if ((registry.harmfuls.has(attack_entity))) {
 		assert(registry.gameStates.components.size() <= 1);
 		GameState& gameState = registry.gameStates.components[0];
-		gameState.game_running_state = GAME_RUNNING_STATE::OVER; // might not be necessary
+		//gameState.game_running_state = GAME_RUNNING_STATE::OVER; // might not be necessary
 
 		PlayerSystem::kill();
 	}
@@ -126,8 +126,11 @@ void handle_player_door_collision() {
 	LevelState& ls = registry.levelStates.components[0];
 
 	// Last level
-	if (ls.curr_level_folder_name == ls.next_level_folder_name) return;
-
+	if (ls.curr_level_folder_name == ls.next_level_folder_name) {
+		GameState& gs = registry.gameStates.components[0];
+		gs.game_running_state = GAME_RUNNING_STATE::OUTRO;
+		return;
+	}
 	/*
 	ls.curr_level_folder_name = ls.next_level_folder_name;
 	ls.shouldLoad = true;

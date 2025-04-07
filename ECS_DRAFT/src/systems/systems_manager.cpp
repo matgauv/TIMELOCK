@@ -39,10 +39,12 @@ void SystemsManager::run_game_loop() {
 		t = now;
 
 		GameState& gs = registry.gameStates.components[0];
+
+
 		if (gs.game_running_state == GAME_RUNNING_STATE::MENU || gs.game_running_state == GAME_RUNNING_STATE::PAUSED) {
 			if (registry.cameras.size() == 0) {
 				// mock camera to load the menu screen
-				create_camera({0, 0}, {1, 1});
+				create_camera({ 0, 0 }, { 1, 1 });
 			}
 
 			if (registry.menuScreens.size() == 0) {
@@ -51,7 +53,44 @@ void SystemsManager::run_game_loop() {
 
 			// step the render system
 			systems[systems.size() - 1]->step(elapsed_ms);
-		} else {
+		}
+		else if (gs.game_running_state == GAME_RUNNING_STATE::INTRO) 
+		{
+			if (registry.cutScenes.size() == 0) {
+				create_intro_cutscene();
+			}
+
+			systems[systems.size() - 1]->step(elapsed_ms);
+			systems[systems.size() - 2]->step(elapsed_ms);
+
+			Entity entity = registry.cutScenes.entities[0];
+			CutScene& cutscene = registry.cutScenes.get(entity);
+
+			if (cutscene.state == 0) {
+				registry.remove_all_components_of(entity);
+				gs.game_running_state = GAME_RUNNING_STATE::RUNNING;
+			}
+		}
+		else if (gs.game_running_state == GAME_RUNNING_STATE::OUTRO) {
+			
+			if (registry.cutScenes.size() == 0) {
+				create_outro_cutscene();
+			}
+
+			// step the render/animation system
+			systems[systems.size() - 1]->step(elapsed_ms);
+			systems[systems.size() - 2]->step(elapsed_ms);
+
+			Entity entity = registry.cutScenes.entities[0];
+			CutScene& cutscene = registry.cutScenes.get(entity);
+			if (cutscene.state == 0) {
+
+				registry.remove_all_components_of(entity);
+				gs.game_running_state = GAME_RUNNING_STATE::MENU;
+			}
+		}
+		else {
+
 			physics_accumulator += elapsed_ms;
 			physics_accumulator = std::min(physics_accumulator, max_accumulator_ms);
 

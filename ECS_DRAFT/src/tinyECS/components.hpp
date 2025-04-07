@@ -10,6 +10,8 @@ enum class GAME_RUNNING_STATE {
 	SHOULD_RESET = OVER + 1,
 	LOADING = SHOULD_RESET + 1,
 	MENU = LOADING + 1,
+	INTRO = MENU + 1,
+	OUTRO = INTRO + 1,
 };
 
 enum class TIME_CONTROL_STATE {
@@ -677,7 +679,23 @@ enum class TEXTURE_ASSET_ID {
 	SCREEN = KEY + 1,
 	START_SELECTED = SCREEN + 1,
 	EXIT_SELECTED = START_SELECTED + 1,
-	TEXTURE_COUNT = EXIT_SELECTED + 1
+
+	OUTRO_1 = EXIT_SELECTED + 1,
+	OUTRO_2 = OUTRO_1 + 1,
+	OUTRO_3 = OUTRO_2 + 1,
+	OUTRO_4 = OUTRO_3 + 1,
+
+	INTRO_1 = OUTRO_4 + 1,
+	INTRO_2 = INTRO_1 + 1,
+	INTRO_3 = INTRO_2 + 1,
+	INTRO_4 = INTRO_3 + 1,
+	INTRO_5 = INTRO_4 + 1,
+	INTRO_6 = INTRO_5 + 1,
+	INTRO_7 = INTRO_6 + 1,
+	INTRO_8 = INTRO_7 + 1,
+	INTRO_9 = INTRO_8 + 1,
+	
+	TEXTURE_COUNT = INTRO_9 + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -746,7 +764,22 @@ enum class ANIMATION_ID {
 
 	DECEL_BAR = BOSS_ONE_GROUND_SLAM_LAND + 1,
 
-	ANIMATION_COUNT = DECEL_BAR + 1
+	INTRO_1 = DECEL_BAR + 1,
+	INTRO_2 = INTRO_1 + 1,
+	INTRO_3 = INTRO_2 + 1,
+	INTRO_4 = INTRO_3 + 1,
+	INTRO_5 = INTRO_4 + 1,
+	INTRO_6 = INTRO_5 + 1,
+	INTRO_7 = INTRO_6 + 1,
+	INTRO_8 = INTRO_7 + 1,
+	INTRO_9 = INTRO_8 + 1,
+
+	OUTRO_1 = INTRO_9 + 1,
+	OUTRO_2 = OUTRO_1 + 1,
+	OUTRO_3 = OUTRO_2 + 1,
+	OUTRO_4 = OUTRO_3 + 1,
+
+	ANIMATION_COUNT = OUTRO_4 + 1
 };
 const int animation_count = (int)ANIMATION_ID::ANIMATION_COUNT;
 
@@ -764,6 +797,7 @@ enum class LAYER_ID {
 	MIDGROUND = BACKGROUND + 1,
 	FOREGROUND = MIDGROUND + 1,
 	MENU_AND_PAUSE = FOREGROUND + 1,
+	CUTSCENE = MENU_AND_PAUSE + 1,
 };
 
 enum class FRAME_BUFFER_ID {
@@ -881,5 +915,8 @@ struct MenuScreen {
 };
 
 struct ClockHole {
+};
 
+struct CutScene {
+	int state = 1;
 };

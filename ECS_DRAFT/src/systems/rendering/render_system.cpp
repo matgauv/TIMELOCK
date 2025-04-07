@@ -268,9 +268,10 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	LAYER_ID layer = registry.layers.get(entity).layer;
 	float depth = (
 		layer == LAYER_ID::PARALLAXBACKGROUND ? PARALLAXBACKGROUND_DEPTH : (
-		layer == LAYER_ID::BACKGROUND ? BACKGROUND_DEPTH : (
-		layer == LAYER_ID::MIDGROUND ? MIDGROUND_DEPTH : (
-			layer == LAYER_ID::MENU_AND_PAUSE ? MIDGROUND_DEPTH : FOREGROUND_DEPTH))));
+			layer == LAYER_ID::BACKGROUND ? BACKGROUND_DEPTH : (
+				layer == LAYER_ID::MIDGROUND ? MIDGROUND_DEPTH : (
+					layer == LAYER_ID::MENU_AND_PAUSE ? MIDGROUND_DEPTH : (
+						layer == LAYER_ID::CUTSCENE ? STANDARD_DEPTH : FOREGROUND_DEPTH)))));
 	glUniform1fv(depth_uloc, 1, (float*)&depth);
 	gl_has_errors();
 
@@ -537,6 +538,8 @@ void RenderSystem::draw()
 
 	std::vector<Entity> menu_and_pause;
 
+	std::vector<Entity> cutscenes;
+
 	for (Entity entity : registry.layers.entities)
 	{
 		// Check for rendering necessity
@@ -558,6 +561,9 @@ void RenderSystem::draw()
 		{
 			case LAYER_ID::MENU_AND_PAUSE:
 				menu_and_pause.push_back(entity);
+				break;
+			case LAYER_ID::CUTSCENE:
+				cutscenes.push_back(entity);
 				break;
 			case LAYER_ID::FOREGROUND:
 				foregrounds.push_back(entity);
@@ -672,6 +678,9 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, this->projection_matrix);
 	}
 
+	for (Entity entity : cutscenes) {
+		drawTexturedMesh(entity, this->projection_matrix);
+	}
 
 	// draw framebuffer to screen
 	drawToScreen();

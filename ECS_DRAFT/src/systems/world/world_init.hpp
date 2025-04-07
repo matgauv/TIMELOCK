@@ -47,7 +47,8 @@ Entity create_spawner(std::string type, vec2 size, vec2 velocity, vec2 start_pos
 Entity create_loading_screen();
 Entity create_pause_buttons(vec2 pos, vec2 scale, float angle, TEXTURE_ASSET_ID texture_id);
 Entity create_menu_screen();
-
+Entity create_intro_cutscene();
+Entity create_outro_cutscene();
 
 // Helper methods
 void remove_menu_screen();

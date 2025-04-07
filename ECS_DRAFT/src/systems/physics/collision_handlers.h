@@ -16,3 +16,4 @@ void handle_projectile_collision(Entity& proj_entity, Entity& other_entity);
 void handle_player_attack_collision(Entity& player_entity, Entity& attack_entity, Collision& collision);
 void handle_player_breakable_collision(Entity& breakable_entity, float elapsed_ms);
 void handle_player_door_collision();
+void handle_player_clock_hole_collision();

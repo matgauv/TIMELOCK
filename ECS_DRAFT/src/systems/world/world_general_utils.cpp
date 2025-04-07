@@ -45,9 +45,6 @@ void WorldSystem::player_jump() {
 
 				float jump_impulse = JUMP_VELOCITY;
 
-				if (registry.gameStates.components[0].game_running_state == GAME_RUNNING_STATE::INTRO)
-					jump_impulse *= 2.0f;
-
 				motion.velocity.y -= jump_impulse;
 
 

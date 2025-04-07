@@ -142,3 +142,10 @@ void handle_player_door_collision() {
 		LevelParsingSystem::schedule_reload();
 	}
 }
+
+void handle_player_clock_hole_collision() {
+	LevelState& ls = registry.levelStates.components[0];
+	if (ls.reload_coutdown < 0.0) {
+		LevelParsingSystem::schedule_reload();
+	}
+}

@@ -276,6 +276,12 @@ void PhysicsSystem::handle_collisions(float elapsed_ms) {
 			player_ladder_collision = true;
 		}
 
+		if (registry.players.has(one) && registry.clockHoles.has(other)) {
+			handle_player_clock_hole_collision();
+		} else if (registry.players.has(other) && registry.clockHoles.has(one)) {
+			handle_player_clock_hole_collision();
+		}
+
 		if (registry.physicsObjects.has(one) && registry.physicsObjects.has(other)) {
 			handle_physics_collision(step_seconds, one, other, collision, groundedEntities);
 		}

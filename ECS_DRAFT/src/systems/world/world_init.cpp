@@ -17,6 +17,10 @@ Entity create_player(vec2 position, vec2 scale) {
     object.friction = PLAYER_STATIC_FRICTION;
     object.bounce = 0.0f; // player should NOT bounce
 
+    if (registry.levelStates.components[0].curr_level_folder_name == "Level_8") {
+        object.drag_coefficient = 0.02;
+    }
+
     Motion &motion = registry.motions.emplace(entity);
     motion.position = position;
     motion.scale = scale;

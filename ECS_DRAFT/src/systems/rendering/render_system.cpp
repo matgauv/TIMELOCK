@@ -405,8 +405,12 @@ void RenderSystem::drawToScreen()
 
 	// Bind our texture in Texture Unit 0
 	glActiveTexture(GL_TEXTURE0);
-
 	glBindTexture(GL_TEXTURE_2D, off_screen_render_buffer_color);
+	glUniform1i(glGetUniformLocation(screen_shader_program, "screen_texture"), 0);
+
+	glActiveTexture(GL_TEXTURE0 + 1);
+	glBindTexture(GL_TEXTURE_2D, texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::LOADING_SCREEN]);
+	glUniform1i(glGetUniformLocation(screen_shader_program, "loading_texture"), 1);
 	gl_has_errors();
 
 	// Draw

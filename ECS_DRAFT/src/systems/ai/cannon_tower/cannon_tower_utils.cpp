@@ -210,4 +210,8 @@ void cannon_fire(Entity tower_entity, float angle) {
 
 	TimeControllable &timeControllable = registry.timeControllables.emplace(proj_entity);
 	timeControllable.can_become_harmless = true;
+
+	// Particles
+	ParticleSystem::emit_elliptical_particles(motion.position, vec2(0.5f, 1.0f), angle, 30, 120.0f, 
+		motion.velocity * 0.3f, vec3(0.05f), 6.0f, 500.0f);
 }

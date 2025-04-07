@@ -103,17 +103,3 @@ void emit_gathering_particle(vec2 center, float radius, float life, vec3 color) 
         vec2(2.5f), -offset_direction * speed * 1000.0f,
         life, 1.0f, { 0.1f * life, 0.0f }, { 0.0f, 0.35f * life });
 }
-
-// Consider migrate to world system
-void emit_elliptical_particles(vec2 center, vec2 dimension, float angle_rad, int count, float local_speed, vec2 global_velocity, vec3 color, float size, float life) {
-    for (int i = 0; i < count; i++) {
-        vec2 disp_dir = rotate_2D(rand_direction() * dimension, angle_rad);
-
-        vec2 velocity = local_speed * disp_dir + global_velocity;
-
-        ParticleSystem::spawn_particle(color,
-            center, 0.0f,
-            vec2(size), velocity,
-            life, 1.0f, { 0.0f, 0.35f * life}, { 0.1f * life, 0.35f * life });
-    }
-}

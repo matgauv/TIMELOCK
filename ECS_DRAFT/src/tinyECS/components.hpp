@@ -320,7 +320,7 @@ struct ScreenState
 {
 	float acceleration_factor = -1.0;
 	float deceleration_factor = -1.0;
-	float scene_transition_factor = 3.0; // start from transition in
+	float scene_transition_factor = 0.0; // start from transition in
 };
 
 // A struct that includes the necessary properties of the current game state
@@ -592,9 +592,12 @@ enum class TEXTURE_ASSET_ID {
 	METAL_BACKGROUND = GEARS_BACKGROUND + 1,
 	CHAIN = METAL_BACKGROUND + 1,
 	HEX = CHAIN + 1,
+	BREAKABLE = HEX + 1,
+	BOLT2 = BREAKABLE + 1,
+	BOLT3 = BOLT2 + 1,
 
 	// Spawn Point
-	SPAWNPOINT_UNVISITED = HEX + 1,
+	SPAWNPOINT_UNVISITED = BOLT3 + 1,
 	SPAWNPOINT_ACTIVATE = SPAWNPOINT_UNVISITED + 1,
 	SPAWNPOINT_DEACTIVATE = SPAWNPOINT_ACTIVATE + 1,
 	SPAWNPOINT_REACTIVATE = SPAWNPOINT_DEACTIVATE + 1,
@@ -707,7 +710,8 @@ enum class EFFECT_ASSET_ID {
 	PARTICLE_INSTANCED = TILE + 1,
 	FILL = PARTICLE_INSTANCED + 1,
 	GAUSSIAN_BLUR = FILL + 1,
-	EFFECT_COUNT = GAUSSIAN_BLUR + 1
+	MATTE = GAUSSIAN_BLUR + 1,
+	EFFECT_COUNT = MATTE + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -718,7 +722,8 @@ enum class GEOMETRY_BUFFER_ID {
 	HEX = SCREEN_TRIANGLE + 1,
 	PLAYER = HEX + 1,
 	PLATFORM = PLAYER + 1,
-	GEOMETRY_COUNT = PLATFORM + 1
+	OCTA = PLATFORM + 1,
+	GEOMETRY_COUNT = OCTA + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
@@ -909,6 +914,9 @@ struct MenuButton {
 
 struct MenuScreen {
 	std::vector<unsigned int> button_ids;
+};
+
+struct ClockHole {
 };
 
 struct CutScene {

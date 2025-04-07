@@ -88,7 +88,7 @@ void handle_player_attack_collision(Entity& player_entity, Entity& attack_entity
 	if ((registry.harmfuls.has(attack_entity))) {
 		assert(registry.gameStates.components.size() <= 1);
 		GameState& gameState = registry.gameStates.components[0];
-		gameState.game_running_state = GAME_RUNNING_STATE::OVER; // might not be necessary
+		//gameState.game_running_state = GAME_RUNNING_STATE::OVER; // might not be necessary
 
 		PlayerSystem::kill();
 	}

@@ -5,6 +5,8 @@
 #include "../../../tinyECS/components.hpp"
 #include "../../../tinyECS/registry.hpp"
 
+#include "../../particle/particle_system.hpp"
+
 void cannon_tower_step(float elapsed_ms);
 
 void idle_step(Entity tower_entity, CannonTower& tower, float elapsed_ms);

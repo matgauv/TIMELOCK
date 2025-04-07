@@ -1,6 +1,8 @@
 #version 330
 
 uniform sampler2D screen_texture;
+uniform sampler2D loading_texture;
+
 uniform float acc_act_factor;
 uniform float acc_emerge_factor;
 uniform float dec_act_factor;
@@ -232,7 +234,7 @@ vec4 apply_transition_effect(vec4 in_color) {
 	float threshold_squared = refined_factor * refined_factor * (aspect_ratio * aspect_ratio + 1.0);
 	
 	if (disp.x*disp.x + disp.y * disp.y > threshold_squared) {
-		return vec4(0.0, 0.0, 0.0, in_color.a);
+		return texture(loading_texture, vec2(texcoord.x, 1.0-texcoord.y));
 	}
 	else {
 		return in_color;

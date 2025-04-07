@@ -67,6 +67,17 @@ void SpawnPointSystem::activate_spawnpoint(Entity entity) {
 
 	// Set spawn point
 	set_player_spawnpoint(entity);
+
+	// Particle effects
+	const vec2& spawnpoint_pos = registry.motions.get(entity).position;
+
+	for (int i = 0; i < 30; i++) {
+		vec2 position = random_sample_ellipse(spawnpoint_pos - vec2{ 0.0f, 0.25f * SPAWNPOINT_SCALE.y }, SPAWNPOINT_SCALE * 0.5f);
+		vec2 vel = random_sample_ellipse(vec2(0.0f), vec2(1.0f)) * 100.0f;
+
+		ParticleSystem::spawn_particle(vec3(1.0f, 1.0f, 0.8f),
+			position, 0.0f, vec2(rand_float(1.75f, 2.25f)), vel, 1500.0f, 0.8f, vec2{ 200.0f, 500.0f }, vec2{ 200.0f, 500.0f }, 0.0f, -0.2f);
+	}
 }
 
 // Deactivate an activated spawn point if other spawn points are active

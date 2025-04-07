@@ -269,6 +269,21 @@ Entity create_world_boundary(vec2 position, vec2 scale) {
     return entity;
 }
 
+Entity create_clock_hole(vec2 position, vec2 scale) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, 0};
+    motion.angle = 0;
+
+    registry.nonPhysicsColliders.emplace(entity);
+    registry.clockHoles.emplace(entity);
+
+    return entity;
+}
+
 Entity create_camera(vec2 position, vec2 scale) {
     Entity entity = Entity();
     registry.cameras.emplace(entity);
@@ -373,7 +388,7 @@ Entity create_tutorial_text(vec2 position, vec2 size, TEXTURE_ASSET_ID texture_i
     return entity;
 }
 
-Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
+Entity create_projectile(vec2 pos, vec2 size, vec2 velocity, bool delayed)
 {
 	auto entity = Entity();
 
@@ -389,16 +404,20 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
     tc.can_become_harmless = true;
     tc.can_be_decelerated = true;
 
-    Harmful& harmful = registry.harmfuls.emplace(entity);
+    assert(registry.gameStates.components.size() <= 1);
+    GameState& gameState = registry.gameStates.components[0];
+    if (gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED) {
+        Harmful& harmful = registry.harmfuls.emplace(entity);
+    }
 
     registry.nonPhysicsColliders.emplace(entity);
 
     registry.renderRequests.insert(
 		entity,
 		{
-			TEXTURE_ASSET_ID::HEX,
+			delayed ? TEXTURE_ASSET_ID::BOLT2 : TEXTURE_ASSET_ID::BOLT3,
 			EFFECT_ASSET_ID::HEX,
-			GEOMETRY_BUFFER_ID::HEX
+			GEOMETRY_BUFFER_ID::OCTA
 		}
 	);
 
@@ -645,8 +664,8 @@ Entity create_breakable_static_platform(vec2 position, vec2 scale, bool should_b
 
     // TODO: need to add a proper texture for this
     registry.renderRequests.insert(entity, {
-            is_time_controllable? TEXTURE_ASSET_ID::OBJECT : TEXTURE_ASSET_ID::GREY_CIRCLE,
-            EFFECT_ASSET_ID::TEXTURED,
+            TEXTURE_ASSET_ID::BREAKABLE,
+            EFFECT_ASSET_ID::MATTE,
             GEOMETRY_BUFFER_ID::SPRITE
     });
 

@@ -158,6 +158,21 @@ class RenderSystem : public ISystem {
 		textures_path("cutscenes/intro_7.png"),
 		textures_path("cutscenes/intro_8.png"),
 		textures_path("cutscenes/intro_9.png"),
+		textures_path("cutscenes/intro_10.png"),
+		textures_path("cutscenes/intro_11.png"),
+		textures_path("cutscenes/intro_12.png"),
+		textures_path("cutscenes/intro_13.png"),
+		textures_path("cutscenes/intro_14.png"),
+		textures_path("cutscenes/intro_15.png"),
+		textures_path("cutscenes/intro_16.png"),
+		textures_path("cutscenes/intro_17.png"),
+		textures_path("cutscenes/intro_18.png"),
+		textures_path("cutscenes/intro_19.png"),
+		textures_path("cutscenes/intro_20.png"),
+		textures_path("cutscenes/intro_21.png"),
+		textures_path("cutscenes/intro_22.png"),
+		textures_path("cutscenes/intro_23.png"),
+
 		level_ground_path("Level_9"),
 
 

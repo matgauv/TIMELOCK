@@ -107,7 +107,7 @@
    </td>
   </tr>
   <tr>
-   <td>[10] Precis Collisions
+   <td>[10] Precise Collisions
    </td>
    <td>Physics & Simulation
    </td>

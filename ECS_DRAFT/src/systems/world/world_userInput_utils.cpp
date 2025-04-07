@@ -7,18 +7,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (registry.players.size() == 0) { return; } // level not loaded. TODO: set flag in the registry once level loading is done
 
-	if (key == GLFW_KEY_D) {
-		if (action == GLFW_RELEASE) {
-			if (debugging.in_debug_mode) {
-				debugging.in_debug_mode = false;
-			}
-			else {
-				debugging.in_debug_mode = true;
-			}
-		}
-	}
-
-
 	// The following actions only available when player is alive
 	// Could extend to case of game pause
 	const Player& player = registry.players.components[0];
@@ -28,17 +16,17 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Activate acceleration
-	if (key == GLFW_KEY_EQUAL && action == GLFW_RELEASE) {
-		/*
-		if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED) {
-			control_time(true, false, false);
-		}
-		else {
-			control_time(true, true, false);
-		}*/
-
-		CameraSystem::shake_camera(20.0f, 15.0f);
-	}
+	// if (key == GLFW_KEY_EQUAL && action == GLFW_RELEASE) {
+	// 	/*
+	// 	if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED) {
+	// 		control_time(true, false, false);
+	// 	}
+	// 	else {
+	// 		control_time(true, true, false);
+	// 	}*/
+	//
+	// 	CameraSystem::shake_camera(20.0f, 15.0f);
+	// }
 
 	// Activate deceleration
 	if (key == GLFW_KEY_MINUS && action == GLFW_RELEASE)
@@ -91,114 +79,115 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-
-
-	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
-		LevelState& levelState = registry.levelStates.components[0];
-		levelState.curr_level_folder_name = "Level_0";
-		levelState.ground = TEXTURE_ASSET_ID::D_TUTORIAL_GROUND;
-		levelState.shouldLoad = true;
-	}
-
-	if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
-		LevelState& levelState = registry.levelStates.components[0];
-		levelState.curr_level_folder_name = "Level_1";
-		levelState.ground = TEXTURE_ASSET_ID::DECEL_LEVEL_1_GROUND;
-		levelState.shouldLoad = true;
-	}
-
-	if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
-		LevelState& levelState = registry.levelStates.components[0];
-		levelState.curr_level_folder_name = "Level_2";
-		levelState.ground = TEXTURE_ASSET_ID::DECEL_LEVEL_2_GROUND;
-		levelState.shouldLoad = true;
-	}
-
-	if (key == GLFW_KEY_4 && action == GLFW_PRESS) {
-		LevelState& levelState = registry.levelStates.components[0];
-		levelState.curr_level_folder_name = "Level_3";
-		levelState.ground = TEXTURE_ASSET_ID::DECEL_LEVEL_3_GROUND;
-		levelState.shouldLoad = true;
-	}
-	if (key == GLFW_KEY_5 && action == GLFW_PRESS) {
-		LevelState& levelState = registry.levelStates.components[0];
-		levelState.curr_level_folder_name = "Level_4";
-		levelState.ground = TEXTURE_ASSET_ID::BOSS_TUTORIAL_GROUND;
-		levelState.shouldLoad = true;
-	}
-	if (key == GLFW_KEY_6 && action == GLFW_PRESS) {
-		LevelState& levelState = registry.levelStates.components[0];
-		levelState.curr_level_folder_name = "Level_5";
-		levelState.ground = TEXTURE_ASSET_ID::BOSS_ONE_LEVEL_GROUND;
-		levelState.shouldLoad = true;
-	}
-	if (key == GLFW_KEY_9 && action == GLFW_PRESS) {
-		LevelState& levelState = registry.levelStates.components[0];
-		levelState.curr_level_folder_name = "Level_9";
-		levelState.ground = TEXTURE_ASSET_ID::DECEL_LEVEL_9_GROUND;
-		levelState.shouldLoad = true;
-	}
-
+	// skip tutorial level
 	if (key == GLFW_KEY_GRAVE_ACCENT && action == GLFW_PRESS && registry.levelStates.components[0].curr_level_folder_name == "Level_0") {
 		LevelParsingSystem::schedule_reload();
 	}
 
-	FlagState& flag_state = registry.flags.components[0];
+
+
+	// if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+	// 	LevelState& levelState = registry.levelStates.components[0];
+	// 	levelState.curr_level_folder_name = "Level_0";
+	// 	levelState.ground = TEXTURE_ASSET_ID::D_TUTORIAL_GROUND;
+	// 	levelState.shouldLoad = true;
+	// }
+	//
+	// if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+	// 	LevelState& levelState = registry.levelStates.components[0];
+	// 	levelState.curr_level_folder_name = "Level_1";
+	// 	levelState.ground = TEXTURE_ASSET_ID::DECEL_LEVEL_1_GROUND;
+	// 	levelState.shouldLoad = true;
+	// }
+	//
+	// if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
+	// 	LevelState& levelState = registry.levelStates.components[0];
+	// 	levelState.curr_level_folder_name = "Level_2";
+	// 	levelState.ground = TEXTURE_ASSET_ID::DECEL_LEVEL_2_GROUND;
+	// 	levelState.shouldLoad = true;
+	// }
+	//
+	// if (key == GLFW_KEY_4 && action == GLFW_PRESS) {
+	// 	LevelState& levelState = registry.levelStates.components[0];
+	// 	levelState.curr_level_folder_name = "Level_3";
+	// 	levelState.ground = TEXTURE_ASSET_ID::DECEL_LEVEL_3_GROUND;
+	// 	levelState.shouldLoad = true;
+	// }
+	// if (key == GLFW_KEY_5 && action == GLFW_PRESS) {
+	// 	LevelState& levelState = registry.levelStates.components[0];
+	// 	levelState.curr_level_folder_name = "Level_4";
+	// 	levelState.ground = TEXTURE_ASSET_ID::BOSS_TUTORIAL_GROUND;
+	// 	levelState.shouldLoad = true;
+	// }
+	// if (key == GLFW_KEY_6 && action == GLFW_PRESS) {
+	// 	LevelState& levelState = registry.levelStates.components[0];
+	// 	levelState.curr_level_folder_name = "Level_5";
+	// 	levelState.ground = TEXTURE_ASSET_ID::BOSS_ONE_LEVEL_GROUND;
+	// 	levelState.shouldLoad = true;
+	// }
+	// if (key == GLFW_KEY_9 && action == GLFW_PRESS) {
+	// 	LevelState& levelState = registry.levelStates.components[0];
+	// 	levelState.curr_level_folder_name = "Level_9";
+	// 	levelState.ground = TEXTURE_ASSET_ID::DECEL_LEVEL_9_GROUND;
+	// 	levelState.shouldLoad = true;
+	// }
+
+	// FlagState& flag_state = registry.flags.components[0];
 
 	// Fly controls (run ./TIMELOCK --fly):
-	if (key == GLFW_KEY_RIGHT && flag_state.fly) {
-		if (action == GLFW_PRESS) {
-			player_walking(true, false);
-			PlayerSystem::set_direction(false);
-		}
-		else if (action == GLFW_RELEASE) {
-			player_walking(false, false);
-		}
-	}
-
-	if (key == GLFW_KEY_LEFT && flag_state.fly) {
-		if (action == GLFW_PRESS) {
-			player_walking(true, true);
-			PlayerSystem::set_direction(true);
-		}
-		else if (action == GLFW_RELEASE) {
-			player_walking(false, true);
-		}
-	}
-
-	if (key == GLFW_KEY_DOWN && flag_state.fly) {
-		Motion& motion = registry.motions.get(registry.players.entities[0]);
-		if (action == GLFW_PRESS) {
-			motion.velocity.y = JUMP_VELOCITY * 5.0f;
-		}
-		else if (action == GLFW_RELEASE) {
-			motion.velocity.y = 0;
-		}
-	}
-
-	if (key == GLFW_KEY_UP && flag_state.fly) {
-		Motion& motion = registry.motions.get(registry.players.entities[0]);
-		if (action == GLFW_PRESS) {
-			motion.velocity.y = -JUMP_VELOCITY * 5.0f;
-		}
-		else if (action == GLFW_RELEASE) {
-			motion.velocity.y = 0;
-		}
-	}
-
-	// keybinds for toggling debug controls
-	if (key == GLFW_KEY_N && action == GLFW_PRESS) {
-		flag_state.no_clip = !flag_state.no_clip;
-		std::cout << "No-clip set to: " << flag_state.no_clip << std::endl;
-	}
-
-	if (key == GLFW_KEY_M && action == GLFW_PRESS) {
-		flag_state.fly = !flag_state.fly;
-		std::cout << "Fly set to: " << flag_state.fly << std::endl;
-	}
+	// if (key == GLFW_KEY_RIGHT && flag_state.fly) {
+	// 	if (action == GLFW_PRESS) {
+	// 		player_walking(true, false);
+	// 		PlayerSystem::set_direction(false);
+	// 	}
+	// 	else if (action == GLFW_RELEASE) {
+	// 		player_walking(false, false);
+	// 	}
+	// }
+	//
+	// if (key == GLFW_KEY_LEFT && flag_state.fly) {
+	// 	if (action == GLFW_PRESS) {
+	// 		player_walking(true, true);
+	// 		PlayerSystem::set_direction(true);
+	// 	}
+	// 	else if (action == GLFW_RELEASE) {
+	// 		player_walking(false, true);
+	// 	}
+	// }
+	//
+	// if (key == GLFW_KEY_DOWN && flag_state.fly) {
+	// 	Motion& motion = registry.motions.get(registry.players.entities[0]);
+	// 	if (action == GLFW_PRESS) {
+	// 		motion.velocity.y = JUMP_VELOCITY * 5.0f;
+	// 	}
+	// 	else if (action == GLFW_RELEASE) {
+	// 		motion.velocity.y = 0;
+	// 	}
+	// }
+	//
+	// if (key == GLFW_KEY_UP && flag_state.fly) {
+	// 	Motion& motion = registry.motions.get(registry.players.entities[0]);
+	// 	if (action == GLFW_PRESS) {
+	// 		motion.velocity.y = -JUMP_VELOCITY * 5.0f;
+	// 	}
+	// 	else if (action == GLFW_RELEASE) {
+	// 		motion.velocity.y = 0;
+	// 	}
+	// }
+	//
+	// // keybinds for toggling debug controls
+	// if (key == GLFW_KEY_N && action == GLFW_PRESS) {
+	// 	flag_state.no_clip = !flag_state.no_clip;
+	// 	std::cout << "No-clip set to: " << flag_state.no_clip << std::endl;
+	// }
+	//
+	// if (key == GLFW_KEY_M && action == GLFW_PRESS) {
+	// 	flag_state.fly = !flag_state.fly;
+	// 	std::cout << "Fly set to: " << flag_state.fly << std::endl;
+	// }
 
 	//pause screen
-	if (key == GLFW_KEY_P) {
+	if (key == GLFW_KEY_ESCAPE) {
 		if (gameState.game_running_state == GAME_RUNNING_STATE::PAUSED) {
 			// do nothing
 		} else if (gameState.game_running_state == GAME_RUNNING_STATE::MENU) {

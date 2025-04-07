@@ -175,6 +175,7 @@ class RenderSystem : public ISystem {
 
 		level_ground_path("Level_9"),
 
+		textures_path("cutscenes/_composite.png"),
 
 	};
 

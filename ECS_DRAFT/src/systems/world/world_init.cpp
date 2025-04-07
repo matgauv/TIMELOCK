@@ -404,7 +404,11 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity, bool delayed)
     tc.can_become_harmless = true;
     tc.can_be_decelerated = true;
 
-    Harmful& harmful = registry.harmfuls.emplace(entity);
+    assert(registry.gameStates.components.size() <= 1);
+    GameState& gameState = registry.gameStates.components[0];
+    if (gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED) {
+        Harmful& harmful = registry.harmfuls.emplace(entity);
+    }
 
     registry.nonPhysicsColliders.emplace(entity);
 

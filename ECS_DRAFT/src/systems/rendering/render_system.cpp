@@ -534,7 +534,8 @@ void RenderSystem::draw()
 		// Keep track of pointer to any custom mesh in the registry for use in other systems
 		if (!registry.meshPtrs.has(entity)) {
 			RenderRequest request = registry.renderRequests.get(entity);
-			if (request.used_geometry == GEOMETRY_BUFFER_ID::HEX) {
+			if (request.used_geometry == GEOMETRY_BUFFER_ID::HEX || 
+				request.used_geometry == GEOMETRY_BUFFER_ID::OCTA) {
 				Mesh& mesh = getMesh(request.used_geometry);
 				registry.meshPtrs.emplace(entity, &mesh);
 			}

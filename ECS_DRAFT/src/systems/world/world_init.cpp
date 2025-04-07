@@ -398,7 +398,7 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity, bool delayed)
 		{
 			delayed ? TEXTURE_ASSET_ID::BOLT2 : TEXTURE_ASSET_ID::BOLT3,
 			EFFECT_ASSET_ID::HEX,
-			GEOMETRY_BUFFER_ID::HEX
+			GEOMETRY_BUFFER_ID::OCTA
 		}
 	);
 

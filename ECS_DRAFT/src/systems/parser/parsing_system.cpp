@@ -106,8 +106,8 @@ void LevelParsingSystem::step(float elapsed_ms) {
 
     // "Uninitialized value" to pass the first render step with large time_elapse
     // 3.0 = 1.0 factor + 2 * tolerances
-    // registry.screenStates.components[0].scene_transition_factor = 3.0;
-    // registry.gameStates.components[0].game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
+    registry.screenStates.components[0].scene_transition_factor = 3.0;
+    registry.gameStates.components[0].game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
 
     WorldSystem::set_time_control_state(false, false, true);
     WorldSystem::set_time_control_state(true, false, true);

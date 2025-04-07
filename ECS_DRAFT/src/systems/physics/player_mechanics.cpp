@@ -7,8 +7,6 @@ void player_climb(Entity& entity, Motion& motion, float step_seconds) {
 	if (!registry.climbing.has(entity)) return;
 
 	Climbing& climbing = registry.climbing.get(entity);
-	std::cout << climbing.is_up << std::endl;
-	std::cout << "w held: " << registry.players.components[0].w_is_held << std::endl;
 
 	if (climbing.is_up) {
 

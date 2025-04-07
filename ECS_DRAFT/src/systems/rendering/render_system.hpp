@@ -71,15 +71,18 @@ class RenderSystem : public ISystem {
 		textures_path("gear.png"),
 		textures_path("spikeball.png"),
 		textures_path("screw-platform.png"),
+
 		textures_path("particles/BreakablePlatform_Fragments.png"),
 		textures_path("particles/CoyoteParticles.png"),
 		textures_path("particles/Screw_Fragments.png"),
 		textures_path("particles/Hex_Fragments.png"),
+
 		textures_path("particles/Cracking_Radial.png"),
 		textures_path("particles/Cracking_Downward.png"),
 		textures_path("particles/Exhale.png"),
 		textures_path("particles/Broken_Parts.png"),
 		textures_path("particles/Cross_Star.png"),
+
 		textures_path("boss/lookleft.png"),
 		textures_path("boss/lookright.png"),
 		textures_path("boss/exhausted.png"),
@@ -96,14 +99,22 @@ class RenderSystem : public ISystem {
 		textures_path("boss/ground-slam-follow.png"),
 		textures_path("boss/ground-slam-fall.png"),
 		textures_path("boss/ground-slam-land.png"),
+
 		textures_path("tutorial-text/tutorial-text.png"),
+
 		textures_path("decel-bar.png"),
+
+		textures_path("rolling_thing_1.png"),
+		textures_path("rolling_thing_2.png"),
+		textures_path("rolling_thing_3.png"),
+		textures_path("rolling_thing_4.png"),
+
 		level_ground_path("Level_2"),
 		level_ground_path("Level_3"),
 		level_ground_path("Level_4"),
+
 		textures_path("tutorial-text/boss-text.png"),
-		textures_path("rolling_thing_1.png"),
-		textures_path("rolling_thing_2.png")
+        level_ground_path("Level_9"),
 	};
 
 	std::array<GLuint, effect_count> effects;

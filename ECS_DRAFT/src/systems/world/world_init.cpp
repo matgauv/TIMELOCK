@@ -1150,7 +1150,7 @@ Entity create_rolling_platform(vec2 position, vec2 scale, float y_velocity) {
     //     EFFECT_ASSET_ID::TEXTURED,
     //     GEOMETRY_BUFFER_ID::SPRITE
     // });
-    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+    // registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
 
     return entity;
 }

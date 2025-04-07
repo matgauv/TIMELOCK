@@ -45,6 +45,7 @@ void AnimationSystem::step(float elapsed_ms) {
 			animateRequest.tex_u_range = {start_u_coord, start_u_coord + 1./animationConfig.frame_count};
 		}*/
 	}
+	update_rolling_things(elapsed_ms);
 
 }
 
@@ -58,7 +59,7 @@ void AnimationSystem::updateTimer(AnimateRequest& animateRequest, const Animatio
 		}
 	}
 	else if (animationConfig.animation_type == ANIMATION_TYPE_ID::FREEZE_ON_LAST) {
-		if (animateRequest.timer + elapsed_ms <= animationConfig.duration_ms) {
+		if (animateRequest.timer + elapsed_ms <= (animationConfig.duration_ms + animationConfig.ms_per_frame)) {
 			animateRequest.timer += elapsed_ms;
 		}
 	}
@@ -93,11 +94,11 @@ void AnimationSystem::late_step(float elapsed_ms) {
 			animateRequest.tex_u_range = { start_u_coord, start_u_coord + 1. / animationConfig.frame_count };
 		}
 	}
-	update_rolling_things(elapsed_ms);
 }
 
 // TODO: sorry for cluttering the animation system with this, I just needed the animation config info...
-void AnimationSystem::update_rolling_things(float elapsed_ms) {
+void AnimationSystem::update_rolling_things(float elapsed_ms)
+{
 	// 66 frames total, check if frame has elapsed (reference animation data)
 	// for each rolling thing:
 	//		check if any platforms need to be spawned
@@ -113,23 +114,38 @@ void AnimationSystem::update_rolling_things(float elapsed_ms) {
 		AnimationConfig animationConfig = this->animation_collections.at(animateRequest.used_animation);
 		RollingThing& rThing = registry.rollingThings.get(rt);
 
-		int frame = min((int)(animateRequest.timer / animationConfig.ms_per_frame), animationConfig.frame_count - 1);
+		int frame = min((int)(animateRequest.timer / animationConfig.ms_per_frame), animationConfig.frame_count);
 
-		if (frame != rThing.current_frame) {
+		if (frame != rThing.current_frame)
+		{
 			rThing.current_frame = frame;
 
 			// first, check if we need to swap between the two animations (spritesheet is larger than max texture size)
-			if (animateRequest.used_animation == ANIMATION_ID::ROLLING_THING_1 && frame == animationConfig.frame_count -1) {
+			if (animateRequest.used_animation == ANIMATION_ID::ROLLING_THING_1 && rThing.current_frame == animationConfig.frame_count) {
 				animateRequest.used_animation = ANIMATION_ID::ROLLING_THING_2;
 				animateRequest.timer = 0.f;
-			} else if (animateRequest.used_animation == ANIMATION_ID::ROLLING_THING_2 && frame == animationConfig.frame_count - 1) {
+			} else if (animateRequest.used_animation == ANIMATION_ID::ROLLING_THING_2 && rThing.current_frame == animationConfig.frame_count) {
+				animateRequest.used_animation = ANIMATION_ID::ROLLING_THING_3;
+				animateRequest.timer = 0.f;
+			} else if (animateRequest.used_animation == ANIMATION_ID::ROLLING_THING_3 && rThing.current_frame == animationConfig.frame_count) {
+				animateRequest.used_animation = ANIMATION_ID::ROLLING_THING_4;
+				animateRequest.timer = 0.f;
+			} else if (animateRequest.used_animation == ANIMATION_ID::ROLLING_THING_4 && rThing.current_frame == animationConfig.frame_count){
 				animateRequest.used_animation = ANIMATION_ID::ROLLING_THING_1;
 				animateRequest.timer = 0.f;
 			}
 
+			// TOOO more elegant way of getting this to work...
 			if (animateRequest.used_animation == ANIMATION_ID::ROLLING_THING_2) {
-				frame += animationConfig.frame_count - 1;
+				frame += animationConfig.frame_count;
+			} else if (animateRequest.used_animation == ANIMATION_ID::ROLLING_THING_3)
+			{
+				frame += (animationConfig.frame_count*2);
+			} else if (animateRequest.used_animation == ANIMATION_ID::ROLLING_THING_4)
+			{
+				frame += (17 * 3);
 			}
+
 
 			// for all the current rolling platforms, check if need to delete, if not move down
 			for (unsigned int platform_id : rThing.platforms) {
@@ -156,6 +172,9 @@ void AnimationSystem::update_rolling_things(float elapsed_ms) {
 				rp.frames_left = ROLLING_PLATFORM_FRAMES_ALIVE;
 				rThing.platforms.push_back(spawned_platform.id());
 			}
+
+
 		}
 	}
 }
+

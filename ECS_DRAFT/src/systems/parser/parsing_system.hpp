@@ -32,12 +32,13 @@ private:
     const std::unordered_map<std::string, TEXTURE_ASSET_ID> level_ground_map =
     {
         {"Level_0", TEXTURE_ASSET_ID::D_TUTORIAL_GROUND},
-        {"Level_1", TEXTURE_ASSET_ID::DECEL_LEVEL_1_GROUND},
+        {"Level_1", TEXTURE_ASSET_ID::DECEL_LEVEL_GROUND},
         {"Level_2", TEXTURE_ASSET_ID::DECEL_LEVEL_2_GROUND},
         {"Level_3", TEXTURE_ASSET_ID::DECEL_LEVEL_3_GROUND},
         {"Level_4", TEXTURE_ASSET_ID::BOSS_TUTORIAL_GROUND},
         {"Level_5", TEXTURE_ASSET_ID::BOSS_ONE_LEVEL_GROUND},
         {"Level_6", TEXTURE_ASSET_ID::A_TUTORIAL_GROUND},
+        {"Level_9", TEXTURE_ASSET_ID::DECEL_LEVEL_9_GROUND}
     };
 
     json reparsable_entities = {};

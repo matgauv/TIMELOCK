@@ -315,9 +315,15 @@ void LevelParsingSystem::init_pipes(json pipes) {
         if (!validate_custom_field(json_direction, "direction", pipe["iid"])) {
             continue;
         }
+        json json_time_offset = pipe["customFields"]["time_offset"];
+        if (!validate_custom_field(json_time_offset, "time_offset", pipe["iid"]))
+        {
+            continue;
+        }
 
         string direction = json_direction;
-        create_pipe_head(position, scale, direction, tile_id_array, stride);
+        float time_offset = json_time_offset;
+        create_pipe_head(position, scale, direction, tile_id_array, stride, time_offset);
     }
 }
 

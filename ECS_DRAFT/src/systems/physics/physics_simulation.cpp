@@ -142,8 +142,7 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 	PhysicsObject& physA = registry.physicsObjects.get(entityA);
 	PhysicsObject& physB = registry.physicsObjects.get(entityB);
 
-	if (physA.ignore_bottom_collision && collision.normal.y < 0.0f) return;
-	if (physB.ignore_bottom_collision && collision.normal.y > 0.0f) return;
+
 
 	vec2 A_modified_vel = get_modified_velocity(motionA);
 	vec2 B_modified_vel = get_modified_velocity(motionB);
@@ -154,6 +153,9 @@ void handle_physics_collision(float step_seconds, Entity& entityA, Entity& entit
 	if (dot(normal, posDiff) < 0) {
 		normal = -normal;
 	}
+
+	if (physA.ignore_bottom_collision && normal.y < 0.5f) return;
+	if (physB.ignore_bottom_collision && normal.y < 0.5f) return;
 
 	// prepare inverse masses
 	float a_inv_mass = physA.mass > 0.0f ? (1.0f / physA.mass) : 0.0f;

@@ -294,7 +294,7 @@ const float BACKGROUND_WIDTH = 1920.0f;
 const float BACKGROUND_HEIGHT = 1080.0f;
 
 const vec2 ROLLING_PLATFORM_SIZE = vec2{ 23.0f, 15.0f };
-const int ROLLING_PLATFORM_FRAMES_ALIVE = 33;
+const int ROLLING_PLATFORM_FRAMES_ALIVE = 35;
 const float ROLLING_PLATFORM_SPEED = 4.0f; // px moving down per frame
 
 // UI

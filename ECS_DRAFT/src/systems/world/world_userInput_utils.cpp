@@ -118,7 +118,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
 		LevelState& levelState = registry.levelStates.components[0];
 		levelState.curr_level_folder_name = "Level_1";
-		levelState.ground = TEXTURE_ASSET_ID::DECEL_LEVEL_1_GROUND;
+		levelState.ground = TEXTURE_ASSET_ID::DECEL_LEVEL_GROUND;
 		levelState.shouldLoad = true;
 	}
 
@@ -145,6 +145,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		LevelState& levelState = registry.levelStates.components[0];
 		levelState.curr_level_folder_name = "Level_5";
 		levelState.ground = TEXTURE_ASSET_ID::BOSS_ONE_LEVEL_GROUND;
+		levelState.shouldLoad = true;
+	}
+	if (key == GLFW_KEY_9 && action == GLFW_PRESS) {
+		LevelState& levelState = registry.levelStates.components[0];
+		levelState.curr_level_folder_name = "Level_9";
+		levelState.ground = TEXTURE_ASSET_ID::DECEL_LEVEL_9_GROUND;
 		levelState.shouldLoad = true;
 	}
 

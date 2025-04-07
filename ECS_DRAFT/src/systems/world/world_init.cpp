@@ -1254,8 +1254,11 @@ void remove_menu_screen() {
         registry.remove_all_components_of(registry.menuScreens.entities.back());
     }
 
-    while (!registry.cameras.entities.empty()) {
-        registry.remove_all_components_of(registry.cameras.entities.back());
+    GameState& gs = registry.gameStates.components[0];
+    if (gs.game_running_state != GAME_RUNNING_STATE::PAUSED && gs.game_running_state != GAME_RUNNING_STATE::MENU) {
+        while (!registry.cameras.entities.empty()) {
+            registry.remove_all_components_of(registry.cameras.entities.back());
+        }
     }
 }
 

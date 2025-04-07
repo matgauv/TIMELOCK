@@ -328,7 +328,12 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 			//	ls.shouldLoad = true;
 			//}
 
-			gameState.game_running_state = GAME_RUNNING_STATE::INTRO;
+			// if level is already loaded, we should just resume as normal, otherwise play intro sequence.
+			if (registry.players.size() > 0) {
+				gameState.game_running_state = GAME_RUNNING_STATE::RUNNING;
+			} else {
+				gameState.game_running_state = GAME_RUNNING_STATE::INTRO;
+			}
 
 		} // else if exit pressed
 		else if (mouse_pos_x >= 745 && mouse_pos_x <= 869 && mouse_pos_y >= 466 && mouse_pos_y <= 580 && action == GLFW_PRESS) {

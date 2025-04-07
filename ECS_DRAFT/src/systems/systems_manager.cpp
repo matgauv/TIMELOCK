@@ -84,7 +84,6 @@ void SystemsManager::run_game_loop() {
 			Entity entity = registry.cutScenes.entities[0];
 			CutScene& cutscene = registry.cutScenes.get(entity);
 			if (cutscene.state == 0) {
-
 				registry.remove_all_components_of(entity);
 				gs.game_running_state = GAME_RUNNING_STATE::MENU;
 			}

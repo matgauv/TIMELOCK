@@ -318,7 +318,7 @@ struct ScreenState
 {
 	float acceleration_factor = -1.0;
 	float deceleration_factor = -1.0;
-	float scene_transition_factor = 3.0; // start from transition in
+	float scene_transition_factor = 0.0; // start from transition in
 };
 
 // A struct that includes the necessary properties of the current game state

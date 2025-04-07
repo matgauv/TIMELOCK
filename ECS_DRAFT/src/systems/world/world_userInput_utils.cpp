@@ -197,6 +197,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		} else if (gameState.game_running_state == GAME_RUNNING_STATE::MENU) {
             // do nothing
 		} else {
+			if (registry.walking.has(player_entity)) {
+				// stop player walking if they don't release walking key before pausing.
+				Walking& walking = registry.walking.get(player_entity);
+				player_walking(false, walking.is_left);
+			}
 			gameState.game_running_state = GAME_RUNNING_STATE::PAUSED;
 
             if (registry.cameras.entities.empty()) { return; }

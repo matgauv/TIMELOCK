@@ -71,7 +71,7 @@ const float ACCELERATION_COOLDOWN_MS = 1500.0f;
 const float DECELERATION_COOLDOWN_MS = 1000.0f;
 
 const float ACCELERATION_DURATION_MS = 10000.0f;
-const float DECELERATION_DURATION_MS = 10000.0f;
+const float DECELERATION_DURATION_MS = 15000.0f;
 
 // Screen shader effect
 const float ACCELERATION_EMERGE_MS = 150.0f;
@@ -271,7 +271,7 @@ const vec2 CANNON_PROJECTILE_SIZE = vec2 {30.0f, 30.0f};
 
 // Pipes and Screws
 const float PIPE_FIRING_PERIOD_MS = 8000.0f;
-const float SCREW_SPEED = 300.0f;
+const float SCREW_SPEED = 400.0f;
 const vec2 SCREW_SIZE = vec2{ 90.0f, 14.0f };
 
 const float SCREW_FLIGHT_LENGTH = 1000.0f; // MODIFY THIS ACCORDING TO LEVEL DESIGN

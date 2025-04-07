@@ -1496,6 +1496,17 @@
 				"height": 16,
 				"color": 2943221,
 				"customFields" : {}
+			},
+			{
+				"id": "Checkpoint",
+				"iid": "56092bd0-1030-11f0-b134-eb1759db37e9",
+				"layer": "Components",
+				"x": 1040,
+				"y": 880,
+				"width": 16,
+				"height": 16,
+				"color": 2943221,
+				"customFields" : {}
 			}
 		],
 		"Platform": [

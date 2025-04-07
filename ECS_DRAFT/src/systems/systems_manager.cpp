@@ -42,7 +42,7 @@ void SystemsManager::run_game_loop() {
 		if (gs.game_running_state == GAME_RUNNING_STATE::MENU || gs.game_running_state == GAME_RUNNING_STATE::PAUSED) {
 			if (registry.cameras.size() == 0) {
 				// mock camera to load the menu screen
-				create_camera({0, 0}, {1, 1});
+				create_camera({ 0, 0 }, { 1, 1 });
 			}
 
 			if (registry.menuScreens.size() == 0) {
@@ -51,7 +51,26 @@ void SystemsManager::run_game_loop() {
 
 			// step the render system
 			systems[systems.size() - 1]->step(elapsed_ms);
-		} else {
+		}
+		else if (gs.game_running_state == GAME_RUNNING_STATE::INTRO || gs.game_running_state == GAME_RUNNING_STATE::OUTRO) {
+			//if (registry.cameras.size() == 0) {
+			//	// mock camera to load the menu screen
+			//	create_camera({ 0, 0 }, { 1, 1 });
+			//}
+
+			if (gs.game_running_state == GAME_RUNNING_STATE::INTRO) {
+				create_intro_cutscene();
+			}
+			else if (gs.game_running_state == GAME_RUNNING_STATE::OUTRO) {
+				create_outro_cutscene();
+			}
+			std::cout << "elapsed_ms: " << elapsed_ms << std::endl;
+			// step the render/animation system
+			systems[systems.size() - 1]->step(elapsed_ms);
+			systems[systems.size() - 2]->step(elapsed_ms);
+		}
+		else {
+
 			physics_accumulator += elapsed_ms;
 			physics_accumulator = std::min(physics_accumulator, max_accumulator_ms);
 

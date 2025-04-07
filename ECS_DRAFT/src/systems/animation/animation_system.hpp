@@ -39,6 +39,10 @@ private:
 	* Value:	Spritesheet texture id, type (cycle vs freeze on last), frame count, one cycle duration
 	*/ 
 	const std::unordered_map<ANIMATION_ID, AnimationConfig> animation_collections = {
+		
+		{ANIMATION_ID::INTRO, AnimationConfig(TEXTURE_ASSET_ID::INTRO, ANIMATION_TYPE_ID::FREEZE_ON_LAST , 320, 32000.0)},
+		{ANIMATION_ID::OUTRO, AnimationConfig(TEXTURE_ASSET_ID::OUTRO, ANIMATION_TYPE_ID::FREEZE_ON_LAST , 25, 2500.0)},
+
 		{ANIMATION_ID::PLAYER_WALKING, AnimationConfig(TEXTURE_ASSET_ID::PLAYER_WALKING_V1, ANIMATION_TYPE_ID::CYCLE , 13, 300.0)},
 		{ANIMATION_ID::PLAYER_STANDING, AnimationConfig(TEXTURE_ASSET_ID::PLAYER_STANDING_V1, ANIMATION_TYPE_ID::CYCLE , 1, 450.0)},
 		{ANIMATION_ID::PLAYER_CLIMB, AnimationConfig(TEXTURE_ASSET_ID::PLAYER_CLIMB, ANIMATION_TYPE_ID::CYCLE , 4, 240.0)},

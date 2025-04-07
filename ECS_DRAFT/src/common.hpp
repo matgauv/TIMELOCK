@@ -120,6 +120,7 @@ const float FOREGROUND_DEPTH = 0.5f;
 const float MIDGROUND_DEPTH = 0.75f;
 const float BACKGROUND_DEPTH = 0.9f;
 const float PARALLAXBACKGROUND_DEPTH = 1.5f;
+const float STANDARD_DEPTH = 1.f;
 
 // Camera motion properties
 const float CAMERA_MAX_SPEED = PLAYER_MAX_FALLING_SPEED * 1.2f;

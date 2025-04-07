@@ -1187,3 +1187,53 @@ int get_tile_index(int pos_x, int pos_y, int offset_x, int offset_y, int stride)
     return tile_coord_x + tile_coord_y * stride;
 }
 
+
+Entity create_outro_cutscene() {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.scale = { WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX };
+    motion.angle = 0.0f;
+    motion.velocity = { 0.0f, 0.0f };
+    motion.position = { WINDOW_WIDTH_PX / 2.0f, WINDOW_HEIGHT_PX / 2.0f };
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::OUTRO,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+    AnimateRequest& animation = registry.animateRequests.emplace(entity);
+    animation.used_animation = ANIMATION_ID::OUTRO;
+    
+    registry.colors.emplace(entity, vec3(1.0f));
+
+    registry.layers.insert(entity, { LAYER_ID::CUTSCENE });
+
+    return entity;
+}
+
+Entity create_intro_cutscene() {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.scale = { WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX };
+    motion.angle = 0.0f;
+    motion.velocity = { 0.0f, 0.0f };
+    motion.position = { WINDOW_WIDTH_PX / 2.0f, WINDOW_HEIGHT_PX / 2.0f };
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::INTRO,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+    AnimateRequest& animation = registry.animateRequests.emplace(entity);
+    animation.used_animation = ANIMATION_ID::INTRO;
+
+    registry.colors.emplace(entity, vec3(1.0f));
+
+    registry.layers.insert(entity, { LAYER_ID::CUTSCENE });
+
+    return entity;
+}

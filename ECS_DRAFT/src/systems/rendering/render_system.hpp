@@ -118,6 +118,8 @@ class RenderSystem : public ISystem {
 		textures_path("start-screen/screen.png"),
 		textures_path("start-screen/start-selected.png"),
 		textures_path("start-screen/exit-selected.png"),
+		textures_path("intro_cutscene.png"),
+		textures_path("shorter-ver.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

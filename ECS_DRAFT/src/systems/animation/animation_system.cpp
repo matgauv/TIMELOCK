@@ -146,6 +146,66 @@ void AnimationSystem::late_step(float elapsed_ms) {
 					animateRequest.used_animation = ANIMATION_ID::INTRO_8;
 				}
 				else if (animateRequest.used_animation == ANIMATION_ID::INTRO_8 && frame == animationConfig.frame_count - 1) {
+					animateRequest.timer = 0.0f;
+					animateRequest.used_animation = ANIMATION_ID::INTRO_9;
+				}
+				else if (animateRequest.used_animation == ANIMATION_ID::INTRO_9 && frame == animationConfig.frame_count - 1) {
+					animateRequest.timer = 0.0f;
+					animateRequest.used_animation = ANIMATION_ID::INTRO_10;
+				}
+				else if (animateRequest.used_animation == ANIMATION_ID::INTRO_10 && frame == animationConfig.frame_count - 1) {
+					animateRequest.timer = 0.0f;
+					animateRequest.used_animation = ANIMATION_ID::INTRO_11;
+				}
+				else if (animateRequest.used_animation == ANIMATION_ID::INTRO_11 && frame == animationConfig.frame_count - 1) {
+					animateRequest.timer = 0.0f;
+					animateRequest.used_animation = ANIMATION_ID::INTRO_12;
+				}
+				else if (animateRequest.used_animation == ANIMATION_ID::INTRO_12 && frame == animationConfig.frame_count - 1) {
+					animateRequest.timer = 0.0f;
+					animateRequest.used_animation = ANIMATION_ID::INTRO_13;
+				}
+				else if (animateRequest.used_animation == ANIMATION_ID::INTRO_13 && frame == animationConfig.frame_count - 1) {
+					animateRequest.timer = 0.0f;
+					animateRequest.used_animation = ANIMATION_ID::INTRO_14;
+				}
+				else if (animateRequest.used_animation == ANIMATION_ID::INTRO_14 && frame == animationConfig.frame_count - 1) {
+					animateRequest.timer = 0.0f;
+					animateRequest.used_animation = ANIMATION_ID::INTRO_15;
+				}
+				else if (animateRequest.used_animation == ANIMATION_ID::INTRO_15 && frame == animationConfig.frame_count - 1) {
+					animateRequest.timer = 0.0f;
+					animateRequest.used_animation = ANIMATION_ID::INTRO_16;
+				}
+				else if (animateRequest.used_animation == ANIMATION_ID::INTRO_16 && frame == animationConfig.frame_count - 1) {
+					animateRequest.timer = 0.0f;
+					animateRequest.used_animation = ANIMATION_ID::INTRO_17;
+				}
+				else if (animateRequest.used_animation == ANIMATION_ID::INTRO_17 && frame == animationConfig.frame_count - 1) {
+					animateRequest.timer = 0.0f;
+					animateRequest.used_animation = ANIMATION_ID::INTRO_18;
+				}
+				else if (animateRequest.used_animation == ANIMATION_ID::INTRO_18 && frame == animationConfig.frame_count - 1) {
+					animateRequest.timer = 0.0f;
+					animateRequest.used_animation = ANIMATION_ID::INTRO_19;
+				}
+				else if (animateRequest.used_animation == ANIMATION_ID::INTRO_19 && frame == animationConfig.frame_count - 1) {
+					animateRequest.timer = 0.0f;
+					animateRequest.used_animation = ANIMATION_ID::INTRO_20;
+				}
+				else if (animateRequest.used_animation == ANIMATION_ID::INTRO_20 && frame == animationConfig.frame_count - 1) {
+					animateRequest.timer = 0.0f;
+					animateRequest.used_animation = ANIMATION_ID::INTRO_21;
+				}
+				else if (animateRequest.used_animation == ANIMATION_ID::INTRO_21 && frame == animationConfig.frame_count - 1) {
+					animateRequest.timer = 0.0f;
+					animateRequest.used_animation = ANIMATION_ID::INTRO_22;
+				}
+				else if (animateRequest.used_animation == ANIMATION_ID::INTRO_22 && frame == animationConfig.frame_count - 1) {
+					animateRequest.timer = 0.0f;
+					animateRequest.used_animation = ANIMATION_ID::INTRO_23;
+				}
+				else if (animateRequest.used_animation == ANIMATION_ID::INTRO_23 && frame == animationConfig.frame_count - 1) {
 					cutscene.state = 0;
 				}
 			}

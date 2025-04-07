@@ -31,6 +31,7 @@ private:
 
     const std::unordered_map<std::string, TEXTURE_ASSET_ID> level_ground_map =
     {
+        {"Level_8", TEXTURE_ASSET_ID::INTRO_GROUND},
         {"Level_0", TEXTURE_ASSET_ID::D_TUTORIAL_GROUND},
         {"Level_1", TEXTURE_ASSET_ID::DECEL_LEVEL_1_GROUND},
         {"Level_2", TEXTURE_ASSET_ID::DECEL_LEVEL_2_GROUND},

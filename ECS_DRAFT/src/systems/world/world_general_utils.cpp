@@ -42,7 +42,11 @@ void WorldSystem::player_jump() {
 			if (registry.motions.has(player))
 			{
 				Motion& motion = registry.motions.get(player);
-				motion.velocity.y -= JUMP_VELOCITY;
+
+				float jump_impulse = JUMP_VELOCITY;
+
+				motion.velocity.y -= jump_impulse;
+
 
 				PlayerSystem::set_jumping_validity(false);
 			}

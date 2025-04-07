@@ -1195,7 +1195,7 @@ void boss_one_regular_projectile_attack(Entity& boss_entity, Boss& boss, Motion&
             create_projectile(pos, size, velocity);
 
             // Particle effects
-            emit_elliptical_particles(pos, vec2{ 0.6f, 1.0f }, 0.0f, 30, 100.0f, vec2(0.0f), vec3{ 1.0f, 0.0, 0.0 }, 2.0f, 350.0f);
+            ParticleSystem::emit_elliptical_particles(pos, vec2{ 0.6f, 1.0f }, 0.0f, 30, 100.0f, vec2(0.0f), vec3{ 1.0f, 0.0, 0.0 }, 2.0f, 350.0f);
 
             firstBoss.num_of_projectiles_created++;
             firstBoss.projectile_timer_ms = BOSS_ONE_INTER_PROJECTILE_TIMER_MS;
@@ -1236,7 +1236,7 @@ void boss_one_fast_projectile_attack(Entity& boss_entity, Boss& boss, Motion& bo
             create_projectile(pos, size, velocity);
 
             // Particle effects
-            emit_elliptical_particles(pos, vec2{ 0.6f, 1.0f }, 0.0f, 30, 100.0f, vec2(0.0f), vec3{ 1.0f, 0.0, 0.0 }, 2.0f, 350.0f);
+            ParticleSystem::emit_elliptical_particles(pos, vec2{ 0.6f, 1.0f }, 0.0f, 30, 100.0f, vec2(0.0f), vec3{ 1.0f, 0.0, 0.0 }, 2.0f, 350.0f);
 
             firstBoss.num_of_projectiles_created++;
             firstBoss.projectile_timer_ms = BOSS_ONE_INTER_PROJECTILE_TIMER_MS;
@@ -1266,14 +1266,14 @@ void boss_one_delayed_projectile_attack(Entity& boss_entity, Boss& boss, Motion&
 }
 
 void create_delayed_projectile(vec2 pos, float timer_ms) {
-    Entity entity = create_projectile(pos, vec2(BOSS_ONE_PROJECTILE_WIDTH_PX, BOSS_ONE_PROJECTILE_HEIGHT_PX), vec2(0.f, 0.f));
+    Entity entity = create_projectile(pos, vec2(BOSS_ONE_PROJECTILE_WIDTH_PX, BOSS_ONE_PROJECTILE_HEIGHT_PX), vec2(0.f, 0.f), true);
 
     // add Delayed component
     Delayed& delayed = registry.delayeds.emplace(entity);
     delayed.timer_ms = timer_ms;
 
     // Particle effects
-    emit_elliptical_particles(pos, vec2(1.0f), 0.0f, 45, 80.0f, vec2(0.0f), BOSS_SUMMONING_HALO, 3.0f, 350.0f);
+    ParticleSystem::emit_elliptical_particles(pos, vec2(1.0f), 0.0f, 45, 80.0f, vec2(0.0f), BOSS_SUMMONING_HALO, 3.0f, 350.0f);
 }
 
 void choose_regular_projectile_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_player_to_boss_left) {

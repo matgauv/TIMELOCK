@@ -30,6 +30,7 @@ class RenderSystem : public ISystem {
 		std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::HEX, mesh_path("hex.obj")),
 		std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::PLAYER, mesh_path("still.obj")),
 		std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::PLATFORM, mesh_path("left-end.obj")),
+		std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::OCTA, mesh_path("octa.obj")),
 		// specify meshes of other assets here
 	};
 
@@ -51,6 +52,9 @@ class RenderSystem : public ISystem {
 		textures_path("backgrounds/metal.png"),
 		textures_path("chain.png"),
 		textures_path("hex.png"),
+		textures_path("Breakable.png"),
+		textures_path("bolt2.png"),
+		textures_path("bolt3.png"),
 		textures_path("spawnpoint/SpawnPoint_unvisited.png"),
 		textures_path("spawnpoint/SpawnPoint_activate.png"),
 		textures_path("spawnpoint/SpawnPoint_deactivate.png"),
@@ -132,6 +136,7 @@ class RenderSystem : public ISystem {
 		shader_path("particle_instanced"),
 		shader_path("fill"),
 		shader_path("gaussian_blur"),
+		shader_path("matte"),
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;

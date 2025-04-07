@@ -43,5 +43,11 @@ void BossSystem::step(float elapsed_ms) {
 }
 
 void BossSystem::late_step(float elapsed_ms) {
-    (void) elapsed_ms;
+    if (registry.bosses.size() > 0) {
+        Boss& boss = registry.bosses.components[0];
+        if (boss.boss_state == BOSS_STATE::BOSS1_DEAD_STATE) {
+            GameState& gs = registry.gameStates.components[0];
+            gs.game_running_state = GAME_RUNNING_STATE::OUTRO;
+        }
+    }
 }

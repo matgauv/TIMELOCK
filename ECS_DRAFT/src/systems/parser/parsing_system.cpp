@@ -154,7 +154,11 @@ void LevelParsingSystem::init_level_background() {
 void LevelParsingSystem::init_player_and_camera() {
     json playerJson = json_data["entities"]["Player"][0];
     vec2 initPos = vec2(playerJson["x"], playerJson["y"]);
-    create_player(initPos, { int(playerJson["width"]) * 1.5, int(playerJson["height"]) * 1.5});
+    float player_scale_factor = 1.5f;
+    if (!playerJson["customFields"]["scale"].is_null()) {
+        player_scale_factor = playerJson["customFields"]["scale"];
+    }
+    create_player(initPos, { int(playerJson["width"]) * player_scale_factor, int(playerJson["height"]) * player_scale_factor});
     create_deceleration_bar(initPos + DECEL_BAR_OFFSET);
     create_camera(initPos, { 1.0f, 1.0f });
 

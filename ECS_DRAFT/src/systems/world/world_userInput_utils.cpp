@@ -139,7 +139,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		levelState.shouldLoad = true;
 	}
 
-	if (key == GLFW_KEY_GRAVE_ACCENT && action == GLFW_PRESS) {
+	if (key == GLFW_KEY_GRAVE_ACCENT && action == GLFW_PRESS && registry.levelStates.components[0].curr_level_folder_name == "Level_0") {
 		LevelParsingSystem::schedule_reload();
 	}
 

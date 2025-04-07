@@ -14,7 +14,7 @@ void WorldSystem::init(GLFWwindow* window) {
 	LevelState& levelState = registry.levelStates.emplace(level_state_entity);
 
 	// This will be the first level we load when the game is started.
-	levelState.curr_level_folder_name = "Level_0";
+	levelState.curr_level_folder_name = "Level_8";
 	levelState.shouldLoad = true;
 
 	Entity flag_entity = Entity();

@@ -1,0 +1,217 @@
+{
+	"identifier": "Level_8",
+	"uniqueIdentifer": "357d8000-1030-11f0-aa2f-8161428828ce",
+	"x": 30272,
+	"y": 5408,
+	"width": 2560,
+	"height": 1440,
+	"bgColor": "#696A79",
+	"neighbourLevels": [ "Level_0" ],
+	"customFields" : {},
+	"layers": [
+		{
+			"data": []
+		}
+	],
+	"entities": {
+		"Boundary": [
+			{
+				"id": "Boundary",
+				"iid": "164b8c80-1030-11f0-aa2f-5fda343a30ff",
+				"layer": "Components",
+				"x": 1872,
+				"y": 1232,
+				"width": 16,
+				"height": 16,
+				"color": 16705377,
+				"customFields": {
+					"direction": "right",
+					"length": null
+				}
+			},
+			{
+				"id": "Boundary",
+				"iid": "8e8e4ac0-1030-11f0-aa2f-d30ac30f41ca",
+				"layer": "Components",
+				"x": 0,
+				"y": 1136,
+				"width": 16,
+				"height": 16,
+				"color": 16705377,
+				"customFields": {
+					"direction": "right",
+					"length": {
+						"cx": 102,
+						"cy": 71
+					}
+				}
+			},
+			{
+				"id": "Boundary",
+				"iid": "2d39abd0-1030-11f0-aa2f-8daf219e55bb",
+				"layer": "Components",
+				"x": 1632,
+				"y": 1072,
+				"width": 16,
+				"height": 16,
+				"color": 16705377,
+				"customFields": {
+					"direction": "down",
+					"length": null
+				}
+			},
+			{
+				"id": "Boundary",
+				"iid": "3e785810-1030-11f0-aa2f-c327dd9887e2",
+				"layer": "Components",
+				"x": 1648,
+				"y": 1072,
+				"width": 16,
+				"height": 16,
+				"color": 16705377,
+				"customFields": {
+					"direction": "right",
+					"length": {
+						"cx": 118,
+						"cy": 67
+					}
+				}
+			},
+			{
+				"id": "Boundary",
+				"iid": "4267e1c0-1030-11f0-aa2f-a71baaaafa6c",
+				"layer": "Components",
+				"x": 1888,
+				"y": 1088,
+				"width": 16,
+				"height": 16,
+				"color": 16705377,
+				"customFields": {
+					"direction": "down",
+					"length": {
+						"cx": 118,
+						"cy": 72
+					}
+				}
+			},
+			{
+				"id": "Boundary",
+				"iid": "46f61c70-1030-11f0-aa2f-99f179afa771",
+				"layer": "Components",
+				"x": 1904,
+				"y": 1136,
+				"width": 16,
+				"height": 16,
+				"color": 16705377,
+				"customFields": {
+					"direction": "right",
+					"length": {
+						"cx": 159,
+						"cy": 71
+					}
+				}
+			},
+			{
+				"id": "Boundary",
+				"iid": "0de3c020-1030-11f0-aa2f-bd08cf95de6e",
+				"layer": "Components",
+				"x": 0,
+				"y": 1120,
+				"width": 16,
+				"height": 16,
+				"color": 16705377,
+				"customFields": {
+					"direction": "up",
+					"length": {
+						"cx": 0,
+						"cy": 0
+					}
+				}
+			},
+			{
+				"id": "Boundary",
+				"iid": "1db21380-1030-11f0-aa2f-c3bbd4f57268",
+				"layer": "Components",
+				"x": 2544,
+				"y": 1120,
+				"width": 16,
+				"height": 16,
+				"color": 16705377,
+				"customFields": {
+					"direction": "up",
+					"length": {
+						"cx": 159,
+						"cy": 0
+					}
+				}
+			},
+			{
+				"id": "Boundary",
+				"iid": "26c05810-1030-11f0-aa2f-21d4fdd3951a",
+				"layer": "Components",
+				"x": 2528,
+				"y": 0,
+				"width": 16,
+				"height": 16,
+				"color": 16705377,
+				"customFields": {
+					"direction": "left",
+					"length": {
+						"cx": 1,
+						"cy": 0
+					}
+				}
+			},
+			{
+				"id": "Boundary",
+				"iid": "622a8c80-1030-11f0-aa2f-a3c3b3b091ee",
+				"layer": "Components",
+				"x": 1424,
+				"y": 864,
+				"width": 16,
+				"height": 16,
+				"color": 16705377,
+				"customFields": {
+					"direction": null,
+					"length": null
+				}
+			}
+		],
+		"Clock_hole": [
+			{
+				"id": "Clock_hole",
+				"iid": "4723afa0-1030-11f0-aa2f-21dedc518b4c",
+				"layer": "Components",
+				"x": 2144,
+				"y": 928,
+				"width": 16,
+				"height": 16,
+				"color": 11882632,
+				"customFields": {
+					"direction": "right",
+					"length": {
+						"cx": 139,
+						"cy": 58
+					}
+				}
+			},
+			{
+				"id": "Clock_hole",
+				"iid": "4c17b100-1030-11f0-aa2f-f77ed1947b2b",
+				"layer": "Components",
+				"x": 2240,
+				"y": 704,
+				"width": 16,
+				"height": 16,
+				"color": 11882632,
+				"customFields": {
+					"direction": "down",
+					"length": {
+						"cx": 140,
+						"cy": 58
+					}
+				}
+			}
+		]
+	}
+}

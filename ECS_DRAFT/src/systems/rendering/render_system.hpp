@@ -131,6 +131,7 @@ class RenderSystem : public ISystem {
 		textures_path("cutscenes/intro_7.png"),
 		textures_path("cutscenes/intro_8.png"),
 		textures_path("cutscenes/intro_9.png"),
+		textures_path("cutscenes/_composite.png"),
 
 	};
 

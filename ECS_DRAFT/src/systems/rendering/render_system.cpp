@@ -4,6 +4,7 @@
 // internal
 #include "render_system.hpp"
 #include "../../tinyECS/registry.hpp"
+#include "systems/world/world_init.hpp"
 
 void RenderSystem::drawTexturedMesh(Entity entity, const mat3& projection) {
 	assert(registry.renderRequests.has(entity));
@@ -268,8 +269,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	float depth = (
 		layer == LAYER_ID::PARALLAXBACKGROUND ? PARALLAXBACKGROUND_DEPTH : (
 		layer == LAYER_ID::BACKGROUND ? BACKGROUND_DEPTH : (
-		layer == LAYER_ID::MIDGROUND ? MIDGROUND_DEPTH :
-			FOREGROUND_DEPTH)));
+		layer == LAYER_ID::MIDGROUND ? MIDGROUND_DEPTH : (
+			layer == LAYER_ID::MENU_AND_PAUSE ? MIDGROUND_DEPTH : FOREGROUND_DEPTH))));
 	glUniform1fv(depth_uloc, 1, (float*)&depth);
 	gl_has_errors();
 
@@ -365,7 +366,6 @@ void RenderSystem::drawToScreen()
 	glUniform1f(time_uloc, (float)(glfwGetTime() * 1000.0f)); // May need to adjust this if pauses the game when decelerated
 
 	ScreenState &screen = registry.screenStates.get(screen_state_entity);
-
 	glUniform1f(dec_act_fac_uloc, screen.deceleration_factor);
 	glUniform1f(acc_act_fac_uloc, screen.acceleration_factor);
 	gl_has_errors();
@@ -376,16 +376,23 @@ void RenderSystem::drawToScreen()
 
 	// TODO
 	glUniform1f(transition_fac_uloc, std::min(1.0f, screen.scene_transition_factor));
-	
-	const Entity player_entity = registry.players.entities[0];
-	const Motion& motion = registry.motions.get(player_entity);
-	vec3 augmented_player_pos = vec3{motion.position.x, motion.position.y, 1.0f};
-	vec3 canonical_player_pos = this->projection_matrix * augmented_player_pos;
-	
+
+
+	vec3 augmented_default_pos = vec3{WINDOW_WIDTH_PX / 2.0f, WINDOW_HEIGHT_PX / 2.0f, 1.0f};
+	vec3 canonical_default_pos = this->projection_matrix * augmented_default_pos;
 	float focal_point[2] = {
-		(canonical_player_pos[0] + 1.0f) / 2.0f,
-		(canonical_player_pos[1] + 1.0f) / 2.0f
+		(canonical_default_pos[0] + 1.0f) / 2.0f,
+		(canonical_default_pos[1] + 1.0f) / 2.0f
 	};
+	if (registry.players.size() > 0) {
+		const Entity player_entity = registry.players.entities[0];
+		const Motion& motion = registry.motions.get(player_entity);
+		vec3 augmented_player_pos = vec3{motion.position.x, motion.position.y, 1.0f};
+		vec3 canonical_player_pos = this->projection_matrix * augmented_player_pos;
+
+		focal_point[0] = (canonical_player_pos[0] + 1.0f) / 2.0f;
+		focal_point[1] = (canonical_player_pos[1] + 1.0f) / 2.0f;
+	}
 	glUniform2fv(focal_point_uloc, 1, focal_point);
 	gl_has_errors();
 
@@ -457,7 +464,7 @@ void RenderSystem::step(float elapsed_ms) {
 
 void RenderSystem::updateDecelerationFactor(GameState& gameState, ScreenState& screen, float elapsed_ms)
 {
-	if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED) {
+	if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED && gameState.game_running_state == GAME_RUNNING_STATE::RUNNING) {
 		screen.deceleration_factor = max(0.0f,
 			screen.deceleration_factor + elapsed_ms / DECELERATION_DURATION_MS);
 	}
@@ -524,6 +531,8 @@ void RenderSystem::draw()
 
 	std::vector<Entity> foregrounds;
 
+	std::vector<Entity> menu_and_pause;
+
 	for (Entity entity : registry.layers.entities)
 	{
 		// Check for rendering necessity
@@ -543,6 +552,9 @@ void RenderSystem::draw()
 
 		switch (registry.layers.get(entity).layer)
 		{
+			case LAYER_ID::MENU_AND_PAUSE:
+				menu_and_pause.push_back(entity);
+				break;
 			case LAYER_ID::FOREGROUND:
 				foregrounds.push_back(entity);
 				break;
@@ -628,8 +640,6 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, this->projection_matrix);
 	}
 
-
-
 	for (Entity entity : midgrounds)
 	{
 		drawTexturedMesh(entity, this->projection_matrix);
@@ -653,6 +663,11 @@ void RenderSystem::draw()
 	// Render foreground
 	drawBlurredLayer(blur_buffer_color_2, BLUR_MODE::TWO_D, 1.5f, 1.2f);
 
+	// draw menus over everything else
+	for (Entity entity : menu_and_pause) {
+		drawTexturedMesh(entity, this->projection_matrix);
+	}
+
 
 	// draw framebuffer to screen
 	drawToScreen();
@@ -670,7 +685,6 @@ mat3 RenderSystem::createProjectionMatrix()
 
 	// assert(registry.cameras.entities.size() == 1);
 	if (registry.cameras.entities.size() < 1) {
-
 		float left = 0.f;
 		float top = 0.f;
 		float right = (float)WINDOW_WIDTH_PX;

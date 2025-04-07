@@ -8,6 +8,8 @@ enum class GAME_RUNNING_STATE {
 	PAUSED = RUNNING + 1,
 	OVER = PAUSED + 1,
 	SHOULD_RESET = OVER + 1,
+	LOADING = SHOULD_RESET + 1,
+	MENU = LOADING + 1,
 };
 
 enum class TIME_CONTROL_STATE {
@@ -228,7 +230,6 @@ struct PhysicsObject
 
 
 struct NonPhysicsCollider {
-
 };
 
 struct RotatingGear {
@@ -317,7 +318,7 @@ struct ScreenState
 {
 	float acceleration_factor = -1.0;
 	float deceleration_factor = -1.0;
-	float scene_transition_factor = 3.0; // start from transition in
+	float scene_transition_factor = 0.0; // start from transition in
 };
 
 // A struct that includes the necessary properties of the current game state
@@ -326,7 +327,7 @@ struct ScreenState
 // - Negative when cooling down; increases;
 // - 0 (or an infinitesimal positive): ready to activate;
 struct GameState {
-	GAME_RUNNING_STATE game_running_state = GAME_RUNNING_STATE::RUNNING;
+	GAME_RUNNING_STATE game_running_state = GAME_RUNNING_STATE::MENU;
 	TIME_CONTROL_STATE game_time_control_state = TIME_CONTROL_STATE::NORMAL;
 	SCENE_TRANSITION_STATE game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
 	float accelerate_timer = 0.f;
@@ -538,6 +539,11 @@ struct DecelerationBar {
 	float shrink_factor = 0.0;
 };
 
+// a struct representing the boss health bar
+struct BossHealthBar {
+
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -628,7 +634,7 @@ enum class TEXTURE_ASSET_ID {
 	EXHALE = CRACKING_DOWNWARD + 1,
 	BROKEN_PARTS = EXHALE + 1,
 	CROSS_STAR = BROKEN_PARTS + 1,
-	
+
 	// Boss
 	BOSS_ONE_IDLE_LEFT = CROSS_STAR + 1,
 	BOSS_ONE_IDEL_RIGHT = BOSS_ONE_IDLE_LEFT + 1,
@@ -646,8 +652,13 @@ enum class TEXTURE_ASSET_ID {
 	BOSS_ONE_GROUND_SLAM_FOLLOW = BOSS_ONE_GROUND_SLAM_RISE + 1,
 	BOSS_ONE_GROUND_SLAM_FALL = BOSS_ONE_GROUND_SLAM_FOLLOW + 1,
 	BOSS_ONE_GROUND_SLAM_LAND = BOSS_ONE_GROUND_SLAM_FALL + 1,
-	
-	TUTORIAL_TEXT = BOSS_ONE_GROUND_SLAM_LAND + 1,
+	BOSS_ONE_HEALTH_BAR_20 = BOSS_ONE_GROUND_SLAM_LAND + 1,
+	BOSS_ONE_HEALTH_BAR_40 = BOSS_ONE_HEALTH_BAR_20 + 1,
+	BOSS_ONE_HEALTH_BAR_60 = BOSS_ONE_HEALTH_BAR_40 + 1,
+	BOSS_ONE_HEALTH_BAR_80 = BOSS_ONE_HEALTH_BAR_60 + 1,
+	BOSS_ONE_HEALTH_BAR_100 = BOSS_ONE_HEALTH_BAR_80 + 1,
+
+	TUTORIAL_TEXT = BOSS_ONE_HEALTH_BAR_100 + 1,
 	
 	// UI
 	DECEL_BAR = TUTORIAL_TEXT + 1,
@@ -655,7 +666,18 @@ enum class TEXTURE_ASSET_ID {
 	DECEL_LEVEL_3_GROUND = DECEL_LEVEL_2_GROUND + 1,
 	BOSS_TUTORIAL_GROUND = DECEL_LEVEL_3_GROUND + 1,
 	BOSS_TUTORIAL_TEXT = BOSS_TUTORIAL_GROUND + 1,
-	TEXTURE_COUNT = BOSS_TUTORIAL_TEXT + 1
+	LOADING_SCREEN = BOSS_TUTORIAL_TEXT + 1,
+	MENU = LOADING_SCREEN + 1,
+	MENU_SELECTED = MENU + 1,
+	RESUME = MENU_SELECTED + 1,
+	RESUME_SELECTED = RESUME + 1,
+	FADE = RESUME_SELECTED + 1,
+	COVER = FADE + 1,
+	KEY = COVER + 1,
+	SCREEN = KEY + 1,
+	START_SELECTED = SCREEN + 1,
+	EXIT_SELECTED = START_SELECTED + 1,
+	TEXTURE_COUNT = EXIT_SELECTED + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -740,7 +762,8 @@ enum class LAYER_ID {
 	PARALLAXBACKGROUND = 0,
 	BACKGROUND = PARALLAXBACKGROUND + 1,
 	MIDGROUND = BACKGROUND + 1,
-	FOREGROUND = MIDGROUND + 1
+	FOREGROUND = MIDGROUND + 1,
+	MENU_AND_PAUSE = FOREGROUND + 1,
 };
 
 enum class FRAME_BUFFER_ID {
@@ -838,4 +861,21 @@ struct ParticleSystemState {
 
 	float turbulence_strength = 0.0;
 	float turbulence_scale = 1.0;
+};
+
+struct LoadingScreen
+{
+
+};
+
+struct MenuButton {
+	bool is_active;
+	bool mouse_over;
+	vec2 position;
+	vec2 size;
+	std::string type;
+};
+
+struct MenuScreen {
+	std::vector<unsigned int> button_ids;
 };

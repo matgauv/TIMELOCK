@@ -174,7 +174,7 @@ void WorldSystem::restart_game() {
 	gameState.accelerate_timer = 0.f;
 	gameState.accelerate_timer = 0.f;
 	gameState.game_time_control_state = TIME_CONTROL_STATE::NORMAL;
-	gameState.game_running_state = GAME_RUNNING_STATE::RUNNING;
+	gameState.game_running_state = GAME_RUNNING_STATE::MENU;
 	gameState.game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
 	gameState.is_in_boss_fight = 0;
 

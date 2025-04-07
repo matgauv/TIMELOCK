@@ -22,8 +22,8 @@ void main()
 
 	if (silhouette_color.a > 0.0) {
 		// number of pixels
-		float thickness = 10.0;
 		vec2 texture_scale = textureSize(sampler0, 0);
+		float thickness = 0.075 * min(texture_scale.x, texture_scale.y);
 		
 		// Test Boundary: if this pixel opaque & close to transparent pixel
 		if (sampled_color.a > 0.95) {

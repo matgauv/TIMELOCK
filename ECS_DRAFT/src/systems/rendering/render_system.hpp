@@ -30,6 +30,7 @@ class RenderSystem : public ISystem {
 		std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::HEX, mesh_path("hex.obj")),
 		std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::PLAYER, mesh_path("still.obj")),
 		std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::PLATFORM, mesh_path("left-end.obj")),
+		std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::OCTA, mesh_path("octa.obj")),
 		// specify meshes of other assets here
 	};
 
@@ -53,6 +54,9 @@ class RenderSystem : public ISystem {
 		textures_path("backgrounds/metal.png"),
 		textures_path("chain.png"),
 		textures_path("hex.png"),
+		textures_path("Breakable.png"),
+		textures_path("bolt2.png"),
+		textures_path("bolt3.png"),
 
 		textures_path("spawnpoint/SpawnPoint_unvisited.png"),
 		textures_path("spawnpoint/SpawnPoint_activate.png"),
@@ -107,6 +111,11 @@ class RenderSystem : public ISystem {
 		textures_path("boss/ground-slam-follow.png"),
 		textures_path("boss/ground-slam-fall.png"),
 		textures_path("boss/ground-slam-land.png"),
+		textures_path("boss/20percent.png"),
+		textures_path("boss/40percent.png"),
+		textures_path("boss/60percent.png"),
+		textures_path("boss/80percent.png"),
+		textures_path("boss/100percent.png"),
 
 		textures_path("tutorial-text/tutorial-text.png"),
 
@@ -122,7 +131,36 @@ class RenderSystem : public ISystem {
 		level_ground_path("Level_4"),
 
 		textures_path("tutorial-text/boss-text.png"),
-        level_ground_path("Level_9"),
+
+		textures_path("load-screen.png"),
+		textures_path("buttons/menu.png"),
+		textures_path("buttons/menu-selected.png"),
+		textures_path("buttons/resume.png"),
+		textures_path("buttons/resume-selected.png"),
+		textures_path("fade.png"),
+		textures_path("start-screen/center-cover.png"),
+		textures_path("start-screen/key.png"),
+		textures_path("start-screen/screen.png"),
+		textures_path("start-screen/start-selected.png"),
+		textures_path("start-screen/exit-selected.png"),
+
+		textures_path("cutscenes/outro_1.png"),
+		textures_path("cutscenes/outro_2.png"),
+		textures_path("cutscenes/outro_3.png"),
+		textures_path("cutscenes/outro_4.png"),
+
+		textures_path("cutscenes/intro_1.png"),
+		textures_path("cutscenes/intro_2.png"),
+		textures_path("cutscenes/intro_3.png"),
+		textures_path("cutscenes/intro_4.png"),
+		textures_path("cutscenes/intro_5.png"),
+		textures_path("cutscenes/intro_6.png"),
+		textures_path("cutscenes/intro_7.png"),
+		textures_path("cutscenes/intro_8.png"),
+		textures_path("cutscenes/intro_9.png"),
+		level_ground_path("Level_9"),
+
+
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -137,6 +175,7 @@ class RenderSystem : public ISystem {
 		shader_path("particle_instanced"),
 		shader_path("fill"),
 		shader_path("gaussian_blur"),
+		shader_path("matte"),
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;

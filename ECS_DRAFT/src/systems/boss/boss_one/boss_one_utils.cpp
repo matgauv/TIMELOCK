@@ -83,6 +83,31 @@ Entity create_snooze_button(vec2 boss_position) {
     return entity;
 }
 
+Entity create_boss_health_bar() {
+    auto entity = Entity();
+
+    registry.bossHealthBars.emplace(entity);
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.velocity = vec2(0.f, 0.f);
+    motion.scale = vec2(BOSS_ONE_HEALTH_BAR_WIDTH, BOSS_ONE_HEALTH_BAR_HEIGHT);
+    motion.position = vec2(BOSS_ONE_HEALTH_BAR_X, BOSS_ONE_HEALTH_BAR_Y);
+
+    // render request
+    registry.renderRequests.insert(
+        entity,
+        {
+            TEXTURE_ASSET_ID::BOSS_ONE_HEALTH_BAR_100,
+            EFFECT_ASSET_ID::TEXTURED,
+            GEOMETRY_BUFFER_ID::SPRITE
+        }
+    );
+    
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    return entity;
+}
+
 // Handles the state transition logic by checking the current boss state and then calling the corresponding helper
 void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_num, std::default_random_engine& rng) {
     Boss& boss = registry.bosses.get(boss_entity);
@@ -213,6 +238,26 @@ void boss_one_step(Entity& boss_entity, float elapsed_ms, unsigned int random_nu
     update_boss_halo(boss_entity, boss);
 }
 
+void update_boss_health_bar(const Boss& boss) {
+    assert(registry.bossHealthBars.entities.size() <= 1);
+    Entity& health_bar_entity = registry.bossHealthBars.entities[0];
+    RenderRequest& renderRequest = registry.renderRequests.get(health_bar_entity);
+
+    if (boss.health == BOSS_ONE_MAX_HEALTH) {
+        renderRequest.used_texture = TEXTURE_ASSET_ID::BOSS_ONE_HEALTH_BAR_100;
+    } else if (boss.health == 80.f) {
+        renderRequest.used_texture = TEXTURE_ASSET_ID::BOSS_ONE_HEALTH_BAR_80;
+    } else if (boss.health == 60.f) {
+        renderRequest.used_texture = TEXTURE_ASSET_ID::BOSS_ONE_HEALTH_BAR_60;
+    } else if (boss.health == 40.f) {
+        renderRequest.used_texture = TEXTURE_ASSET_ID::BOSS_ONE_HEALTH_BAR_40;
+    } else if (boss.health == 20.f) {
+        renderRequest.used_texture = TEXTURE_ASSET_ID::BOSS_ONE_HEALTH_BAR_20;
+    } else {
+        registry.remove_all_components_of(health_bar_entity);
+    }
+}
+
 // Handles the logic to transition into the MOVE state
 void boss_one_idle_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, float elapsed_ms) {
 
@@ -227,6 +272,9 @@ void boss_one_idle_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, fl
     if (dist <= 200.f) {
         boss.boss_state = BOSS_STATE::BOSS1_MOVE_STATE;
         boss.timer_ms = BOSS_ONE_MAX_WALK_DURATION_MS; // walk for 5 seconds before attacking
+
+        // create the boss health bar
+        create_boss_health_bar();
         
         // update animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
@@ -270,9 +318,9 @@ void boss_one_move_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, fl
     // bool is_player_to_boss_left = player_motion.position.x <= boss_motion.position.x;
     // for testing purposes
     // if (boss.timer_ms <= 0.f) {
-    //     // choose_dash_attack_test(boss_entity, boss, boss_motion);
+    //     choose_dash_attack_test(boss_entity, boss, boss_motion);
     //     // choose_regular_projectile_attack_test(boss_entity, boss, boss_motion, is_player_to_boss_left);
-    //     choose_delayed_projectile_attack_test(boss_entity, boss, boss_motion);
+    //     // choose_delayed_projectile_attack_test(boss_entity, boss, boss_motion);
     //     // choose_fast_projectile_attack_test(boss_entity, boss, boss_motion, is_player_to_boss_left);
     //     // choose_ground_slam_test(boss_entity, boss, boss_motion);
     // }
@@ -321,6 +369,9 @@ void boss_one_exhausted_step(Entity& boss_entity, Boss& boss, Motion& boss_motio
 
             registry.remove_all_components_of(registry.snoozeButtons.entities[0]);
         }
+
+        // update the health bar
+        update_boss_health_bar(boss);
 
         // update the animate request
         AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
@@ -552,6 +603,26 @@ void boss_one_dash_step(Entity& boss_entity, Boss& boss, Motion& boss_motion, fl
         ParticleSystem::spawn_particle(BOSS_DASH_HALO,
             position, angle, vec2{ factor * 25.0f, 1.5f } * rand_float(0.8f, 1.2f), 
             angle_to_direction(angle) * rand_float(-10.0f, -5.0f), 200.0f, 0.8f, {50.0f, 100.0f}, {50.0f, 50.f});
+        
+        Entity& player_entity = registry.players.entities[0];
+        Motion& player_motion = registry.motions.get(player_entity);
+        float player_left_bound = player_motion.position.x - PLAYER_BB_WIDTH_PX / 2.f;
+        float player_right_bound = player_motion.position.x + PLAYER_BB_WIDTH_PX / 2.f;
+        float player_top_bound = player_motion.position.y - PLAYER_BB_HEIGHT_PX / 2.f;
+        float player_bot_bound = player_motion.position.y + PLAYER_BB_HEIGHT_PX / 2.f;
+
+        float boss_left_bound = boss_motion.position.x - BOSS_ONE_BB_WIDTH_PX / 2.f;
+        float boss_right_bound = boss_motion.position.x + BOSS_ONE_BB_WIDTH_PX / 2.f;
+        float boss_top_bound = boss_motion.position.y - BOSS_ONE_BB_HEIGHT_PX / 2.f;
+        float boss_bot_bound = boss_motion.position.y + BOSS_ONE_BB_HEIGHT_PX / 2.f;
+
+        if (player_left_bound <= boss_right_bound && player_right_bound >= boss_left_bound && 
+            player_bot_bound >= boss_top_bound && player_top_bound <= boss_bot_bound) {
+            
+            if (registry.harmfuls.has(boss_entity)) {
+                PlayerSystem::kill();
+            }
+        }
     }
 
     // Shake camera
@@ -1124,7 +1195,7 @@ void boss_one_regular_projectile_attack(Entity& boss_entity, Boss& boss, Motion&
             create_projectile(pos, size, velocity);
 
             // Particle effects
-            emit_elliptical_particles(pos, vec2{ 0.6f, 1.0f }, 0.0f, 30, 100.0f, vec2(0.0f), vec3{ 1.0f, 0.0, 0.0 }, 2.0f, 350.0f);
+            ParticleSystem::emit_elliptical_particles(pos, vec2{ 0.6f, 1.0f }, 0.0f, 30, 100.0f, vec2(0.0f), vec3{ 1.0f, 0.0, 0.0 }, 2.0f, 350.0f);
 
             firstBoss.num_of_projectiles_created++;
             firstBoss.projectile_timer_ms = BOSS_ONE_INTER_PROJECTILE_TIMER_MS;
@@ -1165,7 +1236,7 @@ void boss_one_fast_projectile_attack(Entity& boss_entity, Boss& boss, Motion& bo
             create_projectile(pos, size, velocity);
 
             // Particle effects
-            emit_elliptical_particles(pos, vec2{ 0.6f, 1.0f }, 0.0f, 30, 100.0f, vec2(0.0f), vec3{ 1.0f, 0.0, 0.0 }, 2.0f, 350.0f);
+            ParticleSystem::emit_elliptical_particles(pos, vec2{ 0.6f, 1.0f }, 0.0f, 30, 100.0f, vec2(0.0f), vec3{ 1.0f, 0.0, 0.0 }, 2.0f, 350.0f);
 
             firstBoss.num_of_projectiles_created++;
             firstBoss.projectile_timer_ms = BOSS_ONE_INTER_PROJECTILE_TIMER_MS;
@@ -1195,14 +1266,14 @@ void boss_one_delayed_projectile_attack(Entity& boss_entity, Boss& boss, Motion&
 }
 
 void create_delayed_projectile(vec2 pos, float timer_ms) {
-    Entity entity = create_projectile(pos, vec2(BOSS_ONE_PROJECTILE_WIDTH_PX, BOSS_ONE_PROJECTILE_HEIGHT_PX), vec2(0.f, 0.f));
+    Entity entity = create_projectile(pos, vec2(BOSS_ONE_PROJECTILE_WIDTH_PX, BOSS_ONE_PROJECTILE_HEIGHT_PX), vec2(0.f, 0.f), true);
 
     // add Delayed component
     Delayed& delayed = registry.delayeds.emplace(entity);
     delayed.timer_ms = timer_ms;
 
     // Particle effects
-    emit_elliptical_particles(pos, vec2(1.0f), 0.0f, 45, 80.0f, vec2(0.0f), BOSS_SUMMONING_HALO, 3.0f, 350.0f);
+    ParticleSystem::emit_elliptical_particles(pos, vec2(1.0f), 0.0f, 45, 80.0f, vec2(0.0f), BOSS_SUMMONING_HALO, 3.0f, 350.0f);
 }
 
 void choose_regular_projectile_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion, bool is_player_to_boss_left) {
@@ -1254,18 +1325,29 @@ void choose_delayed_projectile_attack_test(Entity& boss_entity, Boss& boss, Moti
 
 void choose_dash_attack_test(Entity& boss_entity, Boss& boss, Motion& boss_motion) {
     boss.boss_state = BOSS_STATE::BOSS1_DASH_ATTACK_STATE;
-    boss_motion.velocity.x = std::copysignf(BOSS_ONE_DASH_VELOCITY, boss_motion.velocity.x);
+    boss_motion.velocity.x = std::copysignf(BOSS_ONE_MIN_X_VELOCITY, boss_motion.velocity.x);
     boss.timer_ms = BOSS_ONE_DASH_DURATION_MS;
 
+    // boss becomes harmful during dash attack
+    boss.can_damage_player = true; // TODO: remove this and use Harmful component instead
+
+    // boss becomes time controllable
     TimeControllable& tc = registry.timeControllables.get(boss_entity);
     tc.can_be_decelerated = true;
     tc.can_become_harmless = true;
 
-    registry.harmfuls.emplace(boss_entity);
+    // the boss needs to have harmful component and is time controllable?
+    if (!registry.harmfuls.has(boss_entity)) {
+        registry.harmfuls.emplace(boss_entity);
+    }
 
-    // update the animate request
+    // update animate request
     AnimateRequest& animateRequest = registry.animateRequests.get(boss_entity);
     animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_DASH;
+
+    ParticleSystem::spawn_particle(PARTICLE_ID::CROSS_STAR,
+        boss_motion.position, 0.0f, boss_motion.scale * 1.5f, vec2(0.0f), DELAYED_PROJ_SIGNAL_DURATION_MS, 1.0f,
+        { 0.1f * DELAYED_PROJ_SIGNAL_DURATION_MS, 0.0f }, { 0.1f * DELAYED_PROJ_SIGNAL_DURATION_MS, 0.9f * DELAYED_PROJ_SIGNAL_DURATION_MS });
 
 }
 

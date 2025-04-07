@@ -25,8 +25,9 @@ Entity create_static_platform(vec2 position, vec2 scale, json& tile_id_array, in
 Entity create_rolling_platform(vec2 position, vec2 scale, float y_velocity);
 Entity create_level_boundary(vec2 position, vec2 scale);
 Entity create_world_boundary(vec2 position, vec2 scale);
+Entity create_clock_hole(vec2 position, vec2 scale);
 Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 initial_position, json& tile_id_array, int stride, bool rounded);
-Entity create_projectile(vec2 pos, vec2 size, vec2 velocity);
+Entity create_projectile(vec2 pos, vec2 size, vec2 velocity, bool delayed = false);
 Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity, bool harmful);
 Entity create_first_boss_test();
 Entity create_spawnpoint(vec2 pos, vec2 size);
@@ -44,8 +45,14 @@ Entity create_pendulum(vec2 pivot_position, float length, float initial_angle, f
 Entity create_gear(vec2 position, vec2 size, bool fixed, float angular_velocity, float inital_angle);
 Entity create_spikeball(vec2 position, vec2 size);
 Entity create_spawner(std::string type, vec2 size, vec2 velocity, vec2 start_pos, vec2 end_pos);
+Entity create_loading_screen();
+Entity create_pause_buttons(vec2 pos, vec2 scale, float angle, TEXTURE_ASSET_ID texture_id);
+Entity create_menu_screen();
+Entity create_intro_cutscene();
+Entity create_outro_cutscene();
 Entity create_rolling_thing(vec2 position, vec2 scale);
 
 // Helper methods
+void remove_menu_screen();
 float getDistance(const Motion& one, const Motion& other);
 int get_tile_index(int pos_x, int pos_y, int offset_x, int offset_y, int stride);

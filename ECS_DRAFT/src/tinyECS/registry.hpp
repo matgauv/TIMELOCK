@@ -71,6 +71,12 @@ public:
 	std::unordered_map<std::string, std::vector<int>> rolling_thing_data;
 	ComponentContainer<DecelerationBar> decelerationBars;
 	ComponentContainer<HaloRequest> haloRequests;
+	ComponentContainer<LoadingScreen> loadingScreens;
+	ComponentContainer<MenuButton> menuButtons;
+	ComponentContainer<MenuScreen> menuScreens;
+	ComponentContainer<BossHealthBar> bossHealthBars;
+	ComponentContainer<CutScene> cutScenes;
+	ComponentContainer<ClockHole> clockHoles;
 
 	// constructor that adds all containers for looping over them
 	ECSRegistry()
@@ -132,6 +138,12 @@ public:
 		registry_list.push_back(&rollingPlatforms);
 		registry_list.push_back(&decelerationBars);
 		registry_list.push_back(&haloRequests);
+		registry_list.push_back(&loadingScreens);
+		registry_list.push_back(&menuButtons);
+		registry_list.push_back(&menuScreens);
+		registry_list.push_back(&bossHealthBars);
+		registry_list.push_back(&cutScenes);
+		registry_list.push_back(&clockHoles);
 	}
 
 	void clear_all_components() {

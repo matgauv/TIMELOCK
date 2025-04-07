@@ -55,7 +55,7 @@ const int MAX_INSTANCE_COUNT = 2000;
 // Spawn Points
 const float SPAWNPOINT_DETECTION_RANGE = 80.0;
 const float SPAWNPOINT_CHARGE_TIME_MS = 500.0;
-const vec2 SPAWNPOINT_SCALE = { 25, 60 };
+const vec2 SPAWNPOINT_SCALE = { 42, 55 };
 
 // TIME CONTROL
 const float ACCELERATE_FACTOR = 2.0f;
@@ -120,6 +120,7 @@ const float FOREGROUND_DEPTH = 0.5f;
 const float MIDGROUND_DEPTH = 0.75f;
 const float BACKGROUND_DEPTH = 0.9f;
 const float PARALLAXBACKGROUND_DEPTH = 1.5f;
+const float STANDARD_DEPTH = 1.f;
 
 // Camera motion properties
 const float CAMERA_MAX_SPEED = PLAYER_MAX_FALLING_SPEED * 1.2f;
@@ -170,6 +171,8 @@ const float SPIKE_HEIGHT_RATIO = SPIKE_HEIGHT_PX / SPIKEBALL_TOTAL_PX;
 const float SPIKE_WIDTH_RATIO = SPIKE_WIDTH_PX / SPIKEBALL_TOTAL_PX;
 const float SPIKEBALL_CENTER_RATIO = SPIKEBALL_CENTER_PX / SPIKEBALL_TOTAL_PX;
 
+const float OBSTACLE_SPAWNER_REST_TIME_MS = 700.0f;
+
 
 const float PLAYER_BB_WIDTH_PX = 24;
 const float PLAYER_BB_HEIGHT_PX = 24;
@@ -188,6 +191,10 @@ const float BOSS_ONE_GROUND_SLAM_BB_WIDTH_PX = 200.f;
 const float BOSS_ONE_GROUND_SLAM_BB_HEIGHT_PX = 200.f;
 const float BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS = 30000.f; // for testing, use 15000.f, otherwise use 30000.f
 const int BOSS_ONE_NEXT_ATTACKS_VECTOR_MAX_SIZE = 10;
+const float BOSS_ONE_HEALTH_BAR_WIDTH = 500.f;
+const float BOSS_ONE_HEALTH_BAR_HEIGHT = 50.f;
+const float BOSS_ONE_HEALTH_BAR_X = 700.f;
+const float BOSS_ONE_HEALTH_BAR_Y = BOSS_ONE_SPAWN_POINT_Y + 70.f;
 
 const float BOSS_ONE_MAX_WALK_DURATION_MS = 5000.f; // use 1000.f for testing purposes, otherwise use 5000.f
 const float BOSS_ONE_MAX_EXHAUSTED_DURATION_MS = 10000.f;

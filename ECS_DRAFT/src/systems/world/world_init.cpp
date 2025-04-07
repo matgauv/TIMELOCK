@@ -269,6 +269,21 @@ Entity create_world_boundary(vec2 position, vec2 scale) {
     return entity;
 }
 
+Entity create_clock_hole(vec2 position, vec2 scale) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, 0};
+    motion.angle = 0;
+
+    registry.nonPhysicsColliders.emplace(entity);
+    registry.clockHoles.emplace(entity);
+
+    return entity;
+}
+
 Entity create_camera(vec2 position, vec2 scale) {
     Entity entity = Entity();
     registry.cameras.emplace(entity);
@@ -373,7 +388,7 @@ Entity create_tutorial_text(vec2 position, vec2 size, TEXTURE_ASSET_ID texture_i
     return entity;
 }
 
-Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
+Entity create_projectile(vec2 pos, vec2 size, vec2 velocity, bool delayed)
 {
 	auto entity = Entity();
 
@@ -389,16 +404,20 @@ Entity create_projectile(vec2 pos, vec2 size, vec2 velocity)
     tc.can_become_harmless = true;
     tc.can_be_decelerated = true;
 
-    Harmful& harmful = registry.harmfuls.emplace(entity);
+    assert(registry.gameStates.components.size() <= 1);
+    GameState& gameState = registry.gameStates.components[0];
+    if (gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED) {
+        Harmful& harmful = registry.harmfuls.emplace(entity);
+    }
 
     registry.nonPhysicsColliders.emplace(entity);
 
     registry.renderRequests.insert(
 		entity,
 		{
-			TEXTURE_ASSET_ID::HEX,
+			delayed ? TEXTURE_ASSET_ID::BOLT2 : TEXTURE_ASSET_ID::BOLT3,
 			EFFECT_ASSET_ID::HEX,
-			GEOMETRY_BUFFER_ID::HEX
+			GEOMETRY_BUFFER_ID::OCTA
 		}
 	);
 
@@ -645,8 +664,8 @@ Entity create_breakable_static_platform(vec2 position, vec2 scale, bool should_b
 
     // TODO: need to add a proper texture for this
     registry.renderRequests.insert(entity, {
-            is_time_controllable? TEXTURE_ASSET_ID::OBJECT : TEXTURE_ASSET_ID::GREY_CIRCLE,
-            EFFECT_ASSET_ID::TEXTURED,
+            TEXTURE_ASSET_ID::BREAKABLE,
+            EFFECT_ASSET_ID::MATTE,
             GEOMETRY_BUFFER_ID::SPRITE
     });
 
@@ -1095,6 +1114,27 @@ Entity create_spawner(std::string type, vec2 size, vec2 velocity, vec2 start_pos
     return entity;
 }
 
+Entity create_loading_screen() {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.scale = {WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX};
+    motion.angle = 0.0f;
+    motion.velocity = {0.0f, 0.0f};
+    motion.position = {WINDOW_WIDTH_PX / 2.0f, WINDOW_HEIGHT_PX / 2.0f };
+
+    registry.loadingScreens.emplace(entity);
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::LOADING_SCREEN,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    return entity;
+}
+
 Entity create_rolling_thing(vec2 position, vec2 scale) {
     Entity entity = Entity();
     Motion& motion = registry.motions.emplace(entity);
@@ -1155,8 +1195,69 @@ Entity create_rolling_platform(vec2 position, vec2 scale, float y_velocity) {
     return entity;
 }
 
+Entity create_pause_buttons(vec2 pos, vec2 scale, float angle, TEXTURE_ASSET_ID texture_id) {
 
+    Entity entity = Entity();
 
+    MenuButton& button = registry.menuButtons.emplace(entity);
+    button.position = pos;
+    button.is_active = true;
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = pos;
+    motion.scale = scale;
+    motion.angle = angle;
+
+    if (texture_id == TEXTURE_ASSET_ID::MENU) {
+        button.type = "menu";
+    }
+    if (texture_id == TEXTURE_ASSET_ID::RESUME) {
+        button.type = "resume";
+    }
+
+    registry.renderRequests.insert(entity, {
+        texture_id,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+    registry.layers.insert(entity, { LAYER_ID::MENU_AND_PAUSE});
+
+    return entity;
+}
+
+Entity create_menu_screen() {
+    Entity entity = Entity();
+    MenuScreen& menu_screen = registry.menuScreens.emplace(entity);
+    GameState& gs = registry.gameStates.components[0];
+    Motion& camera_motion = registry.motions.get(registry.cameras.entities[0]);
+
+    if (gs.game_running_state == GAME_RUNNING_STATE::MENU) {
+        menu_screen.button_ids.push_back(create_pause_buttons(camera_motion.position, { 675.0f, 380.0f }, 0, TEXTURE_ASSET_ID::SCREEN).id());
+        menu_screen.button_ids.push_back(create_pause_buttons({ camera_motion.position.x+60.0f, camera_motion.position.y }, { 120.0f, 50.0f }, 0, TEXTURE_ASSET_ID::KEY).id());
+        menu_screen.button_ids.push_back(create_pause_buttons({ camera_motion.position.x+5.0f, camera_motion.position.y -7.0f }, { 165.0f, 165.0f }, 0, TEXTURE_ASSET_ID::COVER).id());
+    } else if (gs.game_running_state == GAME_RUNNING_STATE::PAUSED) {
+        menu_screen.button_ids.push_back(create_pause_buttons(camera_motion.position, { 1500.0f, 1500.0f },0,TEXTURE_ASSET_ID::FADE).id());
+        menu_screen.button_ids.push_back(create_pause_buttons({ camera_motion.position.x, camera_motion.position.y - 35.0f }, { 250.0f, 45.0f }, 0, TEXTURE_ASSET_ID::MENU).id());
+        menu_screen.button_ids.push_back(create_pause_buttons({ camera_motion.position.x, camera_motion.position.y + 35.0f }, { 250.0f, 45.0f },0, TEXTURE_ASSET_ID::RESUME).id());
+    }
+
+    return entity;
+}
+
+void remove_menu_screen() {
+    while (!registry.menuButtons.entities.empty()) {
+        registry.remove_all_components_of(registry.menuButtons.entities.back());
+    }
+
+    while (!registry.menuScreens.entities.empty()) {
+        registry.remove_all_components_of(registry.menuScreens.entities.back());
+    }
+
+    while (!registry.cameras.entities.empty()) {
+        registry.remove_all_components_of(registry.cameras.entities.back());
+    }
+}
 
 float getDistance(const Motion& one, const Motion& other) {
     return glm::length(one.position - other.position);
@@ -1168,3 +1269,55 @@ int get_tile_index(int pos_x, int pos_y, int offset_x, int offset_y, int stride)
     return tile_coord_x + tile_coord_y * stride;
 }
 
+
+Entity create_outro_cutscene() {
+    Entity entity = Entity();
+    CutScene& cut_scene = registry.cutScenes.emplace(entity);
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.scale = { WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX };
+    motion.angle = 0.0f;
+    motion.velocity = { 0.0f, 0.0f };
+    motion.position = { WINDOW_WIDTH_PX / 2.0f, WINDOW_HEIGHT_PX / 2.0f };
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::OUTRO_1,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+    AnimateRequest& animation = registry.animateRequests.emplace(entity);
+    animation.used_animation = ANIMATION_ID::OUTRO_1;
+
+    registry.colors.emplace(entity, vec3(1.0f));
+
+    registry.layers.insert(entity, { LAYER_ID::CUTSCENE });
+
+    return entity;
+}
+
+Entity create_intro_cutscene() {
+    Entity entity = Entity();
+    CutScene& cut_scene = registry.cutScenes.emplace(entity);
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.scale = { WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX };
+    motion.angle = 0.0f;
+    motion.velocity = { 0.0f, 0.0f };
+    motion.position = { WINDOW_WIDTH_PX / 2.0f, WINDOW_HEIGHT_PX / 2.0f };
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::INTRO_1,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+    AnimateRequest& animation = registry.animateRequests.emplace(entity);
+    animation.used_animation = ANIMATION_ID::INTRO_1;
+
+    registry.colors.emplace(entity, vec3(1.0f));
+
+    registry.layers.insert(entity, { LAYER_ID::CUTSCENE });
+
+    return entity;
+}

@@ -67,6 +67,7 @@ private:
     void init_spawners(json spawners);
     void init_rolling_things(json rolling_things);
 
+    void init_clock_holes(json clock_holes);
 
     bool extract_full_platform_dimensions(json platform, vec2& dimensions);
     bool extract_platform_attributes(json platform, vec2& dimensions, vec2& startPos, bool& rounded);

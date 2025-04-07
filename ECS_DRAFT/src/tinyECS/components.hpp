@@ -8,6 +8,10 @@ enum class GAME_RUNNING_STATE {
 	PAUSED = RUNNING + 1,
 	OVER = PAUSED + 1,
 	SHOULD_RESET = OVER + 1,
+	LOADING = SHOULD_RESET + 1,
+	MENU = LOADING + 1,
+	INTRO = MENU + 1,
+	OUTRO = INTRO + 1,
 };
 
 enum class TIME_CONTROL_STATE {
@@ -230,7 +234,6 @@ struct PhysicsObject
 
 
 struct NonPhysicsCollider {
-
 };
 
 struct RotatingGear {
@@ -319,7 +322,7 @@ struct ScreenState
 {
 	float acceleration_factor = -1.0;
 	float deceleration_factor = -1.0;
-	float scene_transition_factor = 3.0; // start from transition in
+	float scene_transition_factor = 0.0; // start from transition in
 };
 
 // A struct that includes the necessary properties of the current game state
@@ -328,7 +331,7 @@ struct ScreenState
 // - Negative when cooling down; increases;
 // - 0 (or an infinitesimal positive): ready to activate;
 struct GameState {
-	GAME_RUNNING_STATE game_running_state = GAME_RUNNING_STATE::RUNNING;
+	GAME_RUNNING_STATE game_running_state = GAME_RUNNING_STATE::MENU;
 	TIME_CONTROL_STATE game_time_control_state = TIME_CONTROL_STATE::NORMAL;
 	SCENE_TRANSITION_STATE game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
 	float accelerate_timer = 0.f;
@@ -549,6 +552,11 @@ struct DecelerationBar {
 	float shrink_factor = 0.0;
 };
 
+// a struct representing the boss health bar
+struct BossHealthBar {
+
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -595,9 +603,12 @@ enum class TEXTURE_ASSET_ID {
 	METAL_BACKGROUND = GEARS_BACKGROUND + 1,
 	CHAIN = METAL_BACKGROUND + 1,
 	HEX = CHAIN + 1,
+	BREAKABLE = HEX + 1,
+	BOLT2 = BREAKABLE + 1,
+	BOLT3 = BOLT2 + 1,
 
 	// Spawn Point
-	SPAWNPOINT_UNVISITED = HEX + 1,
+	SPAWNPOINT_UNVISITED = BOLT3 + 1,
 	SPAWNPOINT_ACTIVATE = SPAWNPOINT_UNVISITED + 1,
 	SPAWNPOINT_DEACTIVATE = SPAWNPOINT_ACTIVATE + 1,
 	SPAWNPOINT_REACTIVATE = SPAWNPOINT_DEACTIVATE + 1,
@@ -657,7 +668,13 @@ enum class TEXTURE_ASSET_ID {
 	BOSS_ONE_GROUND_SLAM_FALL = BOSS_ONE_GROUND_SLAM_FOLLOW + 1,
 	BOSS_ONE_GROUND_SLAM_LAND = BOSS_ONE_GROUND_SLAM_FALL + 1,
 
-	TUTORIAL_TEXT = BOSS_ONE_GROUND_SLAM_LAND + 1,
+	BOSS_ONE_HEALTH_BAR_20 = BOSS_ONE_GROUND_SLAM_LAND + 1,
+	BOSS_ONE_HEALTH_BAR_40 = BOSS_ONE_HEALTH_BAR_20 + 1,
+	BOSS_ONE_HEALTH_BAR_60 = BOSS_ONE_HEALTH_BAR_40 + 1,
+	BOSS_ONE_HEALTH_BAR_80 = BOSS_ONE_HEALTH_BAR_60 + 1,
+	BOSS_ONE_HEALTH_BAR_100 = BOSS_ONE_HEALTH_BAR_80 + 1,
+
+	TUTORIAL_TEXT = BOSS_ONE_HEALTH_BAR_100 + 1,
 
 	// UI
 	DECEL_BAR = TUTORIAL_TEXT + 1,
@@ -672,8 +689,35 @@ enum class TEXTURE_ASSET_ID {
 	BOSS_TUTORIAL_GROUND = DECEL_LEVEL_3_GROUND + 1,
 
 	BOSS_TUTORIAL_TEXT = BOSS_TUTORIAL_GROUND + 1,
-  	DECEL_LEVEL_9_GROUND = BOSS_TUTORIAL_TEXT + 1,
 
+	LOADING_SCREEN = BOSS_TUTORIAL_TEXT + 1,
+	MENU = LOADING_SCREEN + 1,
+	MENU_SELECTED = MENU + 1,
+	RESUME = MENU_SELECTED + 1,
+	RESUME_SELECTED = RESUME + 1,
+	FADE = RESUME_SELECTED + 1,
+	COVER = FADE + 1,
+	KEY = COVER + 1,
+	SCREEN = KEY + 1,
+	START_SELECTED = SCREEN + 1,
+	EXIT_SELECTED = START_SELECTED + 1,
+
+	OUTRO_1 = EXIT_SELECTED + 1,
+	OUTRO_2 = OUTRO_1 + 1,
+	OUTRO_3 = OUTRO_2 + 1,
+	OUTRO_4 = OUTRO_3 + 1,
+
+	INTRO_1 = OUTRO_4 + 1,
+	INTRO_2 = INTRO_1 + 1,
+	INTRO_3 = INTRO_2 + 1,
+	INTRO_4 = INTRO_3 + 1,
+	INTRO_5 = INTRO_4 + 1,
+	INTRO_6 = INTRO_5 + 1,
+	INTRO_7 = INTRO_6 + 1,
+	INTRO_8 = INTRO_7 + 1,
+	INTRO_9 = INTRO_8 + 1,
+
+  	DECEL_LEVEL_9_GROUND = INTRO_9 + 1,
 	TEXTURE_COUNT = DECEL_LEVEL_9_GROUND + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
@@ -687,7 +731,8 @@ enum class EFFECT_ASSET_ID {
 	PARTICLE_INSTANCED = TILE + 1,
 	FILL = PARTICLE_INSTANCED + 1,
 	GAUSSIAN_BLUR = FILL + 1,
-	EFFECT_COUNT = GAUSSIAN_BLUR + 1
+	MATTE = GAUSSIAN_BLUR + 1,
+	EFFECT_COUNT = MATTE + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -698,7 +743,8 @@ enum class GEOMETRY_BUFFER_ID {
 	HEX = SCREEN_TRIANGLE + 1,
 	PLAYER = HEX + 1,
 	PLATFORM = PLAYER + 1,
-	GEOMETRY_COUNT = PLATFORM + 1
+	OCTA = PLATFORM + 1,
+	GEOMETRY_COUNT = OCTA + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
@@ -745,7 +791,22 @@ enum class ANIMATION_ID {
 
 	DECEL_BAR = ROLLING_THING_4 + 1,
 
-	ANIMATION_COUNT = DECEL_BAR + 1
+	INTRO_1 = DECEL_BAR + 1,
+	INTRO_2 = INTRO_1 + 1,
+	INTRO_3 = INTRO_2 + 1,
+	INTRO_4 = INTRO_3 + 1,
+	INTRO_5 = INTRO_4 + 1,
+	INTRO_6 = INTRO_5 + 1,
+	INTRO_7 = INTRO_6 + 1,
+	INTRO_8 = INTRO_7 + 1,
+	INTRO_9 = INTRO_8 + 1,
+
+	OUTRO_1 = INTRO_9 + 1,
+	OUTRO_2 = OUTRO_1 + 1,
+	OUTRO_3 = OUTRO_2 + 1,
+	OUTRO_4 = OUTRO_3 + 1,
+
+	ANIMATION_COUNT = OUTRO_4 + 1
 };
 const int animation_count = (int)ANIMATION_ID::ANIMATION_COUNT;
 
@@ -761,7 +822,9 @@ enum class LAYER_ID {
 	PARALLAXBACKGROUND = 0,
 	BACKGROUND = PARALLAXBACKGROUND + 1,
 	MIDGROUND = BACKGROUND + 1,
-	FOREGROUND = MIDGROUND + 1
+	FOREGROUND = MIDGROUND + 1,
+	MENU_AND_PAUSE = FOREGROUND + 1,
+	CUTSCENE = MENU_AND_PAUSE + 1,
 };
 
 enum class FRAME_BUFFER_ID {
@@ -859,4 +922,28 @@ struct ParticleSystemState {
 
 	float turbulence_strength = 0.0;
 	float turbulence_scale = 1.0;
+};
+
+struct LoadingScreen
+{
+
+};
+
+struct MenuButton {
+	bool is_active;
+	bool mouse_over;
+	vec2 position;
+	vec2 size;
+	std::string type;
+};
+
+struct MenuScreen {
+	std::vector<unsigned int> button_ids;
+};
+
+struct ClockHole {
+};
+
+struct CutScene {
+	int state = 1;
 };

@@ -1,13 +1,14 @@
 # TIMELOCK
 A 2D platformer where players must chase their ringing alarm clock through a clockwork castle by successfully navigating through a series of rooms which are themed on different time based aesthetics like pendulums swinging or clock gears turning. Use time-based deceleration to navigate the castle's many swift obstacles and snooze your alarm clock to return to a peaceful slumber!
 
+*Created by: Yixian Cheng, Dieter Frehlich, Matias Gauvin, Julia Rees, and Kevin Zhou*
+
 https://github.com/user-attachments/assets/47f1e181-79a9-4ca4-952d-c0d5f5cbccb7
 
 ## Tech stack:
 - Core game logic - **C++**
 - Graphics engine - **OpenGL**
 - Level construction - **LDtk w/ JSON parsing**
-
 
 
 ## Other Notes:

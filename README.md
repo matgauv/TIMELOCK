@@ -1,7 +1,6 @@
 # TIMELOCK
 A 2D platformer where players must chase their blaring alarm clock through a Clockwork castle by successfully navigating through a series of rooms which are themed on different time based aesthetics like pendulums swinging or clock gears turning. Use time-based deceleration to navigate the castle's many swift obstacles and snooze your alarm clock to return to a peaceful slumber!
 
-# Demo Video:
 https://github.com/user-attachments/assets/47f1e181-79a9-4ca4-952d-c0d5f5cbccb7
 
 

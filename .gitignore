@@ -4,3 +4,12 @@
 ECS_DRAFT/ext/project_path.hpp
 ECS_DRAFT/build
 ECS_DRAFT/cmake-build-debug
+
+/ECS_DRAFT/build
+/ECS_DRAFT/out
+/ECS_DRAFT/cmake-build-debug
+/ECS_DRAFT/ext/project_path.hpp
+.vscode/settings.json
+/build
+
+/ECS_DRAFT/CMakeSettings.json

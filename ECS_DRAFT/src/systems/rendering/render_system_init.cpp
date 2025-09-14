@@ -25,8 +25,23 @@ void RenderSystem::init(GLFWwindow* window_arg)
 	// Create a frame buffer
 	frame_buffer = 0;
 	glGenFramebuffers(1, &frame_buffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+	// glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
 	gl_has_errors();
+
+
+	blur_buffer_1 = 0;
+	glGenFramebuffers(1, &blur_buffer_1);
+	gl_has_errors();
+
+	blur_buffer_2 = 0;
+	glGenFramebuffers(1, &blur_buffer_2);
+	gl_has_errors();
+
+
+	glGenBuffers(1, &instanced_vbo_particles);
+	glBindBuffer(GL_ARRAY_BUFFER, instanced_vbo_particles);
+	gl_has_errors();
+
 
 	// For some high DPI displays (ex. Retina Display on Macbooks)
 	// https://stackoverflow.com/questions/36672935/why-retina-screen-coordinate-value-is-twice-the-value-of-pixel-value
@@ -47,9 +62,12 @@ void RenderSystem::init(GLFWwindow* window_arg)
 
 	// We are not really using VAO's but without at least one bound we will crash in
 	// some systems.
-	GLuint vao;
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
+	glGenVertexArrays(1, &vao_particles);
+	glBindVertexArray(vao_particles);
+	gl_has_errors();
+
+	glGenVertexArrays(1, &vao_general);
+	glBindVertexArray(vao_general);
 	gl_has_errors();
 
 	initScreenTexture();
@@ -58,8 +76,18 @@ void RenderSystem::init(GLFWwindow* window_arg)
 	initializeGlGeometryBuffers();
 }
 
+void RenderSystem::initializeVAOs() {
+	//glGenVertexArrays(effect_count, &vaos[0]);
+	gl_has_errors();
+}
+
 void RenderSystem::initializeGlTextures()
 {
+
+	GLint maxTextureSize = 0;
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+	printf("Maximum texture size: %d\n", maxTextureSize);
+
     glGenTextures((GLsizei)texture_gl_handles.size(), texture_gl_handles.data());
 
     for(uint i = 0; i < texture_paths.size(); i++)
@@ -74,12 +102,14 @@ void RenderSystem::initializeGlTextures()
 		{
 			const std::string message = "Could not load the file " + path + ".";
 			fprintf(stderr, "%s", message.c_str());
-			assert(false);
+			assert(false); 
 		}
 		glBindTexture(GL_TEXTURE_2D, texture_gl_handles[i]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dimensions.x, dimensions.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 		gl_has_errors();
 		stbi_image_free(data);
     }
@@ -120,10 +150,16 @@ void RenderSystem::initializeGlMeshes()
 		// Initialize meshes
 		GEOMETRY_BUFFER_ID geom_index = mesh_paths[i].first;
 		std::string name = mesh_paths[i].second;
-		Mesh::loadFromOBJFile(name, 
+		Mesh::loadFromOBJFile(name,
 			meshes[(int)geom_index].vertices,
 			meshes[(int)geom_index].vertex_indices,
 			meshes[(int)geom_index].original_size);
+
+		//std::cout << "Loaded " << name << " with " << meshes[(int)geom_index].vertices.size() << " vertices." << std::endl;
+		//for (ColoredVertex& vertex : meshes[(int)geom_index].vertices)
+		//{
+		//	std::cout << "Vertex position: x:" << vertex.position.x << ", y:" << vertex.position.y << ", z:" << vertex.position.z << ", r: " << vertex.color.r << ", g: " << vertex.color.g << ", b: " << vertex.color.b << std::endl;
+		//}
 
 		bindVBOandIBO(geom_index,
 			meshes[(int)geom_index].vertices, 
@@ -140,37 +176,6 @@ void RenderSystem::initializeGlGeometryBuffers()
 
 	// Index and Vertex buffer data initialization.
 	initializeGlMeshes();
-
-
-	/* LEGACY - not used, but code below still relies on it...*/
-	////////////////////////
-	// Initialize egg
-//	std::vector<ColoredVertex> egg_vertices;
-//	std::vector<uint16_t> egg_indices;
-//	constexpr float z = -0.1f;
-//	constexpr int NUM_TRIANGLES = 62;
-//
-//	for (int i = 0; i < NUM_TRIANGLES; i++) {
-//		const float t = float(i) * M_PI * 2.f / float(NUM_TRIANGLES - 1);
-//		egg_vertices.push_back({});
-//		egg_vertices.back().position = { 0.5 * cos(t), 0.5 * sin(t), z };
-//		egg_vertices.back().color = { 0.8, 0.8, 0.8 };
-//	}
-//	egg_vertices.push_back({});
-//	egg_vertices.back().position = { 0, 0, 0 };
-//	egg_vertices.back().color = { 1, 1, 1 };
-//	for (int i = 0; i < NUM_TRIANGLES; i++) {
-//		egg_indices.push_back((uint16_t)i);
-//		egg_indices.push_back((uint16_t)((i + 1) % NUM_TRIANGLES));
-//		egg_indices.push_back((uint16_t)NUM_TRIANGLES);
-//	}
-//	int geom_index = (int)GEOMETRY_BUFFER_ID::EGG;
-//	meshes[geom_index].vertices = egg_vertices;
-//	meshes[geom_index].vertex_indices = egg_indices;
-//	bindVBOandIBO(GEOMETRY_BUFFER_ID::EGG, meshes[geom_index].vertices, meshes[geom_index].vertex_indices);
-
-
-
 
 	//////////////////////////
 	// Initialize sprite
@@ -232,9 +237,17 @@ RenderSystem::~RenderSystem()
 	// but it's polite to clean after yourself.
 	glDeleteBuffers((GLsizei)vertex_buffers.size(), vertex_buffers.data());
 	glDeleteBuffers((GLsizei)index_buffers.size(), index_buffers.data());
+	//glDeleteBuffers(1, &instanced_vbo_static_tiles);
+	glDeleteBuffers(1, &instanced_vbo_particles);
+
 	glDeleteTextures((GLsizei)texture_gl_handles.size(), texture_gl_handles.data());
+
 	glDeleteTextures(1, &off_screen_render_buffer_color);
 	glDeleteRenderbuffers(1, &off_screen_render_buffer_depth);
+	glDeleteTextures(1, &blur_buffer_color_1);
+	glDeleteRenderbuffers(1, &blur_buffer_depth_1);
+	glDeleteTextures(1, &blur_buffer_color_2);
+	glDeleteRenderbuffers(1, &blur_buffer_depth_2);
 	gl_has_errors();
 
 	for(uint i = 0; i < effect_count; i++) {
@@ -242,6 +255,8 @@ RenderSystem::~RenderSystem()
 	}
 	// delete allocated resources
 	glDeleteFramebuffers(1, &frame_buffer);
+	glDeleteFramebuffers(1, &blur_buffer_1);
+	glDeleteFramebuffers(1, &blur_buffer_2);
 	gl_has_errors();
 
 	// remove all entities created by the render system
@@ -255,6 +270,8 @@ bool RenderSystem::initScreenTexture()
 	// create a single entry
 	registry.screenStates.emplace(screen_state_entity);
 
+	// Intermediate frame buffer: for most objects in preparation for screen buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
 	int framebuffer_width, framebuffer_height;
 	glfwGetFramebufferSize(const_cast<GLFWwindow*>(window), &framebuffer_width, &framebuffer_height);  // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
 
@@ -263,6 +280,8 @@ bool RenderSystem::initScreenTexture()
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, framebuffer_width, framebuffer_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 	gl_has_errors();
 
 	glGenRenderbuffers(1, &off_screen_render_buffer_depth);
@@ -273,6 +292,55 @@ bool RenderSystem::initScreenTexture()
 	gl_has_errors();
 
 	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+	int blurbuffer_width, blurbuffer_height;
+	glfwGetFramebufferSize(const_cast<GLFWwindow*>(window), &blurbuffer_width, &blurbuffer_height);
+
+	// Down sampling
+	blurbuffer_width /= BLUR_FACTOR;
+	blurbuffer_height /= BLUR_FACTOR;
+
+	// Blur buffer: render color-filled textures in preparation for blurring shader
+	glBindFramebuffer(GL_FRAMEBUFFER, blur_buffer_1);
+
+	glGenTextures(1, &blur_buffer_color_1);
+	glBindTexture(GL_TEXTURE_2D, blur_buffer_color_1);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, blurbuffer_width, blurbuffer_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	gl_has_errors();
+
+	glGenRenderbuffers(1, &blur_buffer_depth_1);
+	glBindRenderbuffer(GL_RENDERBUFFER, blur_buffer_depth_1);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, blur_buffer_color_1, 0);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, blurbuffer_width, blurbuffer_height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, blur_buffer_depth_1);
+	gl_has_errors();
+
+	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// Blur buffer 2
+	glBindFramebuffer(GL_FRAMEBUFFER, blur_buffer_2);
+
+	glGenTextures(1, &blur_buffer_color_2);
+	glBindTexture(GL_TEXTURE_2D, blur_buffer_color_2);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, blurbuffer_width, blurbuffer_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	gl_has_errors();
+
+	glGenRenderbuffers(1, &blur_buffer_depth_2);
+	glBindRenderbuffer(GL_RENDERBUFFER, blur_buffer_depth_2);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, blur_buffer_color_2, 0);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, blurbuffer_width, blurbuffer_height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, blur_buffer_depth_2);
+	gl_has_errors();
+
+	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	return true;
 }

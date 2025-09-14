@@ -1,0 +1,206 @@
+#include "camera_system.hpp"
+
+void CameraSystem::init(GLFWwindow* window) {
+	this->window = window;
+}
+
+
+void CameraSystem::step(float elapsed_ms) {
+	// Let Camera follow targets; can be Player/Boss
+	if (registry.cameras.entities.size() < 1) {
+		return;
+	}
+
+	Entity camera_entity = registry.cameras.entities[0];
+	if (!registry.motions.has(camera_entity)) {
+		return;
+	}
+
+	Motion& camera_motion = registry.motions.get(camera_entity);
+
+	// TODO: if target is player
+	const GameState& gameState = registry.gameStates.components[0];
+	Camera& cam = registry.cameras.components[0];
+
+	if (gameState.is_in_boss_fight) {
+		// We actually need better tuning of camera motions for boss fight transition
+		const LevelState& levelState = registry.levelStates.components[0];
+		const float scale_factor = min(WINDOW_WIDTH_PX / levelState.dimensions.x, WINDOW_HEIGHT_PX / levelState.dimensions.y) * 1.03f;
+		follow(camera_motion, levelState.dimensions * 0.5f, 
+			vec2(scale_factor));
+	}
+	else {
+		// assert(registry.players.entities.size() == 1);
+		Entity player_entity = registry.players.entities[0];
+		if (!registry.motions.has(player_entity)) {
+			return;
+		}
+
+		const Player& player = registry.players.components[0];
+		const Motion& player_motion = registry.motions.get(player_entity);
+		if (player.state == PLAYER_STATE::RESPAWNED) {
+			// Force focus
+			reset(camera_motion, player.spawn_point);
+		}
+		else {
+			// Create horizontal spacing along motion distance
+
+			// Check player facing direction
+			float facing_dir = (registry.renderRequests.get(player_entity).flipped ? -1.0f : 1.0f);
+			float offset =
+				std::clamp((facing_dir * player_motion.velocity[0]) / PLAYER_MAX_WALKING_SPEED, 0.0f, 1.0f) *
+				CAMERA_SCREEN_SPACING_FOR_MOTION_RATIO * WINDOW_WIDTH_PX *
+				facing_dir;
+
+			// If in the same direction & smaller offset, do not force-set and wait for natural decay
+			if ((offset * cam.horizontal_offset < 0) || (abs(offset) > abs(cam.horizontal_offset))) {
+				cam.horizontal_offset = (1.0f - (CAMERA_VEL_LERP_FACTOR * 0.5f)) * cam.horizontal_offset + CAMERA_VEL_LERP_FACTOR * 0.5f * offset;
+			}
+
+			follow(camera_motion, player_motion.position + vec2{ cam.horizontal_offset, 0.0f });
+		}
+	}
+
+	// Apply shake
+	if (cam.shake_amplitude > 0.5f && cam.shake_frequency > 1e-4) {
+		// Sample from perlin noise
+		float time_s = glfwGetTime();
+		float time_factor = time_s * cam.shake_frequency;
+
+		float amplitude = cam.shake_amplitude * sample_from_perlin_noise(time_factor);
+		float angle = 2.f * M_PI * sample_from_perlin_noise(time_factor);
+
+		camera_motion.position += (amplitude * angle_to_direction(angle));
+	}
+
+	// Update offset
+	if (abs(cam.horizontal_offset) < 0.5f) {
+		cam.horizontal_offset = 0.0f;
+	}
+	else {
+		cam.horizontal_offset *= (1.0f - CAMERA_VEL_LERP_FACTOR * 0.1f);
+	}
+
+	// Shake decay
+	if (cam.shake_amplitude > 0.5f && cam.shake_frequency > 1e-4) {
+		cam.shake_amplitude *= CAMERA_SHAKE_DECAY;
+		
+		if (cam.shake_amplitude <= 0.5f) {
+			cam.shake_amplitude = 0.0f;
+			cam.shake_frequency = 0.0f;
+		}
+	}
+}
+
+
+void CameraSystem::late_step(float elapsed_ms) {
+	(void)elapsed_ms;
+}
+
+void CameraSystem::follow(Motion& cam_motion, vec2 target, vec2 scale) {
+	target = restricted_boundary_position(target, cam_motion.scale);
+	vec2 displacement = target - cam_motion.position;
+	const float dist = glm::length(displacement);
+
+	// Lerp scale
+	if (glm::length(scale - cam_motion.scale) < 0.01f) {
+		cam_motion.scale = scale;
+	}
+	else {
+		cam_motion.scale = cam_motion.scale * (1.0f - CAMERA_VEL_LERP_FACTOR) +
+			scale * CAMERA_VEL_LERP_FACTOR;
+	}
+
+	if (dist < 0.5f) {
+		// Snap camera to ideal location if within small range
+		cam_motion.position = target;
+		cam_motion.velocity = { 0.f, 0.f };
+	}
+	else
+	{
+		// Gradual trace
+		vec2 direction = displacement / dist;
+		float speed = CAMERA_MAX_SPEED * std::clamp(dist / CAMERA_TRACE_RANGE, 0.0f, 1.0f);
+		vec2 expected_vel = speed * direction;
+
+
+		// Reduces overshoot
+		if (glm::length(expected_vel - cam_motion.velocity) <= CAMERA_VELOCITY_CLAMP_THRESHOLD) {
+			cam_motion.velocity = expected_vel;
+		}
+		else {
+			cam_motion.velocity =
+				cam_motion.velocity * (1.0f - CAMERA_VEL_LERP_FACTOR) +
+				expected_vel * CAMERA_VEL_LERP_FACTOR;
+		}
+	}
+}
+
+void CameraSystem::reset(Motion& cam_motion, vec2 target, vec2 scale) {
+	cam_motion.position = restricted_boundary_position(target, cam_motion.scale);
+	cam_motion.velocity = { 0.f, 0.f };
+	cam_motion.scale = scale;
+
+	registry.cameras.components[0].horizontal_offset = 0.0f;
+	registry.cameras.components[0].shake_amplitude = 0.0f;
+	registry.cameras.components[0].shake_frequency = 0.0f;
+}
+
+vec2 CameraSystem::get_camera_offsets(vec2 camera_scale) {
+	float x_scale = std::clamp(camera_scale[0], CAMERA_MIN_SCALING, CAMERA_MAX_SCALING);
+	float y_scale = std::clamp(camera_scale[1], CAMERA_MIN_SCALING, CAMERA_MAX_SCALING);
+
+	// Note that this might not work for the case when scene is smaller than camera front screen
+	const float cam_x_offset = 0.5f * CAMERA_DEFAULT_SCALING * WINDOW_WIDTH_PX / x_scale;
+	const float cam_y_offset = 0.5f * CAMERA_DEFAULT_SCALING * WINDOW_HEIGHT_PX / y_scale;
+
+	return vec2{ cam_x_offset, cam_y_offset };
+}
+
+vec2 CameraSystem::restricted_boundary_position(vec2 raw_target, vec2 camera_scale = { 1.0, 1.0 }) {
+	const LevelState& level_state = registry.levelStates.components[0];
+
+	vec2 camera_offsets = get_camera_offsets(camera_scale);
+	camera_offsets *= CAMERA_BOUNDARY_PADDING;
+
+	float refined_x = (
+		(level_state.dimensions[0] - camera_offsets[0] > camera_offsets[0]) ?
+		std::clamp(raw_target[0], camera_offsets[0], level_state.dimensions[0] - camera_offsets[0]) :
+		level_state.dimensions[0] * 0.5f);
+
+	float refined_y = (
+		(level_state.dimensions[1] - camera_offsets[1] > camera_offsets[1]) ?
+		std::clamp(raw_target[1], camera_offsets[1], level_state.dimensions[1] - camera_offsets[1]) :
+		level_state.dimensions[1] * 0.5f);
+
+	return vec2{ refined_x, refined_y };
+}
+
+void CameraSystem::shake_camera(float amplitude, float frequency) {
+	if (registry.cameras.size() > 0) {
+		Camera& cam = registry.cameras.components[0];
+
+		cam.shake_amplitude = amplitude;
+		cam.shake_frequency = frequency;
+	}
+}
+
+float CameraSystem::seeded_pseudo_rand_1D(float input) {
+	// Similar implementation in particle system
+	float raw_result = 619.54f * abs(sinf(input * -45.116f));
+
+	return glm::fract(raw_result) * 2.0f - 1.0f;
+}
+
+float CameraSystem::sample_from_perlin_noise(float input) {
+	float input_i = (int)input;
+	float input_f = input - input_i;
+
+	float factor = input_f * input_f * (3.0f - input_f);
+
+	float value = lerpToTarget(
+		seeded_pseudo_rand_1D(input_i), seeded_pseudo_rand_1D(input_i + 1), factor
+	);
+
+	return value;
+}

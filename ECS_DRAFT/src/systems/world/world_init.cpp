@@ -1,3 +1,1330 @@
 #include "world_init.hpp"
-#include "../../tinyECS/registry.hpp"
+
+#include <cfloat>
 #include <iostream>
+
+#include "../../tinyECS/registry.hpp"
+
+
+Entity create_player(vec2 position, vec2 scale) {
+    Entity entity = Entity();
+
+    Player &player = registry.players.emplace(entity);
+    player.spawn_point = position;
+
+    PhysicsObject &object = registry.physicsObjects.emplace(entity);
+    object.mass = 40.0f;
+    object.friction = PLAYER_STATIC_FRICTION;
+    object.bounce = 0.0f; // player should NOT bounce
+
+    if (registry.levelStates.components[0].curr_level_folder_name == "Level_8") {
+        object.drag_coefficient = 0.02;
+    }
+
+    Motion &motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, 0.0f};
+    motion.angle = 0.0f;
+
+    registry.renderRequests.insert(entity, {
+                                       TEXTURE_ASSET_ID::GREY_CIRCLE,
+                                       EFFECT_ASSET_ID::TEXTURED,
+                                       GEOMETRY_BUFFER_ID::SPRITE
+                                   });
+
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    AnimateRequest &animation = registry.animateRequests.emplace(entity);
+    animation.used_animation = ANIMATION_ID::PLAYER_STANDING;
+
+    HaloRequest& halo = registry.haloRequests.emplace(entity);
+    halo.halo_color = PLAYER_DEAD_HALO;
+    halo.target_color = PLAYER_ALIVE_HALO;
+
+    return entity;
+}
+
+Entity create_deceleration_bar(vec2 position) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = vec2{0.0f, DECEL_BAR_HEIGHT};
+    motion.velocity = { 0.0f, 0.0f };
+    motion.angle = 0.0f;
+
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::DECEL_BAR,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+    AnimateRequest& animation = registry.animateRequests.emplace(entity);
+    animation.used_animation = ANIMATION_ID::DECEL_BAR;
+
+    registry.colors.emplace(entity, vec3(1.0f));
+
+    registry.decelerationBars.emplace(entity);
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+    HaloRequest &halo = registry.haloRequests.emplace(entity);
+    halo.halo_color = PLAYER_ALIVE_HALO;
+    halo.target_color = PLAYER_ALIVE_HALO;
+
+    return entity;
+}
+
+Entity create_physics_object(vec2 position, vec2 scale, float mass) {
+    Entity entity = Entity();
+
+    PhysicsObject& object = registry.physicsObjects.emplace(entity);
+    object.mass = mass;
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0.0f, 0.0f};
+    motion.angle = 0.0f;
+
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::OBJECT,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    return entity;
+}
+
+Entity create_moving_platform(vec2 scale, std::vector<Path> movements, vec2 initial_position, json& tile_id_array, int stride, bool rounded) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = initial_position;
+    motion.scale = scale;
+    motion.velocity = {0, 0}; // physics system will calculate this...
+    motion.angle = 0.0f;
+
+    MovementPath& movementPath = registry.movementPaths.emplace(entity);
+    movementPath.paths = movements;
+
+    PhysicsObject& physics_object = registry.physicsObjects.emplace(entity);
+    physics_object.mass = 0.0f;
+    physics_object.apply_gravity = false;
+    physics_object.apply_rotation = false;
+    physics_object.friction = 0.25;
+
+    registry.platforms.emplace(entity);
+    registry.timeControllables.emplace(entity);
+
+    int num_tiles = scale.x / TILE_TO_PIXELS; // only allows for 1 tile tall platforms atm
+    int starting_tile_pos = initial_position.x - (0.5 * scale.x) + (0.5 * TILE_TO_PIXELS);
+
+    for (int i = 0; i < num_tiles; i++) {
+        Entity tile_entity = Entity();
+
+        int tile_arr_index = get_tile_index(starting_tile_pos, initial_position.y, i, 0, stride);
+
+        Tile &tile_component = registry.tiles.emplace(tile_entity);
+        tile_component.offset.x = i;
+        tile_component.parent_id = entity.id();
+        tile_component.id = tile_id_array[tile_arr_index];
+
+        registry.renderRequests.insert(tile_entity, {
+                                           TEXTURE_ASSET_ID::TILE,
+                                           EFFECT_ASSET_ID::TILE,
+                                           GEOMETRY_BUFFER_ID::SPRITE
+                                       });
+
+        registry.layers.insert(tile_entity, {LAYER_ID::MIDGROUND});
+    }
+
+    if (rounded) {
+        PlatformGeometry &platform_geometry = registry.platformGeometries.emplace(entity);
+        platform_geometry.num_tiles = num_tiles;
+    }
+
+    return entity;
+}
+
+Entity create_static_platform(vec2 position, vec2 scale, json &tile_id_array, int stride, bool rounded) {
+    Entity entity = Entity();
+
+    registry.platforms.emplace(entity);
+
+
+    Motion &motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, 0};
+    motion.angle = 0;
+
+    PhysicsObject& physics_object = registry.physicsObjects.emplace(entity);
+    physics_object.apply_gravity = false;
+    physics_object.mass = 0.0f;
+    physics_object.apply_rotation = false;
+    physics_object.friction = 0.25;
+
+    int num_tiles = scale.x / TILE_TO_PIXELS; // only allows for 1 tile tall platforms atm
+    int starting_tile_pos = position.x - (0.5 * scale.x) + (0.5 * TILE_TO_PIXELS);
+
+    for (int i = 0; i < num_tiles; i++) {
+        Entity tile_entity = Entity();
+
+        int tile_arr_index = get_tile_index(starting_tile_pos, position.y, i, 0, stride);
+
+
+        Tile &tile_component = registry.tiles.emplace(tile_entity);
+        tile_component.offset.x = i;
+        tile_component.parent_id = entity.id();
+        tile_component.id = tile_id_array[tile_arr_index];
+
+
+        registry.renderRequests.insert(tile_entity, {
+                                           TEXTURE_ASSET_ID::TILE,
+                                           EFFECT_ASSET_ID::TILE,
+                                           GEOMETRY_BUFFER_ID::SPRITE
+                                       });
+
+        registry.layers.insert(tile_entity, {LAYER_ID::MIDGROUND});
+    }
+
+    if (rounded) {
+        PlatformGeometry &platform_geometry = registry.platformGeometries.emplace(entity);
+        platform_geometry.num_tiles = num_tiles;
+    }
+
+
+    return entity;
+}
+
+Entity create_ladder(vec2 position, vec2 scale, int height, json tile_id_array, int stride) {
+    Entity entity = Entity();
+    registry.ladders.emplace(entity);
+    Motion& motion = registry.motions.emplace(entity);
+    vec2 ladder_scale = {scale.x, scale.y * height};
+    motion.scale = ladder_scale;
+    motion.position = {position.x, position.y + (0.5 * TILE_TO_PIXELS) - (0.5 * ladder_scale.y)};
+    motion.velocity = {0, 0};
+    motion.angle = 0.f;
+
+    registry.nonPhysicsColliders.emplace(entity);
+
+    int start_tile_y = motion.position.y - (0.5 * ladder_scale.y) + (0.5 * TILE_TO_PIXELS);
+    for (int i = 0; i < height; i++) {
+        Entity tile_entity = Entity();
+        int tile_arr_index = get_tile_index(position.x, start_tile_y, 0, i, stride);
+
+        Tile& tile_component = registry.tiles.emplace(tile_entity);
+        tile_component.offset.y = i;
+        tile_component.parent_id = entity.id();
+        tile_component.id = tile_id_array[tile_arr_index];
+
+        registry.renderRequests.insert(tile_entity, {
+                                           TEXTURE_ASSET_ID::TILE,
+                                           EFFECT_ASSET_ID::TILE,
+                                           GEOMETRY_BUFFER_ID::SPRITE
+                                       });
+
+        registry.layers.insert(tile_entity, {LAYER_ID::MIDGROUND});
+    }
+
+    return entity;
+}
+
+Entity create_level_boundary(vec2 position, vec2 scale) {
+    Entity entity = Entity();
+
+    registry.platforms.emplace(entity);
+
+    PhysicsObject& physics_object = registry.physicsObjects.emplace(entity);
+    physics_object.apply_gravity = false;
+    physics_object.apply_rotation = false;
+    physics_object.mass = 0.0f;
+    physics_object.friction = 0.5;
+
+    Motion &motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, 0};
+    motion.angle = 0;
+
+    return entity;
+}
+
+Entity create_world_boundary(vec2 position, vec2 scale) {
+    Entity entity = Entity();
+
+    Motion &motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, 0};
+    motion.angle = 0;
+
+    registry.nonPhysicsColliders.emplace(entity);
+
+    registry.boundaries.emplace(entity);
+
+    return entity;
+}
+
+Entity create_clock_hole(vec2 position, vec2 scale) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, 0};
+    motion.angle = 0;
+
+    registry.nonPhysicsColliders.emplace(entity);
+    registry.clockHoles.emplace(entity);
+
+    return entity;
+}
+
+Entity create_camera(vec2 position, vec2 scale) {
+    Entity entity = Entity();
+    registry.cameras.emplace(entity);
+    Motion &motion = registry.motions.emplace(entity);
+
+    motion.position = CameraSystem::restricted_boundary_position(position, scale);;
+    motion.scale = scale;
+
+
+    return entity;
+}
+
+Entity create_parallaxbackground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
+    Entity entity = Entity();
+    Motion &motion = registry.motions.emplace(entity);
+    motion.position = scene_dimensions * 0.5f; // PARALLAXBACKGROUND_DEPTH;
+    motion.scale = scene_dimensions * 1.5f; // PARALLAXBACKGROUND_DEPTH;
+
+    registry.renderRequests.insert(entity, {
+                                       texture_id,
+                                       EFFECT_ASSET_ID::TEXTURED,
+                                       GEOMETRY_BUFFER_ID::SPRITE
+                                   });
+
+    registry.layers.insert(entity, {LAYER_ID::PARALLAXBACKGROUND});
+
+    return entity;
+}
+
+Entity create_background(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
+    Entity entity = Entity();
+    Motion &motion = registry.motions.emplace(entity);
+    motion.position = scene_dimensions * 0.5f; // BACKGROUND_DEPTH;
+    motion.scale = scene_dimensions * 1.5f; // BACKGROUND_DEPTH;
+
+    registry.renderRequests.insert(entity, {
+                                       texture_id,
+                                       EFFECT_ASSET_ID::TEXTURED,
+                                       GEOMETRY_BUFFER_ID::SPRITE
+                                   });
+
+    registry.layers.insert(entity, {LAYER_ID::BACKGROUND});
+
+    return entity;
+}
+
+Entity create_foreground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
+    Entity entity = Entity();
+    Motion &motion = registry.motions.emplace(entity);
+    motion.position = scene_dimensions * 0.5f; // / FOREGROUND_DEPTH;
+    motion.scale = scene_dimensions / FOREGROUND_DEPTH * 0.75f;
+
+    registry.renderRequests.insert(entity, {
+                                       texture_id,
+                                       EFFECT_ASSET_ID::TEXTURED,
+                                       GEOMETRY_BUFFER_ID::SPRITE
+                                   });
+
+    registry.layers.insert(entity, {LAYER_ID::FOREGROUND});
+
+    return entity;
+}
+
+Entity create_levelground(vec2 scene_dimensions, TEXTURE_ASSET_ID texture_id) {
+    Entity entity = Entity();
+    Motion &motion = registry.motions.emplace(entity);
+    vec2 position = {scene_dimensions.x - (TILE_TO_PIXELS), scene_dimensions.y - (TILE_TO_PIXELS)};
+
+    motion.position = position * 0.5f; // / FOREGROUND_DEPTH;
+    motion.scale = scene_dimensions;
+
+
+    registry.renderRequests.insert(entity, {
+                                       texture_id,
+                                       EFFECT_ASSET_ID::TEXTURED,
+                                       GEOMETRY_BUFFER_ID::SPRITE
+                                   });
+
+  registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+    return entity;
+}
+
+Entity create_tutorial_text(vec2 position, vec2 size, TEXTURE_ASSET_ID texture_id) {
+
+    Entity entity = Entity();
+
+    Motion& text_motion = registry.motions.emplace(entity);
+
+    text_motion.position = position; 
+    text_motion.scale = size;
+
+
+    registry.renderRequests.insert(entity, {
+		texture_id,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+    return entity;
+}
+
+Entity create_projectile(vec2 pos, vec2 size, vec2 velocity, bool delayed)
+{
+	auto entity = Entity();
+
+	Projectile& projectile = registry.projectiles.emplace(entity);
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = velocity;
+	motion.position = pos;
+	motion.scale = size;
+
+    TimeControllable& tc = registry.timeControllables.emplace(entity);
+    tc.can_become_harmless = true;
+    tc.can_be_decelerated = true;
+
+    assert(registry.gameStates.components.size() <= 1);
+    GameState& gameState = registry.gameStates.components[0];
+    if (gameState.game_time_control_state != TIME_CONTROL_STATE::DECELERATED) {
+        Harmful& harmful = registry.harmfuls.emplace(entity);
+    }
+
+    registry.nonPhysicsColliders.emplace(entity);
+
+    registry.renderRequests.insert(
+		entity,
+		{
+			delayed ? TEXTURE_ASSET_ID::BOLT2 : TEXTURE_ASSET_ID::BOLT3,
+			EFFECT_ASSET_ID::HEX,
+			GEOMETRY_BUFFER_ID::OCTA
+		}
+	);
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+	return entity;
+}
+
+Entity create_bolt(vec2 pos, vec2 size, vec2 velocity, bool default_gravity, bool harmful)
+{
+	auto entity = Entity();
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = velocity;
+	motion.position = pos;
+	motion.scale = size;
+
+    PhysicsObject& object = registry.physicsObjects.emplace(entity);
+    object.mass = 25.0f;
+    object.apply_gravity = default_gravity;
+    object.apply_rotation = false;
+    object.friction = BOLT_FRICTION;
+    object.drag_coefficient = 0.01;
+
+    registry.bolts.emplace(entity);
+
+    if (harmful) {
+       TimeControllable& tc = registry.timeControllables.emplace(entity);
+       tc.can_become_harmless = true;
+        registry.harmfuls.emplace(entity);
+    }
+
+    registry.colors.insert(
+        entity, 
+        { 1.0f, 1.0f, 1.0f }
+    );
+
+    registry.renderRequests.insert(
+        entity,
+        {
+            TEXTURE_ASSET_ID::HEX,
+			EFFECT_ASSET_ID::HEX,
+			GEOMETRY_BUFFER_ID::HEX
+		}
+	);
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+	return entity;
+}
+
+Entity create_first_boss_test() {
+    auto entity = Entity();
+
+    Boss& boss = registry.bosses.emplace(entity);
+    boss.boss_id = BOSS_ID::FIRST;
+    boss.boss_state = BOSS_STATE::BOSS1_IDLE_STATE;
+    boss.can_be_damaged = false;
+    boss.time_until_exhausted_ms = BOSS_ONE_MAX_TIME_UNTIL_EXHAUSTED_MS;
+    boss.health = BOSS_ONE_MAX_HEALTH;
+
+    FirstBoss& firstBoss = registry.firstBosses.emplace(entity);
+    Motion& motion = registry.motions.emplace(entity);
+
+    // initially idle for testing purposes
+    motion.velocity = vec2(0.f, 0.f);
+    motion.scale = vec2(BOSS_ONE_BB_WIDTH_PX, BOSS_ONE_BB_HEIGHT_PX);
+
+    TimeControllable& tc = registry.timeControllables.emplace(entity);
+
+    // grab player position and use that as the spawning point
+    Entity& player_entity = registry.players.entities[0];
+    Motion& player_motion = registry.motions.get(player_entity);
+
+    // initial position
+    motion.position = vec2(BOSS_ONE_SPAWN_POINT_X, BOSS_ONE_SPAWN_POINT_Y);
+
+    // render request
+    registry.renderRequests.insert(
+		entity,
+		{
+			TEXTURE_ASSET_ID::GREY_CIRCLE,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE
+		}
+	);
+
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    AnimateRequest& animateRequest = registry.animateRequests.emplace(entity);
+    animateRequest.used_animation = ANIMATION_ID::BOSS_ONE_IDLE;
+
+    return entity;
+}
+
+Entity create_spawnpoint(vec2 pos, vec2 size) {
+    Entity entity = Entity();
+
+    SpawnPoint& spawnpoint = registry.spawnPoints.emplace(entity);
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = pos;
+    motion.scale = size;
+
+    registry.renderRequests.insert(
+        entity,
+        {
+            TEXTURE_ASSET_ID::SPAWNPOINT_UNVISITED,
+            EFFECT_ASSET_ID::TEXTURED,
+            GEOMETRY_BUFFER_ID::SPRITE
+        }
+    );
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+    return entity;
+}
+
+Entity create_cannon_tower(vec2 pos) {
+    Entity entity = Entity();
+
+    CannonTower& tower = registry.cannonTowers.emplace(entity);
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = pos;
+    motion.scale = CANNON_TOWER_SIZE;
+
+    registry.renderRequests.insert(
+        entity,
+        {
+            TEXTURE_ASSET_ID::CANNON_TOWER,
+            EFFECT_ASSET_ID::TEXTURED,
+            GEOMETRY_BUFFER_ID::SPRITE
+        }
+    );
+
+    registry.timeControllables.emplace(entity);
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+    Entity barrel_entity = Entity();
+    tower.barrel_entity_id = barrel_entity.id();
+    registry.cannonBarrels.emplace(barrel_entity);
+
+    Motion& barrel_motion = registry.motions.emplace(barrel_entity);
+    barrel_motion.position = pos + vec2{CANNON_BARREL_SIZE[0] * 0.5f, 0};
+    barrel_motion.scale = CANNON_BARREL_SIZE;
+
+    registry.renderRequests.insert(
+        barrel_entity,
+        {
+            TEXTURE_ASSET_ID::BARREL,
+            EFFECT_ASSET_ID::TEXTURED,
+            GEOMETRY_BUFFER_ID::SPRITE
+        }
+    );
+
+    registry.layers.insert(barrel_entity, { LAYER_ID::MIDGROUND});
+    registry.timeControllables.emplace(barrel_entity);
+
+    return entity;
+}
+
+Entity create_spike(vec2 position, vec2 scale, json tile_id_array, int stride) {
+    Entity entity = Entity();
+
+    registry.spikes.emplace(entity);
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, 0};
+    motion.angle = 0.f;
+
+
+    registry.nonPhysicsColliders.emplace(entity);
+
+    int tile_arr_index = get_tile_index(position.x, position.y, 0, 0, stride);
+
+    Tile& tile_component = registry.tiles.emplace(entity);
+    tile_component.offset.x = 0;
+    tile_component.parent_id = entity.id();
+    tile_component.id = tile_id_array[tile_arr_index];
+
+    registry.renderRequests.insert(entity, {
+            TEXTURE_ASSET_ID::TILE,
+            EFFECT_ASSET_ID::TILE,
+            GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+    return entity;
+}
+
+
+
+
+Entity create_partof(vec2 position, vec2 scale, json tile_id_array, int stride) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.angle = 0.0f;
+    motion.velocity = {0.0f, 0.0f};
+
+    int tile_arr_index = get_tile_index(position.x, position.y, 0, 0, stride);
+
+    Tile& tile_component = registry.tiles.emplace(entity);
+    tile_component.offset.x = 0;
+    tile_component.parent_id = entity.id();
+    tile_component.id = tile_id_array[tile_arr_index];
+
+    registry.renderRequests.insert(entity, {
+            TEXTURE_ASSET_ID::TILE,
+            EFFECT_ASSET_ID::TILE,
+            GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+    return entity;
+}
+
+Entity create_breakable_static_platform(vec2 position, vec2 scale, bool should_break_instantly, float degrade_speed, bool is_time_controllable, json& tile_id_array, int stride) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0.0, 0.0};
+    motion.angle = 0;
+
+    registry.platforms.emplace(entity);
+
+    PhysicsObject& phys = registry.physicsObjects.emplace(entity);
+    phys.mass =0.0f;
+    phys.apply_gravity = false;
+    phys.apply_rotation = false;
+
+    Breakable& breakable = registry.breakables.emplace(entity);
+    breakable.health = BREAKABLE_WALL_HEALTH;
+    breakable.degrade_speed_per_ms = degrade_speed;
+    breakable.should_break_instantly = should_break_instantly;
+
+    // TODO: need to add a proper texture for this
+    registry.renderRequests.insert(entity, {
+            TEXTURE_ASSET_ID::BREAKABLE,
+            EFFECT_ASSET_ID::MATTE,
+            GEOMETRY_BUFFER_ID::SPRITE
+    });
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+    return entity;
+}
+
+Entity create_time_controllable_breakable_static_platform(vec2 position, vec2 scale, bool should_break_instantly, float degrade_speed, json& tile_id_array, int stride) {
+    Entity entity = create_breakable_static_platform(position, scale, should_break_instantly, degrade_speed,  true,  tile_id_array, stride);
+
+    TimeControllable& timeControllable = registry.timeControllables.emplace(entity);
+    timeControllable.can_be_accelerated = true;
+    timeControllable.can_be_decelerated = true;
+    timeControllable.can_become_harmful = false;
+    timeControllable.can_become_harmless = false;
+    timeControllable.target_time_control_factor = 100000.f;
+
+    return entity;
+}
+
+Entity create_door(vec2 position, bool open, json& tile_id_array, int stride) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = DOOR_SIZE;
+    motion.velocity = {0, 0};
+    motion.angle = 0.0f;
+
+    Door& door = registry.doors.emplace(entity);
+    door.opened = open;
+
+    registry.nonPhysicsColliders.emplace(entity);
+
+    int width_in_tiles = DOOR_SIZE.x / TILE_TO_PIXELS;
+    int height_in_tiles = DOOR_SIZE.y / TILE_TO_PIXELS;
+    vec2 first_tile_pos =
+    {
+        position.x - (0.5 * DOOR_SIZE.x) + (0.5 * TILE_TO_PIXELS),
+        position.y - (0.5 * DOOR_SIZE.y) + (0.5 * TILE_TO_PIXELS)
+    };
+
+    for (int i = 0; i < width_in_tiles; i++) {
+        for (int j = 0; j < height_in_tiles; j++) {
+            Entity tile_entity = Entity();
+
+            int tile_arr_index = get_tile_index(first_tile_pos.x, first_tile_pos.y, i, j, stride);
+
+            Tile& tile_component = registry.tiles.emplace(tile_entity);
+            tile_component.offset = {i, j};
+            tile_component.parent_id = entity.id();
+            tile_component.id = tile_id_array[tile_arr_index];
+
+            registry.renderRequests.insert(tile_entity, {
+                TEXTURE_ASSET_ID::TILE,
+                EFFECT_ASSET_ID::TILE,
+                GEOMETRY_BUFFER_ID::SPRITE
+            });
+
+            registry.layers.insert(tile_entity, { LAYER_ID::MIDGROUND });
+        }
+    }
+
+    return entity;
+}
+
+Entity create_pipe_head(vec2 position, vec2 scale, std::string direction, json& tile_id_array, int stride, float firing_offset) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, 0};
+    motion.angle = 0;
+
+    registry.platforms.emplace(entity);
+
+    PhysicsObject& phys = registry.physicsObjects.emplace(entity);
+    phys.mass = 0.0f;
+    phys.apply_gravity = false;
+    phys.apply_rotation = false;
+
+    Pipe& pipe = registry.pipes.emplace(entity);
+    pipe.direction_factor = (direction == "right" ? 1.0f : -1.0f);
+    pipe.timer = PIPE_FIRING_PERIOD_MS + firing_offset;
+
+    // to influence firing frequency; maybe should not include this
+    registry.timeControllables.emplace(entity);
+
+    int tile_arr_index = get_tile_index(position.x, position.y, 0, 0, stride);
+
+    Tile& tile = registry.tiles.emplace(entity);
+    tile.parent_id = entity.id();
+    tile.offset = {0, 0};
+    tile.id = tile_id_array[tile_arr_index];
+
+    registry.renderRequests.insert(entity, {
+                TEXTURE_ASSET_ID::TILE,
+                EFFECT_ASSET_ID::TILE,
+                GEOMETRY_BUFFER_ID::SPRITE
+            });
+
+    registry.layers.insert(entity, { LAYER_ID::MIDGROUND });
+
+    return entity;
+}
+
+Entity create_chain(vec2 position, vec2 scale) {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, 0};
+    motion.angle = 0;
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::CHAIN,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+
+    registry.layers.insert(entity, { LAYER_ID::FOREGROUND });
+
+    return entity;
+}
+
+
+// TODO memory leak with the mesh allocation...
+std::unique_ptr<Mesh> create_circle_mesh(Entity e, int segments) {
+    auto mesh = std::make_unique<Mesh>();
+
+    for (int i = 0; i < segments; i++) {
+        float theta = 2.0f * M_PI * float(i) / float(segments);
+        float x = 0.5f * cosf(theta);
+        float y = 0.5f * sinf(theta);
+
+        ColoredVertex vertex;
+        vertex.position.x = x;
+        vertex.position.y = y;
+        vertex.color = {1.0f, 1.0f, 1.0f};
+        mesh->vertices.push_back(vertex);
+    }
+
+    return mesh;
+}
+
+Entity create_pendulum_string(vec2 start, vec2 end) {
+    Entity entity = Entity();
+
+    float angle = atan2(end.y - start.y, end.x - start.x);
+    float length = glm::length(end - start);
+
+
+    Motion &motion = registry.motions.emplace(entity);
+    motion.scale = {1.0f, length};
+    motion.angle = angle - 90.0f;
+    motion.velocity = {0, 0};
+
+    motion.position.x = start.x;
+    motion.position.y = start.y + cos(angle - 90.0f) * (length / 2);
+
+    PivotPoint &pivot_point = registry.pivotPoints.emplace(entity);
+    pivot_point.offset = {0.0f, -length / 2.0f};
+
+    registry.renderRequests.insert(entity, {
+                                       TEXTURE_ASSET_ID::PENDULUM_ARM,
+                                       EFFECT_ASSET_ID::TEXTURED,
+                                       GEOMETRY_BUFFER_ID::SPRITE
+                                   });
+
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    return entity;
+}
+
+
+Entity create_pendulum(vec2 pivot_position, float length, float initial_angle, float bob_radius) {
+    Entity entity = Entity();
+
+    float bob_x = pivot_position.x + length * sin(initial_angle - 90.0f);
+    float bob_y = pivot_position.y + length * cos(initial_angle - 90.0f);
+
+    Motion &motion = registry.motions.emplace(entity);
+    motion.position = {bob_x, bob_y};
+    motion.angle =0.0f;
+    motion.velocity = {0.0f, 0.0f};
+    motion.scale = {bob_radius * 2, bob_radius * 2};
+
+    Pendulum &pendulum = registry.pendulums.emplace(entity);
+    pendulum.pivot_point = pivot_position;
+    pendulum.length = length;
+    pendulum.current_angle = initial_angle;
+    pendulum.angular_velocity = 0.0f;
+    pendulum.damping = 0.0f;
+
+    // these properties don't actually determine how the pendulum swings, they do determine how collisions behave
+    PhysicsObject &physics_object = registry.physicsObjects.emplace(entity);
+    physics_object.apply_gravity = false;
+    physics_object.drag_coefficient = 0.0f;
+    physics_object.apply_air_resistance = false;
+    physics_object.mass = 10.0f;
+    physics_object.friction = 0.99f;
+
+    TimeControllable& tc = registry.timeControllables.emplace(entity);
+    tc.can_be_accelerated = true;
+    tc.can_be_decelerated = true;
+
+    if (mesh_cache.find("circle-6") == mesh_cache.end()) {
+        mesh_cache["circle-6"] = create_circle_mesh(entity, 6);
+    }
+    registry.meshPtrs.emplace(entity, mesh_cache["circle-6"].get());
+
+
+    Entity rod = create_pendulum_string(pivot_position, motion.position);
+    PendulumRod &rod_component = registry.pendulumRods.emplace(rod);
+    rod_component.bob_id = entity.id();
+
+    registry.renderRequests.insert(entity, {
+                                       TEXTURE_ASSET_ID::PENDULUM,
+                                       EFFECT_ASSET_ID::TEXTURED,
+                                       GEOMETRY_BUFFER_ID::SPRITE
+                                   });
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+    return entity;
+}
+
+
+Mesh* get_mesh_from_file(std::string filename) {
+    Mesh* mesh = new Mesh();
+    Mesh::loadFromOBJFile(filename, mesh->vertices, mesh->vertex_indices, mesh->original_size);
+    return mesh;
+}
+
+// TODO: we also have a mesh cache in the registry, but if meshes are just for collisions, it feels weird/annyoing to load them in the render system...
+// this just prevents us from loading the mesh every time we create an object
+Mesh* get_mesh(const std::string &filepath) {
+    auto it = mesh_cache.find(filepath);
+    if (it != mesh_cache.end()) {
+        return it->second.get();
+    }
+
+    Mesh* raw_mesh = get_mesh_from_file(data_path() + filepath);
+    mesh_cache[filepath] = std::unique_ptr<Mesh>(raw_mesh);
+    return mesh_cache[filepath].get();
+}
+
+
+Entity create_gear(vec2 position, vec2 size, bool fixed, float angular_velocity, float intial_angle) {
+    Entity entity = Entity();
+
+    registry.gears.emplace(entity);
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = size;
+    motion.angle = intial_angle;
+    motion.velocity = {0.0f, 0.0f};
+    motion.cache_invalidated = true;
+
+    PhysicsObject& physics_object = registry.physicsObjects.emplace(entity);
+
+    TimeControllable& tc = registry.timeControllables.emplace(entity);
+    tc.can_be_accelerated = true;
+    tc.can_be_decelerated = true;
+
+    if (fixed) {
+       physics_object.apply_gravity = false;
+       physics_object.friction = 0.5f;
+       physics_object.apply_air_resistance = false;
+        physics_object.mass = 0.0f;
+        physics_object.moment_of_inertia = 100000000.0f;
+        physics_object.apply_rotation = true;
+        physics_object.angular_velocity = angular_velocity;
+        physics_object.angular_damping = 0.0f;
+        physics_object.bounce = 0.0f;
+
+        if (angular_velocity > 0.0f) {
+            RotatingGear& rg = registry.rotatingGears.emplace(entity);
+            rg.angular_velocity = angular_velocity;
+        }
+
+    } else {
+        physics_object.apply_gravity = true;
+        physics_object.mass = 90.0f;
+        physics_object.friction = 0.01f;
+        physics_object.apply_rotation = true;
+    }
+
+
+    CompositeMesh& compositeMesh = registry.compositeMeshes.emplace(entity);
+
+    float inner_radius = (size.x / 2.0f) * GEAR_CENTER_RATIO;
+    float tooth_length = (size.x) * GEAR_TOOTH_WIDTH_RATIO;
+
+
+    if (mesh_cache.find("circle-16") == mesh_cache.end()) {
+        mesh_cache["circle-16"] = create_circle_mesh(entity, 6);
+    }
+    SubMesh sub_mesh = SubMesh{};
+    sub_mesh.original_mesh = mesh_cache["circle-16"].get();
+    sub_mesh.scale_ratio = {GEAR_CENTER_RATIO, GEAR_CENTER_RATIO};
+
+    compositeMesh.meshes.push_back(sub_mesh);
+
+    // TODO: this is real bad, only should do once total (not per gear)...
+    Mesh* nesw_tooth = get_mesh("/meshes/step-jagged-ne-sw.obj");
+    Mesh* nwse_tooth = get_mesh("/meshes/step-jagged-nw-se.obj");
+    Mesh* ew_tooth = get_mesh("/meshes/step-teeth.obj");
+
+    // lil helper to add the tooth
+    auto add_tooth = [&](Mesh* tooth_mesh, float angle_rad, bool flip = false) {
+        SubMesh tooth = SubMesh{};
+        tooth.original_mesh = tooth_mesh;
+        tooth.scale_ratio = {GEAR_TOOTH_WIDTH_RATIO, GEAR_TOOTH_HEIGHT_RATIO};
+
+
+        tooth.rotation = (flip ? -180.0f : 0.0f);
+
+        float len = (inner_radius + (tooth_length / 2.0f));
+        tooth.offset = {
+            (len) * cos(angle_rad),
+            (len) * sin(angle_rad)
+        };
+
+        compositeMesh.meshes.push_back(tooth);
+    };
+
+    // angles, TODO put these in header?
+    float west_angle = 0.0f;
+    float southwest_angle = M_PI * 0.33f;
+    float southeast_angle = M_PI * 0.66f;
+    float east_angle = M_PI;
+    float northwest_angle = M_PI * 1.33f;
+    float northeast_angle = M_PI * 1.66f;
+
+     add_tooth(ew_tooth, east_angle, false);
+     add_tooth(nesw_tooth, northeast_angle, false);
+     add_tooth(nwse_tooth, southeast_angle,  false);
+     //
+     add_tooth(ew_tooth, west_angle,  true);
+     add_tooth(nesw_tooth, southwest_angle,  true);
+     add_tooth(nwse_tooth, northwest_angle,  true);
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::GEAR,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    return entity;
+}
+
+Entity create_spikeball(vec2 position, vec2 size) {
+   Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = size;
+    motion.angle = 0.0f;
+    motion.velocity = {0.0f, 0.0f};
+    motion.cache_invalidated = true;
+
+    PhysicsObject& physics_object = registry.physicsObjects.emplace(entity);
+    physics_object.apply_gravity = true;
+    physics_object.mass = 90.0f;
+    physics_object.friction = 0.01f;
+    physics_object.apply_rotation = true;
+
+    CompositeMesh& compositeMesh = registry.compositeMeshes.emplace(entity);
+
+    TimeControllable& tc = registry.timeControllables.emplace(entity);
+    tc.can_be_accelerated = true;
+    tc.can_be_decelerated = true;
+
+    float inner_radius = ((size.x * SPIKEBALL_CENTER_RATIO) / 2.0f);
+    float spike_height = (size.x) * SPIKE_HEIGHT_RATIO;
+    float spike_width = (size.x) * SPIKE_WIDTH_PX;
+
+
+    if (mesh_cache.find("circle-16") == mesh_cache.end()) {
+        mesh_cache["circle-16"] = create_circle_mesh(entity, 6);
+    }
+    SubMesh sub_mesh = SubMesh{};
+    sub_mesh.original_mesh = mesh_cache["circle-16"].get();
+    sub_mesh.scale_ratio = {SPIKEBALL_CENTER_RATIO, SPIKEBALL_CENTER_RATIO};
+
+    compositeMesh.meshes.push_back(sub_mesh);
+
+    registry.spikes.emplace(entity);
+
+    int num_spikes = 8;
+    float angle = 0.0f;
+    float angle_diff =  360.0f / num_spikes;
+
+    auto add_spike = [&](Mesh* spike_mesh, float angle_deg, float scale_ratio, bool flip = false) {
+        SubMesh spike = SubMesh{};
+        spike.original_mesh = spike_mesh;
+        spike.scale_ratio = vec2{SPIKE_WIDTH_RATIO, SPIKE_HEIGHT_RATIO};
+
+         spike.rotation = angle_deg + 90.0f;
+
+        float offset_len = inner_radius + (spike_height / 2.0f);
+
+        spike.offset = {
+            (offset_len * cos(radians(angle_deg))),
+            (offset_len * sin(radians(angle_deg)))
+        };
+
+        compositeMesh.meshes.push_back(spike);
+    };
+
+    Mesh* spike_mesh = get_mesh("/meshes/spikeball-spikes.obj");
+
+    for (int i = 0; i < num_spikes; i++) {
+        add_spike(spike_mesh, angle, SPIKE_WIDTH_RATIO, false);
+        angle += angle_diff;
+    }
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::SPIKEBALL,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+    return entity;
+}
+
+
+Entity create_spawner(std::string type, vec2 size, vec2 velocity, vec2 start_pos, vec2 end_pos) {
+    Entity entity = Entity();
+
+    ObstacleSpawner& spawner = registry.obstacleSpawners.emplace(entity);
+    spawner.size = size;
+    spawner.velocity = velocity;
+    spawner.start_position = start_pos;
+    spawner.end_position = end_pos;
+    spawner.obstacle_type = type;
+
+    // To ensure spawner is cleared during parsing & reload
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = start_pos;
+
+    return entity;
+}
+
+Entity create_loading_screen() {
+    Entity entity = Entity();
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.scale = {WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX};
+    motion.angle = 0.0f;
+    motion.velocity = {0.0f, 0.0f};
+    motion.position = {WINDOW_WIDTH_PX / 2.0f, WINDOW_HEIGHT_PX / 2.0f };
+
+    registry.loadingScreens.emplace(entity);
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::LOADING_SCREEN,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    return entity;
+}
+
+Entity create_rolling_thing(vec2 position, vec2 scale) {
+    Entity entity = Entity();
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, 0};
+    motion.angle = 0;
+
+    RollingThing& rolling_thing = registry.rollingThings.emplace(entity);
+    rolling_thing.current_frame = 0;
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::ROLLING_THING_1,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+    });
+
+    TimeControllable& tc = registry.timeControllables.emplace(entity);
+    tc.can_be_accelerated = true;
+    tc.can_be_decelerated = true;
+
+    registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    AnimateRequest& animation = registry.animateRequests.emplace(entity);
+    animation.used_animation = ANIMATION_ID::ROLLING_THING_1;
+    return entity;
+}
+
+Entity create_rolling_platform(vec2 position, vec2 scale, float y_velocity) {
+    Entity entity = Entity();
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = position;
+    motion.scale = scale;
+    motion.velocity = {0, y_velocity};
+    motion.angle = 0;
+
+    registry.platforms.emplace(entity);
+
+    PhysicsObject& physics_object = registry.physicsObjects.emplace(entity);
+    physics_object.apply_gravity = false;
+    physics_object.drag_coefficient = 0.0f;
+    physics_object.apply_air_resistance = false;
+    physics_object.apply_rotation = false;
+    physics_object.mass = 0.0f;
+    physics_object.ignore_bottom_collision = true;
+
+    TimeControllable& tc = registry.timeControllables.emplace(entity);
+    tc.can_be_accelerated = true;
+    tc.can_be_decelerated = true;
+
+    // registry.renderRequests.insert(entity, {
+    //     TEXTURE_ASSET_ID::BLACK,
+    //     EFFECT_ASSET_ID::TEXTURED,
+    //     GEOMETRY_BUFFER_ID::SPRITE
+    // });
+    // registry.layers.insert(entity, {LAYER_ID::MIDGROUND});
+
+    return entity;
+}
+
+Entity create_pause_buttons(vec2 pos, vec2 scale, float angle, TEXTURE_ASSET_ID texture_id) {
+
+    Entity entity = Entity();
+
+    MenuButton& button = registry.menuButtons.emplace(entity);
+    button.position = pos;
+    button.is_active = true;
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.position = pos;
+    motion.scale = scale;
+    motion.angle = angle;
+
+    if (texture_id == TEXTURE_ASSET_ID::MENU) {
+        button.type = "menu";
+    }
+    if (texture_id == TEXTURE_ASSET_ID::RESUME) {
+        button.type = "resume";
+    }
+
+    registry.renderRequests.insert(entity, {
+        texture_id,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+    registry.layers.insert(entity, { LAYER_ID::MENU_AND_PAUSE});
+
+    return entity;
+}
+
+Entity create_menu_screen() {
+    Entity entity = Entity();
+    MenuScreen& menu_screen = registry.menuScreens.emplace(entity);
+    GameState& gs = registry.gameStates.components[0];
+    Motion& camera_motion = registry.motions.get(registry.cameras.entities[0]);
+
+    if (gs.game_running_state == GAME_RUNNING_STATE::MENU) {
+        menu_screen.button_ids.push_back(create_pause_buttons(camera_motion.position, { 675.0f, 380.0f }, 0, TEXTURE_ASSET_ID::SCREEN).id());
+        menu_screen.button_ids.push_back(create_pause_buttons({ camera_motion.position.x+60.0f, camera_motion.position.y }, { 120.0f, 50.0f }, 0, TEXTURE_ASSET_ID::KEY).id());
+        menu_screen.button_ids.push_back(create_pause_buttons({ camera_motion.position.x+5.0f, camera_motion.position.y -7.0f }, { 165.0f, 165.0f }, 0, TEXTURE_ASSET_ID::COVER).id());
+    } else if (gs.game_running_state == GAME_RUNNING_STATE::PAUSED) {
+        menu_screen.button_ids.push_back(create_pause_buttons(camera_motion.position, { 1500.0f, 1500.0f },0,TEXTURE_ASSET_ID::FADE).id());
+        menu_screen.button_ids.push_back(create_pause_buttons({ camera_motion.position.x, camera_motion.position.y - 35.0f }, { 250.0f, 45.0f }, 0, TEXTURE_ASSET_ID::MENU).id());
+        menu_screen.button_ids.push_back(create_pause_buttons({ camera_motion.position.x, camera_motion.position.y + 35.0f }, { 250.0f, 45.0f },0, TEXTURE_ASSET_ID::RESUME).id());
+    }
+
+    return entity;
+}
+
+void remove_menu_screen() {
+    while (!registry.menuButtons.entities.empty()) {
+        registry.remove_all_components_of(registry.menuButtons.entities.back());
+    }
+
+    while (!registry.menuScreens.entities.empty()) {
+        registry.remove_all_components_of(registry.menuScreens.entities.back());
+    }
+
+    GameState& gs = registry.gameStates.components[0];
+    if (gs.game_running_state != GAME_RUNNING_STATE::PAUSED && gs.game_running_state != GAME_RUNNING_STATE::MENU) {
+        while (!registry.cameras.entities.empty()) {
+            registry.remove_all_components_of(registry.cameras.entities.back());
+        }
+    }
+}
+
+float getDistance(const Motion& one, const Motion& other) {
+    return glm::length(one.position - other.position);
+}
+
+int get_tile_index(int pos_x, int pos_y, int offset_x, int offset_y, int stride) {
+    int tile_coord_y = (pos_y / TILE_TO_PIXELS) + offset_y;
+    int tile_coord_x = (pos_x / TILE_TO_PIXELS) + offset_x;
+    return tile_coord_x + tile_coord_y * stride;
+}
+
+
+Entity create_outro_cutscene() {
+    Entity entity = Entity();
+    CutScene& cut_scene = registry.cutScenes.emplace(entity);
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.scale = { WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX };
+    motion.angle = 0.0f;
+    motion.velocity = { 0.0f, 0.0f };
+    motion.position = { WINDOW_WIDTH_PX / 2.0f, WINDOW_HEIGHT_PX / 2.0f };
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::OUTRO_1,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+    AnimateRequest& animation = registry.animateRequests.emplace(entity);
+    animation.used_animation = ANIMATION_ID::OUTRO_1;
+
+    registry.colors.emplace(entity, vec3(1.0f));
+
+    registry.layers.insert(entity, { LAYER_ID::CUTSCENE });
+
+    return entity;
+}
+
+Entity create_intro_cutscene() {
+    Entity entity = Entity();
+    CutScene& cut_scene = registry.cutScenes.emplace(entity);
+
+    Motion& motion = registry.motions.emplace(entity);
+    motion.scale = { WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX };
+    motion.angle = 0.0f;
+    motion.velocity = { 0.0f, 0.0f };
+    motion.position = { WINDOW_WIDTH_PX / 2.0f, WINDOW_HEIGHT_PX / 2.0f };
+
+    registry.renderRequests.insert(entity, {
+        TEXTURE_ASSET_ID::INTRO_1,
+        EFFECT_ASSET_ID::TEXTURED,
+        GEOMETRY_BUFFER_ID::SPRITE
+        });
+
+    AnimateRequest& animation = registry.animateRequests.emplace(entity);
+    animation.used_animation = ANIMATION_ID::INTRO_1;
+
+    registry.colors.emplace(entity, vec3(1.0f));
+
+    registry.layers.insert(entity, { LAYER_ID::CUTSCENE });
+
+    return entity;
+}

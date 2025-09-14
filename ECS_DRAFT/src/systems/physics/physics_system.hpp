@@ -1,12 +1,14 @@
 #pragma once
 
 #include "../../common.hpp"
-#include "../../tinyECS/component_container.hpp"
-#include "../../tinyECS/components.hpp"
-#include "../../tinyECS/registry.hpp"
 #include "systems/ISystem.hpp"
+#include "physics_utils.h"
+#include "collision_detection.h"
+#include "collision_handlers.h"
+#include "physics_simulation.h"
+#include "player_mechanics.h"
 
-// A simple physics system that moves rigid bodies and checks for collision
+
 class PhysicsSystem : public ISystem
 {
 public:
@@ -19,4 +21,7 @@ public:
 	}
 private:
 	GLFWwindow* window = nullptr;
+
+	void handle_collisions(float elapsed_ms);
+	void detect_collisions();
 };

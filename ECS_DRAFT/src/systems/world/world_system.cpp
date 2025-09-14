@@ -1,13 +1,7 @@
 // Header
 #include "world_system.hpp"
-#include "world_init.hpp"
 
-// stlib
-#include <cassert>
-#include <sstream>
-#include <iostream>
-
-#include "../physics/physics_system.hpp"
+#include "systems/animation/animation_system.hpp"
 
 // create the world
 WorldSystem::WorldSystem()
@@ -17,101 +11,138 @@ WorldSystem::WorldSystem()
 }
 
 WorldSystem::~WorldSystem() {
-	// Destroy music components
-	if (background_music != nullptr)
-		Mix_FreeMusic(background_music);
-	Mix_CloseAudio();
+
+	if (this->play_sound) {
+		Mix_HaltMusic();
+		Mix_HaltChannel(-1);
+		// Destroy music components
+		if (background_music != nullptr)
+			Mix_FreeMusic(background_music);
+		background_music = nullptr;
+
+		for (Mix_Chunk* effect : sound_effects) {
+			if (effect != nullptr)
+				Mix_FreeChunk(effect);
+			effect = nullptr;
+		}
+
+		sound_effects.clear();
+
+		Mix_CloseAudio();
+		Mix_Quit();
+		SDL_QuitSubSystem(SDL_INIT_AUDIO);
+		SDL_Quit();
+	}
 
 	// Destroy all created components
 	registry.clear_all_components();
 
 	// Close the window
 	glfwDestroyWindow(window);
+	glfwTerminate();
 }
 
-// World initialization
-bool WorldSystem::start_and_load_sounds() {
-	
-	//////////////////////////////////////
-	// Loading music and sounds with SDL
-	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-		fprintf(stderr, "Failed to initialize SDL Audio");
-		return false;
-	}
 
-	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
-		fprintf(stderr, "Failed to open audio device");
-		return false;
-	}
-
-	background_music = Mix_LoadMUS(audio_path("time_ambient.wav").c_str());
-
-	if (background_music == nullptr) {
-		fprintf(stderr, "Failed to load sounds\n %s\n make sure the data directory is present",
-			audio_path("time_ambient.wav").c_str());
-		return false;
-	}
-
-    return true;
-}
-
-void WorldSystem::init(GLFWwindow* window) {
-
-	this->window = window;
-	if (!start_and_load_sounds()) {
-		std::cerr << "ERROR: Failed to start or load sounds." << std::endl;
-	}
-
-	// Setting callbacks to member functions (that's why the redirect is needed)
-	// Input is handled using GLFW, for more info see
-	// http://www.glfw.org/docs/latest/input_guide.html
-	glfwSetWindowUserPointer(window, this);
-	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
-	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
-	auto mouse_button_pressed_redirect = [](GLFWwindow* wnd, int _button, int _action, int _mods) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_button_pressed(_button, _action, _mods); };
-
-	glfwSetKeyCallback(window, key_redirect);
-	glfwSetCursorPosCallback(window, cursor_pos_redirect);
-	glfwSetMouseButtonCallback(window, mouse_button_pressed_redirect);
-
-	// start playing background music indefinitely
-	std::cout << "Starting music..." << std::endl;
-	Mix_PlayMusic(background_music, -1);
-
-	// Set all states to default
-    restart_game();
-}
 
 // Update our game world
 void WorldSystem::step(float elapsed_ms_since_last_update) {
-
-	// Updating window title with points
-	std::stringstream title_ss;
-//	title_ss << "Points: " << points;
-//	glfwSetWindowTitle(window, title_ss.str().c_str());
-
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
 	    registry.remove_all_components_of(registry.debugComponents.entities.back());
 
-	// Removing out of screen entities
-	auto& motions_registry = registry.motions;
+	// Update fps info
+	fps_timer += elapsed_ms_since_last_update;
+	if (fps_timer > FPS_COUNTER_UPDATE_PERIOD_MS) {
+		fps_timer = 0.0;
+		update_window_caption(elapsed_ms_since_last_update);
+	}
 
-	// Remove entities that leave the screen on the left side
-	// Iterate backwards to be able to remove without unterfering with the next object to visit
-	// (the containers exchange the last element with the current)
-	for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
-	    Motion& motion = motions_registry.components[i];
-		if (motion.position.x + abs(motion.scale.x) < 0.f) {
-			if(!registry.players.has(motions_registry.entities[i])) // don't remove the player
-				registry.remove_all_components_of(motions_registry.entities[i]);
+	/* This part of code restricts the motion of entities;
+	* It makes sense to apply a similar logic, but is currently restricting the action range of cameras;
+	* May need to refine this in the future (e.g., for certain projectiles, bosses, etc.)
+	*/
+
+	// Update info on acceleration and deceleration duration and deactivate if needed
+	assert(registry.gameStates.components.size() <= 1);
+
+	check_player_killed();
+	check_scene_transition();
+
+	GameState& gameState = registry.gameStates.components[0];
+	
+	// Update acceleration and deceleration timer
+	if (gameState.game_time_control_state == TIME_CONTROL_STATE::ACCELERATED) {
+		if (gameState.accelerate_timer > 0.0) {
+			gameState.accelerate_timer -= elapsed_ms_since_last_update;
+
+			if (gameState.accelerate_timer <= 0.0) {
+				control_time(true, false);
+			}
+		}
+	} else { 
+		if (gameState.accelerate_timer < 0.0) {
+			gameState.accelerate_timer += elapsed_ms_since_last_update;
+
+			if (gameState.accelerate_timer >= 0.0) {
+				gameState.accelerate_timer = 0.0;
+			}
 		}
 	}
 
+	if (gameState.game_time_control_state == TIME_CONTROL_STATE::DECELERATED) {
+		if (gameState.decelerate_timer > 0.0) {
+			gameState.decelerate_timer -= elapsed_ms_since_last_update;
+
+			if (gameState.decelerate_timer <= 0.0) {
+				control_time(false, false);
+			}
+		}
+	} else {
+		if (gameState.decelerate_timer < 0.0) {
+			gameState.decelerate_timer += elapsed_ms_since_last_update;
+
+			if (gameState.decelerate_timer >= 0.0) {
+				gameState.decelerate_timer = 0.0;
+			}
+		}
+	}
+	
+
+
+	// TODO: prob don't need to loop any frame, only when transitions are taking place...
+	for (int i = 0; i < registry.timeControllables.size(); i++) {
+		const Entity entity = registry.timeControllables.entities[i];
+		
+		TimeControllable& tc = registry.timeControllables.components[i];
+		Motion& motion = registry.motions.get(entity);
+		float start = NORMAL_FACTOR;
+		float effective_time = 0.0f;
+
+		// this is a bit ugly but covers the 4 cases where we go from accelerated/decelerated to normal/decelerated/accelerated
+		if (motion.velocityModifier < NORMAL_FACTOR && tc.target_time_control_factor != DECELERATE_FACTOR) {
+			start = DECELERATE_FACTOR;
+			effective_time = gameState.decelerate_timer;
+		} else if (motion.velocityModifier > NORMAL_FACTOR && tc.target_time_control_factor != ACCELERATE_FACTOR) {
+			start = ACCELERATE_FACTOR;
+			effective_time = gameState.accelerate_timer;
+		}
+
+		lerpTimeState(start, tc.target_time_control_factor, motion, effective_time);
+		
+		update_time_control_properties(gameState.game_time_control_state, tc, entity);
+	}
+
+	// Can potentially remove
+	if (gameState.game_running_state == GAME_RUNNING_STATE::SHOULD_RESET) {
+		restart_game();
+	}
 }
 
+
+
+
 void WorldSystem::late_step(float elapsed_ms) {
-	handle_collisions();
+	(void) elapsed_ms;
 }
 
 // Reset the world state to its initial state
@@ -122,67 +153,49 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
+	// Reset fps timer
+	fps_timer = 0.0;
+
 	// Reset the game speed
 	current_speed = 1.f;
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	while (registry.motions.entities.size() > 0)
-	    registry.remove_all_components_of(registry.motions.entities.back());
+		registry.remove_all_components_of(registry.motions.entities.back());
+
+	// Remove all particles
+	while (registry.particles.entities.size() > 0)
+		registry.remove_all_components_of(registry.particles.entities.back());
 
 	// debugging for memory/component leaks
 	registry.list_all_components();
-}
 
-// Compute collisions between entities
-void WorldSystem::handle_collisions() {
-	ComponentContainer<Collision>& collision_container = registry.collisions;
-	for (uint i = 0; i < collision_container.components.size(); i++) {
+	assert(registry.gameStates.components.size() <= 1);
+	GameState& gameState = registry.gameStates.components[0];
+	gameState.accelerate_timer = 0.f;
+	gameState.accelerate_timer = 0.f;
+	gameState.game_time_control_state = TIME_CONTROL_STATE::NORMAL;
 
+	gameState.game_running_state = GAME_RUNNING_STATE::MENU;
+	//gameState.game_running_state = GAME_RUNNING_STATE::OUTRO;
+	
+	gameState.game_scene_transition_state = SCENE_TRANSITION_STATE::TRANSITION_IN;
+	gameState.is_in_boss_fight = 0;
 
+	LevelState& levelState = registry.levelStates.components[0];
+	levelState.shouldLoad = true;
+
+	// Check if particle system initialized
+	if (registry.particleSystemStates.size() >= 1) {
+		ParticleSystemState& particleState = registry.particleSystemStates.components[0];
+		particleState.wind_field = { 0.0f, 0.0f };
+		particleState.gravity_field = { 0.0f, GRAVITY };
+		particleState.turbulence_scale = 1.0f;
+		particleState.turbulence_strength = 0.0f;
 	}
-	// Remove all collisions from this simulation step
-	registry.collisions.clear();
-}
+	// TODO:
+	// Maybe the game state should also keep track of current level and player spawning position?
 
-// on key callback
-void WorldSystem::on_key(int key, int, int action, int mod) {
-
-	// exit game w/ ESC
-	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
-		glfwSetWindowShouldClose(window, GLFW_TRUE);
-	}
-
-	// Resetting game
-	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
-
-        restart_game();
-	}
-
-	if (key == GLFW_KEY_D) {
-		if (action == GLFW_RELEASE) {
-			if (debugging.in_debug_mode) {
-				debugging.in_debug_mode = false;
-			}
-			else {
-				debugging.in_debug_mode = true;
-			}
-		}
-	}
-}
-
-void WorldSystem::on_mouse_move(vec2 mouse_position) {
-
-	// record the current mouse position
-	mouse_pos_x = mouse_position.x;
-	mouse_pos_y = mouse_position.y;
-}
-
-void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
-	// on button press
-	if (action == GLFW_PRESS) {
-		std::cout << "mouse position: " << mouse_pos_x << ", " << mouse_pos_y << std::endl;
-	}
+	//load_level("");
 }

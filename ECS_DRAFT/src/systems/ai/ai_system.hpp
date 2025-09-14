@@ -1,7 +1,16 @@
 #pragma once
 
-#include "../rendering/render_system.hpp"
+#include "../../common.hpp"
+#include "../../tinyECS/component_container.hpp"
+#include "../../tinyECS/components.hpp"
 #include "../../tinyECS/registry.hpp"
+#include "systems/ISystem.hpp"
+#include "../world/world_init.hpp"
+
+#include "cannon_tower/cannon_tower_utils.hpp"
+#include "delayed_projectile/delayed_projectile_utils.hpp"
+#include "obstacle_spawner/obstacle_spawner.h"
+#include "pipe/pipe_utils.hpp"
 
 class AISystem : public ISystem
 {
@@ -12,4 +21,6 @@ public:
 	void late_step(float elapsed_ms) override;
 private:
 	GLFWwindow* window = nullptr;
+
+	// A collection of AI-related functions; executed in specific order?
 };
